@@ -1,0 +1,139 @@
+import json
+import os
+from functools import wraps
+
+from dotenv import load_dotenv
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for
+
+load_dotenv()
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE = os.path.join(BASE_DIR, 'data', 'estado.json')
+
+app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'troque-esta-chave-em-producao')
+
+# Credenciais
+USUARIOS = {
+    os.environ.get('MESTRE_USER', 'Ismaile'): {
+        'senha': os.environ.get('MESTRE_SENHA', '99129863'),
+        'papel': 'mestre',
+    },
+    os.environ.get('JOGADOR_USER', 'jogador'): {
+        'senha': os.environ.get('JOGADOR_SENHA', 'dnd2024'),
+        'papel': 'jogador',
+    },
+}
+
+ESTADO_PADRAO = {
+    'fichas': [],
+    'monstros_visiveis': [],
+}
+
+
+def carregar_estado():
+    if not os.path.exists(DATA_FILE):
+        salvar_estado(ESTADO_PADRAO)
+    with open(DATA_FILE, 'r', encoding='utf-8') as f:
+        estado = json.load(f)
+    for chave, valor in ESTADO_PADRAO.items():
+        estado.setdefault(chave, valor)
+    return estado
+
+
+def salvar_estado(estado):
+    os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
+    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+        json.dump(estado, f, ensure_ascii=False, indent=2)
+
+
+def login_obrigatorio(papeis=None):
+    def decorador(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            if 'usuario' not in session:
+                return redirect(url_for('login'))
+            if papeis and session.get('papel') not in papeis:
+                return redirect(url_for('index'))
+            return fn(*args, **kwargs)
+        return wrapper
+    return decorador
+
+
+@app.route('/')
+def index():
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+    if session.get('papel') == 'mestre':
+        return redirect(url_for('mestre'))
+    return redirect(url_for('jogador'))
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    erro = None
+    if request.method == 'POST':
+        usuario = request.form.get('usuario', '').strip()
+        senha = request.form.get('senha', '')
+        dados = USUARIOS.get(usuario)
+        if dados and dados['senha'] == senha:
+            session['usuario'] = usuario
+            session['papel'] = dados['papel']
+            return redirect(url_for('index'))
+        erro = 'Usuário ou senha inválidos.'
+    return render_template('login.html', erro=erro)
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+
+@app.route('/mestre')
+@login_obrigatorio(papeis=['mestre'])
+def mestre():
+    return render_template('mestre.html', usuario=session['usuario'])
+
+
+@app.route('/jogador')
+@login_obrigatorio(papeis=['mestre', 'jogador'])
+def jogador():
+    return render_template('jogador.html', usuario=session['usuario'])
+
+
+# ===== API =====
+
+@app.route('/api/fichas', methods=['GET'])
+@login_obrigatorio()
+def api_get_fichas():
+    return jsonify(carregar_estado()['fichas'])
+
+
+@app.route('/api/fichas', methods=['PUT'])
+@login_obrigatorio()
+def api_put_fichas():
+    estado = carregar_estado()
+    estado['fichas'] = request.get_json(force=True) or []
+    salvar_estado(estado)
+    return jsonify({'ok': True})
+
+
+@app.route('/api/monstros_visiveis', methods=['GET'])
+@login_obrigatorio()
+def api_get_monstros_visiveis():
+    return jsonify(carregar_estado()['monstros_visiveis'])
+
+
+@app.route('/api/monstros_visiveis', methods=['PUT'])
+@login_obrigatorio(papeis=['mestre'])
+def api_put_monstros_visiveis():
+    estado = carregar_estado()
+    estado['monstros_visiveis'] = request.get_json(force=True) or []
+    salvar_estado(estado)
+    return jsonify({'ok': True})
+
+
+if __name__ == '__main__':
+    porta = int(os.environ.get('PORT', 5300))
+    app.run(host='0.0.0.0', port=porta, debug=os.environ.get('FLASK_DEBUG') == '1')

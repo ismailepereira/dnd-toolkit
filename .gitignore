@@ -1,0 +1,21 @@
+# ─── BLOCO DE SEGURANÇA (padrão F:\Claude\SEGURANCA.md) ───
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+*secret*
+*senha*
+!*.example
+
+# ─── Estado local (gerado em runtime) ───
+data/estado.json
+
+# ─── Comuns ───
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+Thumbs.db

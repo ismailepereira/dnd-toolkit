@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mestre's Toolkit - D&D</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-row">
+      <h1>🐉 Mestre's Toolkit</h1>
+      <div class="user-info">
+        <span>Mestre: {{ usuario }}</span>
+        <a href="{{ url_for('jogador') }}" class="btn-secondary">Ver como Jogador</a>
+        <a href="{{ url_for('logout') }}" class="btn-danger">Sair</a>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="fichas">Fichas</button>
+      <button class="tab-btn" data-tab="combate">Combate</button>
+      <button class="tab-btn" data-tab="notas">Notas / NPCs</button>
+      <button class="tab-btn" data-tab="progressao">Progressão</button>
+      <button class="tab-btn" data-tab="bestiario">Bestiário</button>
+      <button class="tab-btn" data-tab="loja">Loja</button>
+      <button class="tab-btn" data-tab="geradores">Geradores</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- FICHAS -->
+    <section id="fichas" class="tab-content active">
+      <div class="panel-header">
+        <h2>Fichas de Personagem</h2>
+        <button id="novaFicha" class="btn-primary">+ Nova Ficha</button>
+      </div>
+      <div id="listaFichas" class="card-grid"></div>
+    </section>
+
+    <!-- COMBATE -->
+    <section id="combate" class="tab-content">
+      <div class="panel-header">
+        <h2>Rastreador de Iniciativa</h2>
+        <div>
+          <button id="addCombatente" class="btn-primary">+ Combatente</button>
+          <button id="ordenarIniciativa" class="btn-secondary">Ordenar</button>
+          <button id="proximoTurno" class="btn-secondary">Próximo turno</button>
+          <button id="limparCombate" class="btn-danger">Limpar tudo</button>
+        </div>
+      </div>
+      <div class="turno-info" id="turnoInfo"></div>
+      <div id="listaCombate" class="combat-list"></div>
+    </section>
+
+    <!-- NOTAS -->
+    <section id="notas" class="tab-content">
+      <div class="panel-header">
+        <h2>Notas de Campanha / NPCs</h2>
+        <button id="novaNota" class="btn-primary">+ Nova Nota</button>
+      </div>
+      <div class="notas-layout">
+        <div id="listaNotas" class="notas-sidebar"></div>
+        <div id="editorNota" class="notas-editor"></div>
+      </div>
+    </section>
+
+    <!-- PROGRESSÃO -->
+    <section id="progressao" class="tab-content">
+      <div class="panel-header">
+        <h2>Progressão de Classe</h2>
+        <div>
+          <select id="progClasse"></select>
+          <select id="progNivel"></select>
+        </div>
+      </div>
+      <div id="progInfo" class="prog-info"></div>
+      <div id="progTabela" class="prog-tabela"></div>
+    </section>
+
+    <!-- BESTIÁRIO -->
+    <section id="bestiario" class="tab-content">
+      <div class="panel-header">
+        <h2>Bestiário - Mina Perdida de Phandelver</h2>
+        <input type="text" id="bestiaBusca" placeholder="Buscar monstro...">
+      </div>
+      <p class="aviso-mestre">Marque "Visível para jogadores" nos monstros que você quer que apareçam na aba Bestiário dos jogadores.</p>
+
+      <h3>Sugestões de Encontro por Nível</h3>
+      <div id="sugestoesLista" class="sugestoes-grid"></div>
+
+      <h3>Monstros</h3>
+      <div id="listaMonstros" class="monstro-grid"></div>
+    </section>
+
+    <!-- LOJA -->
+    <section id="loja" class="tab-content">
+      <div class="panel-header">
+        <h2>Loja de Itens</h2>
+        <button id="novoItem" class="btn-primary">+ Adicionar Item</button>
+      </div>
+      <div class="loja-filtros">
+        <input type="text" id="lojaBusca" placeholder="Buscar item...">
+        <select id="lojaCategoria"></select>
+      </div>
+      <div id="listaLoja" class="loja-grid"></div>
+    </section>
+
+    <!-- GERADORES -->
+    <section id="geradores" class="tab-content">
+      <h2>Geradores Rápidos</h2>
+      <div class="ger-grid">
+        <div class="ger-card">
+          <h3>Nome de NPC</h3>
+          <button class="btn-primary" data-ger="npc">Gerar NPC</button>
+          <div class="ger-resultado" id="resNpc"></div>
+        </div>
+        <div class="ger-card">
+          <h3>Tesouro / Loot</h3>
+          <button class="btn-primary" data-ger="loot">Gerar Loot</button>
+          <div class="ger-resultado" id="resLoot"></div>
+        </div>
+        <div class="ger-card">
+          <h3>Encontro Aleatório</h3>
+          <button class="btn-primary" data-ger="encontro">Gerar Encontro</button>
+          <div class="ger-resultado" id="resEncontro"></div>
+        </div>
+        <div class="ger-card">
+          <h3>Gancho de Aventura</h3>
+          <button class="btn-primary" data-ger="gancho">Gerar Gancho</button>
+          <div class="ger-resultado" id="resGancho"></div>
+        </div>
+        <div class="ger-card">
+          <h3>Taverna / Local</h3>
+          <button class="btn-primary" data-ger="taverna">Gerar Local</button>
+          <div class="ger-resultado" id="resTaverna"></div>
+        </div>
+        <div class="ger-card">
+          <h3>Rolagem de Dados</h3>
+          <div class="dado-row">
+            <input type="text" id="dadoFormula" placeholder="ex: 2d6+3" value="1d20">
+            <button class="btn-primary" id="rolarDado">Rolar</button>
+          </div>
+          <div class="ger-resultado" id="resDado"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Ficha -->
+  <div id="modalFicha" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="modalFichaTitulo">Ficha de Personagem</h2>
+      <div class="form-grid">
+        <label>Nome <input type="text" id="fNome"></label>
+        <label>Classe <input type="text" id="fClasse"></label>
+        <label>Raça <input type="text" id="fRaca"></label>
+        <label>Nível <input type="number" id="fNivel" value="1" min="1"></label>
+        <label>HP Atual <input type="number" id="fHpAtual" value="10"></label>
+        <label>HP Máximo <input type="number" id="fHpMax" value="10"></label>
+        <label>CA <input type="number" id="fCa" value="10"></label>
+        <label>Iniciativa (bônus) <input type="number" id="fIniciativa" value="0"></label>
+      </div>
+      <h3>Atributos</h3>
+      <div class="form-grid attrs">
+        <label>FOR <input type="number" id="fFor" value="10"></label>
+        <label>DES <input type="number" id="fDes" value="10"></label>
+        <label>CON <input type="number" id="fCon" value="10"></label>
+        <label>INT <input type="number" id="fInt" value="10"></label>
+        <label>SAB <input type="number" id="fSab" value="10"></label>
+        <label>CAR <input type="number" id="fCar" value="10"></label>
+      </div>
+      <label class="full">Inventário / Equipamento
+        <textarea id="fInventario" rows="3"></textarea>
+      </label>
+      <label class="full">Magias / Habilidades
+        <textarea id="fMagias" rows="3"></textarea>
+      </label>
+      <label class="full">Anotações
+        <textarea id="fAnotacoes" rows="3"></textarea>
+      </label>
+      <div class="modal-actions">
+        <button id="excluirFicha" class="btn-danger">Excluir</button>
+        <button id="cancelarFicha" class="btn-secondary">Cancelar</button>
+        <button id="salvarFicha" class="btn-primary">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Item da Loja -->
+  <div id="modalItem" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="modalItemTitulo">Novo Item</h2>
+      <div class="form-grid">
+        <label class="full">Nome <input type="text" id="iNome"></label>
+        <label>Categoria
+          <select id="iCategoria">
+            <option value="Arma">Arma</option>
+            <option value="Armadura">Armadura</option>
+            <option value="Aventura">Equip. de Aventura</option>
+            <option value="Ferramenta">Ferramenta</option>
+            <option value="Montaria">Montaria/Veículo</option>
+            <option value="Mágico">Item Mágico</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </label>
+        <label>Preço <input type="text" id="iPreco" placeholder="ex: 15 po"></label>
+        <label>Peso <input type="text" id="iPeso" placeholder="ex: 2 kg"></label>
+      </div>
+      <label class="full">Descrição
+        <textarea id="iDescricao" rows="3"></textarea>
+      </label>
+      <div class="modal-actions">
+        <button id="excluirItem" class="btn-danger">Excluir</button>
+        <button id="cancelarItem" class="btn-secondary">Cancelar</button>
+        <button id="salvarItem" class="btn-primary">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/classes.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/itens.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/monstros.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <footer class="footer-attribuicao">
+    Desenvolvido por <a href="https://ismailepereira.github.io/" target="_blank" rel="noopener">ismailepereira</a>
+  </footer>
+</body>
+</html>

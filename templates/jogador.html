@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Área do Jogador - D&D</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-row">
+      <h1>🎲 Área do Jogador</h1>
+      <div class="user-info">
+        <span>{{ usuario }}</span>
+        {% if usuario == 'Ismaile' %}
+        <a href="{{ url_for('mestre') }}" class="btn-secondary">Voltar ao Mestre</a>
+        {% endif %}
+        <a href="{{ url_for('logout') }}" class="btn-danger">Sair</a>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="fichas">Minha Ficha</button>
+      <button class="tab-btn" data-tab="bestiario">Bestiário</button>
+      <button class="tab-btn" data-tab="progressao">Progressão</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- FICHAS -->
+    <section id="fichas" class="tab-content active">
+      <div class="panel-header">
+        <h2>Fichas do Grupo</h2>
+        <button id="novaFicha" class="btn-primary">+ Nova Ficha</button>
+      </div>
+      <div id="listaFichas" class="card-grid"></div>
+    </section>
+
+    <!-- BESTIÁRIO -->
+    <section id="bestiario" class="tab-content">
+      <div class="panel-header">
+        <h2>Bestiário</h2>
+        <input type="text" id="bestiaBusca" placeholder="Buscar monstro...">
+      </div>
+      <p class="aviso-mestre">Os monstros aparecem aqui quando o Mestre os libera.</p>
+      <div id="listaMonstros" class="monstro-grid"></div>
+    </section>
+
+    <!-- PROGRESSÃO -->
+    <section id="progressao" class="tab-content">
+      <div class="panel-header">
+        <h2>Progressão de Classe</h2>
+        <div>
+          <select id="progClasse"></select>
+          <select id="progNivel"></select>
+        </div>
+      </div>
+      <div id="progInfo" class="prog-info"></div>
+      <div id="progTabela" class="prog-tabela"></div>
+    </section>
+  </main>
+
+  <!-- Modal Ficha -->
+  <div id="modalFicha" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="modalFichaTitulo">Ficha de Personagem</h2>
+      <div class="form-grid">
+        <label>Nome <input type="text" id="fNome"></label>
+        <label>Classe <input type="text" id="fClasse"></label>
+        <label>Raça <input type="text" id="fRaca"></label>
+        <label>Nível <input type="number" id="fNivel" value="1" min="1"></label>
+        <label>HP Atual <input type="number" id="fHpAtual" value="10"></label>
+        <label>HP Máximo <input type="number" id="fHpMax" value="10"></label>
+        <label>CA <input type="number" id="fCa" value="10"></label>
+        <label>Iniciativa (bônus) <input type="number" id="fIniciativa" value="0"></label>
+      </div>
+      <h3>Atributos</h3>
+      <div class="form-grid attrs">
+        <label>FOR <input type="number" id="fFor" value="10"></label>
+        <label>DES <input type="number" id="fDes" value="10"></label>
+        <label>CON <input type="number" id="fCon" value="10"></label>
+        <label>INT <input type="number" id="fInt" value="10"></label>
+        <label>SAB <input type="number" id="fSab" value="10"></label>
+        <label>CAR <input type="number" id="fCar" value="10"></label>
+      </div>
+      <label class="full">Inventário / Equipamento
+        <textarea id="fInventario" rows="3"></textarea>
+      </label>
+      <label class="full">Magias / Habilidades
+        <textarea id="fMagias" rows="3"></textarea>
+      </label>
+      <label class="full">Anotações
+        <textarea id="fAnotacoes" rows="3"></textarea>
+      </label>
+      <div class="modal-actions">
+        <button id="excluirFicha" class="btn-danger">Excluir</button>
+        <button id="cancelarFicha" class="btn-secondary">Cancelar</button>
+        <button id="salvarFicha" class="btn-primary">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/classes.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/monstros.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/jogador.js') }}"></script>
+  <footer class="footer-attribuicao">
+    Desenvolvido por <a href="https://ismailepereira.github.io/" target="_blank" rel="noopener">ismailepereira</a>
+  </footer>
+</body>
+</html>

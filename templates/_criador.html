@@ -1,0 +1,64 @@
+  <!-- Modal Criador de Personagem -->
+  <div id="modalCriador" class="modal hidden">
+    <div class="modal-content criador-content">
+      <div class="criador-header">
+        <h2 id="criadorTitulo">Criar Personagem</h2>
+        <button type="button" id="btnAutoGerar" class="btn-secondary">🎲 Gerar Automático</button>
+      </div>
+
+      <div class="criador-layout">
+        <!-- Escolhas -->
+        <div class="criador-form">
+          <label>Nome <input type="text" id="cNome" placeholder="Nome do personagem"></label>
+          <div class="criador-row">
+            <label>Raça <select id="cRaca"></select></label>
+            <label>Classe <select id="cClasse"></select></label>
+          </div>
+          <div id="cEscolhaAtributos" class="criador-escolha-attr"></div>
+          <div class="criador-row">
+            <label>Antecedente <select id="cAntecedente"></select></label>
+            <label>Nível <select id="cNivel"></select></label>
+          </div>
+
+          <h3>Atributos base
+            <span class="criador-metodo">
+              <button type="button" id="btnArranjoPadrao" class="btn-mini">Arranjo padrão</button>
+              <button type="button" id="btnRolarAtributos" class="btn-mini">🎲 Rolar 4d6</button>
+            </span>
+          </h3>
+          <div id="cAtributos" class="atributos-grid"></div>
+
+          <h3 id="cEstiloWrap" class="hidden">Estilo de Combate</h3>
+          <select id="cEstilo" class="hidden"></select>
+
+          <h3>Perícias <span id="cPericiasInfo" class="criador-hint-inline"></span></h3>
+          <div id="cPericias" class="pericias-grid"></div>
+          <div id="cPericiasExtra"></div>
+
+          <div id="cMagiasWrap" class="hidden">
+            <div id="cTruquesWrap"></div>
+            <div id="cMagias1Wrap"></div>
+          </div>
+
+          <h3>Armadura</h3>
+          <select id="cArmadura"></select>
+          <label class="check-inline"><input type="checkbox" id="cEscudo"> Usar escudo (+2 CA)</label>
+
+          <h3>Equipamento / Itens</h3>
+          <div id="cLojaWrap"></div>
+          <label>Ouro (po) <input type="number" id="cOuro" value="0" min="0"></label>
+
+          <label class="full">Anotações <textarea id="cAnotacoes" rows="2"></textarea></label>
+        </div>
+
+        <!-- Preview ao vivo -->
+        <div class="criador-preview" id="cPreview"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="cExcluir" class="btn-danger">Excluir</button>
+        <button type="button" id="cCancelar" class="btn-secondary">Cancelar</button>
+        <button type="button" id="cSalvar" class="btn-primary">Salvar Personagem</button>
+      </div>
+    </div>
+  </div>

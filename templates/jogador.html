@@ -59,48 +59,13 @@
     </section>
   </main>
 
-  <!-- Modal Ficha -->
-  <div id="modalFicha" class="modal hidden">
-    <div class="modal-content">
-      <h2 id="modalFichaTitulo">Ficha de Personagem</h2>
-      <div class="form-grid">
-        <label>Nome <input type="text" id="fNome"></label>
-        <label>Classe <select id="fClasse"></select></label>
-        <label>Raça <select id="fRaca"></select></label>
-        <label>Nível <input type="number" id="fNivel" value="1" min="1"></label>
-        <label>HP Atual <input type="number" id="fHpAtual" value="10"></label>
-        <label>HP Máximo <input type="number" id="fHpMax" value="10"></label>
-        <label>CA <input type="number" id="fCa" value="10"></label>
-        <label>Iniciativa (bônus) <input type="number" id="fIniciativa" value="0"></label>
-      </div>
-      <h3>Atributos</h3>
-      <div class="form-grid attrs">
-        <label>FOR <input type="number" id="fFor" value="10"></label>
-        <label>DES <input type="number" id="fDes" value="10"></label>
-        <label>CON <input type="number" id="fCon" value="10"></label>
-        <label>INT <input type="number" id="fInt" value="10"></label>
-        <label>SAB <input type="number" id="fSab" value="10"></label>
-        <label>CAR <input type="number" id="fCar" value="10"></label>
-      </div>
-      <label class="full">Inventário / Equipamento
-        <textarea id="fInventario" rows="3"></textarea>
-      </label>
-      <label class="full">Magias / Habilidades
-        <textarea id="fMagias" rows="3"></textarea>
-      </label>
-      <label class="full">Anotações
-        <textarea id="fAnotacoes" rows="3"></textarea>
-      </label>
-      <div class="modal-actions">
-        <button id="excluirFicha" class="btn-danger">Excluir</button>
-        <button id="cancelarFicha" class="btn-secondary">Cancelar</button>
-        <button id="salvarFicha" class="btn-primary">Salvar</button>
-      </div>
-    </div>
-  </div>
+  {% include "_criador.html" %}
 
   <script src="{{ url_for('static', filename='js/classes.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/itens.js') }}"></script>
   <script src="{{ url_for('static', filename='js/monstros.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/dados5e.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/criador.js') }}"></script>
   <script src="{{ url_for('static', filename='js/jogador.js') }}"></script>
   <footer class="footer-attribuicao">
     Desenvolvido por <a href="https://ismailepereira.github.io/" target="_blank" rel="noopener">ismailepereira</a>

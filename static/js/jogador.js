@@ -19,14 +19,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 // FICHAS (compartilhadas com o mestre via API)
 // =====================================================
 let fichas = [];
-let fichaEditandoId = null;
 
 const listaFichas = document.getElementById('listaFichas');
-const modalFicha = document.getElementById('modalFicha');
-
-// Preenche os menus de Classe e Raça com as opções oficiais do PHB
-preencherSelectClasses(document.getElementById('fClasse'));
-preencherSelectRacas(document.getElementById('fRaca'));
 
 async function carregarFichas() {
   const res = await fetch('/api/fichas');
@@ -63,76 +57,25 @@ function renderFichas() {
   });
 }
 
+// Abre o Criador de Personagem (preview ao vivo + regras 5e)
 function abrirFicha(id) {
-  fichaEditandoId = id;
-  const f = fichas.find(x => x.id === id) || { id: null };
-  document.getElementById('modalFichaTitulo').textContent = id ? 'Editar Ficha' : 'Nova Ficha';
-  document.getElementById('fNome').value = f.nome || '';
-  document.getElementById('fClasse').value = f.classe || '';
-  document.getElementById('fRaca').value = f.raca || '';
-  document.getElementById('fNivel').value = f.nivel ?? 1;
-  document.getElementById('fHpAtual').value = f.hpAtual ?? 10;
-  document.getElementById('fHpMax').value = f.hpMax ?? 10;
-  document.getElementById('fCa').value = f.ca ?? 10;
-  document.getElementById('fIniciativa').value = f.iniciativa ?? 0;
-  document.getElementById('fFor').value = f.atributos?.for ?? 10;
-  document.getElementById('fDes').value = f.atributos?.des ?? 10;
-  document.getElementById('fCon').value = f.atributos?.con ?? 10;
-  document.getElementById('fInt').value = f.atributos?.int ?? 10;
-  document.getElementById('fSab').value = f.atributos?.sab ?? 10;
-  document.getElementById('fCar').value = f.atributos?.car ?? 10;
-  document.getElementById('fInventario').value = f.inventario || '';
-  document.getElementById('fMagias').value = f.magias || '';
-  document.getElementById('fAnotacoes').value = f.anotacoes || '';
-  document.getElementById('excluirFicha').style.display = id ? 'inline-block' : 'none';
-  modalFicha.classList.remove('hidden');
+  const f = id ? fichas.find(x => x.id === id) : null;
+  Criador.abrir(f, {
+    aoSalvar(novo) {
+      if (f) Object.assign(f, novo);
+      else fichas.push({ id: uid(), ...novo });
+      salvarFichas();
+      renderFichas();
+    },
+    aoExcluir: f ? () => {
+      fichas = fichas.filter(x => x.id !== f.id);
+      salvarFichas();
+      renderFichas();
+    } : null,
+  });
 }
 
 document.getElementById('novaFicha').addEventListener('click', () => abrirFicha(null));
-document.getElementById('cancelarFicha').addEventListener('click', () => modalFicha.classList.add('hidden'));
-
-document.getElementById('salvarFicha').addEventListener('click', () => {
-  const dados = {
-    nome: document.getElementById('fNome').value.trim(),
-    classe: document.getElementById('fClasse').value.trim(),
-    raca: document.getElementById('fRaca').value.trim(),
-    nivel: Number(document.getElementById('fNivel').value) || 1,
-    hpAtual: Number(document.getElementById('fHpAtual').value) || 0,
-    hpMax: Number(document.getElementById('fHpMax').value) || 0,
-    ca: Number(document.getElementById('fCa').value) || 10,
-    iniciativa: Number(document.getElementById('fIniciativa').value) || 0,
-    atributos: {
-      for: Number(document.getElementById('fFor').value) || 10,
-      des: Number(document.getElementById('fDes').value) || 10,
-      con: Number(document.getElementById('fCon').value) || 10,
-      int: Number(document.getElementById('fInt').value) || 10,
-      sab: Number(document.getElementById('fSab').value) || 10,
-      car: Number(document.getElementById('fCar').value) || 10,
-    },
-    inventario: document.getElementById('fInventario').value,
-    magias: document.getElementById('fMagias').value,
-    anotacoes: document.getElementById('fAnotacoes').value,
-  };
-
-  if (fichaEditandoId) {
-    const idx = fichas.findIndex(f => f.id === fichaEditandoId);
-    fichas[idx] = { ...fichas[idx], ...dados };
-  } else {
-    fichas.push({ id: uid(), ...dados });
-  }
-  salvarFichas();
-  renderFichas();
-  modalFicha.classList.add('hidden');
-});
-
-document.getElementById('excluirFicha').addEventListener('click', () => {
-  if (!fichaEditandoId) return;
-  if (!confirm('Excluir esta ficha?')) return;
-  fichas = fichas.filter(f => f.id !== fichaEditandoId);
-  salvarFichas();
-  renderFichas();
-  modalFicha.classList.add('hidden');
-});
 
 carregarFichas();
 

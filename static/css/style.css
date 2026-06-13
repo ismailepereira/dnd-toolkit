@@ -353,7 +353,7 @@ label.full {
   margin-bottom: 10px;
 }
 
-input, textarea {
+input, textarea, .form-grid select {
   background: var(--bg);
   border: 1px solid var(--border);
   color: var(--text);

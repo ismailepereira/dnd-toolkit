@@ -423,3 +423,54 @@ const CLASSES = {
     }, { pacto: SLOTS_BRUXO }),
   },
 };
+
+// =====================================================
+// RAÇAS do Livro do Jogador (PHB) - com subraças
+// =====================================================
+const RACAS = [
+  { grupo: 'Anão', opcoes: ['Anão da Colina', 'Anão da Montanha'] },
+  { grupo: 'Elfo', opcoes: ['Alto Elfo', 'Elfo da Floresta', 'Drow (Elfo Negro)'] },
+  { grupo: 'Halfling', opcoes: ['Halfling Pés-Leves', 'Halfling Robusto'] },
+  { grupo: 'Humano', opcoes: ['Humano', 'Humano (Variante)'] },
+  { grupo: 'Draconato', opcoes: ['Draconato'] },
+  { grupo: 'Gnomo', opcoes: ['Gnomo da Floresta', 'Gnomo das Rochas'] },
+  { grupo: 'Meio-Elfo', opcoes: ['Meio-Elfo'] },
+  { grupo: 'Meio-Orc', opcoes: ['Meio-Orc'] },
+  { grupo: 'Tiefling', opcoes: ['Tiefling'] },
+];
+
+// Preenche um <select> com as 12 classes do PHB
+function preencherSelectClasses(sel) {
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Selecione —</option>';
+  Object.values(CLASSES).forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.nome;
+    opt.textContent = c.nome;
+    sel.appendChild(opt);
+  });
+}
+
+// Preenche um <select> com as raças do PHB (subraças agrupadas)
+function preencherSelectRacas(sel) {
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Selecione —</option>';
+  RACAS.forEach(g => {
+    if (g.opcoes.length === 1) {
+      const opt = document.createElement('option');
+      opt.value = g.opcoes[0];
+      opt.textContent = g.opcoes[0];
+      sel.appendChild(opt);
+    } else {
+      const og = document.createElement('optgroup');
+      og.label = g.grupo;
+      g.opcoes.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o;
+        opt.textContent = o;
+        og.appendChild(opt);
+      });
+      sel.appendChild(og);
+    }
+  });
+}

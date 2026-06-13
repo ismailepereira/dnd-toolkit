@@ -34,6 +34,10 @@ let fichaEditandoId = null;
 const listaFichas = document.getElementById('listaFichas');
 const modalFicha = document.getElementById('modalFicha');
 
+// Preenche os menus de Classe e Raça com as opções oficiais do PHB
+preencherSelectClasses(document.getElementById('fClasse'));
+preencherSelectRacas(document.getElementById('fRaca'));
+
 async function carregarFichas() {
   const res = await fetch('/api/fichas');
   fichas = await res.json();

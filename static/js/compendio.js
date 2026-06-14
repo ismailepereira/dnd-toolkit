@@ -65,8 +65,110 @@ const MAGIAS_DETALHE = {
   'Bola de Fogo': { nivel: 3, escola: 'Evocação', tempo: '1 ação', alcance: '45m', duracao: 'Instantânea', dano: '8d6 fogo', salva: 'Destreza', descricao: 'Explosão numa esfera de 6m de raio. DT Destreza ou 8d6 fogo (metade se passar). +1d6 por nível acima do 3º.' },
   'Relâmpago': { nivel: 3, escola: 'Evocação', tempo: '1 ação', alcance: 'Pessoal (linha 30m)', duracao: 'Instantânea', dano: '8d6 elétrico', salva: 'Destreza', descricao: 'Raio numa linha de 30m × 1,5m. DT Destreza ou 8d6 elétrico (metade se passar). +1d6 por nível acima do 3º.' },
   'Voo': { nivel: 3, escola: 'Transmutação', tempo: '1 ação', alcance: 'Toque', duracao: 'Concentração 10 min', dano: '—', salva: '—', descricao: 'O alvo ganha deslocamento de voo de 18m. +1 alvo por nível acima do 3º.' },
-  'Bola Relampejante': { nivel: 3, escola: 'Evocação', tempo: '1 ação', alcance: '36m', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'Veja Relâmpago/Bola de Fogo para área. (Placeholder de expansão.)' },
+  // ----- 2º CÍRCULO -----
+  'Raio Ardente (Scorching Ray)': { nivel: 2, escola: 'Evocação', tempo: '1 ação', alcance: '36m', duracao: 'Instantânea', dano: '3× 2d6 fogo', salva: 'Ataque à distância', descricao: 'Cria 3 raios de fogo; cada um é um ataque à distância separado por 2d6 de fogo. +1 raio por nível acima do 2º.' },
+  'Invisibilidade': { nivel: 2, escola: 'Ilusão', tempo: '1 ação', alcance: 'Toque', duracao: 'Concentração 1 hora', dano: '—', salva: '—', descricao: 'O alvo fica invisível até atacar ou conjurar. +1 alvo por nível acima do 2º.' },
+  'Passo Enevoado (Misty Step)': { nivel: 2, escola: 'Conjuração', tempo: '1 ação bônus', alcance: 'Pessoal', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'Teleporta-se até 9m para um espaço desocupado que você possa ver.' },
+  'Imobilizar Pessoa (Hold Person)': { nivel: 2, escola: 'Encantamento', tempo: '1 ação', alcance: '18m', duracao: 'Concentração 1 min', dano: '—', salva: 'Sabedoria', descricao: 'Um humanoide faz DT Sabedoria ou fica paralisado (repete o teste no fim de cada turno). +1 alvo por nível acima do 2º.' },
+  'Arma Espiritual': { nivel: 2, escola: 'Evocação', tempo: '1 ação bônus', alcance: '18m', duracao: '1 min', dano: '1d8+mod força', salva: 'Ataque corpo a corpo', descricao: 'Cria uma arma flutuante; ataque por 1d8 + mod. de conjuração de dano de força. Como ação bônus pode movê-la e atacar de novo. +1d8 a cada 2 níveis acima do 2º.' },
+  'Auxílio (Aid)': { nivel: 2, escola: 'Abjuração', tempo: '1 ação', alcance: '9m', duracao: '8 horas', dano: '+5 PV máx', salva: '—', descricao: 'Até 3 criaturas têm o PV máximo e atual aumentados em 5. +5 por nível acima do 2º.' },
+  'Embaçar (Blur)': { nivel: 2, escola: 'Ilusão', tempo: '1 ação', alcance: 'Pessoal', duracao: 'Concentração 1 min', dano: '—', salva: '—', descricao: 'Sua forma fica borrada: ataques contra você têm desvantagem (exceto de quem não depende de visão).' },
+
+  // ----- 3º CÍRCULO -----
+  'Contramágica (Counterspell)': { nivel: 3, escola: 'Abjuração', tempo: '1 reação', alcance: '18m', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'Reação quando vê alguém conjurar: interrompe magia de até 3º automaticamente; acima disso, teste de conjuração DT 10+círculo.' },
+  'Dissipar Magia (Dispel Magic)': { nivel: 3, escola: 'Abjuração', tempo: '1 ação', alcance: '36m', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'Encerra efeitos mágicos de até 3º círculo no alvo; acima disso, teste de conjuração DT 10+círculo.' },
+  'Revivificar (Revivify)': { nivel: 3, escola: 'Necromancia', tempo: '1 ação', alcance: 'Toque', duracao: 'Instantânea', dano: 'Revive', salva: '—', descricao: 'Revive uma criatura morta há até 1 minuto, com 1 PV (componente: 300 po em diamantes). Não restaura membros nem cura velhice.' },
+  'Velocidade (Haste)': { nivel: 3, escola: 'Transmutação', tempo: '1 ação', alcance: '9m', duracao: 'Concentração 1 min', dano: '—', salva: '—', descricao: 'Alvo: +2 CA, deslocamento dobrado, vantagem em salvas de Destreza e uma ação extra limitada por turno. Ao acabar, o alvo perde o turno seguinte.' },
+  'Medo (Fear)': { nivel: 3, escola: 'Ilusão', tempo: '1 ação', alcance: 'Cone 9m', duracao: 'Concentração 1 min', dano: '—', salva: 'Sabedoria', descricao: 'Criaturas no cone: DT Sabedoria ou largam o que seguram e ficam amedrontadas, fugindo.' },
+  'Proteção contra Energia': { nivel: 3, escola: 'Abjuração', tempo: '1 ação', alcance: 'Toque', duracao: 'Concentração 1 hora', dano: '—', salva: '—', descricao: 'O alvo ganha resistência a um tipo de dano à escolha: ácido, frio, fogo, elétrico ou trovão.' },
+  'Restauração Maior': { nivel: 3, escola: 'Abjuração', tempo: '1 ação', alcance: 'Toque', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'Remove um efeito: exaustão, enfeitiçar/petrificar, redução de atributo ou de PV máximo, ou maldição.' },
+
+  // ----- 4º CÍRCULO -----
+  'Tempestade de Gelo (Ice Storm)': { nivel: 4, escola: 'Evocação', tempo: '1 ação', alcance: '90m', duracao: 'Instantânea', dano: '2d8 concussão + 4d6 frio', salva: 'Destreza', descricao: 'Granizo numa esfera de 6m: DT Destreza ou 2d8 concussão + 4d6 frio (metade se passar); a área vira terreno difícil. +1d8 concussão por nível acima do 4º.' },
+  'Muralha de Fogo (Wall of Fire)': { nivel: 4, escola: 'Evocação', tempo: '1 ação', alcance: '36m', duracao: 'Concentração 1 min', dano: '5d8 fogo', salva: 'Destreza', descricao: 'Muralha de fogo (até 18m). Um lado causa 5d8 fogo a quem chega perto/atravessa (DT Destreza p/ metade). +1d8 por nível acima do 4º.' },
+  'Porta Dimensional (Dimension Door)': { nivel: 4, escola: 'Conjuração', tempo: '1 ação', alcance: '150m', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'Teleporta você (e 1 criatura disposta adjacente) para um local que você conheça/visualize a até 150m.' },
+  'Banimento (Banishment)': { nivel: 4, escola: 'Abjuração', tempo: '1 ação', alcance: '18m', duracao: 'Concentração 1 min', dano: '—', salva: 'Carisma', descricao: 'DT Carisma ou o alvo é banido para um semiplano (se extraplanar e durar 1 min, vai-se de vez). +1 alvo por nível acima do 4º.' },
+  'Invisibilidade Maior': { nivel: 4, escola: 'Ilusão', tempo: '1 ação', alcance: 'Toque', duracao: 'Concentração 1 min', dano: '—', salva: '—', descricao: 'O alvo fica invisível mesmo atacando e conjurando.' },
+  'Polimorfia (Polymorph)': { nivel: 4, escola: 'Transmutação', tempo: '1 ação', alcance: '18m', duracao: 'Concentração 1 hora', dano: '—', salva: 'Sabedoria', descricao: 'Transforma o alvo numa fera de ND igual/menor ao seu nível. Usa os PV da nova forma; ao chegar a 0, volta ao normal.' },
+  'Liberdade de Movimento': { nivel: 4, escola: 'Abjuração', tempo: '1 ação', alcance: 'Toque', duracao: '1 hora', dano: '—', salva: '—', descricao: 'O alvo ignora terreno difícil e não pode ser agarrado, paralisado ou impedido por magia.' },
+
+  // ----- 5º CÍRCULO -----
+  'Cone de Frio (Cone of Cold)': { nivel: 5, escola: 'Evocação', tempo: '1 ação', alcance: 'Cone 18m', duracao: 'Instantânea', dano: '8d8 frio', salva: 'Constituição', descricao: 'Frio explosivo num cone de 18m. DT Constituição ou 8d8 frio (metade se passar). +1d8 por nível acima do 5º.' },
+  'Reviver Mortos (Raise Dead)': { nivel: 5, escola: 'Necromancia', tempo: '1 hora', alcance: 'Toque', duracao: 'Instantânea', dano: 'Revive', salva: '—', descricao: 'Revive quem morreu há até 10 dias com 1 PV (componente: diamante de 500 po). O alvo fica com -4 em testes/ataques/salvas, recuperando 1 por descanso longo.' },
+  'Telecinésia (Telekinesis)': { nivel: 5, escola: 'Transmutação', tempo: '1 ação', alcance: '18m', duracao: 'Concentração 10 min', dano: '—', salva: 'Força', descricao: 'Move objetos ou criaturas (DT Força) à distância, podendo empurrar, segurar ou arremessar.' },
+  'Muralha de Pedra': { nivel: 5, escola: 'Evocação', tempo: '1 ação', alcance: '36m', duracao: 'Concentração 10 min', dano: '—', salva: '—', descricao: 'Cria uma muralha de pedra (até 10 painéis de 3m). Pode bloquear passagens ou prender criaturas.' },
+  'Praga de Insetos (Insect Plague)': { nivel: 5, escola: 'Conjuração', tempo: '1 ação', alcance: '90m', duracao: 'Concentração 10 min', dano: '4d10 perfurante', salva: 'Constituição', descricao: 'Enxame numa esfera de 6m (terreno difícil). Quem entra/começa o turno: DT Constituição ou 4d10 perfurante (metade se passar). +1d10 por nível acima do 5º.' },
+  'Dominar Pessoa': { nivel: 5, escola: 'Encantamento', tempo: '1 ação', alcance: '18m', duracao: 'Concentração 1 min', dano: '—', salva: 'Sabedoria', descricao: 'DT Sabedoria ou um humanoide fica enfeitiçado e sob seu controle. Repete o teste ao sofrer dano. Sobe em duração com níveis maiores.' },
+  'Nuvem Mortal (Cloudkill)': { nivel: 5, escola: 'Conjuração', tempo: '1 ação', alcance: '36m', duracao: 'Concentração 10 min', dano: '5d8 veneno', salva: 'Constituição', descricao: 'Névoa venenosa de 6m que se move 3m/rodada. DT Constituição ou 5d8 veneno (metade se passar). +1d8 por nível acima do 5º.' },
+
+  // ----- 6º CÍRCULO -----
+  'Desintegrar (Disintegrate)': { nivel: 6, escola: 'Transmutação', tempo: '1 ação', alcance: '18m', duracao: 'Instantânea', dano: '10d6+40 força', salva: 'Destreza', descricao: 'DT Destreza ou 10d6+40 de força; se reduzir a 0, o alvo vira pó. +3d6 por nível acima do 6º.' },
+  'Cura em Massa (Heal)': { nivel: 6, escola: 'Evocação', tempo: '1 ação', alcance: '18m', duracao: 'Instantânea', dano: 'Cura 70 PV', salva: '—', descricao: 'Cura 70 PV de uma criatura e remove cegueira, surdez e doenças. +10 PV por nível acima do 6º.' },
+  'Corrente de Relâmpagos (Chain Lightning)': { nivel: 6, escola: 'Evocação', tempo: '1 ação', alcance: '45m', duracao: 'Instantânea', dano: '10d8 elétrico', salva: 'Destreza', descricao: 'Atinge 1 alvo + salta para até 3 outros a 9m. Cada um: DT Destreza ou 10d8 elétrico (metade se passar). +1 alvo por nível acima do 6º.' },
+  'Globo de Invulnerabilidade': { nivel: 6, escola: 'Abjuração', tempo: '1 ação', alcance: 'Pessoal (3m)', duracao: 'Concentração 1 min', dano: '—', salva: '—', descricao: 'Esfera de 3m que bloqueia magias de 5º círculo ou menor lançadas de fora para dentro.' },
+  'Círculo da Morte (Circle of Death)': { nivel: 6, escola: 'Necromancia', tempo: '1 ação', alcance: '45m', duracao: 'Instantânea', dano: '8d6 necrótico', salva: 'Constituição', descricao: 'Onda negativa numa esfera de 18m. DT Constituição ou 8d6 necrótico (metade se passar). +2d6 por nível acima do 6º.' },
+
+  // ----- 7º CÍRCULO -----
+  'Dedo da Morte (Finger of Death)': { nivel: 7, escola: 'Necromancia', tempo: '1 ação', alcance: '18m', duracao: 'Instantânea', dano: '7d8+30 necrótico', salva: 'Constituição', descricao: 'DT Constituição ou 7d8+30 necrótico (metade se passar). Humanoide morto por ela vira um zumbi sob seu controle.' },
+  'Tempestade de Fogo (Fire Storm)': { nivel: 7, escola: 'Evocação', tempo: '1 ação', alcance: '45m', duracao: 'Instantânea', dano: '7d10 fogo', salva: 'Destreza', descricao: 'Chamas em até 10 cubos de 3m à escolha. DT Destreza ou 7d10 fogo (metade se passar).' },
+  'Teleporte (Teleport)': { nivel: 7, escola: 'Conjuração', tempo: '1 ação', alcance: '3m', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'Teleporta você e até 8 aliados (ou 1 objeto grande) para um destino que você conheça, a qualquer distância no mesmo plano (com risco se pouco familiar).' },
+  'Regeneração': { nivel: 7, escola: 'Transmutação', tempo: '1 min', alcance: 'Toque', duracao: '1 hora', dano: 'Cura', salva: '—', descricao: 'O alvo recupera 4d8+15 PV e passa a regenerar 1 PV/min; membros perdidos voltam a crescer.' },
+
+  // ----- 8º CÍRCULO -----
+  'Palavra de Poder: Atordoar': { nivel: 8, escola: 'Encantamento', tempo: '1 ação', alcance: '18m', duracao: '—', dano: '—', salva: 'Constituição', descricao: 'Se o alvo tiver até 150 PV, fica atordoado (repete DT Constituição no fim de cada turno). Sem salva inicial.' },
+  'Nuvem Incendiária (Incendiary Cloud)': { nivel: 8, escola: 'Conjuração', tempo: '1 ação', alcance: '45m', duracao: 'Concentração 1 min', dano: '10d8 fogo', salva: 'Destreza', descricao: 'Fumaça flamejante de 6m que se move 3m/rodada. DT Destreza ou 10d8 fogo (metade se passar).' },
+  'Sol Ardente (Sunburst)': { nivel: 8, escola: 'Evocação', tempo: '1 ação', alcance: '45m', duracao: 'Instantânea', dano: '12d6 radiante', salva: 'Constituição', descricao: 'Clarão numa esfera de 18m. DT Constituição ou 12d6 radiante e cegueira por 1 min; mortos-vivos têm desvantagem.' },
+  'Dominar Monstro': { nivel: 8, escola: 'Encantamento', tempo: '1 ação', alcance: '18m', duracao: 'Concentração 1 hora', dano: '—', salva: 'Sabedoria', descricao: 'DT Sabedoria ou qualquer criatura fica enfeitiçada e sob seu controle; repete o teste ao sofrer dano.' },
+
+  // ----- 9º CÍRCULO -----
+  'Desejo (Wish)': { nivel: 9, escola: 'Conjuração', tempo: '1 ação', alcance: 'Pessoal', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'A magia mais poderosa: duplica qualquer magia de até 8º círculo sem componentes, ou altera a realidade (com risco de nunca mais conjurá-la).' },
+  'Parar o Tempo (Time Stop)': { nivel: 9, escola: 'Transmutação', tempo: '1 ação', alcance: 'Pessoal', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'Você age por 1d4+1 turnos enquanto o tempo para; quebra se afetar outra criatura ou um item carregado por ela.' },
+  'Tempestade de Meteoros (Meteor Swarm)': { nivel: 9, escola: 'Evocação', tempo: '1 ação', alcance: '1,5 km', duracao: 'Instantânea', dano: '20d6 (fogo+concussão)', salva: 'Destreza', descricao: 'Quatro impactos em esferas de 12m. DT Destreza ou 20d6 (40 total: fogo e concussão) — metade se passar.' },
+  'Palavra de Poder: Matar': { nivel: 9, escola: 'Encantamento', tempo: '1 ação', alcance: '18m', duracao: 'Instantânea', dano: 'Morte', salva: '—', descricao: 'Se o alvo tiver 100 PV ou menos, morre instantaneamente. Sem salva.' },
+  'Curar em Massa (Mass Heal)': { nivel: 9, escola: 'Evocação', tempo: '1 ação', alcance: '18m', duracao: 'Instantânea', dano: 'Cura 700 PV', salva: '—', descricao: 'Distribui até 700 PV de cura entre várias criaturas e remove doenças, cegueira e surdez.' },
 };
+
+// =====================================================
+// CARACTERÍSTICAS DE CLASSE - descrições (o que cada habilidade faz)
+// Indexado por nome aproximado (busca tolerante por detalheCaracteristica)
+// =====================================================
+const CARACTERISTICAS_DETALHE = {
+  'Estilo de Luta': 'Você adota uma especialização de combate (Arquearia, Defesa, Duelo, etc.) que concede um bônus passivo.',
+  'Surto de Ação': 'Em seu turno, você pode realizar uma ação adicional. Recupera em descanso curto ou longo.',
+  'Retomar o Fôlego': 'Como ação bônus, recupera 1d10 + nível de Guerreiro de PV. Recupera em descanso curto/longo.',
+  'Ataque Extra': 'Você ataca duas (ou mais) vezes ao usar a ação de Ataque.',
+  'Indomável': 'Pode rolar de novo uma salvaguarda que falhou (1+/descanso longo).',
+  'Fúria': 'Como ação bônus: vantagem em testes/salvas de Força, +dano corpo a corpo e resistência a concussão/perfurante/cortante. Dura 1 min.',
+  'Defesa sem Armadura': 'Sem armadura, sua CA usa um atributo extra (Bárbaro: +CON; Monge: +SAB).',
+  'Ataque Imprudente': 'Ganha vantagem nos ataques corpo a corpo de Força no turno, mas ataques contra você também têm vantagem.',
+  'Ataque Furtivo': 'Causa dano extra (escala com o nível) quando tem vantagem ou um aliado está perto do alvo, 1x por turno.',
+  'Ação Ardilosa': 'Pode Disparar, Desengajar ou Esconder-se como ação bônus em cada turno.',
+  'Esquiva Sobrenatural': 'Reação para reduzir à metade o dano de um ataque que você enxerga.',
+  'Evasão': 'Em efeitos de área com salva de Destreza, sofre metade do dano (ou nenhum, se passar).',
+  'Pontos de Ki': 'Energia mística para Rajada de Golpes, Defesa Paciente, Passo do Vento e outras técnicas. Recupera em descanso curto.',
+  'Rajada de Golpes': 'Após a ação de Ataque, gaste 1 Ki para 2 ataques desarmados como ação bônus.',
+  'Movimento sem Armadura': 'Seu deslocamento aumenta enquanto não usar armadura nem escudo.',
+  'Inspiração Bárdica': 'Como ação bônus, dá a um aliado um dado de inspiração para somar a um ataque, teste ou salva.',
+  'Canalizar Divindade': 'Efeito divino da sua divindade/domínio (ex.: Expulsar Mortos-Vivos). Recupera em descanso curto.',
+  'Imposição das Mãos': 'Reserva de cura igual a 5× seu nível de Paladino, distribuída ao toque; também cura doença/veneno.',
+  'Sentido Divino': 'Detecta celestiais, corruptores e mortos-vivos próximos.',
+  'Punição Divina': 'Ao acertar com arma corpo a corpo, gaste um espaço de magia para +2d8 (ou mais) de dano radiante.',
+  'Forma Selvagem': 'Transforma-se em uma fera que você já viu, assumindo seus atributos físicos. Recupera em descanso curto.',
+  'Conjuração': 'Você lança magias da sua classe usando espaços de magia e o atributo de conjuração.',
+  'Recuperação Arcana': 'Em um descanso curto, recupera espaços de magia (Mago).',
+  'Sortudo (Halfling)': 'Ao rolar 1 natural num d20 de ataque, teste ou salva, rerrole o dado.',
+};
+
+// Busca tolerante de característica (ignora parênteses e sufixos)
+function detalheCaracteristica(nome) {
+  if (CARACTERISTICAS_DETALHE[nome]) return CARACTERISTICAS_DETALHE[nome];
+  const base = nome.toLowerCase().replace(/\s*\(.*?\)\s*/g, '').trim();
+  for (const k in CARACTERISTICAS_DETALHE) {
+    const kb = k.toLowerCase().replace(/\s*\(.*?\)\s*/g, '').trim();
+    if (base === kb || base.startsWith(kb) || kb.startsWith(base)) return CARACTERISTICAS_DETALHE[k];
+  }
+  return null;
+}
 
 // =====================================================
 // CONDIÇÕES (PHB) - para o rastreador de combate

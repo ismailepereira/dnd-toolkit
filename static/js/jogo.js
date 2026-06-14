@@ -177,11 +177,21 @@ const Jogo = (function () {
       magiasHtml += '</div>';
     }
 
-    // características do nível
-    const nv = nivelObj();
+    // características acumuladas até o nível atual (com descrição do que fazem)
+    const cls = classeObj();
     let caracHtml = '';
-    if (nv && nv.caracteristicas.length) {
-      caracHtml = `<div class="jg-bloco"><h4>Características (nível ${f.nivel})</h4><ul>${nv.caracteristicas.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>`;
+    if (cls) {
+      const linhas = [];
+      cls.niveis.filter(n => n.nivel <= f.nivel).forEach(n => {
+        n.caracteristicas.forEach(ca => {
+          const d = (typeof detalheCaracteristica === 'function') ? detalheCaracteristica(ca) : null;
+          if (d) linhas.push(`<details class="jg-magia"><summary><span class="jg-nv-tag">N${n.nivel}</span> ${esc(ca)}</summary><div class="jg-magia-corpo"><p>${esc(d)}</p></div></details>`);
+          else linhas.push(`<div class="jg-magia-simples"><span class="jg-nv-tag">N${n.nivel}</span> ${esc(ca)}</div>`);
+        });
+      });
+      if (f.subclasse) linhas.unshift(`<div class="jg-magia-simples"><strong>Especialização:</strong> ${esc(f.subclasse)}</div>`);
+      if ((f.talentos || []).length) f.talentos.forEach(t => linhas.unshift(`<div class="jg-magia-simples"><strong>Talento:</strong> ${esc(t)}</div>`));
+      caracHtml = `<div class="jg-bloco"><h4>Características de Classe</h4>${linhas.join('')}</div>`;
     }
 
     // condições

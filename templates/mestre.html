@@ -39,17 +39,25 @@
 
     <!-- COMBATE -->
     <section id="combate" class="tab-content">
-      <div class="panel-header">
-        <h2>Rastreador de Iniciativa</h2>
-        <div>
-          <button id="addCombatente" class="btn-primary">+ Combatente</button>
-          <button id="ordenarIniciativa" class="btn-secondary">Ordenar</button>
-          <button id="proximoTurno" class="btn-secondary">Próximo turno</button>
-          <button id="limparCombate" class="btn-danger">Limpar tudo</button>
-        </div>
+      <div class="panel-header"><h2>Combate</h2></div>
+      <div class="combate-toolbar">
+        <button id="addPersonagens" class="btn-primary">+ Personagens</button>
+        <span class="add-monstro">
+          <select id="combMonstroSel"></select>
+          <input type="number" id="combMonstroQtd" value="1" min="1" title="Quantidade">
+          <button id="addMonstro" class="btn-secondary">+ Monstro</button>
+        </span>
+        <button id="addCombatente" class="btn-secondary">+ Avulso</button>
+        <button id="rolarIniciativa" class="btn-secondary">🎲 Rolar Iniciativa</button>
+        <button id="proximoTurno" class="btn-secondary">▶ Próximo turno</button>
+        <button id="limparCombate" class="btn-danger">Limpar</button>
       </div>
+      <p class="aviso-mestre">Clique em 🎯 para escolher o alvo; aí clique num ataque do monstro para rolar acerto + dano e aplicar automaticamente.</p>
       <div class="turno-info" id="turnoInfo"></div>
-      <div id="listaCombate" class="combat-list"></div>
+      <div class="combate-layout">
+        <div id="listaCombate" class="combat-list"></div>
+        <div class="combate-log-box"><h4>Histórico</h4><ul id="combateLog"></ul></div>
+      </div>
     </section>
 
     <!-- NOTAS -->

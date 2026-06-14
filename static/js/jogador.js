@@ -250,3 +250,60 @@ function renderProgressao() {
 progClasse.addEventListener('change', renderProgressao);
 progNivel.addEventListener('change', renderProgressao);
 renderProgressao();
+
+// =====================================================
+// COMBATE (somente leitura - acompanha o que o Mestre conduz)
+// =====================================================
+const turnoInfoJog = document.getElementById('turnoInfoJog');
+const listaCombateJog = document.getElementById('listaCombateJog');
+
+function statusMonstro(pct, hpAtual) {
+  if (hpAtual === 0) return { txt: 'Caído 💀', cor: '#e94560' };
+  if (pct > 75) return { txt: 'Saudável', cor: '#3fb950' };
+  if (pct > 50) return { txt: 'Arranhado', cor: '#3fb950' };
+  if (pct > 25) return { txt: 'Ferido', cor: '#d29922' };
+  return { txt: 'Quase morto', cor: '#e94560' };
+}
+
+function renderCombateJog(combate) {
+  if (!combate || !combate.combatentes || !combate.combatentes.length) {
+    turnoInfoJog.textContent = 'Nenhum combate em andamento.';
+    listaCombateJog.innerHTML = '';
+    return;
+  }
+  const idx = combate.turno % combate.combatentes.length;
+  const atual = combate.combatentes[idx];
+  turnoInfoJog.innerHTML = `Rodada <b>${combate.rodada}</b> · Vez de <b>${escapeHtml(atual.nome)}</b>`;
+  listaCombateJog.innerHTML = '';
+  combate.combatentes.forEach((c, i) => {
+    const pct = c.hpMax > 0 ? (c.hpAtual / c.hpMax) * 100 : 0;
+    const div = document.createElement('div');
+    div.className = 'comb-card leitura' + (i === idx ? ' turno' : '') + (c.hpAtual === 0 ? ' morto' : '');
+    let estado;
+    if (c.tipo === 'pc') {
+      const cor = pct > 50 ? '#3fb950' : pct > 25 ? '#d29922' : '#e94560';
+      estado = `<div class="comb-hp">PV ${c.hpAtual}/${c.hpMax}<div class="comb-bar"><div style="width:${pct}%;background:${cor}"></div></div></div>`;
+    } else {
+      const s = statusMonstro(pct, c.hpAtual);
+      estado = `<div class="comb-status" style="color:${s.cor}">${s.txt}</div>`;
+    }
+    const conds = (c.condicoes || []).length ? `<div class="comb-conds">${c.condicoes.map(x => `<span class="cond-tag">${escapeHtml(x)}</span>`).join('')}</div>` : '';
+    div.innerHTML = `
+      <div class="comb-top">
+        <span class="comb-ini">${c.iniciativa}</span>
+        <span class="comb-nome">${escapeHtml(c.nome)} <small class="comb-tipo ${c.tipo}">${c.tipo === 'pc' ? 'PJ' : c.tipo === 'monstro' ? 'Monstro' : 'NPC'}</small></span>
+        <span class="comb-ca">CA ${c.ca}</span>
+      </div>
+      ${estado}${conds}`;
+    listaCombateJog.appendChild(div);
+  });
+}
+
+async function atualizarCombateJog() {
+  try {
+    const c = await (await fetch('/api/combate')).json();
+    renderCombateJog(c);
+  } catch (e) {}
+}
+atualizarCombateJog();
+setInterval(atualizarCombateJog, 5000);

@@ -108,90 +108,209 @@ document.getElementById('novaFicha').addEventListener('click', () => abrirFicha(
 carregarFichas();
 
 // =====================================================
-// COMBATE / INICIATIVA
+// COMBATE UNIFICADO (personagens + monstros, rolagem e dano)
+// Estado compartilhado via API (jogadores acompanham em tempo real)
 // =====================================================
-let combatentes = Storage.get('dnd_combate', []);
-let turnoAtual = Storage.get('dnd_combate_turno', 0);
+let combate = { combatentes: [], turno: 0, rodada: 1, log: [] };
+let alvoSelecionado = null;
 
 const listaCombate = document.getElementById('listaCombate');
 const turnoInfo = document.getElementById('turnoInfo');
+const combateLog = document.getElementById('combateLog');
+const combMonstroSel = document.getElementById('combMonstroSel');
 
+// preenche o seletor de monstros
+MONSTROS.forEach(m => {
+  const o = document.createElement('option');
+  o.value = m.nome; o.textContent = `${m.nome} (ND ${m.cr})`;
+  combMonstroSel.appendChild(o);
+});
+
+let _filaCombate = Promise.resolve();
 function salvarCombate() {
-  Storage.set('dnd_combate', combatentes);
-  Storage.set('dnd_combate_turno', turnoAtual);
+  _filaCombate = _filaCombate.then(() =>
+    fetch('/api/combate', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(combate) })
+  ).catch(() => {});
+  return _filaCombate;
+}
+async function carregarCombate() {
+  try { combate = await (await fetch('/api/combate')).json(); } catch (e) {}
+  if (!combate || !combate.combatentes) combate = { combatentes: [], turno: 0, rodada: 1, log: [] };
+  renderCombate();
 }
 
-function renderCombate() {
-  listaCombate.innerHTML = '';
-  if (combatentes.length === 0) {
-    turnoInfo.textContent = 'Nenhum combatente. Adicione com "+ Combatente".';
-  } else {
-    const atual = combatentes[turnoAtual % combatentes.length];
-    turnoInfo.textContent = `Turno ${turnoAtual + 1} — Vez de: ${atual?.nome || '(sem nome)'}`;
-  }
+const dado = faces => 1 + Math.floor(Math.random() * faces);
+function rolarFormula(f) {
+  const mt = String(f).match(/(\d*)\s*d\s*(\d+)\s*([+-]\s*\d+)?/i);
+  if (!mt) return { total: 0, dice: 0, bonus: 0, txt: '0' };
+  const n = mt[1] ? +mt[1] : 1, faces = +mt[2], bonus = mt[3] ? parseInt(mt[3].replace(/\s/g, '')) : 0;
+  let dice = 0; const ds = [];
+  for (let i = 0; i < n; i++) { const r = dado(faces); ds.push(r); dice += r; }
+  return { total: dice + bonus, dice, bonus, txt: `${ds.join('+')}${bonus ? (bonus > 0 ? '+' + bonus : bonus) : ''}=${dice + bonus}` };
+}
+function logCombate(t) { combate.log.unshift(`R${combate.rodada} · ${t}`); combate.log = combate.log.slice(0, 40); }
+const soNum = s => { const m = String(s).match(/\d+/); return m ? +m[0] : 10; };
 
-  combatentes.forEach((c, i) => {
+function parseAcoes(m) {
+  return (m.acoes || []).map(a => {
+    const nome = a.split(':')[0].trim();
+    const bm = a.match(/([+-]\d+)\s*para acertar/);
+    const dm = a.match(/\((\d+d\d+(?:[+-]\d+)?)\)/);
+    return { texto: a, nome, bonus: bm ? parseInt(bm[1]) : null, dano: dm ? dm[1] : null };
+  }).filter(x => x.bonus !== null || x.dano !== null);
+}
+
+function addPersonagens() {
+  let n = 0;
+  fichas.forEach(f => {
+    if (combate.combatentes.some(c => c.fichaId === f.id)) return;
+    combate.combatentes.push({ id: uid(), tipo: 'pc', fichaId: f.id, nome: f.nome, iniciativa: dado(20) + (f.iniciativa || 0), hpAtual: f.hpAtual, hpMax: f.hpMax, ca: f.ca, condicoes: [] });
+    n++;
+  });
+  logCombate(`${n} personagem(ns) entraram no combate`);
+  ordenarCombate();
+}
+
+function addMonstro(nome, qtd) {
+  const m = MONSTROS.find(x => x.nome === nome); if (!m) return;
+  const acoes = parseAcoes(m), hp = soNum(m.hp), ca = soNum(m.ca), desMod = mod(m.atributos.des);
+  for (let i = 0; i < qtd; i++) {
+    combate.combatentes.push({ id: uid(), tipo: 'monstro', monstroNome: nome, nome: m.nome + (qtd > 1 ? ' ' + (i + 1) : ''), iniciativa: dado(20) + desMod, hpAtual: hp, hpMax: hp, ca, condicoes: [], acoes });
+  }
+  logCombate(`${qtd}× ${m.nome} entraram no combate`);
+  ordenarCombate();
+}
+
+function ordenarCombate() { combate.combatentes.sort((a, b) => b.iniciativa - a.iniciativa); combate.turno = 0; salvarCombate(); renderCombate(); }
+function proximoTurnoCombate() {
+  if (!combate.combatentes.length) return;
+  combate.turno++;
+  if (combate.turno >= combate.combatentes.length) { combate.turno = 0; combate.rodada++; logCombate(`— Rodada ${combate.rodada} —`); }
+  salvarCombate(); renderCombate();
+}
+
+function aplicarDanoComb(c, v) {
+  c.hpAtual = Math.max(0, c.hpAtual - v);
+  if (c.tipo === 'pc' && c.fichaId) { const f = fichas.find(x => x.id === c.fichaId); if (f) { f.hpAtual = c.hpAtual; salvarFichas(); } }
+}
+function curarComb(c, v) {
+  c.hpAtual = Math.min(c.hpMax, c.hpAtual + v);
+  if (c.tipo === 'pc' && c.fichaId) { const f = fichas.find(x => x.id === c.fichaId); if (f) { f.hpAtual = c.hpAtual; salvarFichas(); } }
+}
+
+function atacar(atacante, acao) {
+  const alvo = combate.combatentes.find(c => c.id === alvoSelecionado);
+  const d20 = dado(20), total = d20 + (acao.bonus || 0);
+  let txt = `${atacante.nome} — ${acao.nome}: ataque ${total} (d20 ${d20}${acao.bonus ? (acao.bonus > 0 ? '+' + acao.bonus : acao.bonus) : ''})`;
+  if (!alvo) {
+    if (acao.dano) { const dr = rolarFormula(acao.dano); txt += `; dano ${dr.txt} (selecione um alvo 🎯 p/ aplicar)`; }
+    logCombate(txt); salvarCombate(); renderCombate(); return;
+  }
+  const critico = d20 === 20, erroAuto = d20 === 1;
+  const acerto = critico || (!erroAuto && total >= alvo.ca);
+  if (acerto && acao.dano) {
+    const dr = rolarFormula(acao.dano);
+    let danoTotal = dr.total;
+    if (critico) { const cr = rolarFormula(acao.dano); danoTotal += cr.dice; }
+    aplicarDanoComb(alvo, danoTotal);
+    txt += `${critico ? ' CRÍTICO!' : ''} → acertou ${alvo.nome}: ${danoTotal} de dano (${dr.txt}). PV ${alvo.hpAtual}/${alvo.hpMax}`;
+    if (alvo.hpAtual === 0) txt += ` 💀 caiu!`;
+  } else if (acerto) {
+    txt += ` → acertou ${alvo.nome} (sem dano definido)`;
+  } else {
+    txt += ` → ERROU ${alvo.nome} (CA ${alvo.ca})`;
+  }
+  logCombate(txt); salvarCombate(); renderCombate();
+}
+
+function statusPct(c) { return c.hpMax > 0 ? (c.hpAtual / c.hpMax) * 100 : 0; }
+
+function renderCombate() {
+  if (!listaCombate) return;
+  // log
+  combateLog.innerHTML = (combate.log || []).map(l => `<li>${escapeHtml(l)}</li>`).join('');
+  if (!combate.combatentes.length) {
+    turnoInfo.textContent = 'Sem combatentes. Adicione personagens e monstros.';
+    listaCombate.innerHTML = '<p style="color:var(--text-dim)">Vazio.</p>';
+    return;
+  }
+  const idxAtual = combate.turno % combate.combatentes.length;
+  const atual = combate.combatentes[idxAtual];
+  turnoInfo.innerHTML = `Rodada <b>${combate.rodada}</b> · Vez de <b>${escapeHtml(atual.nome)}</b>${alvoSelecionado ? ` · Alvo: <b>${escapeHtml(combate.combatentes.find(c => c.id === alvoSelecionado)?.nome || '—')}</b>` : ''}`;
+
+  listaCombate.innerHTML = '';
+  combate.combatentes.forEach((c, i) => {
+    const pct = statusPct(c);
+    const cor = pct > 50 ? '#3fb950' : pct > 25 ? '#d29922' : '#e94560';
     const div = document.createElement('div');
-    div.className = 'combat-item' + (i === (turnoAtual % combatentes.length) ? ' current-turn' : '');
+    div.className = 'comb-card' + (i === idxAtual ? ' turno' : '') + (c.id === alvoSelecionado ? ' alvo' : '') + (c.hpAtual === 0 ? ' morto' : '');
+    const condChips = Object.keys(CONDICOES).map(cd => `<label class="check-chip mini ${c.condicoes.includes(cd) ? 'on' : ''}" title="${escapeHtml(CONDICOES[cd])}"><input type="checkbox" data-cond="${escapeHtml(cd)}" ${c.condicoes.includes(cd) ? 'checked' : ''}>${escapeHtml(cd)}</label>`).join('');
+    const acoesHtml = (c.acoes || []).map((a, ai) => `<button class="comb-acao" data-acao="${ai}" title="${escapeHtml(a.texto)}">${escapeHtml(a.nome)}${a.bonus != null ? ` (${a.bonus >= 0 ? '+' : ''}${a.bonus})` : ''}${a.dano ? ` ${escapeHtml(a.dano)}` : ''}</button>`).join('');
     div.innerHTML = `
-      <input type="number" value="${c.iniciativa}" data-field="iniciativa" title="Iniciativa">
-      <input type="text" value="${escapeHtml(c.nome)}" data-field="nome" placeholder="Nome">
-      <div class="hp-controls">
-        <input type="number" value="${c.hpAtual}" data-field="hpAtual" title="HP atual">
-        <span>/</span>
-        <input type="number" value="${c.hpMax}" data-field="hpMax" title="HP máximo">
+      <div class="comb-top">
+        <span class="comb-ini" title="Iniciativa">${c.iniciativa}</span>
+        <span class="comb-nome">${escapeHtml(c.nome)} <small class="comb-tipo ${c.tipo}">${c.tipo === 'pc' ? 'PJ' : c.tipo === 'monstro' ? 'Monstro' : 'NPC'}</small></span>
+        <span class="comb-ca">CA ${c.ca}</span>
+        <button class="comb-alvo" data-alvo title="Definir como alvo">🎯</button>
+        <button class="comb-rem" data-rem title="Remover">✕</button>
       </div>
-      <input type="text" value="${escapeHtml(c.condicoes || '')}" data-field="condicoes" placeholder="Condições">
-      <button class="remove-btn" title="Remover">✕</button>
+      <div class="comb-hp">PV ${c.hpAtual}/${c.hpMax}<div class="comb-bar"><div style="width:${pct}%;background:${cor}"></div></div></div>
+      <div class="comb-acoes-hp">
+        <input type="number" class="comb-val" value="5" style="width:52px">
+        <button class="btn-danger comb-dano" data-dano>− Dano</button>
+        <button class="btn-primary comb-cura" data-cura>+ Cura</button>
+      </div>
+      ${acoesHtml ? `<div class="comb-ataques">${acoesHtml}</div>` : ''}
+      <details class="comb-cond"><summary>Condições${c.condicoes.length ? ' (' + c.condicoes.length + ')' : ''}</summary><div class="jg-cond-grid">${condChips}</div></details>
     `;
-    div.querySelectorAll('input').forEach(inp => {
-      inp.addEventListener('change', () => {
-        const field = inp.dataset.field;
-        c[field] = (field === 'iniciativa' || field === 'hpAtual' || field === 'hpMax')
-          ? Number(inp.value) || 0
-          : inp.value;
-        salvarCombate();
-      });
+    // selecionar alvo
+    div.querySelector('[data-alvo]').addEventListener('click', e => { e.stopPropagation(); alvoSelecionado = (alvoSelecionado === c.id ? null : c.id); renderCombate(); });
+    div.querySelector('[data-rem]').addEventListener('click', e => {
+      e.stopPropagation();
+      combate.combatentes = combate.combatentes.filter(x => x.id !== c.id);
+      if (combate.turno >= combate.combatentes.length) combate.turno = 0;
+      salvarCombate(); renderCombate();
     });
-    div.querySelector('.remove-btn').addEventListener('click', () => {
-      combatentes.splice(i, 1);
-      if (turnoAtual >= combatentes.length) turnoAtual = 0;
-      salvarCombate();
-      renderCombate();
-    });
+    const val = () => Math.max(1, Number(div.querySelector('.comb-val').value) || 1);
+    div.querySelector('[data-dano]').addEventListener('click', () => { aplicarDanoComb(c, val()); logCombate(`${c.nome} sofreu ${val()} de dano. PV ${c.hpAtual}/${c.hpMax}`); salvarCombate(); renderCombate(); });
+    div.querySelector('[data-cura]').addEventListener('click', () => { curarComb(c, val()); logCombate(`${c.nome} curou ${val()}. PV ${c.hpAtual}/${c.hpMax}`); salvarCombate(); renderCombate(); });
+    div.querySelectorAll('[data-acao]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); atacar(c, c.acoes[+b.dataset.acao]); }));
+    div.querySelectorAll('[data-cond]').forEach(chk => chk.addEventListener('change', () => {
+      const cd = chk.dataset.cond;
+      if (chk.checked) { if (!c.condicoes.includes(cd)) c.condicoes.push(cd); } else c.condicoes = c.condicoes.filter(x => x !== cd);
+      salvarCombate(); renderCombate();
+    }));
     listaCombate.appendChild(div);
   });
 }
 
+document.getElementById('addPersonagens').addEventListener('click', addPersonagens);
+document.getElementById('addMonstro').addEventListener('click', () => addMonstro(combMonstroSel.value, Math.max(1, Number(document.getElementById('combMonstroQtd').value) || 1)));
 document.getElementById('addCombatente').addEventListener('click', () => {
-  combatentes.push({ id: uid(), nome: '', iniciativa: 0, hpAtual: 10, hpMax: 10, condicoes: '' });
-  salvarCombate();
-  renderCombate();
+  const nome = prompt('Nome do combatente avulso:'); if (!nome) return;
+  const hp = Number(prompt('PV:', '10')) || 10;
+  combate.combatentes.push({ id: uid(), tipo: 'npc', nome, iniciativa: dado(20), hpAtual: hp, hpMax: hp, ca: Number(prompt('CA:', '12')) || 12, condicoes: [] });
+  ordenarCombate();
 });
-
-document.getElementById('ordenarIniciativa').addEventListener('click', () => {
-  combatentes.sort((a, b) => b.iniciativa - a.iniciativa);
-  turnoAtual = 0;
-  salvarCombate();
-  renderCombate();
+document.getElementById('rolarIniciativa').addEventListener('click', () => {
+  combate.combatentes.forEach(c => {
+    let bonus = 0;
+    if (c.tipo === 'pc' && c.fichaId) { const f = fichas.find(x => x.id === c.fichaId); bonus = f ? (f.iniciativa || 0) : 0; }
+    else if (c.tipo === 'monstro') { const m = MONSTROS.find(x => x.nome === c.monstroNome); bonus = m ? mod(m.atributos.des) : 0; }
+    c.iniciativa = dado(20) + bonus;
+  });
+  logCombate('Iniciativa rolada para todos');
+  ordenarCombate();
 });
-
-document.getElementById('proximoTurno').addEventListener('click', () => {
-  if (combatentes.length === 0) return;
-  turnoAtual = (turnoAtual + 1) % combatentes.length;
-  salvarCombate();
-  renderCombate();
-});
-
+document.getElementById('proximoTurno').addEventListener('click', proximoTurnoCombate);
 document.getElementById('limparCombate').addEventListener('click', () => {
-  if (!confirm('Limpar todos os combatentes?')) return;
-  combatentes = [];
-  turnoAtual = 0;
-  salvarCombate();
-  renderCombate();
+  if (!confirm('Limpar todo o combate?')) return;
+  combate = { combatentes: [], turno: 0, rodada: 1, log: [] };
+  alvoSelecionado = null;
+  salvarCombate(); renderCombate();
 });
 
-renderCombate();
+carregarCombate();
 
 // =====================================================
 // NOTAS / NPCs

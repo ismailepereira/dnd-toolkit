@@ -28,6 +28,7 @@ USUARIOS = {
 ESTADO_PADRAO = {
     'fichas': [],
     'monstros_visiveis': [],
+    'combate': {'combatentes': [], 'turno': 0, 'rodada': 1, 'log': []},
 }
 
 
@@ -130,6 +131,21 @@ def api_get_monstros_visiveis():
 def api_put_monstros_visiveis():
     estado = carregar_estado()
     estado['monstros_visiveis'] = request.get_json(force=True) or []
+    salvar_estado(estado)
+    return jsonify({'ok': True})
+
+
+@app.route('/api/combate', methods=['GET'])
+@login_obrigatorio()
+def api_get_combate():
+    return jsonify(carregar_estado()['combate'])
+
+
+@app.route('/api/combate', methods=['PUT'])
+@login_obrigatorio(papeis=['mestre'])
+def api_put_combate():
+    estado = carregar_estado()
+    estado['combate'] = request.get_json(force=True) or ESTADO_PADRAO['combate']
     salvar_estado(estado)
     return jsonify({'ok': True})
 

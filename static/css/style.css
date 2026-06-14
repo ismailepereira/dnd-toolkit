@@ -779,6 +779,83 @@ input, textarea, .form-grid select {
 .footer-attribuicao a:hover { text-decoration: underline; }
 
 /* =====================================================
+   MODO DE JOGO (ficha viva)
+   ===================================================== */
+.ficha-card-acoes { display: flex; gap: 6px; margin-top: 10px; }
+.btn-jogar, .btn-editar {
+  flex: 1; border: 1px solid var(--border); border-radius: 6px;
+  padding: 6px; font-size: 0.82rem; cursor: pointer;
+}
+.btn-jogar { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-editar { background: var(--bg-card); color: var(--text-dim); }
+.btn-editar:hover { color: var(--text); }
+
+.jogo-content { max-width: 1000px; width: 96%; position: relative; }
+.jogo-fechar {
+  position: absolute; top: 10px; right: 12px;
+  background: var(--bg-card); border: 1px solid var(--border); color: var(--text);
+  border-radius: 6px; width: 30px; height: 30px; cursor: pointer; font-size: 1rem; z-index: 2;
+}
+
+.jg-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; padding-right: 36px; }
+.jg-header h2 { margin: 0; color: var(--accent); }
+.jg-sub { color: var(--text-dim); font-size: 0.85rem; }
+.jg-rest { display: flex; gap: 6px; flex-wrap: wrap; }
+.jg-rest .btn-secondary { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); cursor: pointer; font-size: 0.82rem; }
+
+.jg-pv { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.jg-pv-num { font-size: 0.95rem; margin-bottom: 6px; }
+.jg-pv-num b { font-size: 1.2rem; color: var(--text); }
+.jg-temp { color: #3fb950; font-size: 0.8rem; }
+.jg-pv-bar { height: 14px; background: var(--bg); border-radius: 7px; overflow: hidden; margin-bottom: 8px; }
+.jg-pv-bar div { height: 100%; transition: width .2s; }
+.jg-pv-acoes { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.jg-pv-acoes input { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 5px; padding: 5px; }
+.jg-pv-acoes button { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; font-size: 0.82rem; }
+
+.jg-attrs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 12px; }
+.jg-attr { display: flex; flex-direction: column; align-items: center; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 6px 0; }
+.jg-attr span { font-size: 0.62rem; color: var(--text-dim); }
+.jg-attr b { font-size: 1.1rem; }
+.jg-attr i { font-size: 0.78rem; color: var(--accent); font-style: normal; }
+
+.jg-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.jg-bloco { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
+.jg-bloco h4 { margin: 0 0 8px 0; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); }
+.jg-bloco ul { margin: 0; padding-left: 16px; font-size: 0.85rem; }
+.jg-bloco li { margin-bottom: 3px; }
+
+.jg-slot-linha { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 0.85rem; }
+.slots { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; }
+.slot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--accent); background: var(--accent); }
+.slot.usado { background: transparent; }
+
+.jg-rec { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 5px; }
+.jg-rec small { color: var(--text-dim); }
+.jg-rec-ctrl { display: flex; align-items: center; gap: 6px; }
+
+.jg-ouro { display: flex; align-items: center; gap: 8px; }
+.jg-ouro b { color: #e3b341; font-size: 1.05rem; }
+.jg-ouro input { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 5px; padding: 5px; }
+
+.jg-magia { border-bottom: 1px solid var(--border); padding: 4px 0; }
+.jg-magia summary { cursor: pointer; font-size: 0.87rem; }
+.jg-dano { color: var(--accent); font-size: 0.78rem; margin-left: 6px; }
+.jg-magia-corpo { padding: 6px 0 4px 8px; }
+.jg-magia-meta { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 4px; }
+.jg-magia-corpo p { font-size: 0.83rem; margin: 4px 0; }
+.jg-magia-simples { font-size: 0.85rem; padding: 3px 0; border-bottom: 1px solid var(--border); }
+
+.jg-cond-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap: 4px; }
+.jg-log { list-style: none; padding-left: 0 !important; font-size: 0.8rem; color: var(--text-dim); }
+.jg-log li { border-bottom: 1px dashed var(--border); padding: 2px 0; }
+
+@media (max-width: 820px) {
+  .jg-cols { grid-template-columns: 1fr; }
+  .jg-attrs { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* =====================================================
    CRIADOR DE PERSONAGEM
    ===================================================== */
 .criador-content {

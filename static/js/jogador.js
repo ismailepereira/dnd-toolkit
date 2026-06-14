@@ -28,12 +28,17 @@ async function carregarFichas() {
   renderFichas();
 }
 
-async function salvarFichas() {
-  await fetch('/api/fichas', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(fichas),
-  });
+let _filaSalvarFichas = Promise.resolve();
+function salvarFichas() {
+  // serializa os PUTs para não se atropelarem (modo de jogo / tempo real)
+  _filaSalvarFichas = _filaSalvarFichas.then(() =>
+    fetch('/api/fichas', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fichas),
+    })
+  ).catch(() => {});
+  return _filaSalvarFichas;
 }
 
 function renderFichas() {
@@ -51,8 +56,16 @@ function renderFichas() {
       <div class="sub">${escapeHtml(f.raca) || ''} ${escapeHtml(f.classe) || ''} - Nível ${f.nivel}</div>
       <div>HP: ${f.hpAtual} / ${f.hpMax} | CA: ${f.ca}</div>
       <div class="hp-bar"><div class="hp-bar-fill" style="width:${pct}%"></div></div>
+      <div class="ficha-card-acoes">
+        <button class="btn-jogar" data-jogar="${f.id}">▶ Jogar</button>
+        <button class="btn-editar" data-editar="${f.id}">✎ Editar</button>
+      </div>
     `;
-    card.addEventListener('click', () => abrirFicha(f.id));
+    card.querySelector('[data-jogar]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      Jogo.abrir(f, { aoAtualizar: () => { salvarFichas(); renderFichas(); } });
+    });
+    card.querySelector('[data-editar]').addEventListener('click', (e) => { e.stopPropagation(); abrirFicha(f.id); });
     listaFichas.appendChild(card);
   });
 }

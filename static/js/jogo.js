@@ -200,6 +200,7 @@ const Jogo = (function () {
           <div class="jg-sub">${esc(f.raca)} · ${esc(f.classe)} nível ${f.nivel}${f.estilo ? ' · ' + esc(f.estilo) : ''}</div>
         </div>
         <div class="jg-rest">
+          <button id="jgSubirNivel" class="btn-primary">⬆️ Subir de Nível</button>
           <button id="jgDescCurto" class="btn-secondary">☕ Descanso Curto</button>
           <button id="jgDescLongo" class="btn-secondary">🌙 Descanso Longo</button>
         </div>
@@ -246,6 +247,10 @@ const Jogo = (function () {
     $('jgDadoVida').onclick = gastarDadoVida;
     $('jgDescCurto').onclick = () => { descansoCurto(); log('Descanso curto'); };
     $('jgDescLongo').onclick = () => { descansoLongo(); log('Descanso longo — recuperado'); };
+    $('jgSubirNivel').onclick = () => {
+      if (typeof Nivel === 'undefined') return;
+      Nivel.abrir(ficha, { aoSalvar: () => { log(`Subiu para o nível ${ficha.nivel}!`); salvar(); } });
+    };
 
     const ov = () => Math.max(0, Number($('jgOuroVal').value) || 0);
     $('jgOuroMais').onclick = () => { ficha.ouro += ov(); salvar(); };

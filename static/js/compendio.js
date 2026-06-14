@@ -108,6 +108,77 @@ const TALENTOS = {
   'Observador (Observant)': '+1 INT ou SAB; +5 em Percepção e Investigação passivas; lê lábios.',
 };
 
+// =====================================================
+// SUBCLASSES (PHB) - { classe: { nivel, opcoes:[{nome, desc}] } }
+// nivel = nível em que a subclasse é escolhida
+// =====================================================
+const SUBCLASSES = {
+  'Bárbaro': { nivel: 3, opcoes: [
+    { nome: 'Caminho do Berserker', desc: 'Frenesi: ataque bônus durante a Fúria.' },
+    { nome: 'Caminho do Guerreiro Totêmico', desc: 'Espíritos totêmicos (urso/águia/lobo) concedem poderes.' },
+  ] },
+  'Bardo': { nivel: 3, opcoes: [
+    { nome: 'Colégio do Conhecimento', desc: 'Perícias extras e Palavras Cortantes.' },
+    { nome: 'Colégio da Bravura', desc: 'Inspiração de combate e proficiência marcial.' },
+  ] },
+  'Clérigo': { nivel: 1, opcoes: [
+    { nome: 'Domínio da Vida', desc: 'Cura potencializada; armadura pesada.' },
+    { nome: 'Domínio da Luz', desc: 'Magias de fogo/radiância; Flash protetor.' },
+    { nome: 'Domínio da Guerra', desc: 'Ataques divinos; proficiência marcial.' },
+    { nome: 'Domínio do Engano', desc: 'Bênção do Trapaceiro; magias de ilusão.' },
+    { nome: 'Domínio do Conhecimento', desc: 'Perícias e idiomas; ler pensamentos.' },
+    { nome: 'Domínio da Natureza', desc: 'Magias druídicas; encantar animais.' },
+    { nome: 'Domínio da Tempestade', desc: 'Trovão e relâmpago; resposta destrutiva.' },
+  ] },
+  'Druida': { nivel: 2, opcoes: [
+    { nome: 'Círculo da Terra', desc: 'Magias do bioma; recupera espaços.' },
+    { nome: 'Círculo da Lua', desc: 'Forma Selvagem em feras de combate.' },
+  ] },
+  'Guerreiro': { nivel: 3, opcoes: [
+    { nome: 'Campeão', desc: 'Crítico aprimorado (19-20); atlético.' },
+    { nome: 'Mestre de Batalha', desc: 'Manobras táticas com dados de superioridade.' },
+    { nome: 'Cavaleiro Arcano', desc: 'Conjura magias de mago.' },
+  ] },
+  'Monge': { nivel: 3, opcoes: [
+    { nome: 'Caminho da Mão Aberta', desc: 'Técnicas de Ki que empurram/derrubam.' },
+    { nome: 'Caminho da Sombra', desc: 'Furtividade mágica; teleporte nas sombras.' },
+    { nome: 'Caminho dos Quatro Elementos', desc: 'Conjura efeitos elementais com Ki.' },
+  ] },
+  'Paladino': { nivel: 3, opcoes: [
+    { nome: 'Juramento da Devoção', desc: 'O paladino clássico; arma sagrada.' },
+    { nome: 'Juramento dos Anciões', desc: 'Protetor da natureza; resistência a magia.' },
+    { nome: 'Juramento da Vingança', desc: 'Caçador implacável; marca o inimigo.' },
+  ] },
+  'Patrulheiro': { nivel: 3, opcoes: [
+    { nome: 'Caçador', desc: 'Bônus contra grupos/grandes inimigos.' },
+    { nome: 'Senhor das Feras', desc: 'Companheiro animal de combate.' },
+  ] },
+  'Ladino': { nivel: 3, opcoes: [
+    { nome: 'Ladrão', desc: 'Mãos rápidas; escalar e agir veloz.' },
+    { nome: 'Assassino', desc: 'Dano massivo contra surpresos; disfarces.' },
+    { nome: 'Trapaceiro Arcano', desc: 'Magias de ilusão/encantamento.' },
+  ] },
+  'Feiticeiro': { nivel: 1, opcoes: [
+    { nome: 'Linhagem Dracônica', desc: 'Resistência e dano do tipo do dragão.' },
+    { nome: 'Magia Selvagem', desc: 'Surtos caóticos de magia.' },
+  ] },
+  'Mago': { nivel: 2, opcoes: [
+    { nome: 'Escola de Evocação', desc: 'Magias de dano mais seguras e fortes.' },
+    { nome: 'Escola de Abjuração', desc: 'Proteção arcana; escudo de magia.' },
+    { nome: 'Escola de Ilusão', desc: 'Ilusões aprimoradas e versáteis.' },
+    { nome: 'Escola de Necromancia', desc: 'Dreno de vida; comanda mortos-vivos.' },
+    { nome: 'Escola de Adivinhação', desc: 'Prevê resultados (Portento).' },
+    { nome: 'Escola de Conjuração', desc: 'Invoca criaturas e objetos.' },
+    { nome: 'Escola de Encantamento', desc: 'Domina mentes; hipnose.' },
+    { nome: 'Escola de Transmutação', desc: 'Altera matéria e realidade.' },
+  ] },
+  'Bruxo': { nivel: 1, opcoes: [
+    { nome: 'O Corruptor (Fiend)', desc: 'PV temporários ao abater; magias de fogo.' },
+    { nome: 'O Arquifada (Archfey)', desc: 'Encanta e desorienta inimigos.' },
+    { nome: 'O Grande Antigo (Great Old One)', desc: 'Telepatia; poderes psíquicos.' },
+  ] },
+};
+
 // Busca tolerante: encontra detalhe de magia mesmo com variações de nome
 function detalheMagia(nome) {
   if (MAGIAS_DETALHE[nome]) return MAGIAS_DETALHE[nome];

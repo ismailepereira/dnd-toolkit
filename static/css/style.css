@@ -904,6 +904,25 @@ input, textarea, .form-grid select {
 }
 
 /* =====================================================
+   ASSISTENTE DE NÍVEL
+   ===================================================== */
+.nivel-content { max-width: 560px; width: 96%; position: relative; }
+.nv-head h2 { margin: 0; color: var(--accent); padding-right: 30px; }
+.nv-sub { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 12px; }
+.nv-auto { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.nv-chip { background: rgba(63,185,80,0.15); border: 1px solid #3fb950; color: #3fb950; border-radius: 8px; padding: 6px 12px; font-weight: 600; font-size: 0.9rem; }
+.nv-chip small { color: var(--text-dim); font-weight: normal; }
+.nv-bloco { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
+.nv-bloco h4 { margin: 0 0 8px 0; font-size: 0.85rem; color: var(--text); }
+.nv-bloco h4 small { color: var(--text-dim); font-weight: normal; }
+.nv-bloco ul { margin: 0; padding-left: 16px; font-size: 0.85rem; }
+.nv-bloco select { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 5px; padding: 7px; margin-bottom: 6px; }
+.nv-asi-modo { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; margin-bottom: 8px; }
+.nv-asi-modo label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.nv-feat-desc { font-size: 0.8rem; color: var(--text-dim); margin: 6px 0 0 0; }
+#nvAsiDois { display: flex; gap: 6px; }
+
+/* =====================================================
    CRIADOR DE PERSONAGEM
    ===================================================== */
 .criador-content {

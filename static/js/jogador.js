@@ -84,7 +84,17 @@ carregarFichas();
 // =====================================================
 const listaMonstros = document.getElementById('listaMonstros');
 const bestiaBusca = document.getElementById('bestiaBusca');
+const bestiaTipo = document.getElementById('bestiaTipo');
 let monstrosVisiveis = [];
+
+// popula o filtro de tipo só com categorias dos monstros liberados
+function popularTipoJogador() {
+  const cats = [...new Set(MONSTROS.filter(m => monstrosVisiveis.includes(m.nome)).map(m => m.categoria))].sort();
+  const atual = bestiaTipo.value;
+  bestiaTipo.innerHTML = '<option value="">Todos os tipos</option>' +
+    cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  if (cats.includes(atual)) bestiaTipo.value = atual;
+}
 
 function renderAtributosMonstro(attrs) {
   const mod = v => {
@@ -104,8 +114,11 @@ function renderAtributosMonstro(attrs) {
 
 function renderMonstros() {
   const busca = bestiaBusca.value.trim().toLowerCase();
+  const tipo = bestiaTipo.value;
   const liberados = MONSTROS.filter(m => monstrosVisiveis.includes(m.nome));
-  const filtrados = liberados.filter(m => !busca || m.nome.toLowerCase().includes(busca));
+  let filtrados = liberados;
+  if (tipo) filtrados = filtrados.filter(m => m.categoria === tipo);
+  if (busca) filtrados = filtrados.filter(m => m.nome.toLowerCase().includes(busca));
 
   listaMonstros.innerHTML = '';
   if (liberados.length === 0) {
@@ -126,6 +139,7 @@ function renderMonstros() {
         <span class="cr-badge">ND ${m.cr} (${m.pe} PE)</span>
       </div>
       <div class="monstro-sub">${escapeHtml(m.tipo)}</div>
+      <span class="cat-badge">${escapeHtml(m.categoria)}</span>
       <div class="monstro-stats">
         <div><strong>CA</strong> ${escapeHtml(m.ca)}</div>
         <div><strong>PV</strong> ${escapeHtml(m.hp)}</div>
@@ -148,10 +162,12 @@ function renderMonstros() {
 async function atualizarVisibilidade() {
   const res = await fetch('/api/monstros_visiveis');
   monstrosVisiveis = await res.json();
+  popularTipoJogador();
   renderMonstros();
 }
 
 bestiaBusca.addEventListener('input', renderMonstros);
+bestiaTipo.addEventListener('change', renderMonstros);
 atualizarVisibilidade();
 setInterval(atualizarVisibilidade, 8000); // verifica novos monstros liberados a cada 8s
 

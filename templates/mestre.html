@@ -80,15 +80,21 @@
     <!-- BESTIÁRIO -->
     <section id="bestiario" class="tab-content">
       <div class="panel-header">
-        <h2>Bestiário - Mina Perdida de Phandelver</h2>
+        <h2>Bestiário</h2>
         <input type="text" id="bestiaBusca" placeholder="Buscar monstro...">
       </div>
       <p class="aviso-mestre">Marque "Visível para jogadores" nos monstros que você quer que apareçam na aba Bestiário dos jogadores.</p>
 
-      <h3>Sugestões de Encontro por Nível</h3>
+      <div class="bestia-filtros">
+        <label>Aventura <select id="bestiaAventura"></select></label>
+        <label>Tipo <select id="bestiaTipo"></select></label>
+      </div>
+      <div id="aventuraInfo" class="aventura-info"></div>
+
+      <h3 id="sugestoesTitulo">Sugestões de Encontro</h3>
       <div id="sugestoesLista" class="sugestoes-grid"></div>
 
-      <h3>Monstros</h3>
+      <h3>Monstros <span id="monstroCount" class="criador-hint-inline"></span></h3>
       <div id="listaMonstros" class="monstro-grid"></div>
     </section>
 

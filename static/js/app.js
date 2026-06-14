@@ -325,8 +325,26 @@ renderProgressao();
 const listaMonstros = document.getElementById('listaMonstros');
 const sugestoesLista = document.getElementById('sugestoesLista');
 const bestiaBusca = document.getElementById('bestiaBusca');
+const bestiaAventura = document.getElementById('bestiaAventura');
+const bestiaTipo = document.getElementById('bestiaTipo');
+const aventuraInfo = document.getElementById('aventuraInfo');
+const sugestoesTitulo = document.getElementById('sugestoesTitulo');
+const monstroCount = document.getElementById('monstroCount');
 
 let monstrosVisiveis = [];
+
+function popularFiltrosBestiario() {
+  bestiaAventura.innerHTML = '<option value="">Todas as aventuras</option>' +
+    AVENTURAS.map((a, i) => `<option value="${i}">${escapeHtml(a.nome)}</option>`).join('');
+  bestiaTipo.innerHTML = '<option value="">Todos os tipos</option>' +
+    CATEGORIAS_MONSTRO.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+}
+
+function rosterAventura(idx) {
+  const set = new Set();
+  AVENTURAS[idx].encontros.forEach(e => e.monstros.forEach(n => set.add(n)));
+  return set;
+}
 
 async function carregarVisibilidade() {
   const res = await fetch('/api/monstros_visiveis');
@@ -360,8 +378,18 @@ function renderAtributosMonstro(attrs) {
 
 function renderMonstros() {
   const busca = bestiaBusca.value.trim().toLowerCase();
-  const filtrados = MONSTROS.filter(m => !busca || m.nome.toLowerCase().includes(busca));
+  const tipo = bestiaTipo.value;
+  const avIdx = bestiaAventura.value;
 
+  let filtrados = MONSTROS.slice();
+  if (avIdx !== '') {
+    const roster = rosterAventura(Number(avIdx));
+    filtrados = filtrados.filter(m => roster.has(m.nome));
+  }
+  if (tipo) filtrados = filtrados.filter(m => m.categoria === tipo);
+  if (busca) filtrados = filtrados.filter(m => m.nome.toLowerCase().includes(busca));
+
+  if (monstroCount) monstroCount.textContent = `(${filtrados.length})`;
   listaMonstros.innerHTML = '';
   if (filtrados.length === 0) {
     listaMonstros.innerHTML = '<p style="color:var(--text-dim)">Nenhum monstro encontrado.</p>';
@@ -382,6 +410,7 @@ function renderMonstros() {
         Visível para jogadores
       </label>
       <div class="monstro-sub">${escapeHtml(m.tipo)}</div>
+      <span class="cat-badge">${escapeHtml(m.categoria)}</span>
       <div class="monstro-stats">
         <div><strong>CA</strong> ${escapeHtml(m.ca)}</div>
         <div><strong>PV</strong> ${escapeHtml(m.hp)}</div>
@@ -414,13 +443,19 @@ function renderMonstros() {
 }
 
 function renderSugestoes() {
+  const idx = bestiaAventura.value === '' ? 0 : Number(bestiaAventura.value);
+  const av = AVENTURAS[idx];
+  aventuraInfo.innerHTML = `<strong>${escapeHtml(av.nome)}</strong> · Níveis ${escapeHtml(av.niveis)}
+    <div class="criador-hint">${escapeHtml(av.descricao)}</div>`;
+  if (sugestoesTitulo) sugestoesTitulo.textContent = 'Encontros — ' + av.nome;
+
   sugestoesLista.innerHTML = '';
-  SUGESTOES_PHANDELVER.forEach(s => {
+  av.encontros.forEach(s => {
     const card = document.createElement('div');
     card.className = 'sugestao-card';
     card.innerHTML = `
       <div class="sugestao-header">
-        <span class="nivel-badge">Nível ${s.nivel}</span>
+        <span class="nivel-badge">Nível ${escapeHtml(s.nivel)}</span>
         <strong>${escapeHtml(s.area)}</strong>
       </div>
       <p>${escapeHtml(s.sugestao)}</p>
@@ -434,6 +469,7 @@ function renderSugestoes() {
   sugestoesLista.querySelectorAll('.monstro-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       bestiaBusca.value = chip.dataset.monstro;
+      bestiaTipo.value = '';
       renderMonstros();
       document.getElementById('listaMonstros').scrollIntoView({ behavior: 'smooth' });
     });
@@ -441,6 +477,9 @@ function renderSugestoes() {
 }
 
 bestiaBusca.addEventListener('input', renderMonstros);
+bestiaTipo.addEventListener('change', renderMonstros);
+bestiaAventura.addEventListener('change', () => { renderSugestoes(); renderMonstros(); });
+popularFiltrosBestiario();
 renderSugestoes();
 carregarVisibilidade();
 

@@ -203,6 +203,18 @@ const Jogo = (function () {
 
     const logHtml = registro.length ? `<div class="jg-bloco"><h4>Histórico</h4><ul class="jg-log">${registro.map(l => `<li>${esc(l)}</li>`).join('')}</ul></div>` : '';
 
+    // ataques de arma, penalidades e bolsa de inventário
+    const avisos = (typeof penalidadesEquipamento === 'function') ? penalidadesEquipamento(f) : [];
+    const armas = (f.itens || []).map(n => (typeof ataqueArma === 'function') ? ataqueArma(f, n, pb) : null).filter(Boolean);
+    const armasHtml = armas.length ? `<div class="jg-bloco"><h4>Ataques de Arma</h4>${armas.map(a => `<div class="pv-linha"><strong>${esc(a.nome)}:</strong> ${a.ataque >= 0 ? '+' : ''}${a.ataque} p/ acertar · ${esc(a.dano)} ${/\d+d\d+/.test(a.dano) ? `<button class="btn-mini" data-rolararma="${esc(a.dano)}" data-arma="${esc(a.nome)}">🎲</button>` : ''}${a.semProf ? ' <span class="pv-warn">⚠ sem prof.</span>' : ''}</div>`).join('')}</div>` : '';
+    const itensChips = (f.itens || []).map(i => `<span class="chip">${esc(i)} <button data-rinv="${esc(i)}">×</button></span>`).join('');
+    const optsItens = (typeof ITENS_PADRAO !== 'undefined') ? ITENS_PADRAO.map(i => `<option value="${esc(i.nome)}">${esc(i.nome)} (${esc(i.preco)})</option>`).join('') : '';
+    const inventarioHtml = `<div class="jg-bloco"><h4>Bolsa / Inventário</h4>
+      <div class="pv-linha"><strong>Armadura:</strong> ${esc(f.armadura || 'Sem armadura')}${f.escudo ? ' + Escudo' : ''}</div>
+      <div class="chips">${itensChips || '<span class="criador-hint">Sem itens.</span>'}</div>
+      <div class="criador-add-item" style="margin-top:6px"><select id="jgItemSel">${optsItens}</select><button id="jgAddItem" class="btn-mini">+ Adicionar</button></div></div>`;
+    const avisosHtml = avisos.length ? `<div class="jg-bloco pv-avisos"><h4>⚠ Penalidades</h4>${avisos.map(a => `<div class="pv-linha">${esc(a.texto)}</div>`).join('')}</div>` : '';
+
     $('modalJogoBody').innerHTML = `
       <div class="jg-header">
         <div>
@@ -240,9 +252,7 @@ const Jogo = (function () {
           </div>
           ${condHtml}${logHtml}
         </div>
-        <div>${magiasHtml}${caracHtml}
-          ${f.inventario ? `<div class="jg-bloco"><h4>Equipamento</h4><p>${esc(f.inventario)}</p></div>` : ''}
-        </div>
+        <div>${armasHtml}${avisosHtml}${inventarioHtml}${magiasHtml}${caracHtml}</div>
       </div>
     `;
 
@@ -265,6 +275,22 @@ const Jogo = (function () {
     const ov = () => Math.max(0, Number($('jgOuroVal').value) || 0);
     $('jgOuroMais').onclick = () => { ficha.ouro += ov(); salvar(); };
     $('jgOuroMenos').onclick = () => { ficha.ouro = Math.max(0, ficha.ouro - ov()); salvar(); };
+
+    // inventário
+    if ($('jgAddItem')) $('jgAddItem').onclick = () => {
+      const v = $('jgItemSel').value;
+      ficha.itens = ficha.itens || [];
+      if (v && !ficha.itens.includes(v)) ficha.itens.push(v);
+      salvar();
+    };
+    document.querySelectorAll('[data-rinv]').forEach(b => b.onclick = () => {
+      ficha.itens = (ficha.itens || []).filter(x => x !== b.dataset.rinv);
+      salvar();
+    });
+    document.querySelectorAll('[data-rolararma]').forEach(b => b.onclick = () => {
+      const r = rolar(b.dataset.rolararma);
+      if (r) { log(`${b.dataset.arma}: dano ${r.total} (${r.txt})`); render(); }
+    });
 
     document.querySelectorAll('[data-slotgastar]').forEach(b => b.onclick = () => gastarSlot(+b.dataset.slotgastar));
     document.querySelectorAll('[data-slotrec]').forEach(b => b.onclick = () => recuperarSlot(+b.dataset.slotrec));

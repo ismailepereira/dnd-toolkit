@@ -846,6 +846,9 @@ input, textarea, .form-grid select {
 .jg-magia-corpo p { font-size: 0.83rem; margin: 4px 0; }
 .jg-magia-simples { font-size: 0.85rem; padding: 3px 0; border-bottom: 1px solid var(--border); }
 .jg-nv-tag { display: inline-block; font-size: 0.62rem; background: var(--accent2); color: var(--text-dim); border-radius: 6px; padding: 0 5px; margin-right: 4px; }
+.pv-warn { color: #d29922; font-size: 0.75rem; }
+.pv-avisos { border-color: #d29922 !important; }
+.pv-avisos h4 { color: #d29922 !important; }
 
 .jg-cond-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap: 4px; }
 .jg-log { list-style: none; padding-left: 0 !important; font-size: 0.8rem; color: var(--text-dim); }

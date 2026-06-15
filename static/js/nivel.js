@@ -26,7 +26,7 @@ const Nivel = (function () {
     if (/Estilo de Luta/i.test(txt) && !ficha.estilo) e.estilo = true;
     const sc = SUBCLASSES[ficha.classe];
     if (sc && n >= sc.nivel && !ficha.subclasse) e.subclasse = true;
-    if (CONJURACAO[ficha.classe] && MAGIAS[ficha.classe]) e.magias = true;
+    if (typeof ehConjurador === 'function' && ehConjurador(ficha.classe, n)) e.magias = true;
     return e;
   }
 
@@ -79,14 +79,33 @@ const Nivel = (function () {
       </div>`;
     }
 
-    // Novas magias
+    // Novas magias (regras: contagem por classe/nível, filtro por círculo)
     if (e.magias) {
-      const banco = MAGIAS[ficha.classe] || { truques: [], nivel1: [] };
+      const g = ganhoMagias(ficha.classe, novo, ficha.atributos);
+      escolhas.gTruques = g.truques; escolhas.gMagias = g.magias;
+      const disp = magiasDisponiveis(ficha.classe, ficha.subclasse, novo);
       const conhecidas = [...(ficha.truques || []), ...(ficha.magias1 || [])];
-      const disp = [...banco.truques, ...banco.nivel1].filter(x => !conhecidas.includes(x));
-      if (disp.length) {
-        html += `<div class="nv-bloco"><h4>Aprender novas magias <small>(opcional)</small></h4>
-          <div class="pericias-grid">${disp.map(mg => `<label class="check-chip"><input type="checkbox" data-novamagia="${esc(mg)}">${esc(mg)}</label>`).join('')}</div></div>`;
+      const maxc = maxCirculo(ficha.classe, novo);
+      const rotuloMagia = nome => {
+        const d = MAGIAS_DETALHE[nome];
+        const lvl = d ? (d.nivel === 0 ? 'Truque' : d.nivel + 'º') : '';
+        const dano = d && d.dano && d.dano !== '—' ? ' · ' + d.dano : '';
+        return `${esc(nome)} <small>(${lvl}${dano})</small>`;
+      };
+      if (g.truques > 0) {
+        const opc = disp.truques.filter(x => !conhecidas.includes(x));
+        html += `<div class="nv-bloco"><h4>Novos Truques <small>(escolha ${g.truques})</small></h4>
+          <div class="pericias-grid">${opc.map(mg => `<label class="check-chip"><input type="checkbox" data-truquenovo="${esc(mg)}">${rotuloMagia(mg)}</label>`).join('') || '<span class="criador-hint">Nenhum truque novo disponível.</span>'}</div></div>`;
+      }
+      if (g.magias > 0) {
+        const opc = disp.circulos.filter(x => !conhecidas.includes(x)).sort((a, b) => (MAGIAS_DETALHE[a].nivel - MAGIAS_DETALHE[b].nivel) || a.localeCompare(b));
+        const verbo = g.prepara ? 'preparar' : 'aprender';
+        html += `<div class="nv-bloco"><h4>Novas Magias <small>(${verbo} ${g.magias} · até ${maxc}º círculo)</small></h4>
+          <div class="pericias-grid">${opc.map(mg => `<label class="check-chip"><input type="checkbox" data-magianova="${esc(mg)}">${rotuloMagia(mg)}</label>`).join('') || '<span class="criador-hint">Nenhuma magia nova disponível.</span>'}</div></div>`;
+      }
+      if (disp.bonus.length) {
+        const novas = disp.bonus.filter(x => !conhecidas.includes(x));
+        if (novas.length) html += `<div class="nv-bloco"><h4>Magias da Especialização <small>(automáticas)</small></h4><p class="criador-hint">${novas.map(esc).join(', ')}</p></div>`;
       }
     }
 
@@ -114,6 +133,18 @@ const Nivel = (function () {
       const fsel = $('nvFeat');
       if (fsel) fsel.onchange = () => { $('nvFeatDesc').textContent = TALENTOS[fsel.value] || ''; };
     }
+    // limita seleção de truques/magias ao permitido
+    const limitar = (seletor, limite) => {
+      const chks = document.querySelectorAll(seletor);
+      const atualizar = () => {
+        const marcados = [...chks].filter(c => c.checked).length;
+        chks.forEach(c => { if (!c.checked) c.disabled = marcados >= limite; });
+      };
+      chks.forEach(c => c.addEventListener('change', atualizar));
+      atualizar();
+    };
+    if (escolhas.gTruques) limitar('[data-truquenovo]', escolhas.gTruques);
+    if (escolhas.gMagias) limitar('[data-magianova]', escolhas.gMagias);
   }
 
   function confirmar() {
@@ -134,12 +165,19 @@ const Nivel = (function () {
     ficha.nivel = novo;
     if (e.subclasse) ficha.subclasse = $('nvSubclasse').value;
     if (e.estilo) ficha.estilo = $('nvEstilo').value;
-    document.querySelectorAll('[data-novamagia]:checked').forEach(chk => {
-      const nm = chk.dataset.novamagia;
-      const banco = MAGIAS[ficha.classe];
-      if (banco.truques.includes(nm)) { ficha.truques = ficha.truques || []; if (!ficha.truques.includes(nm)) ficha.truques.push(nm); }
-      else { ficha.magias1 = ficha.magias1 || []; if (!ficha.magias1.includes(nm)) ficha.magias1.push(nm); }
-    });
+    ficha.truques = ficha.truques || [];
+    ficha.magias1 = ficha.magias1 || [];
+    document.querySelectorAll('[data-truquenovo]:checked').forEach(chk => { if (!ficha.truques.includes(chk.dataset.truquenovo)) ficha.truques.push(chk.dataset.truquenovo); });
+    document.querySelectorAll('[data-magianova]:checked').forEach(chk => { if (!ficha.magias1.includes(chk.dataset.magianova)) ficha.magias1.push(chk.dataset.magianova); });
+    // magias automáticas da especialização
+    if (ficha.subclasse && typeof SUBCLASS_MAGIAS !== 'undefined' && SUBCLASS_MAGIAS[ficha.subclasse]) {
+      const maxc = maxCirculo(ficha.classe, novo);
+      SUBCLASS_MAGIAS[ficha.subclasse].forEach(nm => {
+        const d = MAGIAS_DETALHE[nm]; if (!d || d.nivel > maxc) return;
+        if (d.nivel === 0) { if (!ficha.truques.includes(nm)) ficha.truques.push(nm); }
+        else if (!ficha.magias1.includes(nm)) ficha.magias1.push(nm);
+      });
+    }
 
     if (ctx.aoSalvar) ctx.aoSalvar();
     $('modalNivel').classList.add('hidden');

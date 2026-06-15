@@ -153,6 +153,14 @@ const Criador = (function () {
 
     const itensHtml = s.itens.length ? s.itens.map(escHtml).join(', ') : '—';
 
+    // armas (dano/acerto) e avisos de proficiência/sobrepeso
+    const fichaTmp = { classe: s.classe, armadura: s.armadura, escudo: s.escudo, atributos: c.attrs, itens: s.itens };
+    const avisos = (typeof penalidadesEquipamento === 'function') ? penalidadesEquipamento(fichaTmp) : [];
+    const armas = s.itens.map(n => (typeof ataqueArma === 'function') ? ataqueArma(fichaTmp, n, c.pb) : null).filter(Boolean);
+    const penDesloc = avisos.reduce((acc, a) => acc + (a.deslocamento || 0), 0);
+    const armasHtml = armas.length ? `<div class="pv-bloco"><h4>Ataques de Arma</h4>${armas.map(a => `<div class="pv-linha"><strong>${escHtml(a.nome)}:</strong> ${a.ataque >= 0 ? '+' : ''}${a.ataque} p/ acertar · ${escHtml(a.dano)}${a.semProf ? ' <span class="pv-warn">⚠ sem proficiência</span>' : ''}</div>`).join('')}</div>` : '';
+    const avisosHtml = avisos.length ? `<div class="pv-bloco pv-avisos"><h4>⚠ Penalidades</h4>${avisos.map(a => `<div class="pv-linha">${escHtml(a.texto)}</div>`).join('')}</div>` : '';
+
     $('cPreview').innerHTML = `
       <div class="pv-cabecalho">
         <h3>${escHtml(s.nome) || 'Personagem sem nome'}</h3>
@@ -169,7 +177,7 @@ const Criador = (function () {
       <div class="pv-bloco"><h4>Salvaguardas</h4><div class="pv-pills">${salvas}</div></div>
       <div class="pv-bloco">
         <h4>Deslocamento & Sentidos</h4>
-        <div class="pv-linha">${c.deslocamento}m · ${c.tamanho}${c.visaoNoEscuro ? ` · Visão no escuro ${c.visaoNoEscuro}m` : ''}</div>
+        <div class="pv-linha">${c.deslocamento + penDesloc}m${penDesloc ? ' <span class="pv-warn">(sobrepeso)</span>' : ''} · ${c.tamanho}${c.visaoNoEscuro ? ` · Visão no escuro ${c.visaoNoEscuro}m` : ''}</div>
         <div class="pv-linha"><strong>Idiomas:</strong> ${c.idiomas.map(escHtml).join(', ')}</div>
       </div>
       <div class="pv-bloco"><h4>Perícias</h4><div class="pv-pericias">${periciasHtml}</div></div>
@@ -177,7 +185,9 @@ const Criador = (function () {
       <div class="pv-bloco"><h4>Características de Classe (Nível ${s.nivel})</h4><ul>${caracteristicas}</ul></div>
       ${s.estilo ? `<div class="pv-bloco"><h4>Estilo de Combate</h4><div class="pv-linha">${escHtml(s.estilo)}: ${escHtml(ESTILOS_LUTA[s.estilo] || '')}</div></div>` : ''}
       ${conjHtml}
+      ${armasHtml}
       <div class="pv-bloco"><h4>Equipamento</h4><div class="pv-linha"><strong>Armadura:</strong> ${escHtml(s.armadura)}${s.escudo ? ' + Escudo' : ''}</div><div class="pv-linha"><strong>Itens:</strong> ${itensHtml}</div><div class="pv-linha"><strong>Ouro:</strong> ${s.ouro} po</div></div>
+      ${avisosHtml}
     `;
   }
 

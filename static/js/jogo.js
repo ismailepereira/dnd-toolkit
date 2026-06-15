@@ -19,10 +19,46 @@ const Jogo = (function () {
     return { total, ds, bonus, txt: `${ds.join('+')}${bonus ? (bonus > 0 ? '+' + bonus : bonus) : ''} = ${total}` };
   }
 
+  // ----- rolagem com Vantagem/Desvantagem -----
+  let modoRolagem = 'normal';
+  function d20Modo() {
+    const a = 1 + Math.floor(Math.random() * 20);
+    if (modoRolagem === 'normal') return { v: a, txt: `d20=${a}` };
+    const b = 1 + Math.floor(Math.random() * 20);
+    const v = modoRolagem === 'vantagem' ? Math.max(a, b) : Math.min(a, b);
+    return { v, txt: `d20 ${a}/${b}→${v} (${modoRolagem === 'vantagem' ? 'vant.' : 'desv.'})`, nat: v };
+  }
+  function rolarTeste(nome, bonus) {
+    const r = d20Modo();
+    const total = r.v + bonus;
+    const critMsg = r.v === 20 ? ' (20 natural!)' : r.v === 1 ? ' (1 natural)' : '';
+    log(`${nome}: ${total} (${r.txt}${bonus ? (bonus >= 0 ? '+' : '') + bonus : ''})${critMsg}`);
+    render();
+  }
+
   // ----- dados derivados -----
   function chaveClasse() { return CLASSE_NOME_PARA_CHAVE[ficha.classe]; }
   function classeObj() { return CLASSES[chaveClasse()]; }
   function nivelObj() { const c = classeObj(); return c ? c.niveis.find(n => n.nivel === ficha.nivel) : null; }
+  function pbAtual() { const n = nivelObj(); return n ? n.bonusProf : 2; }
+  function profPericia(p) { return (ficha.pericias || []).includes(p); }
+  function profSalva(nomePt) { return (classeObj() ? classeObj().salvaguardas : []).includes(nomePt); }
+  function bonusPericia(p) { return m(ficha.atributos[PERICIAS[p]]) + (profPericia(p) ? pbAtual() : 0); }
+  function bonusSalva(at) {
+    const nomePt = ATRIBUTOS.find(a => a.chave === at).nome;
+    return m(ficha.atributos[at]) + (profSalva(nomePt) ? pbAtual() : 0);
+  }
+
+  function testeMorte() {
+    const r = 1 + Math.floor(Math.random() * 20);
+    if (r === 20) { ficha.hpAtual = 1; ficha.morteSucessos = 0; ficha.morteFalhas = 0; log('🎲 Teste de Morte: 20 natural! Recupera 1 PV e fica de pé.'); }
+    else if (r === 1) { ficha.morteFalhas = (ficha.morteFalhas || 0) + 2; log('🎲 Teste de Morte: 1 natural — DUAS falhas!'); }
+    else if (r >= 10) { ficha.morteSucessos = (ficha.morteSucessos || 0) + 1; log(`🎲 Teste de Morte: ${r} — sucesso.`); }
+    else { ficha.morteFalhas = (ficha.morteFalhas || 0) + 1; log(`🎲 Teste de Morte: ${r} — falha.`); }
+    if ((ficha.morteFalhas || 0) >= 3) log('💀 O personagem MORREU.');
+    else if ((ficha.morteSucessos || 0) >= 3) { ficha.morteSucessos = 3; log('✅ Estabilizado (inconsciente).'); }
+    salvar();
+  }
 
   function slotsMax() {
     const n = nivelObj();
@@ -55,18 +91,37 @@ const Jogo = (function () {
     if (ficha.dvUsados == null) ficha.dvUsados = 0;
     if (!ficha.condicoes) ficha.condicoes = [];
     if (ficha.ouro == null) ficha.ouro = 0;
+    if (ficha.morteSucessos == null) ficha.morteSucessos = 0;
+    if (ficha.morteFalhas == null) ficha.morteFalhas = 0;
+    if (ficha.concentrando == null) ficha.concentrando = '';
   }
 
   function salvar() { if (ctx.aoAtualizar) ctx.aoAtualizar(); render(); }
+
+  // checa concentração ao sofrer dano
+  function checarConcentracao(dano) {
+    if (!ficha.concentrando || dano <= 0) return;
+    const dt = Math.max(10, Math.floor(dano / 2));
+    const profCon = profSalva('Constituição') ? pbAtual() : 0;
+    const r = 1 + Math.floor(Math.random() * 20), total = r + m(ficha.atributos.con) + profCon;
+    if (total >= dt) log(`Concentração mantida em ${ficha.concentrando} (salva ${total} vs DT ${dt}).`);
+    else { log(`⚠ Concentração PERDIDA em ${ficha.concentrando} (salva ${total} vs DT ${dt}).`); ficha.concentrando = ''; }
+  }
 
   // ----- ações -----
   function aplicarDano(v) {
     let dano = v;
     if (ficha.pvTemp > 0) { const abs = Math.min(ficha.pvTemp, dano); ficha.pvTemp -= abs; dano -= abs; }
     ficha.hpAtual = Math.max(0, ficha.hpAtual - dano);
+    checarConcentracao(v);
+    if (ficha.hpAtual === 0 && ficha.concentrando) ficha.concentrando = '';
     salvar();
   }
-  function curar(v) { ficha.hpAtual = Math.min(ficha.hpMax, ficha.hpAtual + v); salvar(); }
+  function curar(v) {
+    if (ficha.hpAtual === 0 && v > 0) { ficha.morteSucessos = 0; ficha.morteFalhas = 0; }
+    ficha.hpAtual = Math.min(ficha.hpMax, ficha.hpAtual + v);
+    salvar();
+  }
   function setTemp(v) { ficha.pvTemp = Math.max(0, v); salvar(); }
 
   function gastarSlot(nivel) {
@@ -206,7 +261,44 @@ const Jogo = (function () {
     // ataques de arma, penalidades e bolsa de inventário
     const avisos = (typeof penalidadesEquipamento === 'function') ? penalidadesEquipamento(f) : [];
     const armas = (f.itens || []).map(n => (typeof ataqueArma === 'function') ? ataqueArma(f, n, pb) : null).filter(Boolean);
-    const armasHtml = armas.length ? `<div class="jg-bloco"><h4>Ataques de Arma</h4>${armas.map(a => `<div class="pv-linha"><strong>${esc(a.nome)}:</strong> ${a.ataque >= 0 ? '+' : ''}${a.ataque} p/ acertar · ${esc(a.dano)} ${/\d+d\d+/.test(a.dano) ? `<button class="btn-mini" data-rolararma="${esc(a.dano)}" data-arma="${esc(a.nome)}">🎲</button>` : ''}${a.semProf ? ' <span class="pv-warn">⚠ sem prof.</span>' : ''}</div>`).join('')}</div>` : '';
+    const armasHtml = armas.length ? `<div class="jg-bloco"><h4>Ataques de Arma</h4>${armas.map(a => `<div class="pv-linha"><strong>${esc(a.nome)}:</strong> ${a.ataque >= 0 ? '+' : ''}${a.ataque} · ${esc(a.dano)}
+      <button class="btn-mini" data-atacararma="${a.ataque}" data-arma="${esc(a.nome)}">🎲 atacar</button>
+      ${/\d+d\d+/.test(a.dano) ? `<button class="btn-mini" data-rolararma="${esc(a.dano)}" data-arma="${esc(a.nome)}">🎲 dano</button>` : ''}${a.semProf ? ' <span class="pv-warn">⚠ sem prof.</span>' : ''}</div>`).join('')}</div>` : '';
+
+    // perícias clicáveis
+    const periciasHtml = `<details class="jg-bloco"><summary><strong>Perícias</strong> (clique para rolar)</summary><div class="jg-pericias-jogo">` +
+      Object.keys(PERICIAS).map(p => {
+        const b = bonusPericia(p);
+        return `<button class="jg-skill ${profPericia(p) ? 'prof' : ''}" data-pericia="${esc(p)}" data-bonus="${b}">${esc(p)} <b>${b >= 0 ? '+' : ''}${b}</b></button>`;
+      }).join('') + `</div></details>`;
+
+    // salvaguardas clicáveis
+    const salvasHtml = `<div class="jg-bloco"><h4>Salvaguardas</h4><div class="jg-pericias-jogo">` +
+      ATRIBUTOS.map(a => {
+        const b = bonusSalva(a.chave);
+        return `<button class="jg-skill ${profSalva(a.nome) ? 'prof' : ''}" data-salva="${a.chave}" data-snome="${esc(a.nome)}" data-bonus="${b}">${a.nome.slice(0, 3)} <b>${b >= 0 ? '+' : ''}${b}</b></button>`;
+      }).join('') + `</div></div>`;
+
+    // concentração
+    const magiasConc = [...(f.magias1 || [])];
+    const concHtml = `<div class="jg-bloco"><h4>Concentração</h4>
+      <select id="jgConc"><option value="">— Nenhuma —</option>${magiasConc.map(mg => `<option value="${esc(mg)}" ${f.concentrando === mg ? 'selected' : ''}>${esc(mg)}</option>`).join('')}</select>
+      ${f.concentrando ? `<div class="criador-hint">Ao sofrer dano: salva de Constituição (DT 10 ou metade do dano) automática.</div>` : ''}</div>`;
+
+    // testes de morte (quando a 0 PV)
+    const bolinhas = (qtd, max, cls) => { let s = ''; for (let i = 0; i < max; i++) s += `<span class="morte-dot ${i < qtd ? cls : ''}"></span>`; return s; };
+    const morteHtml = f.hpAtual === 0 ? `<div class="jg-bloco jg-morte"><h4>☠ Testes de Morte</h4>
+      <div class="morte-linha">Sucessos: ${bolinhas(f.morteSucessos, 3, 'ok')}</div>
+      <div class="morte-linha">Falhas: ${bolinhas(f.morteFalhas, 3, 'fail')}</div>
+      <button id="jgTesteMorte" class="btn-primary">🎲 Rolar Teste de Morte</button>
+      ${f.morteFalhas >= 3 ? '<div class="pv-warn">💀 Morto.</div>' : f.morteSucessos >= 3 ? '<div class="criador-hint">Estável (inconsciente).</div>' : ''}</div>` : '';
+
+    // controle de vantagem/desvantagem
+    const modoHtml = `<div class="jg-modo">Rolagem:
+      <button class="jg-modo-btn ${modoRolagem === 'desvantagem' ? 'on' : ''}" data-modo="desvantagem">Desvantagem</button>
+      <button class="jg-modo-btn ${modoRolagem === 'normal' ? 'on' : ''}" data-modo="normal">Normal</button>
+      <button class="jg-modo-btn ${modoRolagem === 'vantagem' ? 'on' : ''}" data-modo="vantagem">Vantagem</button>
+    </div>`;
     const itensChips = (f.itens || []).map(i => `<span class="chip">${esc(i)} <button data-rinv="${esc(i)}">×</button></span>`).join('');
     const optsItens = (typeof ITENS_PADRAO !== 'undefined') ? ITENS_PADRAO.map(i => `<option value="${esc(i.nome)}">${esc(i.nome)} (${esc(i.preco)})</option>`).join('') : '';
     const inventarioHtml = `<div class="jg-bloco"><h4>Bolsa / Inventário</h4>
@@ -240,10 +332,12 @@ const Jogo = (function () {
         </div>
       </div>
 
+      ${modoHtml}
+      ${morteHtml}
       <div class="jg-attrs">${attrHtml}</div>
 
       <div class="jg-cols">
-        <div>${slotsHtml}${recHtml}
+        <div>${salvasHtml}${periciasHtml}${slotsHtml}${recHtml}
           <div class="jg-bloco"><h4>Ouro</h4>
             <div class="jg-ouro"><b>${f.ouro} po</b>
               <input type="number" id="jgOuroVal" value="10" style="width:64px">
@@ -252,7 +346,7 @@ const Jogo = (function () {
           </div>
           ${condHtml}${logHtml}
         </div>
-        <div>${armasHtml}${avisosHtml}${inventarioHtml}${magiasHtml}${caracHtml}</div>
+        <div>${armasHtml}${concHtml}${avisosHtml}${inventarioHtml}${magiasHtml}${caracHtml}</div>
       </div>
     `;
 
@@ -291,6 +385,17 @@ const Jogo = (function () {
       const r = rolar(b.dataset.rolararma);
       if (r) { log(`${b.dataset.arma}: dano ${r.total} (${r.txt})`); render(); }
     });
+    document.querySelectorAll('[data-atacararma]').forEach(b => b.onclick = () => rolarTeste(`Ataque ${b.dataset.arma}`, +b.dataset.atacararma));
+
+    // modo de rolagem (vantagem/desvantagem)
+    document.querySelectorAll('[data-modo]').forEach(b => b.onclick = () => { modoRolagem = b.dataset.modo; render(); });
+    // perícias e salvaguardas clicáveis
+    document.querySelectorAll('[data-pericia]').forEach(b => b.onclick = () => rolarTeste(b.dataset.pericia, +b.dataset.bonus));
+    document.querySelectorAll('[data-salva]').forEach(b => b.onclick = () => rolarTeste('Salva ' + b.dataset.snome, +b.dataset.bonus));
+    // teste de morte
+    if ($('jgTesteMorte')) $('jgTesteMorte').onclick = testeMorte;
+    // concentração
+    if ($('jgConc')) $('jgConc').onchange = () => { ficha.concentrando = $('jgConc').value; salvar(); };
 
     document.querySelectorAll('[data-slotgastar]').forEach(b => b.onclick = () => gastarSlot(+b.dataset.slotgastar));
     document.querySelectorAll('[data-slotrec]').forEach(b => b.onclick = () => recuperarSlot(+b.dataset.slotrec));

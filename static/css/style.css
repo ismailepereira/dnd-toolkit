@@ -846,9 +846,27 @@ input, textarea, .form-grid select {
 .jg-magia-corpo p { font-size: 0.83rem; margin: 4px 0; }
 .jg-magia-simples { font-size: 0.85rem; padding: 3px 0; border-bottom: 1px solid var(--border); }
 .jg-nv-tag { display: inline-block; font-size: 0.62rem; background: var(--accent2); color: var(--text-dim); border-radius: 6px; padding: 0 5px; margin-right: 4px; }
+.circulo-grupo { margin-bottom: 8px; }
+.circulo-grupo h5 { margin: 6px 0 4px 0; font-size: 0.78rem; color: var(--accent); border-bottom: 1px dashed var(--border); padding-bottom: 2px; }
 .pv-warn { color: #d29922; font-size: 0.75rem; }
 .pv-avisos { border-color: #d29922 !important; }
 .pv-avisos h4 { color: #d29922 !important; }
+
+/* Etapa 5: rolagens, vantagem/desvantagem, morte */
+.jg-modo { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--text-dim); margin: 10px 0; flex-wrap: wrap; }
+.jg-modo-btn { background: var(--bg-card); color: var(--text-dim); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 0.8rem; }
+.jg-modo-btn.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+.jg-pericias-jogo { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 5px; }
+.jg-skill { display: flex; justify-content: space-between; align-items: center; gap: 6px; background: var(--bg); border: 1px solid var(--border); color: var(--text-dim); border-radius: 6px; padding: 6px 9px; cursor: pointer; font-size: 0.8rem; text-align: left; }
+.jg-skill:hover { border-color: var(--accent); color: var(--text); }
+.jg-skill.prof { color: var(--text); border-left: 3px solid var(--accent); }
+.jg-skill b { color: var(--accent); }
+.jg-morte { border-color: #e94560 !important; }
+.jg-morte h4 { color: #e94560 !important; }
+.morte-linha { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; margin-bottom: 4px; }
+.morte-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border); display: inline-block; }
+.morte-dot.ok { background: #3fb950; border-color: #3fb950; }
+.morte-dot.fail { background: #e94560; border-color: #e94560; }
 
 .jg-cond-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap: 4px; }
 .jg-log { list-style: none; padding-left: 0 !important; font-size: 0.8rem; color: var(--text-dim); }

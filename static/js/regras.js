@@ -215,6 +215,18 @@ const MAGIAS_CLASSES = {
   'Palavra de Poder: Atordoar': ['Bardo', 'Bruxo', 'Feiticeiro', 'Mago'], 'Nuvem Incendiária (Incendiary Cloud)': ['Feiticeiro', 'Mago'], 'Sol Ardente (Sunburst)': ['Druida', 'Feiticeiro', 'Mago'], 'Dominar Monstro': ['Bardo', 'Bruxo', 'Feiticeiro', 'Mago'],
   // 9º
   'Desejo (Wish)': ['Feiticeiro', 'Mago'], 'Parar o Tempo (Time Stop)': ['Feiticeiro', 'Mago'], 'Tempestade de Meteoros (Meteor Swarm)': ['Feiticeiro', 'Mago'], 'Palavra de Poder: Matar': ['Bardo', 'Bruxo', 'Feiticeiro', 'Mago'], 'Curar em Massa (Mass Heal)': ['Clérigo'],
+  // lote extra — truques
+  'Toque Gélido (Chill Touch)': ['Bruxo', 'Feiticeiro', 'Mago'], 'Borrifada de Veneno (Poison Spray)': ['Bruxo', 'Druida', 'Feiticeiro', 'Mago'], 'Estabilizar (Spare the Dying)': ['Clérigo', 'Druida'],
+  'Ilusão Menor (Minor Illusion)': ['Bardo', 'Bruxo', 'Feiticeiro', 'Mago'], 'Consertar (Mending)': ['Bardo', 'Clérigo', 'Druida', 'Feiticeiro', 'Mago'], 'Chicote de Espinhos (Thorn Whip)': ['Druida'], 'Luzes Dançantes': ['Bardo', 'Feiticeiro', 'Mago'],
+  // lote extra — 1º
+  'Onda Trovejante (Thunderwave)': ['Bardo', 'Druida', 'Feiticeiro', 'Mago'], 'Flecha Guiada (Guiding Bolt)': ['Clérigo'], 'Causar Ferimentos (Inflict Wounds)': ['Clérigo'], 'Orbe Cromático (Chromatic Orb)': ['Feiticeiro', 'Mago'],
+  'Riso Histérico (Tasha\'s Hideous Laughter)': ['Bardo', 'Mago'], 'Borrão de Cores (Color Spray)': ['Feiticeiro', 'Mago'], 'Graxa (Grease)': ['Mago'], 'Queda Suave (Feather Fall)': ['Bardo', 'Feiticeiro', 'Mago'],
+  // lote extra — 2º
+  'Escuridão (Darkness)': ['Bruxo', 'Feiticeiro', 'Mago'], 'Esfera Flamejante (Flaming Sphere)': ['Druida', 'Mago'], 'Sugestão (Suggestion)': ['Bardo', 'Bruxo', 'Feiticeiro', 'Mago'], 'Silêncio (Silence)': ['Bardo', 'Clérigo'],
+  'Raio Lunar (Moonbeam)': ['Druida'], 'Aquecer Metal (Heat Metal)': ['Bardo', 'Druida'], 'Estilhaçar (Shatter)': ['Bardo', 'Bruxo', 'Feiticeiro', 'Mago'], 'Passos sem Pegadas (Pass without Trace)': ['Druida', 'Patrulheiro'],
+  // lote extra — 3º
+  'Padrão Hipnótico (Hypnotic Pattern)': ['Bardo', 'Bruxo', 'Feiticeiro', 'Mago'], 'Guardiões Espirituais (Spirit Guardians)': ['Clérigo'], 'Lentidão (Slow)': ['Feiticeiro', 'Mago'], 'Nuvem Fétida (Stinking Cloud)': ['Bruxo', 'Feiticeiro', 'Mago'],
+  'Animar Mortos (Animate Dead)': ['Clérigo', 'Mago'], 'Chamar Relâmpagos (Call Lightning)': ['Druida'], 'Conjurar Animais (Conjure Animals)': ['Druida', 'Patrulheiro'], 'Toque Vampírico (Vampiric Touch)': ['Bruxo', 'Mago'],
 };
 
 // Magias concedidas por subclasse (sempre disponíveis/preparadas)

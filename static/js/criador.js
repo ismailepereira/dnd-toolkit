@@ -280,53 +280,59 @@ const Criador = (function () {
     $('cEstiloWrap').classList.toggle('hidden', !tem);
     $('cEstilo').classList.toggle('hidden', !tem);
     if (!tem) { estado.estilo = ''; return; }
+    $('cEstiloWrap').innerHTML = `Estilo de Combate <span class="criador-hint-inline">(característica marcial de ${escHtml(estado.classe)})</span>`;
     $('cEstilo').innerHTML = '<option value="">— Selecione —</option>' +
       Object.keys(ESTILOS_LUTA).map(e => `<option value="${e}" ${estado.estilo === e ? 'selected' : ''}>${e} — ${ESTILOS_LUTA[e]}</option>`).join('');
   }
 
-  function contagemMagias() {
-    const cj = CONJURACAO[estado.classe];
-    if (!cj || estado.nivel < (cj.desdeNivel || 1)) return null;
-    const attrs = atributosFinais(estado);
-    const m = mod(attrs[cj.atributo]);
-    let nivel1;
-    if (cj.modo === 'prepara') nivel1 = Math.max(1, m + estado.nivel);
-    else nivel1 = cj.conhece || 0;
-    return { truques: cj.truques || 0, nivel1, modo: cj.modo };
+  function rotuloMagiaCriador(nome) {
+    const d = (typeof MAGIAS_DETALHE !== 'undefined') ? MAGIAS_DETALHE[nome] : null;
+    const dano = d && d.dano && d.dano !== '—' ? ` <small>· ${escHtml(d.dano)}</small>` : '';
+    return `${escHtml(nome)}${dano}`;
   }
 
   function renderMagias() {
-    const cont = contagemMagias();
     const wrap = $('cMagiasWrap');
-    if (!cont) { wrap.classList.add('hidden'); estado.truques = []; estado.magias1 = []; return; }
+    const ehConj = (typeof ehConjurador === 'function') && ehConjurador(estado.classe, estado.nivel);
+    if (!ehConj) { wrap.classList.add('hidden'); estado.truques = []; estado.magias1 = []; return; }
     wrap.classList.remove('hidden');
-    const banco = MAGIAS[estado.classe] || { truques: [], nivel1: [] };
 
-    // truque racial automático
+    const disp = magiasDisponiveis(estado.classe, null, estado.nivel); // {truques, circulos, bonus}
+    const limTruques = truquesNoNivel(estado.classe, estado.nivel);
+    const limMagias = magiasNoNivel(estado.classe, estado.nivel, atributosFinais(estado));
+    const prepara = !!PREPARA[estado.classe] && estado.classe !== 'Mago';
+
+    // truque racial automático (não conta)
     const r = RACAS_DETALHE[estado.raca] || {};
-    let truqueRacial = '';
-    if (r.truqueExtra && r.truqueExtra.nome) truqueRacial = r.truqueExtra.nome;
+    const truqueRacial = (r.truqueExtra && r.truqueExtra.nome) ? r.truqueExtra.nome : '';
 
-    estado.truques = estado.truques.filter(t => banco.truques.includes(t));
-    estado.magias1 = estado.magias1.filter(t => banco.nivel1.includes(t));
+    // mantém só escolhas válidas
+    estado.truques = (estado.truques || []).filter(t => disp.truques.includes(t));
+    estado.magias1 = (estado.magias1 || []).filter(t => disp.circulos.includes(t));
 
-    const limTruques = cont.truques;
-    const limMagias = cont.nivel1;
-
+    // ----- Truques -----
     $('cTruquesWrap').innerHTML = limTruques > 0
       ? `<h4>Truques <span class="criador-hint-inline">(escolha ${limTruques})</span></h4>
          ${truqueRacial ? `<div class="criador-hint">+ Truque racial automático: <strong>${escHtml(truqueRacial)}</strong></div>` : ''}
-         <div class="pericias-grid">` + banco.truques.map(t => {
+         <div class="pericias-grid">` + disp.truques.map(t => {
             const ch = estado.truques.includes(t);
-            return `<label class="check-chip ${ch ? 'on' : ''}"><input type="checkbox" data-truque="${escHtml(t)}" ${ch ? 'checked' : ''}>${escHtml(t)}</label>`;
+            return `<label class="check-chip ${ch ? 'on' : ''}"><input type="checkbox" data-truque="${escHtml(t)}" ${ch ? 'checked' : ''}>${rotuloMagiaCriador(t)}</label>`;
           }).join('') + `</div>`
       : (truqueRacial ? `<div class="criador-hint">Truque racial: <strong>${escHtml(truqueRacial)}</strong></div>` : '');
 
-    $('cMagias1Wrap').innerHTML = `<h4>Magias de 1º Círculo <span class="criador-hint-inline">(${cont.modo === 'prepara' ? 'prepare' : 'conheça'} ${limMagias})</span></h4>
-      <div class="pericias-grid">` + banco.nivel1.map(t => {
-        const ch = estado.magias1.includes(t);
-        return `<label class="check-chip ${ch ? 'on' : ''}"><input type="checkbox" data-magia1="${escHtml(t)}" ${ch ? 'checked' : ''}>${escHtml(t)}</label>`;
-      }).join('') + `</div>`;
+    // ----- Magias agrupadas por círculo -----
+    const maxc = maxCirculo(estado.classe, estado.nivel);
+    let porCirculo = '';
+    for (let circ = 1; circ <= maxc; circ++) {
+      const naLista = disp.circulos.filter(n => MAGIAS_DETALHE[n] && MAGIAS_DETALHE[n].nivel === circ);
+      if (!naLista.length) continue;
+      porCirculo += `<div class="circulo-grupo"><h5>${circ}º Círculo</h5><div class="pericias-grid">` +
+        naLista.map(t => {
+          const ch = estado.magias1.includes(t);
+          return `<label class="check-chip ${ch ? 'on' : ''}"><input type="checkbox" data-magia1="${escHtml(t)}" ${ch ? 'checked' : ''}>${rotuloMagiaCriador(t)}</label>`;
+        }).join('') + `</div></div>`;
+    }
+    $('cMagias1Wrap').innerHTML = `<h4>Magias <span class="criador-hint-inline">(${prepara ? 'prepare' : 'conheça'} ${limMagias} · até ${maxc}º círculo)</span></h4>${porCirculo}`;
 
     $('cTruquesWrap').querySelectorAll('[data-truque]').forEach(chk => {
       chk.addEventListener('change', () => {

@@ -42,11 +42,18 @@ try:
 
     _cred = None
     _key_json = os.environ.get('FIREBASE_KEY_JSON')
-    _key_file = os.path.join(BASE_DIR, 'firebase-key.json')
+    # caminhos possíveis do arquivo: Secret File do Render e arquivo local
+    _arquivos = [
+        '/etc/secrets/firebase-key.json',                 # Render Secret File
+        os.path.join(BASE_DIR, 'firebase-key.json'),      # local
+    ]
     if _key_json:
         _cred = credentials.Certificate(json.loads(_key_json))
-    elif os.path.exists(_key_file):
-        _cred = credentials.Certificate(_key_file)
+    else:
+        for _f in _arquivos:
+            if os.path.exists(_f):
+                _cred = credentials.Certificate(_f)
+                break
 
     if _cred:
         firebase_admin.initialize_app(_cred)

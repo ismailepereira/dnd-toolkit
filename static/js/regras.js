@@ -227,6 +227,15 @@ const MAGIAS_CLASSES = {
   // lote extra — 3º
   'Padrão Hipnótico (Hypnotic Pattern)': ['Bardo', 'Bruxo', 'Feiticeiro', 'Mago'], 'Guardiões Espirituais (Spirit Guardians)': ['Clérigo'], 'Lentidão (Slow)': ['Feiticeiro', 'Mago'], 'Nuvem Fétida (Stinking Cloud)': ['Bruxo', 'Feiticeiro', 'Mago'],
   'Animar Mortos (Animate Dead)': ['Clérigo', 'Mago'], 'Chamar Relâmpagos (Call Lightning)': ['Druida'], 'Conjurar Animais (Conjure Animals)': ['Druida', 'Patrulheiro'], 'Toque Vampírico (Vampiric Touch)': ['Bruxo', 'Mago'],
+  // lote 3 — utilidade e controle
+  'Respingo Ácido (Acid Splash)': ['Feiticeiro', 'Mago'], 'Identificar (Identify)': ['Bardo', 'Mago'], 'Disfarçar-se (Disguise Self)': ['Bardo', 'Feiticeiro', 'Mago'],
+  'Detectar Pensamentos (Detect Thoughts)': ['Bardo', 'Feiticeiro', 'Mago'], 'Levitação (Levitate)': ['Feiticeiro', 'Mago'], 'Pés de Aranha (Spider Climb)': ['Bruxo', 'Feiticeiro', 'Mago'],
+  'Ver o Invisível (See Invisibility)': ['Bardo', 'Feiticeiro', 'Mago'], 'Destrancar (Knock)': ['Bardo', 'Feiticeiro', 'Mago'], 'Ampliar/Reduzir (Enlarge/Reduce)': ['Feiticeiro', 'Mago'],
+  'Clarividência (Clairvoyance)': ['Bardo', 'Clérigo', 'Feiticeiro', 'Mago'], 'Enviar Mensagem (Sending)': ['Bardo', 'Clérigo', 'Mago'], 'Idiomas (Tongues)': ['Bardo', 'Clérigo', 'Feiticeiro', 'Mago', 'Bruxo'],
+  'Imagem Maior (Major Image)': ['Bardo', 'Bruxo', 'Feiticeiro', 'Mago'], 'Remover Maldição (Remove Curse)': ['Bruxo', 'Clérigo', 'Mago', 'Paladino'], 'Conceder Maldição (Bestow Curse)': ['Bardo', 'Bruxo', 'Clérigo', 'Mago'],
+  'Confusão (Confusion)': ['Bardo', 'Druida', 'Feiticeiro', 'Mago'], 'Pele de Pedra (Stoneskin)': ['Druida', 'Feiticeiro', 'Mago', 'Patrulheiro'], 'Tentáculos Negros (Black Tentacles)': ['Mago'], 'Proteção contra a Morte (Death Ward)': ['Clérigo', 'Paladino'], 'Escudo de Fogo (Fire Shield)': ['Mago'],
+  'Imobilizar Monstro (Hold Monster)': ['Bardo', 'Bruxo', 'Feiticeiro', 'Mago'], 'Cura em Massa Menor (Mass Cure Wounds)': ['Bardo', 'Clérigo', 'Druida'], 'Muralha de Força (Wall of Force)': ['Mago'], 'Golpe Flamejante (Flame Strike)': ['Clérigo'], 'Animar Objetos (Animate Objects)': ['Bardo', 'Feiticeiro', 'Mago'],
+  'Banquete dos Heróis (Heroes\' Feast)': ['Clérigo', 'Druida'], 'Muralha de Gelo (Wall of Ice)': ['Mago'], 'Prismática (Prismatic Spray)': ['Feiticeiro', 'Mago'], 'Reversão da Gravidade (Reverse Gravity)': ['Druida', 'Feiticeiro', 'Mago'],
 };
 
 // Magias concedidas por subclasse (sempre disponíveis/preparadas)

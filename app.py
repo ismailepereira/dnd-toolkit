@@ -31,8 +31,49 @@ ESTADO_PADRAO = {
     'combate': {'combatentes': [], 'turno': 0, 'rodada': 1, 'log': []},
 }
 
+# ---------------------------------------------------------------
+# Firestore (persistência + tempo real). Fallback: arquivo JSON local.
+# Credencial: env FIREBASE_KEY_JSON (produção) ou firebase-key.json (local).
+# ---------------------------------------------------------------
+db = None
+try:
+    import firebase_admin
+    from firebase_admin import credentials, firestore
+
+    _cred = None
+    _key_json = os.environ.get('FIREBASE_KEY_JSON')
+    _key_file = os.path.join(BASE_DIR, 'firebase-key.json')
+    if _key_json:
+        _cred = credentials.Certificate(json.loads(_key_json))
+    elif os.path.exists(_key_file):
+        _cred = credentials.Certificate(_key_file)
+
+    if _cred:
+        firebase_admin.initialize_app(_cred)
+        db = firestore.client()
+        print('[Firebase] Firestore conectado.')
+    else:
+        print('[Firebase] Sem credencial — usando arquivo local.')
+except Exception as e:  # pragma: no cover
+    print('[Firebase] Indisponível, usando arquivo local:', e)
+    db = None
+
+DOC_CAMPANHA = ('campanha', 'principal')  # coleção, documento
+
 
 def carregar_estado():
+    if db is not None:
+        ref = db.collection(DOC_CAMPANHA[0]).document(DOC_CAMPANHA[1])
+        snap = ref.get()
+        if snap.exists:
+            estado = snap.to_dict() or {}
+        else:
+            ref.set(ESTADO_PADRAO)
+            estado = dict(ESTADO_PADRAO)
+        for chave, valor in ESTADO_PADRAO.items():
+            estado.setdefault(chave, valor)
+        return estado
+    # fallback: arquivo local
     if not os.path.exists(DATA_FILE):
         salvar_estado(ESTADO_PADRAO)
     with open(DATA_FILE, 'r', encoding='utf-8') as f:
@@ -43,6 +84,9 @@ def carregar_estado():
 
 
 def salvar_estado(estado):
+    if db is not None:
+        db.collection(DOC_CAMPANHA[0]).document(DOC_CAMPANHA[1]).set(estado)
+        return
     os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
     with open(DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(estado, f, ensure_ascii=False, indent=2)

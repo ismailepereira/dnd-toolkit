@@ -12,6 +12,11 @@
 # ─── Estado local (gerado em runtime) ───
 data/estado.json
 
+# ─── Firebase (chave de serviço — NUNCA versionar) ───
+firebase-key.json
+*firebase*adminsdk*.json
+serviceAccount*.json
+
 # ─── Comuns ───
 __pycache__/
 *.pyc

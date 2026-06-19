@@ -844,3 +844,18 @@ document.getElementById('rolarDado').addEventListener('click', () => {
   total += mod;
   resultado.textContent = `Rolagens: [${rolagens.join(', ')}]${mod ? ` ${mod >= 0 ? '+' : ''}${mod}` : ''}\nTotal: ${total}`;
 });
+
+// =====================================================
+// TEMPO REAL (Firestore) - atualiza as telas quando o estado muda
+// =====================================================
+if (window.RT && RT.ativo()) {
+  let _lf = '', _lc = '', _lv = '';
+  RT.ouvir(estado => {
+    const sf = JSON.stringify(estado.fichas || []);
+    if (sf !== _lf) { _lf = sf; fichas = estado.fichas || []; renderFichas(); }
+    const sc = JSON.stringify(estado.combate || {});
+    if (sc !== _lc) { _lc = sc; combate = estado.combate || { combatentes: [], turno: 0, rodada: 1, log: [] }; renderCombate(); }
+    const sv = JSON.stringify(estado.monstros_visiveis || []);
+    if (sv !== _lv) { _lv = sv; monstrosVisiveis = estado.monstros_visiveis || []; renderMonstros(); }
+  });
+}

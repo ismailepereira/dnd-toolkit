@@ -15,6 +15,10 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
+// marca do último dado recebido em tempo real (suprime o polling quando o RT funciona)
+let ultimoRT = 0;
+const rtRecente = () => Date.now() - ultimoRT < 10000;
+
 // =====================================================
 // FICHAS (compartilhadas com o mestre via API)
 // =====================================================
@@ -182,7 +186,8 @@ async function atualizarVisibilidade() {
 bestiaBusca.addEventListener('input', renderMonstros);
 bestiaTipo.addEventListener('change', renderMonstros);
 atualizarVisibilidade();
-setInterval(atualizarVisibilidade, 8000); // verifica novos monstros liberados a cada 8s
+// polling de fallback (auto-suprimido quando o tempo real está entregando dados)
+setInterval(() => { if (!rtRecente()) atualizarVisibilidade(); }, 8000);
 
 // =====================================================
 // PROGRESSÃO DE CLASSE (somente leitura)
@@ -306,4 +311,21 @@ async function atualizarCombateJog() {
   } catch (e) {}
 }
 atualizarCombateJog();
-setInterval(atualizarCombateJog, 5000);
+
+// =====================================================
+// TEMPO REAL (Firestore) - atualiza ficha/bestiário/combate na hora
+// =====================================================
+if (window.RT && RT.ativo()) {
+  let _lf = '', _lv = '', _lc = '';
+  RT.ouvir(estado => {
+    ultimoRT = Date.now();
+    const sf = JSON.stringify(estado.fichas || []);
+    if (sf !== _lf) { _lf = sf; fichas = estado.fichas || []; renderFichas(); }
+    const sv = JSON.stringify(estado.monstros_visiveis || []);
+    if (sv !== _lv) { _lv = sv; monstrosVisiveis = estado.monstros_visiveis || []; popularTipoJogador(); renderMonstros(); }
+    const sc = JSON.stringify(estado.combate || {});
+    if (sc !== _lc) { _lc = sc; renderCombateJog(estado.combate || {}); }
+  });
+}
+// polling de fallback (auto-suprimido quando o tempo real está entregando dados)
+setInterval(() => { if (!rtRecente()) atualizarCombateJog(); }, 6000);

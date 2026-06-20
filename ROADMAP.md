@@ -48,9 +48,9 @@ Cada bloco entrega: características base (com mecânica) + características de 
 **Alinhamento de magias por bloco (conjurador pleno):** 1–7 = até 4º círculo · 8–14 = 5º a 7º · 15–20 = 8º/9º + capstone.
 
 ### Pendência específica do Mago (Bloco A)
-- [ ] Separar **grimório** (tudo que aprendeu) de **magias preparadas** (subconjunto do dia) no Modo de Jogo
-- [ ] Características mecânicas de cada **Escola de Magia** por nível (ex.: Evocação → Esculpir Magias, Truque Potente)
-- [ ] Completar a lista de magias de Mago
+- [ ] Separar **grimório** (tudo que aprendeu) de **magias preparadas** (subconjunto do dia) no Modo de Jogo — *refatora a ficha; melhor fazer em chat novo dedicado*
+- [x] Características mecânicas de cada **Escola de Magia** por nível (8 escolas, no painel do Criador e na Subida de Nível) — commit `f5f26f3`
+- [ ] Completar a lista de magias de Mago (temos ~159; faltam as demais do PHB)
 
 ---
 

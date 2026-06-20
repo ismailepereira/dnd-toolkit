@@ -47,6 +47,12 @@ const Nivel = (function () {
       html += `<div class="nv-bloco"><h4>Você ganha neste nível</h4><ul>${e.caracteristicas.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>`;
     }
 
+    // Características de subclasse ganhas exatamente neste nível
+    if (ficha.subclasse && typeof SUBCLASSE_FEATURES !== 'undefined' && SUBCLASSE_FEATURES[ficha.subclasse] && SUBCLASSE_FEATURES[ficha.subclasse][novo]) {
+      const feats = SUBCLASSE_FEATURES[ficha.subclasse][novo];
+      html += `<div class="nv-bloco"><h4>${esc(ficha.subclasse)} — novo poder</h4><ul>${feats.map(([n, d]) => `<li><b>${esc(n)}:</b> ${esc(d)}</li>`).join('')}</ul></div>`;
+    }
+
     // Subclasse
     if (e.subclasse) {
       const sc = SUBCLASSES[ficha.classe];

@@ -481,6 +481,7 @@ const Criador = (function () {
       ${subNivel ? `<label class="mago-escola"><b>Tradição Arcana (Escola de Magia)</b>
         <select id="cEscolaMago"><option value="">— Escolher escola —</option>${(SUBCLASSES['Mago'] ? SUBCLASSES['Mago'].opcoes : []).map(o => `<option value="${escHtml(o.nome)}" ${s.subclasse === o.nome ? 'selected' : ''}>${escHtml(o.nome)}</option>`).join('')}</select></label>
         <div class="criador-hint">Ao escolher uma escola, o grimório passa a mostrar só as magias dessa escola (use "ver todas" para liberar as demais).</div>` : '<div class="criador-hint">No nível 2 você escolhe sua <b>Escola de Magia</b> (especialização).</div>'}
+      ${s.subclasse && typeof featuresSubclasse === 'function' && featuresSubclasse(s.subclasse, s.nivel).length ? `<h4>Poderes da ${escHtml(s.subclasse)}</h4><ul class="mago-feats">${featuresSubclasse(s.subclasse, s.nivel).map(f => `<li><b>N${f.nivel} · ${escHtml(f.nome)}:</b> ${escHtml(f.desc)}</li>`).join('')}</ul>` : ''}
     </div>`;
   }
 

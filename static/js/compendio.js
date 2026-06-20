@@ -348,6 +348,96 @@ const SUBCLASSES = {
   ] },
 };
 
+// =====================================================
+// CARACTERÍSTICAS DE SUBCLASSE por nível (mecânica completa)
+// Indexado pelo nome da subclasse. Começa pelas 8 Escolas do Mago.
+// =====================================================
+const SUBCLASSE_FEATURES = {
+  'Escola de Evocação': {
+    2: [
+      ['Especialista em Evocação', 'Copiar magias de evocação para o grimório custa metade do ouro e do tempo.'],
+      ['Esculpir Magias', 'Ao conjurar uma evocação de área, escolha 1 + nível da magia aliados: eles passam automaticamente na salva e não sofrem dano dela.'],
+    ],
+    6: [['Truque Potente', 'Criaturas que passam na salvaguarda de um truque seu ainda sofrem metade do dano (sem efeitos secundários).']],
+    10: [['Evocação Empoderada', 'Some seu modificador de Inteligência ao dano de uma evocação de mago.']],
+    14: [['Sobrecarga', 'Maximiza o dano de uma magia de até 5º círculo. Depois da 1ª vez por descanso longo, sofre dano necrótico crescente a cada reuso.']],
+  },
+  'Escola de Abjuração': {
+    2: [
+      ['Especialista em Abjuração', 'Copiar abjurações para o grimório custa metade.'],
+      ['Proteção Arcana', 'Ao conjurar uma abjuração de 1º+, cria um escudo de PV (2× nível de mago + INT) que absorve dano antes do seu PV; recarrega ao conjurar abjurações.'],
+    ],
+    6: [['Proteção Projetada', 'Reação: use a Proteção Arcana para absorver dano de uma criatura a até 9m.']],
+    10: [['Abjuração Aprimorada', 'Some o bônus de proficiência aos testes de conjuração de abjuração (ex.: Dissipar Magia, Contramágica).']],
+    14: [['Resistência a Magias', 'Vantagem em salvaguardas contra magias e resistência ao dano de magias.']],
+  },
+  'Escola de Adivinhação': {
+    2: [
+      ['Especialista em Adivinhação', 'Copiar adivinhações para o grimório custa metade.'],
+      ['Portento', 'Ao terminar um descanso longo, role 2d20 e guarde. Pode substituir qualquer ataque, teste ou salva (sua ou de quem você vê) por um desses números.'],
+    ],
+    6: [['Adivinhação Experiente', 'Ao conjurar adivinhação de 2º+, recupera um espaço de magia de círculo menor (1×/descanso).']],
+    10: [['O Terceiro Olho', 'Ação: ganha visão no escuro, ver o invisível, leitura de qualquer idioma escrito ou visão etérea.']],
+    14: [['Portento Maior', 'Passa a rolar 3 dados de Portento por descanso longo.']],
+  },
+  'Escola de Conjuração': {
+    2: [
+      ['Especialista em Conjuração', 'Copiar conjurações para o grimório custa metade.'],
+      ['Conjuração Menor', 'Ação: cria um objeto não-mágico (até 3 kg, cubo de 0,9m) que dura 1 hora.'],
+    ],
+    6: [['Transposição Benigna', 'Ação: teleporta-se até 9m OU troca de lugar com uma criatura pequena/média aliada.']],
+    10: [['Conjuração Focada', 'Sua concentração em magias de conjuração não pode ser quebrada por dano.']],
+    14: [['Invocação Duradoura', 'Criaturas que você invoca ganham 30 PV temporários.']],
+  },
+  'Escola de Encantamento': {
+    2: [
+      ['Especialista em Encantamento', 'Copiar encantamentos para o grimório custa metade.'],
+      ['Olhar Hipnótico', 'Ação: um alvo a 1,5m faz DT de magia ou fica enfeitiçado e incapacitado enquanto você mantiver o olhar.'],
+    ],
+    6: [['Encanto Instintivo', 'Reação ao ser atacado: o atacante faz salva ou redireciona o ataque para outra criatura.']],
+    10: [['Encantamento Dividido', 'Encantamentos de alvo único de 1º+ podem atingir 2 alvos.']],
+    14: [['Alterar Memórias', 'Faz o alvo esquecer que foi enfeitiçado; pode apagar até várias horas de memória.']],
+  },
+  'Escola de Ilusão': {
+    2: [
+      ['Especialista em Ilusão', 'Copiar ilusões para o grimório custa metade.'],
+      ['Ilusão Menor Aprimorada', 'Ilusão Menor cria som E imagem ao mesmo tempo; pode conjurar sem o componente sonoro.'],
+    ],
+    6: [['Ilusões Maleáveis', 'Pode alterar a natureza de uma ilusão sua de duração 1 min+ enquanto a vê.']],
+    10: [['Eu Ilusório', 'Reação: cria uma cópia ilusória que faz um ataque que o acertaria errar (1×/descanso).']],
+    14: [['Realidade Ilusória', 'Torna um objeto ilusório real (não-mágico) por 1 minuto.']],
+  },
+  'Escola de Necromancia': {
+    2: [
+      ['Especialista em Necromancia', 'Copiar necromancias para o grimório custa metade.'],
+      ['Colheita Sombria', 'Ao matar uma criatura com magia, recupera PV iguais a 2× o círculo da magia (ou o nível, com truques).'],
+    ],
+    6: [['Servos Mortos-Vivos', 'Aprende Animar Mortos; cria 1 morto-vivo a mais e eles ganham +PV e dano radiante/necrótico extra.']],
+    10: [['Habituado à Morte', 'Resistência a dano necrótico e seu PV máximo não pode ser reduzido.']],
+    14: [['Comandar Mortos-Vivos', 'Ação: domina um morto-vivo (salva de Carisma; mais difícil para inteligentes).']],
+  },
+  'Escola de Transmutação': {
+    2: [
+      ['Especialista em Transmutação', 'Copiar transmutações para o grimório custa metade.'],
+      ['Alquimia Menor', 'Transforma um material (madeira↔pedra, ferro↔cobre etc.) por 1 hora.'],
+    ],
+    6: [['Pedra do Transmutador', 'Cria uma pedra que dá um benefício à escolha (visão no escuro, +3m desloc., proficiência em CON, resistência a um dano).']],
+    10: [['Metamorfo', 'Conjura Polimorfia em si mesmo sem gastar espaço (formas de fera limitadas), 1×/descanso.']],
+    14: [['Mestre Transmutador', 'Consome a pedra para um grande efeito: rejuvenescer, restaurar, ou tornar a pedra permanente.']],
+  },
+};
+
+// Características de uma subclasse acumuladas até um nível (lista {nivel, nome, desc})
+function featuresSubclasse(nomeSub, nivelMax) {
+  const mapa = SUBCLASSE_FEATURES[nomeSub];
+  if (!mapa) return [];
+  const out = [];
+  Object.keys(mapa).map(Number).sort((a, b) => a - b).forEach(nv => {
+    if (nv <= nivelMax) mapa[nv].forEach(([nome, desc]) => out.push({ nivel: nv, nome, desc }));
+  });
+  return out;
+}
+
 // Busca tolerante: encontra detalhe de magia mesmo com variações de nome
 function detalheMagia(nome) {
   if (MAGIAS_DETALHE[nome]) return MAGIAS_DETALHE[nome];

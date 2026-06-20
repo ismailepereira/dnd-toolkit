@@ -846,6 +846,29 @@ input, textarea, .form-grid select {
 .jg-magia-corpo p { font-size: 0.83rem; margin: 4px 0; }
 .jg-magia-simples { font-size: 0.85rem; padding: 3px 0; border-bottom: 1px solid var(--border); }
 .jg-nv-tag { display: inline-block; font-size: 0.62rem; background: var(--accent2); color: var(--text-dim); border-radius: 6px; padding: 0 5px; margin-right: 4px; }
+/* Criador em etapas */
+.criador-passos { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.passo-chip { flex: 1; min-width: 140px; text-align: center; font-size: 0.78rem; padding: 6px 8px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; }
+.passo-chip.ativo { border-color: var(--accent); color: var(--text); background: rgba(233,69,96,0.12); }
+.passo-chip.feito { color: #3fb950; border-color: #3fb950; }
+.criador-step { display: flex; flex-direction: column; gap: 10px; }
+
+.classe-painel-box { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+.classe-painel-box h3 { margin: 0 0 4px 0; }
+.classe-painel-box h4 { margin: 8px 0 4px 0; font-size: 0.82rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: .4px; }
+.classe-painel-box ul { margin: 0; padding-left: 16px; font-size: 0.85rem; }
+.mago-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
+.mago-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 4px; text-align: center; }
+.mago-card span { display: block; font-size: 1.1rem; font-weight: bold; color: var(--accent); }
+.mago-card small { font-size: 0.62rem; color: var(--text-dim); }
+.mago-feats { list-style: none; padding-left: 0 !important; }
+.mago-feats li { margin-bottom: 4px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; }
+
+.peso-info { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin: 8px 0; }
+.peso-info h4 { margin: 0 0 6px 0; font-size: 0.82rem; color: var(--text-dim); text-transform: uppercase; }
+.peso-barra { height: 12px; background: var(--bg); border-radius: 6px; overflow: hidden; margin-bottom: 6px; }
+.peso-barra div { height: 100%; transition: width .2s; }
+
 .circulo-grupo { margin-bottom: 8px; }
 .circulo-grupo h5 { margin: 6px 0 4px 0; font-size: 0.78rem; color: var(--accent); border-bottom: 1px dashed var(--border); padding-bottom: 2px; }
 .pv-warn { color: #d29922; font-size: 0.75rem; }

@@ -34,13 +34,10 @@ async function carregarFichas() {
 
 let _filaSalvarFichas = Promise.resolve();
 function salvarFichas() {
-  // serializa os PUTs para não se atropelarem (modo de jogo / tempo real)
+  // captura o conteúdo AGORA (evita que o listener de tempo real atropele a gravação)
+  const body = JSON.stringify(fichas);
   _filaSalvarFichas = _filaSalvarFichas.then(() =>
-    fetch('/api/fichas', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(fichas),
-    })
+    fetch('/api/fichas', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body })
   ).catch(() => {});
   return _filaSalvarFichas;
 }

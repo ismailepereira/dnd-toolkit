@@ -367,6 +367,7 @@ const Criador = (function () {
       const v = $('cItemSelect').value;
       if (v && !estado.itens.includes(v)) estado.itens.push(v);
       renderChipsItens();
+      renderPeso();
       renderPreview();
     });
     renderChipsItens();
@@ -377,17 +378,105 @@ const Criador = (function () {
     $('cItensChips').querySelectorAll('[data-rem]').forEach(b => {
       b.addEventListener('click', () => {
         estado.itens = estado.itens.filter(x => x !== b.dataset.rem);
-        renderChipsItens(); renderPreview();
+        renderChipsItens(); renderPeso(); renderPreview();
       });
     });
   }
 
   function renderTudoDinamico() {
     renderEscolhaAtributos();
+    renderPainelClasse();
     renderPericias();
     renderEstilo();
     renderMagias();
+    renderPeso();
     renderPreview();
+  }
+
+  // ---------- Painel detalhado por classe (etapa 2) ----------
+  function renderPainelClasse() {
+    const wrap = $('cClassePainel');
+    if (!wrap) return;
+    const fn = PAINEIS_CLASSE[estado.classe];
+    wrap.innerHTML = fn ? fn(estado) : painelGenerico(estado);
+  }
+
+  function painelGenerico(s) {
+    const chave = CLASSE_NOME_PARA_CHAVE[s.classe];
+    const cls = CLASSES[chave];
+    const nd = cls ? cls.niveis.find(n => n.nivel === s.nivel) : null;
+    const carac = nd && nd.caracteristicas.length ? nd.caracteristicas.map(c => `<li>${escHtml(c)}</li>`).join('') : '<li class="vazio">—</li>';
+    return `<div class="classe-painel-box"><h3>${escHtml(s.classe)} — Nível ${s.nivel}</h3>
+      <div class="criador-hint">Dado de Vida ${cls ? cls.dadoVida : ''} · Salvaguardas: ${(cls ? cls.salvaguardas : []).join(', ')}</div>
+      <h4>Características deste nível</h4><ul>${carac}</ul></div>`;
+  }
+
+  // Painel específico do MAGO
+  function painelMago(s) {
+    const attrs = atributosFinais(s);
+    const intMod = mod(attrs.int);
+    const pb = PB(s.nivel);
+    const cd = 8 + pb + intMod, atq = pb + intMod;
+    const truques = truquesNoNivel('Mago', s.nivel);
+    const grimorio = 6 + (s.nivel - 1) * 2; // grimório começa com 6 e ganha 2/nível
+    const preparadas = Math.max(1, intMod + s.nivel);
+    const maxc = maxCirculo('Mago', s.nivel);
+    const recArcana = Math.max(1, Math.ceil(s.nivel / 2)); // espaços recuperáveis (soma de círculos)
+    const subNivel = (s.nivel >= 2);
+    return `<div class="classe-painel-box mago">
+      <h3>🧙 Mago — Nível ${s.nivel}</h3>
+      <div class="criador-hint">A magia do Mago vem da <b>Inteligência</b> e do <b>Grimório</b>. Você prepara magias do grimório a cada dia.</div>
+      <div class="mago-stats">
+        <div class="mago-card"><span>${cd}</span><small>CD de Magia</small></div>
+        <div class="mago-card"><span>+${atq}</span><small>Ataque Mágico</small></div>
+        <div class="mago-card"><span>${maxc}º</span><small>Círculo máx.</small></div>
+        <div class="mago-card"><span>${truques}</span><small>Truques</small></div>
+        <div class="mago-card"><span>${grimorio}</span><small>Magias no grimório</small></div>
+        <div class="mago-card"><span>${preparadas}</span><small>Preparadas/dia</small></div>
+      </div>
+      <h4>Características de Mago</h4>
+      <ul class="mago-feats">
+        <li><b>Conjuração Arcana:</b> prepara ${preparadas} magias (INT ${intMod >= 0 ? '+' : ''}${intMod} + nível ${s.nivel}) do grimório por dia.</li>
+        <li><b>Recuperação Arcana:</b> 1×/dia, num descanso curto, recupera espaços de magia somando até ${recArcana} (nenhum acima do 5º).</li>
+        ${subNivel ? '<li><b>Tradição Arcana (subclasse):</b> escolha sua Escola de Magia (Evocação, Abjuração, Ilusão…) — definida no assistente de Subida de Nível.</li>' : '<li class="criador-hint">No nível 2 você escolhe sua <b>Tradição Arcana</b> (Escola de Magia).</li>'}
+        ${s.nivel >= 18 ? '<li><b>Domínio de Magia:</b> 2 magias de 1º/2º círculo viram à vontade.</li>' : ''}
+        ${s.nivel >= 20 ? '<li><b>Magia-Assinatura:</b> 2 magias de 3º círculo grátis 1×/descanso curto.</li>' : ''}
+      </ul>
+      <div class="criador-hint">Abaixo, escolha os <b>truques</b> e as <b>magias do grimório</b> (agrupadas por círculo).</div>
+    </div>`;
+  }
+
+  // Mapa de painéis específicos (vamos preenchendo classe por classe)
+  const PAINEIS_CLASSE = {
+    'Mago': painelMago,
+  };
+
+  // ---------- Peso / carga (etapa 3) ----------
+  function pesoDeItem(nome) {
+    const it = (typeof ITENS_PADRAO !== 'undefined') ? ITENS_PADRAO.find(i => i.nome === nome) : null;
+    if (!it || !it.peso) return 0;
+    const m = String(it.peso).replace(',', '.').match(/([\d.]+)/);
+    return m ? parseFloat(m[1]) : 0;
+  }
+  function renderPeso() {
+    const wrap = $('cPesoInfo');
+    if (!wrap) return;
+    const forca = atributosFinais(estado).for;
+    const capacidade = forca * 7.5;            // capacidade de carga (kg) = Força × 7,5
+    const limiteSobrecarga = forca * 5;        // > isso: sobrecarregado (regra opcional)
+    const limiteMuito = forca * 10;            // > isso: muito sobrecarregado / não pode
+    let total = pesoDeItem(estado.armadura);
+    if (estado.escudo) total += pesoDeItem('Escudo');
+    (estado.itens || []).forEach(i => { total += pesoDeItem(i); });
+    total = Math.round(total * 10) / 10;
+    let estadoCarga = 'Normal', cor = '#3fb950';
+    if (total > limiteMuito) { estadoCarga = 'Muito sobrecarregado (não consegue se mover bem)'; cor = '#e94560'; }
+    else if (total > limiteSobrecarga) { estadoCarga = 'Sobrecarregado (−3m de deslocamento)'; cor = '#d29922'; }
+    const temMontaria = (estado.itens || []).some(i => { const it = ITENS_PADRAO.find(x => x.nome === i); return it && it.categoria === 'Montaria'; });
+    wrap.innerHTML = `<h4>Carga / Peso</h4>
+      <div class="peso-barra"><div style="width:${Math.min(100, capacidade ? total / capacidade * 100 : 0)}%;background:${cor}"></div></div>
+      <div class="pv-linha">Carregando <b>${total} kg</b> de <b>${capacidade} kg</b> (capacidade = Força ${forca} × 7,5) — <span style="color:${cor}">${estadoCarga}</span></div>
+      ${temMontaria ? '<div class="criador-hint">🐴 Você tem uma montaria: ela carrega o peso pesado e dobra sua capacidade ao puxar/arrastar. Em combate, montar/desmontar custa metade do deslocamento.</div>' : '<div class="criador-hint">Dica: uma montaria (na loja) aumenta muito o quanto você carrega e seu deslocamento.</div>'}`;
   }
 
   // ---------- Métodos de atributos ----------
@@ -533,6 +622,24 @@ const Criador = (function () {
   }
   function ARRADURA_OK(n) { return !!ARMADURAS[n]; }
 
+  // ---------- Navegação por etapas ----------
+  let passo = 1;
+  const TOTAL_PASSOS = 3;
+  function irPasso(n) {
+    passo = Math.max(1, Math.min(TOTAL_PASSOS, n));
+    document.querySelectorAll('#modalCriador .criador-step').forEach(el => {
+      el.classList.toggle('hidden', Number(el.dataset.step) !== passo);
+    });
+    document.querySelectorAll('#modalCriador [data-passo-chip]').forEach(c => {
+      const n2 = Number(c.dataset.passoChip);
+      c.classList.toggle('ativo', n2 === passo);
+      c.classList.toggle('feito', n2 < passo);
+    });
+    $('cVoltar').style.display = passo > 1 ? 'inline-block' : 'none';
+    $('cProximo').style.display = passo < TOTAL_PASSOS ? 'inline-block' : 'none';
+    $('cSalvar').style.display = passo === TOTAL_PASSOS ? 'inline-block' : 'none';
+  }
+
   // ---------- Abrir ----------
   function abrir(ficha, opts) {
     ctx = opts || {};
@@ -543,6 +650,7 @@ const Criador = (function () {
     renderItens();
     $('criadorTitulo').textContent = ficha ? 'Editar Personagem' : 'Criar Personagem';
     $('cExcluir').style.display = (ficha && ctx.aoExcluir) ? 'inline-block' : 'none';
+    irPasso(1);
     $('modalCriador').classList.remove('hidden');
   }
 
@@ -567,8 +675,8 @@ const Criador = (function () {
     $('cClasse').addEventListener('change', () => { estado.classe = $('cClasse').value; renderTudoDinamico(); });
     $('cAntecedente').addEventListener('change', () => { estado.antecedente = $('cAntecedente').value; renderPreview(); });
     $('cNivel').addEventListener('change', () => { estado.nivel = Number($('cNivel').value); renderTudoDinamico(); });
-    $('cArmadura').addEventListener('change', () => { estado.armadura = $('cArmadura').value; renderPreview(); });
-    $('cEscudo').addEventListener('change', () => { estado.escudo = $('cEscudo').checked; renderPreview(); });
+    $('cArmadura').addEventListener('change', () => { estado.armadura = $('cArmadura').value; renderPeso(); renderPreview(); });
+    $('cEscudo').addEventListener('change', () => { estado.escudo = $('cEscudo').checked; renderPeso(); renderPreview(); });
     $('cEstilo').addEventListener('change', () => { estado.estilo = $('cEstilo').value; renderPreview(); });
     $('cOuro').addEventListener('input', () => { estado.ouro = Number($('cOuro').value) || 0; renderPreview(); });
     $('cAnotacoes').addEventListener('input', () => { estado.anotacoes = $('cAnotacoes').value; });
@@ -591,6 +699,13 @@ const Criador = (function () {
     });
     $('cExcluir').addEventListener('click', () => {
       if (ctx.aoExcluir && confirm('Excluir este personagem?')) { ctx.aoExcluir(); $('modalCriador').classList.add('hidden'); }
+    });
+
+    // navegação por etapas
+    $('cVoltar').addEventListener('click', () => irPasso(passo - 1));
+    $('cProximo').addEventListener('click', () => irPasso(passo + 1));
+    document.querySelectorAll('#modalCriador [data-passo-chip]').forEach(c => {
+      c.addEventListener('click', () => irPasso(Number(c.dataset.passoChip)));
     });
   }
 

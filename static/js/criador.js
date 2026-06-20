@@ -6,6 +6,8 @@ const Criador = (function () {
   const $ = id => document.getElementById(id);
   let ctx = null; // { aoSalvar, aoExcluir, original }
   let estado = null;
+  let criandoNovo = true;        // ficha nova (aplica ouro inicial)
+  let mostrarTodasEscolas = false; // Mago: ver magias de todas as escolas
 
   const AVG_DADO = { d6: 4, d8: 5, d10: 6, d12: 7 };
 
@@ -26,6 +28,7 @@ const Criador = (function () {
       pericias: [],           // perícias de classe escolhidas
       periciasExtra: [],      // perícias raciais extras
       estilo: '',
+      subclasse: '',
       truques: [],
       magias1: [],
       armadura: 'Cota de Malha',
@@ -320,11 +323,14 @@ const Criador = (function () {
           }).join('') + `</div>`
       : (truqueRacial ? `<div class="criador-hint">Truque racial: <strong>${escHtml(truqueRacial)}</strong></div>` : '');
 
-    // ----- Magias agrupadas por círculo -----
+    // ----- Magias agrupadas por círculo (Mago: travadas pela Escola escolhida) -----
     const maxc = maxCirculo(estado.classe, estado.nivel);
+    const escolaFiltro = (estado.classe === 'Mago' && estado.subclasse && !mostrarTodasEscolas)
+      ? estado.subclasse.replace(/^Escola de\s*/i, '').trim() : null;
     let porCirculo = '';
     for (let circ = 1; circ <= maxc; circ++) {
-      const naLista = disp.circulos.filter(n => MAGIAS_DETALHE[n] && MAGIAS_DETALHE[n].nivel === circ);
+      let naLista = disp.circulos.filter(n => MAGIAS_DETALHE[n] && MAGIAS_DETALHE[n].nivel === circ);
+      if (escolaFiltro) naLista = naLista.filter(n => (MAGIAS_DETALHE[n].escola || '') === escolaFiltro || estado.magias1.includes(n));
       if (!naLista.length) continue;
       porCirculo += `<div class="circulo-grupo"><h5>${circ}º Círculo</h5><div class="pericias-grid">` +
         naLista.map(t => {
@@ -332,7 +338,11 @@ const Criador = (function () {
           return `<label class="check-chip ${ch ? 'on' : ''}"><input type="checkbox" data-magia1="${escHtml(t)}" ${ch ? 'checked' : ''}>${rotuloMagiaCriador(t)}</label>`;
         }).join('') + `</div></div>`;
     }
-    $('cMagias1Wrap').innerHTML = `<h4>Magias <span class="criador-hint-inline">(${prepara ? 'prepare' : 'conheça'} ${limMagias} · até ${maxc}º círculo)</span></h4>${porCirculo}`;
+    const toggleEscola = (estado.classe === 'Mago' && estado.subclasse)
+      ? `<button type="button" id="cToggleEscola" class="btn-mini">${mostrarTodasEscolas ? '🔒 Só ' + escHtml(estado.subclasse.replace(/^Escola de\s*/i, '')) : '🔓 Ver todas as escolas'}</button>` : '';
+    $('cMagias1Wrap').innerHTML = `<h4>Magias <span class="criador-hint-inline">(${prepara ? 'prepare' : 'conheça'} ${limMagias} · até ${maxc}º círculo)</span> ${toggleEscola}</h4>${escolaFiltro ? `<div class="criador-hint">🔒 Travado na escola de <b>${escHtml(escolaFiltro)}</b>.</div>` : ''}${porCirculo}`;
+    const tg = $('cToggleEscola');
+    if (tg) tg.addEventListener('click', () => { mostrarTodasEscolas = !mostrarTodasEscolas; renderMagias(); });
 
     $('cTruquesWrap').querySelectorAll('[data-truque]').forEach(chk => {
       chk.addEventListener('change', () => {
@@ -354,31 +364,54 @@ const Criador = (function () {
     });
   }
 
+  // preço de um item em peças de ouro (po)
+  function precoEmPO(nome) {
+    const it = (typeof ITENS_PADRAO !== 'undefined') ? ITENS_PADRAO.find(i => i.nome === nome) : null;
+    if (!it || !it.preco) return 0;
+    const m = String(it.preco).toLowerCase().replace(',', '.').match(/([\d.]+)\s*(po|gp|pp|sp|pc|cp|pe)?/);
+    if (!m) return 0;
+    const v = parseFloat(m[1]), u = m[2] || 'po';
+    if (u === 'pp' || u === 'sp') return v / 10;
+    if (u === 'pc' || u === 'cp') return v / 100;
+    if (u === 'pe') return v / 2;
+    return v;
+  }
+  const arred = n => Math.round(n * 100) / 100;
+  function atualizarOuroDisp() {
+    const d = $('cOuroDisp'); if (d) d.textContent = estado.ouro;
+    if ($('cOuro')) $('cOuro').value = estado.ouro;
+  }
+
   function renderItens() {
     const wrap = $('cLojaWrap');
-    const opts = ITENS_PADRAO.map(i => `<option value="${escHtml(i.nome)}">${escHtml(i.nome)} (${escHtml(i.preco)})</option>`).join('');
+    const opts = ITENS_PADRAO.map(i => `<option value="${escHtml(i.nome)}">${escHtml(i.nome)} — ${escHtml(i.preco)}</option>`).join('');
     wrap.innerHTML = `
+      <div class="loja-ouro">💰 Ouro: <b id="cOuroDisp">${estado.ouro}</b> po</div>
       <div class="criador-add-item">
         <select id="cItemSelect">${opts}</select>
-        <button type="button" id="cAddItem" class="btn-mini">+ Adicionar</button>
+        <button type="button" id="cAddItem" class="btn-mini">+ Comprar</button>
       </div>
       <div id="cItensChips" class="chips"></div>`;
     $('cAddItem').addEventListener('click', () => {
       const v = $('cItemSelect').value;
-      if (v && !estado.itens.includes(v)) estado.itens.push(v);
-      renderChipsItens();
-      renderPeso();
-      renderPreview();
+      if (!v || estado.itens.includes(v)) return;
+      const preco = precoEmPO(v);
+      if (preco > estado.ouro) { alert(`Ouro insuficiente: ${v} custa ${preco} po e você tem ${estado.ouro} po.`); return; }
+      estado.ouro = arred(estado.ouro - preco);
+      estado.itens.push(v);
+      atualizarOuroDisp(); renderChipsItens(); renderPeso(); renderPreview();
     });
     renderChipsItens();
   }
   function renderChipsItens() {
     $('cItensChips').innerHTML = estado.itens.map(i =>
-      `<span class="chip">${escHtml(i)} <button type="button" data-rem="${escHtml(i)}">×</button></span>`).join('');
+      `<span class="chip">${escHtml(i)} <button type="button" data-rem="${escHtml(i)}" title="Remover (devolve o ouro)">×</button></span>`).join('');
     $('cItensChips').querySelectorAll('[data-rem]').forEach(b => {
       b.addEventListener('click', () => {
-        estado.itens = estado.itens.filter(x => x !== b.dataset.rem);
-        renderChipsItens(); renderPeso(); renderPreview();
+        const nome = b.dataset.rem;
+        estado.itens = estado.itens.filter(x => x !== nome);
+        estado.ouro = arred(estado.ouro + precoEmPO(nome)); // devolve o ouro na criação
+        atualizarOuroDisp(); renderChipsItens(); renderPeso(); renderPreview();
       });
     });
   }
@@ -399,6 +432,10 @@ const Criador = (function () {
     if (!wrap) return;
     const fn = PAINEIS_CLASSE[estado.classe];
     wrap.innerHTML = fn ? fn(estado) : painelGenerico(estado);
+    const sel = $('cEscolaMago');
+    if (sel) sel.addEventListener('change', () => {
+      estado.subclasse = sel.value; mostrarTodasEscolas = false; renderTudoDinamico();
+    });
   }
 
   function painelGenerico(s) {
@@ -438,11 +475,12 @@ const Criador = (function () {
       <ul class="mago-feats">
         <li><b>Conjuração Arcana:</b> prepara ${preparadas} magias (INT ${intMod >= 0 ? '+' : ''}${intMod} + nível ${s.nivel}) do grimório por dia.</li>
         <li><b>Recuperação Arcana:</b> 1×/dia, num descanso curto, recupera espaços de magia somando até ${recArcana} (nenhum acima do 5º).</li>
-        ${subNivel ? '<li><b>Tradição Arcana (subclasse):</b> escolha sua Escola de Magia (Evocação, Abjuração, Ilusão…) — definida no assistente de Subida de Nível.</li>' : '<li class="criador-hint">No nível 2 você escolhe sua <b>Tradição Arcana</b> (Escola de Magia).</li>'}
         ${s.nivel >= 18 ? '<li><b>Domínio de Magia:</b> 2 magias de 1º/2º círculo viram à vontade.</li>' : ''}
         ${s.nivel >= 20 ? '<li><b>Magia-Assinatura:</b> 2 magias de 3º círculo grátis 1×/descanso curto.</li>' : ''}
       </ul>
-      <div class="criador-hint">Abaixo, escolha os <b>truques</b> e as <b>magias do grimório</b> (agrupadas por círculo).</div>
+      ${subNivel ? `<label class="mago-escola"><b>Tradição Arcana (Escola de Magia)</b>
+        <select id="cEscolaMago"><option value="">— Escolher escola —</option>${(SUBCLASSES['Mago'] ? SUBCLASSES['Mago'].opcoes : []).map(o => `<option value="${escHtml(o.nome)}" ${s.subclasse === o.nome ? 'selected' : ''}>${escHtml(o.nome)}</option>`).join('')}</select></label>
+        <div class="criador-hint">Ao escolher uma escola, o grimório passa a mostrar só as magias dessa escola (use "ver todas" para liberar as demais).</div>` : '<div class="criador-hint">No nível 2 você escolhe sua <b>Escola de Magia</b> (especialização).</div>'}
     </div>`;
   }
 
@@ -584,6 +622,7 @@ const Criador = (function () {
       iniciativa: c.iniciativa,
       atributos: c.attrs,
       estilo: s.estilo,
+      subclasse: s.subclasse || '',
       pericias: [...c.perProf],
       truques: s.truques,
       magias1: s.magias1,
@@ -601,6 +640,8 @@ const Criador = (function () {
   // ---------- Carregar ficha existente no estado ----------
   function carregarFicha(f) {
     const s = estadoVazio();
+    criandoNovo = !f;
+    mostrarTodasEscolas = false;
     if (f) {
       s.nome = f.nome || '';
       s.raca = f.raca && RACAS_DETALHE[f.raca] ? f.raca : 'Humano';
@@ -609,6 +650,7 @@ const Criador = (function () {
       s.nivel = f.nivel || 1;
       if (f.atributos) s.base = { ...s.base, ...f.atributos };
       s.estilo = f.estilo || '';
+      s.subclasse = f.subclasse || '';
       s.truques = f.truques || [];
       s.magias1 = f.magias1 || [];
       s.armadura = f.armadura && ARRADURA_OK(f.armadura) ? f.armadura : 'Cota de Malha';
@@ -617,6 +659,9 @@ const Criador = (function () {
       s.ouro = f.ouro || 0;
       s.anotacoes = f.anotacoes || '';
       s.pericias = (f.pericias || []).filter(p => (PERICIAS_CLASSE[s.classe]?.opcoes || []).includes(p));
+    } else {
+      // ficha nova: recebe o ouro inicial da classe para comprar equipamento
+      s.ouro = (typeof OURO_INICIAL !== 'undefined' && OURO_INICIAL[s.classe]) || 0;
     }
     estado = s;
   }
@@ -672,13 +717,18 @@ const Criador = (function () {
     // Listeners
     $('cNome').addEventListener('input', () => { estado.nome = $('cNome').value; renderPreview(); });
     $('cRaca').addEventListener('change', () => { estado.raca = $('cRaca').value; renderTudoDinamico(); });
-    $('cClasse').addEventListener('change', () => { estado.classe = $('cClasse').value; renderTudoDinamico(); });
+    $('cClasse').addEventListener('change', () => {
+      estado.classe = $('cClasse').value;
+      estado.subclasse = ''; mostrarTodasEscolas = false;
+      if (criandoNovo) { estado.ouro = (typeof OURO_INICIAL !== 'undefined' && OURO_INICIAL[estado.classe]) || 0; atualizarOuroDisp(); }
+      renderTudoDinamico();
+    });
     $('cAntecedente').addEventListener('change', () => { estado.antecedente = $('cAntecedente').value; renderPreview(); });
     $('cNivel').addEventListener('change', () => { estado.nivel = Number($('cNivel').value); renderTudoDinamico(); });
     $('cArmadura').addEventListener('change', () => { estado.armadura = $('cArmadura').value; renderPeso(); renderPreview(); });
     $('cEscudo').addEventListener('change', () => { estado.escudo = $('cEscudo').checked; renderPeso(); renderPreview(); });
     $('cEstilo').addEventListener('change', () => { estado.estilo = $('cEstilo').value; renderPreview(); });
-    $('cOuro').addEventListener('input', () => { estado.ouro = Number($('cOuro').value) || 0; renderPreview(); });
+    $('cOuro').addEventListener('input', () => { estado.ouro = Number($('cOuro').value) || 0; const d = $('cOuroDisp'); if (d) d.textContent = estado.ouro; renderPreview(); });
     $('cAnotacoes').addEventListener('input', () => { estado.anotacoes = $('cAnotacoes').value; });
 
     $('btnArranjoPadrao').addEventListener('click', () => {

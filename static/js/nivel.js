@@ -5,6 +5,7 @@
 const Nivel = (function () {
   const $ = id => document.getElementById(id);
   let ficha = null, ctx = null, novo = 1, escolhas = null;
+  let verTodasEscolas = false; // Mago: ver magias de todas as escolas no level-up
   const AVG = { d6: 4, d8: 5, d10: 6, d12: 7 };
   const esc = s => s == null ? '' : String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -98,15 +99,21 @@ const Nivel = (function () {
           <div class="pericias-grid">${opc.map(mg => `<label class="check-chip"><input type="checkbox" data-truquenovo="${esc(mg)}">${rotuloMagia(mg)}</label>`).join('') || '<span class="criador-hint">Nenhum truque novo disponível.</span>'}</div></div>`;
       }
       if (g.magias > 0) {
-        const opc = disp.circulos.filter(x => !conhecidas.includes(x));
+        let opc = disp.circulos.filter(x => !conhecidas.includes(x));
         const verbo = g.prepara ? 'preparar' : 'aprender';
+        // Mago: trava as magias pela Escola escolhida (com opção de ver todas)
+        const escolaFiltro = (ficha.classe === 'Mago' && ficha.subclasse && !verTodasEscolas)
+          ? ficha.subclasse.replace(/^Escola de\s*/i, '').trim() : null;
+        if (escolaFiltro) opc = opc.filter(n => (MAGIAS_DETALHE[n].escola || '') === escolaFiltro);
         let grupos = '';
         for (let circ = 1; circ <= maxc; circ++) {
           const naLista = opc.filter(n => MAGIAS_DETALHE[n] && MAGIAS_DETALHE[n].nivel === circ);
           if (!naLista.length) continue;
           grupos += `<div class="circulo-grupo"><h5>${circ}º Círculo</h5><div class="pericias-grid">${naLista.map(mg => `<label class="check-chip"><input type="checkbox" data-magianova="${esc(mg)}">${rotuloMagia(mg)}</label>`).join('')}</div></div>`;
         }
-        html += `<div class="nv-bloco"><h4>Novas Magias <small>(${verbo} ${g.magias} · até ${maxc}º círculo)</small></h4>${grupos || '<span class="criador-hint">Nenhuma magia nova disponível.</span>'}</div>`;
+        const toggle = (ficha.classe === 'Mago' && ficha.subclasse)
+          ? `<button type="button" id="nvToggleEscola" class="btn-mini">${verTodasEscolas ? '🔒 Só ' + esc(ficha.subclasse.replace(/^Escola de\s*/i, '')) : '🔓 Ver todas as escolas'}</button>` : '';
+        html += `<div class="nv-bloco"><h4>Novas Magias <small>(${verbo} ${g.magias} · até ${maxc}º círculo)</small> ${toggle}</h4>${escolaFiltro ? `<div class="criador-hint">🔒 Travado na escola de <b>${esc(escolaFiltro)}</b>.</div>` : ''}${grupos || '<span class="criador-hint">Nenhuma magia nova disponível.</span>'}</div>`;
       }
       if (disp.bonus.length) {
         const novas = disp.bonus.filter(x => !conhecidas.includes(x));
@@ -126,6 +133,7 @@ const Nivel = (function () {
   function wire(e) {
     $('nvCancelar').onclick = () => $('modalNivel').classList.add('hidden');
     $('nvConfirmar').onclick = confirmar;
+    if ($('nvToggleEscola')) $('nvToggleEscola').onclick = () => { verTodasEscolas = !verTodasEscolas; render(); };
 
     if (e.asi) {
       const upd = () => {
@@ -191,6 +199,7 @@ const Nivel = (function () {
   function abrir(f, opts) {
     ficha = f; ctx = opts || {};
     if (ficha.nivel >= 20) { alert('Este personagem já está no nível máximo (20).'); return; }
+    verTodasEscolas = false;
     novo = ficha.nivel + 1;
     montarUmaVez();
     render();

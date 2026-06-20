@@ -280,6 +280,13 @@ const EQUIPAMENTO_CLASSE = {
   'Ladino':      { armadura: 'Couro Batido', armas: ['Rapieira', 'Arco Curto'], ouro: 0 },
 };
 
+// Ouro inicial por classe (média da rolagem do PHB, em po) — para comprar equipamento na criação
+const OURO_INICIAL = {
+  'Bárbaro': 50, 'Bardo': 125, 'Clérigo': 125, 'Druida': 50, 'Guerreiro': 125,
+  'Monge': 12, 'Paladino': 125, 'Patrulheiro': 125, 'Ladino': 100,
+  'Feiticeiro': 75, 'Mago': 100, 'Bruxo': 100,
+};
+
 // Nomes para o gerador aleatório
 const NOMES_ALEATORIOS = [
   'Thorin', 'Lyra', 'Gareth', 'Sariel', 'Borin', 'Vex', 'Aelar', 'Mira',

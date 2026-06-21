@@ -132,31 +132,58 @@ const MAGIAS_CONHECIDAS_TAB = {
 // Conjuradores que preparam da lista inteira (não "compram" lista fixa)
 const PREPARA = { 'Clérigo': 'sab', 'Druida': 'sab', 'Mago': 'int', 'Paladino': 'car' };
 
+// ---------- CONJURAÇÃO 1/3 POR SUBCLASSE (Cavaleiro Arcano, Trapaceiro Arcano) ----------
+// Slots parciais (círculos 1-4): começam no nível 3, vão até o 4º círculo no nível 19.
+const SLOTS_TERCO = {
+  3:[2,0,0,0], 4:[3,0,0,0], 5:[3,0,0,0], 6:[3,0,0,0],
+  7:[4,2,0,0], 8:[4,2,0,0], 9:[4,2,0,0], 10:[4,3,0,0],
+  11:[4,3,0,0], 12:[4,3,0,0], 13:[4,3,2,0], 14:[4,3,2,0],
+  15:[4,3,2,0], 16:[4,3,3,0], 17:[4,3,3,0], 18:[4,3,3,0],
+  19:[4,3,3,1], 20:[4,3,3,1],
+};
+// Magias conhecidas por nível (índice = nível-1) — igual para Cav. Arcano e Trapaceiro Arcano
+const TERCO_MAGIAS_CONHECIDAS = [0,0,3,4,4,4,5,6,6,6,7,7,8,9,9,10,10,10,11,13];
+// Subclasses que conjuram 1/3: lista-fonte (Mago), atributo, escolas favorecidas e truque obrigatório
+const CONJURADOR_SUBCLASSE = {
+  'Cavaleiro Arcano': { lista: 'Mago', atr: 'int', escolas: ['Abjuração', 'Evocação'],
+    truquesTab: [0,0,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3], obrigatorio: null },
+  'Trapaceiro Arcano': { lista: 'Mago', atr: 'int', escolas: ['Encantamento', 'Ilusão'],
+    truquesTab: [0,0,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4], obrigatorio: 'Mão Mágica' },
+};
+function subclasseConjura(subclasse) { return subclasse ? CONJURADOR_SUBCLASSE[subclasse] : null; }
+function slotsTerco(nivel) { return SLOTS_TERCO[nivel] || null; }
+
 function chaveDeClasse(classe) { return CLASSE_NOME_PARA_CHAVE[classe]; }
 
-// Maior círculo de magia acessível
-function maxCirculo(classe, nivel) {
+// Maior círculo de magia acessível (subclasse opcional p/ conjuradores 1/3)
+function maxCirculo(classe, nivel, subclasse) {
   const c = CLASSES[chaveDeClasse(classe)];
   if (!c) return 0;
   const nd = c.niveis.find(n => n.nivel === nivel);
   if (!nd) return 0;
   if (nd.pactoBruxo) return nd.pactoBruxo.nivel;
   if (nd.slotsMagia) { for (let i = nd.slotsMagia.length - 1; i >= 0; i--) if (nd.slotsMagia[i] > 0) return i + 1; }
+  if (subclasseConjura(subclasse)) { const s = slotsTerco(nivel); if (s) { for (let i = s.length - 1; i >= 0; i--) if (s[i] > 0) return i + 1; } }
   return 0;
 }
 
-function ehConjurador(classe, nivel) {
-  return maxCirculo(classe, nivel) > 0 || (CANTRIPS_CONHECIDOS[classe] && CANTRIPS_CONHECIDOS[classe][nivel - 1] > 0);
+function ehConjurador(classe, nivel, subclasse) {
+  return maxCirculo(classe, nivel, subclasse) > 0
+    || (CANTRIPS_CONHECIDOS[classe] && CANTRIPS_CONHECIDOS[classe][nivel - 1] > 0)
+    || (subclasseConjura(subclasse) && truquesNoNivel(classe, nivel, subclasse) > 0);
 }
 
 // Quantos truques o personagem deve conhecer neste nível
-function truquesNoNivel(classe, nivel) {
+function truquesNoNivel(classe, nivel, subclasse) {
+  const sc = subclasseConjura(subclasse);
+  if (sc) return sc.truquesTab[nivel - 1] || 0;
   const t = CANTRIPS_CONHECIDOS[classe];
   return t ? (t[nivel - 1] || 0) : 0;
 }
 
 // Quantas magias (de círculo) o personagem deve conhecer/preparar neste nível
-function magiasNoNivel(classe, nivel, attrs) {
+function magiasNoNivel(classe, nivel, attrs, subclasse) {
+  if (subclasseConjura(subclasse)) return TERCO_MAGIAS_CONHECIDAS[nivel - 1] || 0;
   if (MAGIAS_CONHECIDAS_TAB[classe]) return MAGIAS_CONHECIDAS_TAB[classe][nivel - 1] || 0;
   if (PREPARA[classe]) {
     const m = mod(attrs[PREPARA[classe]]);
@@ -291,20 +318,33 @@ const SUBCLASS_MAGIAS = {
   'Domínio da Guerra': ['Bênção (Bless)', 'Comando', 'Arma Espiritual', 'Velocidade (Haste)'],
   'Domínio da Tempestade': ['Mãos Flamejantes', 'Relâmpago', 'Tempestade de Gelo (Ice Storm)'],
   'Domínio da Natureza': ['Falar com Animais', 'Aranha (Web)', 'Tempestade de Gelo (Ice Storm)'],
+  'Domínio do Engano': ['Enfeitiçar Pessoa (Charm Person)', 'Imagem Espelhada', 'Lampejar (Blink)', 'Porta Dimensional (Dimension Door)', 'Modificar Memória (Modify Memory)'],
+  'Domínio do Conhecimento': ['Comando', 'Identificar (Identify)', 'Sugestão (Suggestion)', 'Indetectabilidade (Nondetection)', 'Confusão (Confusion)', 'Lendas (Legend Lore)', 'Bisbilhotar (Scrying)'],
   'Círculo da Terra': ['Dardo Flamejante (Faerie Fire)', 'Névoa', 'Aranha (Web)', 'Bola de Fogo'],
   'O Corruptor (Fiend)': ['Repreensão Infernal (Hellish Rebuke)', 'Mãos Flamejantes', 'Bola de Fogo', 'Muralha de Fogo (Wall of Fire)'],
   'O Arquifada (Archfey)': ['Dardo Flamejante (Faerie Fire)', 'Sono', 'Enfeitiçar Pessoa (Charm Person)', 'Medo (Fear)'],
   'O Grande Antigo (Great Old One)': ['Dissonância Sussurrada', 'Imagem Espelhada', 'Medo (Fear)', 'Dominar Pessoa'],
   'Juramento da Devoção': ['Proteção contra o Mal e o Bem', 'Escudo da Fé', 'Auxílio (Aid)'],
   'Juramento da Vingança': ['Perdição (Bane)', 'Marca do Caçador (Hunter\'s Mark)', 'Imobilizar Pessoa (Hold Person)'],
+  'Juramento dos Anciões': ['Falar com Animais', 'Passo Enevoado (Misty Step)', 'Raio Lunar (Moonbeam)', 'Proteção contra Energia', 'Tempestade de Gelo (Ice Storm)', 'Pele de Pedra (Stoneskin)'],
 };
+
+// Escolas em que as magias ficam "travadas" (Mago: a da Escola; conjurador 1/3: as favorecidas). null = sem trava.
+function escolasDeFiltro(classe, subclasse) {
+  const sc = subclasseConjura(subclasse);
+  if (sc) return sc.escolas.slice();
+  if (classe === 'Mago' && subclasse) return [subclasse.replace(/^Escola de\s*/i, '').trim()];
+  return null;
+}
 
 // Magias que a classe (+ subclasse) pode aprender, separadas em truques e círculos
 function magiasDisponiveis(classe, subclasse, nivel) {
-  const maxc = maxCirculo(classe, nivel);
+  const sc = subclasseConjura(subclasse);
+  const listaClasse = sc ? sc.lista : classe; // Cav. Arcano / Trapaceiro Arcano usam a lista de Mago
+  const maxc = maxCirculo(classe, nivel, subclasse);
   const truques = [], circulos = [];
   for (const nome in MAGIAS_CLASSES) {
-    if (!MAGIAS_CLASSES[nome].includes(classe)) continue;
+    if (!MAGIAS_CLASSES[nome].includes(listaClasse)) continue;
     const d = MAGIAS_DETALHE[nome]; if (!d) continue;
     if (d.nivel === 0) truques.push(nome);
     else if (d.nivel <= maxc) circulos.push(nome);
@@ -315,10 +355,10 @@ function magiasDisponiveis(classe, subclasse, nivel) {
 }
 
 // Quantos NOVOS truques / magias o personagem ganha ao subir para "nivel"
-function ganhoMagias(classe, nivel, attrs) {
-  const tNovo = truquesNoNivel(classe, nivel) - truquesNoNivel(classe, nivel - 1);
+function ganhoMagias(classe, nivel, attrs, subclasse) {
+  const tNovo = truquesNoNivel(classe, nivel, subclasse) - truquesNoNivel(classe, nivel - 1, subclasse);
   let mNovo;
   if (classe === 'Mago') mNovo = (nivel === 1 ? 6 : 2); // grimório
-  else mNovo = magiasNoNivel(classe, nivel, attrs) - magiasNoNivel(classe, nivel - 1, attrs);
-  return { truques: Math.max(0, tNovo), magias: Math.max(0, mNovo), prepara: !!PREPARA[classe] && classe !== 'Mago' };
+  else mNovo = magiasNoNivel(classe, nivel, attrs, subclasse) - magiasNoNivel(classe, nivel - 1, attrs, subclasse);
+  return { truques: Math.max(0, tNovo), magias: Math.max(0, mNovo), prepara: !!PREPARA[classe] && classe !== 'Mago' && !subclasseConjura(subclasse) };
 }

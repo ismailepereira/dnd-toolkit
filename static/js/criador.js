@@ -296,16 +296,17 @@ const Criador = (function () {
 
   function renderMagias() {
     const wrap = $('cMagiasWrap');
-    const ehConj = (typeof ehConjurador === 'function') && ehConjurador(estado.classe, estado.nivel);
+    const ehConj = (typeof ehConjurador === 'function') && ehConjurador(estado.classe, estado.nivel, estado.subclasse);
     if (!ehConj) { wrap.classList.add('hidden'); estado.truques = []; estado.magias1 = []; return; }
     wrap.classList.remove('hidden');
 
-    const disp = magiasDisponiveis(estado.classe, null, estado.nivel); // {truques, circulos, bonus}
-    const limTruques = truquesNoNivel(estado.classe, estado.nivel);
+    const subConj = (typeof subclasseConjura === 'function') && subclasseConjura(estado.subclasse);
+    const disp = magiasDisponiveis(estado.classe, estado.subclasse, estado.nivel); // {truques, circulos, bonus}
+    const limTruques = truquesNoNivel(estado.classe, estado.nivel, estado.subclasse);
     const ehMago = estado.classe === 'Mago';
     // Mago aprende no GRIMÓRIO (6 no nível 1, +2 por nível); as preparadas do dia (INT+nível) vivem no Modo de Jogo
-    const limMagias = ehMago ? (6 + (estado.nivel - 1) * 2) : magiasNoNivel(estado.classe, estado.nivel, atributosFinais(estado));
-    const prepara = !!PREPARA[estado.classe] && estado.classe !== 'Mago';
+    const limMagias = ehMago ? (6 + (estado.nivel - 1) * 2) : magiasNoNivel(estado.classe, estado.nivel, atributosFinais(estado), estado.subclasse);
+    const prepara = !!PREPARA[estado.classe] && estado.classe !== 'Mago' && !subConj;
 
     // truque racial automático (não conta)
     const r = RACAS_DETALHE[estado.raca] || {};
@@ -326,13 +327,13 @@ const Criador = (function () {
       : (truqueRacial ? `<div class="criador-hint">Truque racial: <strong>${escHtml(truqueRacial)}</strong></div>` : '');
 
     // ----- Magias agrupadas por círculo (Mago: travadas pela Escola escolhida) -----
-    const maxc = maxCirculo(estado.classe, estado.nivel);
-    const escolaFiltro = (estado.classe === 'Mago' && estado.subclasse && !mostrarTodasEscolas)
-      ? estado.subclasse.replace(/^Escola de\s*/i, '').trim() : null;
+    const maxc = maxCirculo(estado.classe, estado.nivel, estado.subclasse);
+    const escolas = (typeof escolasDeFiltro === 'function') ? escolasDeFiltro(estado.classe, estado.subclasse) : null;
+    const escolaFiltro = (escolas && !mostrarTodasEscolas) ? escolas : null;
     let porCirculo = '';
     for (let circ = 1; circ <= maxc; circ++) {
       let naLista = disp.circulos.filter(n => MAGIAS_DETALHE[n] && MAGIAS_DETALHE[n].nivel === circ);
-      if (escolaFiltro) naLista = naLista.filter(n => (MAGIAS_DETALHE[n].escola || '') === escolaFiltro || estado.magias1.includes(n));
+      if (escolaFiltro) naLista = naLista.filter(n => escolaFiltro.includes(MAGIAS_DETALHE[n].escola || '') || estado.magias1.includes(n));
       if (!naLista.length) continue;
       porCirculo += `<div class="circulo-grupo"><h5>${circ}º Círculo</h5><div class="pericias-grid">` +
         naLista.map(t => {
@@ -340,10 +341,10 @@ const Criador = (function () {
           return `<label class="check-chip ${ch ? 'on' : ''}"><input type="checkbox" data-magia1="${escHtml(t)}" ${ch ? 'checked' : ''}>${rotuloMagiaCriador(t)}</label>`;
         }).join('') + `</div></div>`;
     }
-    const toggleEscola = (estado.classe === 'Mago' && estado.subclasse)
-      ? `<button type="button" id="cToggleEscola" class="btn-mini">${mostrarTodasEscolas ? '🔒 Só ' + escHtml(estado.subclasse.replace(/^Escola de\s*/i, '')) : '🔓 Ver todas as escolas'}</button>` : '';
+    const toggleEscola = escolas
+      ? `<button type="button" id="cToggleEscola" class="btn-mini">${mostrarTodasEscolas ? '🔒 Só ' + escHtml(escolas.join('/')) : '🔓 Ver todas as escolas'}</button>` : '';
     const verboMagia = ehMago ? 'grimório:' : (prepara ? 'prepare' : 'conheça');
-    $('cMagias1Wrap').innerHTML = `<h4>Magias <span class="criador-hint-inline">(${verboMagia} ${limMagias} · até ${maxc}º círculo)</span> ${toggleEscola}</h4>${ehMago ? `<div class="criador-hint">📖 São as magias do grimório (tudo que o mago aprendeu). No Modo de Jogo você prepara INT + nível delas por dia.</div>` : ''}${escolaFiltro ? `<div class="criador-hint">🔒 Travado na escola de <b>${escHtml(escolaFiltro)}</b>.</div>` : ''}${porCirculo}`;
+    $('cMagias1Wrap').innerHTML = `<h4>Magias <span class="criador-hint-inline">(${verboMagia} ${limMagias} · até ${maxc}º círculo)</span> ${toggleEscola}</h4>${ehMago ? `<div class="criador-hint">📖 São as magias do grimório (tudo que o mago aprendeu). No Modo de Jogo você prepara INT + nível delas por dia.</div>` : ''}${subConj ? `<div class="criador-hint">🪄 Conjuração 1/3 (lista de Mago). Você <b>conhece</b> magias fixas; favorecidas: ${escHtml((escolas || []).join(' e '))}.</div>` : ''}${escolaFiltro ? `<div class="criador-hint">🔒 Travado em <b>${escHtml(escolaFiltro.join(' / '))}</b>.</div>` : ''}${porCirculo}`;
     const tg = $('cToggleEscola');
     if (tg) tg.addEventListener('click', () => { mostrarTodasEscolas = !mostrarTodasEscolas; renderMagias(); });
 
@@ -439,6 +440,10 @@ const Criador = (function () {
     if (sel) sel.addEventListener('change', () => {
       estado.subclasse = sel.value; mostrarTodasEscolas = false; renderTudoDinamico();
     });
+    const selG = $('cSubclasseSel'); // seletor genérico de subclasse (não-Mago)
+    if (selG) selG.addEventListener('change', () => {
+      estado.subclasse = selG.value; mostrarTodasEscolas = false; renderTudoDinamico();
+    });
   }
 
   function painelGenerico(s) {
@@ -482,19 +487,422 @@ const Criador = (function () {
         ${s.nivel >= 9 ? '<li><b>Magias de 5º Círculo (N9):</b> abre o 5º círculo — controle de campo e dano pesado (ex.: Telecinésia, Muralha de Pedra, Cone de Frio). Ganha 1 espaço de 5º.</li>' : ''}
         ${s.nivel >= 11 ? '<li><b>Magias de 6º Círculo (N11):</b> abre o 6º círculo (ex.: Desintegrar, Globo de Invulnerabilidade, Muralha de Gelo). Ganha 1 espaço de 6º.</li>' : ''}
         ${s.nivel >= 13 ? '<li><b>Magias de 7º Círculo (N13):</b> abre o 7º círculo (ex.: Teleporte, Reversão da Gravidade, Dedo da Morte). Ganha 1 espaço de 7º.</li>' : ''}
-        ${s.nivel >= 18 ? '<li><b>Domínio de Magia:</b> 2 magias de 1º/2º círculo viram à vontade.</li>' : ''}
-        ${s.nivel >= 20 ? '<li><b>Magia-Assinatura:</b> 2 magias de 3º círculo grátis 1×/descanso curto.</li>' : ''}
+        ${s.nivel >= 15 ? '<li><b>Magias de 8º Círculo (N15):</b> abre o 8º círculo (ex.: Palavra de Poder: Atordoar, Domínio de Monstros, Nuvem Mortal, Labirinto). Ganha 1 espaço de 8º.</li>' : ''}
+        ${s.nivel >= 17 ? '<li><b>Magias de 9º Círculo (N17):</b> abre o 9º círculo — as magias mais poderosas do jogo (ex.: Desejo, Parada Temporal, Palavra de Poder: Matar, Portal). Ganha 1 espaço de 9º.</li>' : ''}
+        ${s.nivel >= 18 ? '<li><b>Domínio de Magia (N18):</b> escolha 1 magia de 1º e 1 de 2º círculo do grimório; enquanto preparadas, conjura ambas no círculo mais baixo <b>sem gastar espaço</b>, à vontade (troca a escolha com 8h de estudo).</li>' : ''}
+        ${s.nivel >= 20 ? '<li><b>Magias-Assinatura (N20):</b> escolha 2 magias de 3º círculo; ficam <b>sempre preparadas</b> (não contam no limite) e você conjura cada uma 1× no 3º círculo sem gastar espaço (recupera em descanso curto).</li>' : ''}
       </ul>
       ${subNivel ? `<label class="mago-escola"><b>Tradição Arcana (Escola de Magia)</b>
         <select id="cEscolaMago"><option value="">— Escolher escola —</option>${(SUBCLASSES['Mago'] ? SUBCLASSES['Mago'].opcoes : []).map(o => `<option value="${escHtml(o.nome)}" ${s.subclasse === o.nome ? 'selected' : ''}>${escHtml(o.nome)}</option>`).join('')}</select></label>
         <div class="criador-hint">Ao escolher uma escola, o grimório passa a mostrar só as magias dessa escola (use "ver todas" para liberar as demais).</div>` : '<div class="criador-hint">No nível 2 você escolhe sua <b>Escola de Magia</b> (especialização).</div>'}
-      ${s.subclasse && typeof featuresSubclasse === 'function' && featuresSubclasse(s.subclasse, s.nivel).length ? `<h4>Poderes da ${escHtml(s.subclasse)}</h4><ul class="mago-feats">${featuresSubclasse(s.subclasse, s.nivel).map(f => `<li><b>N${f.nivel} · ${escHtml(f.nome)}:</b> ${escHtml(f.desc)}</li>`).join('')}</ul>` : ''}
+      ${s.subclasse && typeof featuresSubclasse === 'function' && featuresSubclasse(s.subclasse, s.nivel).length ? `<h4>Poderes da ${escHtml(s.subclasse)}</h4><ul class="mago-feats">${featuresSubclasse(s.subclasse, s.nivel).map(f => `<li><b>N${f.nivel} · ${escHtml(f.nome)}:</b> ${escHtml(f.desc)}</li>`).join('')}</ul>${s.nivel >= 14 ? '<div class="criador-hint">✓ As 8 Escolas de Magia têm poderes apenas em <b>N2, N6, N10 e N14</b> — a partir do N14 sua Escola não concede novas características. Do N15 em diante, a evolução do Mago vem dos <b>círculos de magia mais altos</b> (8º no N15, 9º no N17) e dos marcos da classe (<b>Domínio de Magia</b> no N18 e <b>Magias-Assinatura</b> no N20).</div>' : ''}` : ''}
     </div>`;
   }
 
-  // Mapa de painéis específicos (vamos preenchendo classe por classe)
+  // Seletor genérico de subclasse (para classes não-Mago)
+  function seletorSubclasse(s) {
+    const sc = SUBCLASSES[s.classe];
+    if (!sc) return '';
+    if (s.nivel < sc.nivel) return `<div class="criador-hint">No nível ${sc.nivel} você escolhe sua especialização.</div>`;
+    return `<label class="mago-escola"><b>Especialização</b>
+      <select id="cSubclasseSel"><option value="">— Escolher —</option>${sc.opcoes.map(o => `<option value="${escHtml(o.nome)}" ${s.subclasse === o.nome ? 'selected' : ''}>${escHtml(o.nome)}</option>`).join('')}</select></label>`;
+  }
+
+  // Painel específico do GUERREIRO
+  function painelGuerreiro(s) {
+    const attrs = atributosFinais(s);
+    const pb = PB(s.nivel);
+    const ataques = s.nivel >= 20 ? 4 : s.nivel >= 11 ? 3 : s.nivel >= 5 ? 2 : 1;
+    const surto = s.nivel >= 17 ? 2 : (s.nivel >= 2 ? 1 : 0);
+    const indom = s.nivel >= 17 ? 3 : s.nivel >= 13 ? 2 : (s.nivel >= 9 ? 1 : 0);
+    const estilos = s.nivel >= 10 && s.subclasse === 'Campeão' ? 2 : 1;
+    // bloco de conjuração do Cavaleiro Arcano
+    let blocoConj = '';
+    if (s.subclasse === 'Cavaleiro Arcano' && s.nivel >= 3) {
+      const intMod = mod(attrs.int);
+      const cd = 8 + pb + intMod, atq = pb + intMod;
+      const maxc = maxCirculo('Guerreiro', s.nivel, 'Cavaleiro Arcano');
+      const tr = truquesNoNivel('Guerreiro', s.nivel, 'Cavaleiro Arcano');
+      const conh = magiasNoNivel('Guerreiro', s.nivel, attrs, 'Cavaleiro Arcano');
+      blocoConj = `<h4>Conjuração Arcana (1/3)</h4>
+        <div class="mago-stats">
+          <div class="mago-card"><span>${cd}</span><small>CD de Magia</small></div>
+          <div class="mago-card"><span>+${atq}</span><small>Ataque Mágico</small></div>
+          <div class="mago-card"><span>${maxc}º</span><small>Círculo máx.</small></div>
+          <div class="mago-card"><span>${tr}</span><small>Truques</small></div>
+          <div class="mago-card"><span>${conh}</span><small>Magias conhecidas</small></div>
+        </div>
+        <div class="criador-hint">Conjura pela <b>Inteligência</b>, da lista de Mago (favorece <b>Abjuração</b> e <b>Evocação</b>). Escolha as magias na etapa de Magias.</div>`;
+    }
+    // bloco de manobras do Mestre de Batalha
+    let blocoManobras = '';
+    if (s.subclasse === 'Mestre de Batalha' && s.nivel >= 3 && typeof MANOBRAS_BATALHA !== 'undefined') {
+      const dado = s.nivel >= 18 ? 'd12' : (s.nivel >= 10 ? 'd10' : 'd8');
+      const nDados = s.nivel >= 15 ? 6 : (s.nivel >= 7 ? 5 : 4);
+      const nMan = s.nivel >= 15 ? 9 : s.nivel >= 10 ? 7 : (s.nivel >= 7 ? 5 : 3);
+      const desMod = mod(attrs.des), forMod = mod(attrs.for);
+      const cdMan = 8 + pb + Math.max(forMod, desMod);
+      blocoManobras = `<h4>Superioridade de Combate</h4>
+        <div class="mago-stats">
+          <div class="mago-card"><span>${nDados}${dado}</span><small>Dados de superioridade</small></div>
+          <div class="mago-card"><span>${nMan}</span><small>Manobras conhecidas</small></div>
+          <div class="mago-card"><span>${cdMan}</span><small>CD de Manobra</small></div>
+        </div>
+        <details class="mago-detalhes"><summary>Ver as ${Object.keys(MANOBRAS_BATALHA).length} manobras</summary>
+          <ul class="mago-feats">${Object.entries(MANOBRAS_BATALHA).map(([n, d]) => `<li><b>${escHtml(n)}:</b> ${escHtml(d)}</li>`).join('')}</ul></details>`;
+    }
+    const featsSub = (s.subclasse && typeof featuresSubclasse === 'function') ? featuresSubclasse(s.subclasse, s.nivel) : [];
+    return `<div class="classe-painel-box mago">
+      <h3>⚔️ Guerreiro — Nível ${s.nivel}</h3>
+      <div class="criador-hint">Mestre das armas e armaduras. Combina manobras, magia ou pura força marcial conforme o Arquétipo.</div>
+      <div class="mago-stats">
+        <div class="mago-card"><span>${ataques}</span><small>Ataques por ação</small></div>
+        <div class="mago-card"><span>${surto}</span><small>Surto de Ação</small></div>
+        <div class="mago-card"><span>${indom}</span><small>Indomável (usos)</small></div>
+        <div class="mago-card"><span>1d10+${s.nivel}</span><small>Retomar o Fôlego</small></div>
+      </div>
+      <h4>Características de Guerreiro</h4>
+      <ul class="mago-feats">
+        <li><b>Estilo de Luta:</b> ${escHtml(s.estilo || '—')}${estilos === 2 ? ' (Campeão N10: ganha um 2º estilo)' : ''}. Escolha/ajuste na etapa de Habilidades.</li>
+        <li><b>Retomar o Fôlego (N1):</b> ação bônus para recuperar 1d10 + ${s.nivel} PV. Recupera em descanso curto/longo.</li>
+        <li><b>Surto de Ação (N2):</b> uma ação extra no turno${surto >= 2 ? ' (N17: 2 usos)' : ''}. Recupera em descanso curto/longo.</li>
+        ${s.nivel >= 5 ? `<li><b>Ataque Extra (N5/11/20):</b> ataca <b>${ataques}×</b> ao usar a ação de Ataque.</li>` : ''}
+        ${s.nivel >= 9 ? `<li><b>Indomável (N9/13/17):</b> rerrole uma salvaguarda falhada — <b>${indom}×</b> por descanso longo.</li>` : ''}
+      </ul>
+      ${seletorSubclasse(s)}
+      ${featsSub.length ? `<h4>Poderes do ${escHtml(s.subclasse)}</h4><ul class="mago-feats">${featsSub.map(f => `<li><b>N${f.nivel} · ${escHtml(f.nome)}:</b> ${escHtml(f.desc)}</li>`).join('')}</ul>` : ''}
+      ${blocoConj}${blocoManobras}
+    </div>`;
+  }
+
+  // Painel específico do LADINO
+  function painelLadino(s) {
+    const attrs = atributosFinais(s);
+    const pb = PB(s.nivel);
+    const furtivo = Math.ceil(s.nivel / 2);
+    const pericias = s.nivel >= 6 ? 4 : 2;
+    // bloco de conjuração do Trapaceiro Arcano
+    let blocoConj = '';
+    if (s.subclasse === 'Trapaceiro Arcano' && s.nivel >= 3) {
+      const intMod = mod(attrs.int);
+      const cd = 8 + pb + intMod, atq = pb + intMod;
+      const maxc = maxCirculo('Ladino', s.nivel, 'Trapaceiro Arcano');
+      const tr = truquesNoNivel('Ladino', s.nivel, 'Trapaceiro Arcano');
+      const conh = magiasNoNivel('Ladino', s.nivel, attrs, 'Trapaceiro Arcano');
+      blocoConj = `<h4>Conjuração Arcana (1/3)</h4>
+        <div class="mago-stats">
+          <div class="mago-card"><span>${cd}</span><small>CD de Magia</small></div>
+          <div class="mago-card"><span>+${atq}</span><small>Ataque Mágico</small></div>
+          <div class="mago-card"><span>${maxc}º</span><small>Círculo máx.</small></div>
+          <div class="mago-card"><span>${tr}</span><small>Truques</small></div>
+          <div class="mago-card"><span>${conh}</span><small>Magias conhecidas</small></div>
+        </div>
+        <div class="criador-hint">Conjura pela <b>Inteligência</b>, da lista de Mago (favorece <b>Encantamento</b> e <b>Ilusão</b>; Mão Mágica é truque obrigatório). Escolha as magias na etapa de Magias.</div>`;
+    }
+    const featsSub = (s.subclasse && typeof featuresSubclasse === 'function') ? featuresSubclasse(s.subclasse, s.nivel) : [];
+    return `<div class="classe-painel-box mago">
+      <h3>🗡️ Ladino — Nível ${s.nivel}</h3>
+      <div class="criador-hint">Especialista em perícia e precisão. Causa dano extra explorando brechas e age com astúcia.</div>
+      <div class="mago-stats">
+        <div class="mago-card"><span>${furtivo}d6</span><small>Ataque Furtivo</small></div>
+        <div class="mago-card"><span>${pericias}</span><small>Perícias dobradas</small></div>
+        <div class="mago-card"><span>${8 + pb + mod(attrs.des)}</span><small>CD de manobras (Des)</small></div>
+      </div>
+      <h4>Características de Ladino</h4>
+      <ul class="mago-feats">
+        <li><b>Ataque Furtivo (${furtivo}d6):</b> 1×/turno, +${furtivo}d6 de dano quando tem vantagem ou um aliado está adjacente ao alvo (com arma de acuidade ou à distância).</li>
+        <li><b>Perícia (N1${s.nivel >= 6 ? '/6' : ''}):</b> proficiência dobrada em ${pericias} perícias (ou ferramentas de ladrão).</li>
+        ${s.nivel >= 2 ? '<li><b>Ação Ardilosa (N2):</b> Disparar, Desengajar ou Esconder-se como ação bônus a cada turno.</li>' : ''}
+        ${s.nivel >= 5 ? '<li><b>Esquiva Sobrenatural (N5):</b> reação para reduzir à metade o dano de um ataque que você enxerga.</li>' : ''}
+        ${s.nivel >= 7 ? '<li><b>Evasão (N7):</b> em salvas de Destreza por área, metade do dano ao falhar e nenhum ao passar.</li>' : ''}
+        ${s.nivel >= 11 ? '<li><b>Talento Confiável (N11):</b> em perícias com proficiência, qualquer d20 ≤ 9 conta como 10.</li>' : ''}
+        ${s.nivel >= 14 ? '<li><b>Sentido às Cegas (N14):</b> localiza criaturas ocultas/invisíveis a até 3m se puder ouvir.</li>' : ''}
+        ${s.nivel >= 15 ? '<li><b>Mente Escorregadia (N15):</b> proficiência em salvaguardas de Sabedoria.</li>' : ''}
+        ${s.nivel >= 18 ? '<li><b>Elusivo (N18):</b> ataques não têm vantagem contra você (a menos que incapacitado).</li>' : ''}
+        ${s.nivel >= 20 ? '<li><b>Golpe de Sorte (N20):</b> transforma um erro em acerto ou um teste falho em 20 natural — 1×/descanso.</li>' : ''}
+      </ul>
+      ${seletorSubclasse(s)}
+      ${featsSub.length ? `<h4>Poderes do ${escHtml(s.subclasse)}</h4><ul class="mago-feats">${featsSub.map(f => `<li><b>N${f.nivel} · ${escHtml(f.nome)}:</b> ${escHtml(f.desc)}</li>`).join('')}</ul>` : ''}
+      ${blocoConj}
+    </div>`;
+  }
+
+  // Painel específico do CLÉRIGO
+  function painelClerigo(s) {
+    const attrs = atributosFinais(s);
+    const sabMod = mod(attrs.sab);
+    const pb = PB(s.nivel);
+    const cd = 8 + pb + sabMod, atq = pb + sabMod;
+    const truques = truquesNoNivel('Clérigo', s.nivel);
+    const maxc = maxCirculo('Clérigo', s.nivel);
+    const preparadas = Math.max(1, sabMod + s.nivel);
+    const canalizar = s.nivel >= 18 ? 3 : (s.nivel >= 6 ? 2 : (s.nivel >= 2 ? 1 : 0));
+    const nd = s.nivel >= 17 ? '4' : s.nivel >= 14 ? '3' : s.nivel >= 11 ? '2' : s.nivel >= 8 ? '1' : (s.nivel >= 5 ? '½' : null);
+    const featsSub = (s.subclasse && typeof featuresSubclasse === 'function') ? featuresSubclasse(s.subclasse, s.nivel) : [];
+    return `<div class="classe-painel-box mago">
+      <h3>✨ Clérigo — Nível ${s.nivel}</h3>
+      <div class="criador-hint">Conjurador divino que <b>prepara</b> magias da lista inteira (Sabedoria + nível por dia) e canaliza o poder do seu domínio.</div>
+      <div class="mago-stats">
+        <div class="mago-card"><span>${cd}</span><small>CD de Magia</small></div>
+        <div class="mago-card"><span>+${atq}</span><small>Ataque Mágico</small></div>
+        <div class="mago-card"><span>${maxc}º</span><small>Círculo máx.</small></div>
+        <div class="mago-card"><span>${truques}</span><small>Truques</small></div>
+        <div class="mago-card"><span>${preparadas}</span><small>Preparadas/dia</small></div>
+        <div class="mago-card"><span>${canalizar}</span><small>Canalizar Divindade</small></div>
+      </div>
+      <h4>Características de Clérigo</h4>
+      <ul class="mago-feats">
+        <li><b>Conjuração Divina:</b> prepara ${preparadas} magias (SAB ${sabMod >= 0 ? '+' : ''}${sabMod} + nível ${s.nivel}) da lista inteira de Clérigo por dia. O domínio adiciona magias sempre preparadas.</li>
+        ${s.nivel >= 2 ? `<li><b>Canalizar Divindade (N2/6/18):</b> ${canalizar} uso(s) por descanso curto/longo — Expulsar Mortos-Vivos + a opção do seu domínio.</li>` : ''}
+        ${nd ? `<li><b>Destruir Mortos-Vivos (N5+):</b> ao Expulsar, mortos-vivos com ND ≤ <b>${nd}</b> são destruídos no ato.</li>` : ''}
+        ${s.nivel >= 10 ? `<li><b>Intervenção Divina (N10):</b> role d100; se ≤ ${s.nivel} (seu nível), a divindade intervém${s.nivel >= 20 ? ' — <b>automático no N20</b>' : ''}.</li>` : ''}
+      </ul>
+      ${seletorSubclasse(s)}
+      ${featsSub.length ? `<h4>Poderes do ${escHtml(s.subclasse)}</h4><ul class="mago-feats">${featsSub.map(f => `<li><b>N${f.nivel} · ${escHtml(f.nome)}:</b> ${escHtml(f.desc)}</li>`).join('')}</ul>` : '<div class="criador-hint">No nível 1, escolha seu <b>Domínio Divino</b> acima para ver os poderes.</div>'}
+    </div>`;
+  }
+
+  // Helper: cartões de conjuração (classe que conjura por um atributo)
+  function cardsConj(classe, s, attrChave, rotuloPrep) {
+    const attrs = atributosFinais(s);
+    const m = mod(attrs[attrChave]);
+    const pb = PB(s.nivel);
+    const maxc = maxCirculo(classe, s.nivel);
+    const truques = truquesNoNivel(classe, s.nivel);
+    return `<div class="mago-stats">
+      <div class="mago-card"><span>${8 + pb + m}</span><small>CD de Magia</small></div>
+      <div class="mago-card"><span>+${pb + m}</span><small>Ataque Mágico</small></div>
+      <div class="mago-card"><span>${maxc}º</span><small>Círculo máx.</small></div>
+      ${truques ? `<div class="mago-card"><span>${truques}</span><small>Truques</small></div>` : ''}
+      ${rotuloPrep ? `<div class="mago-card"><span>${rotuloPrep.valor}</span><small>${rotuloPrep.rotulo}</small></div>` : ''}
+    </div>`;
+  }
+  function blocoSubFeats(s) {
+    const featsSub = (s.subclasse && typeof featuresSubclasse === 'function') ? featuresSubclasse(s.subclasse, s.nivel) : [];
+    return featsSub.length ? `<h4>Poderes do ${escHtml(s.subclasse)}</h4><ul class="mago-feats">${featsSub.map(f => `<li><b>N${f.nivel} · ${escHtml(f.nome)}:</b> ${escHtml(f.desc)}</li>`).join('')}</ul>` : '';
+  }
+
+  // BARDO — conjurador (conhece magias), Carisma
+  function painelBardo(s) {
+    const conh = magiasNoNivel('Bardo', s.nivel, atributosFinais(s));
+    const insp = s.nivel >= 15 ? 'd12' : s.nivel >= 10 ? 'd10' : (s.nivel >= 5 ? 'd8' : 'd6');
+    const usos = Math.max(1, mod(atributosFinais(s).car));
+    return `<div class="classe-painel-box mago"><h3>🎵 Bardo — Nível ${s.nivel}</h3>
+      <div class="criador-hint">Conjurador versátil (Carisma) que inspira aliados e conhece magias de qualquer fonte (Segredos Mágicos).</div>
+      ${cardsConj('Bardo', s, 'car', { valor: conh, rotulo: 'Magias conhecidas' })}
+      <h4>Características de Bardo</h4>
+      <ul class="mago-feats">
+        <li><b>Inspiração de Bardo (${insp}):</b> ação bônus, dá um dado a um aliado (${usos} usos, recupera em descanso ${s.nivel >= 5 ? 'curto/longo' : 'longo'}).</li>
+        ${s.nivel >= 2 ? '<li><b>Versatilidade (N2):</b> soma metade da proficiência a testes sem proficiência. <b>Recuperação de Canção</b> num descanso curto.</li>' : ''}
+        ${s.nivel >= 3 ? '<li><b>Especialização (N3/10):</b> dobra a proficiência em perícias escolhidas.</li>' : ''}
+        ${s.nivel >= 6 ? '<li><b>Contraencanto (N6):</b> usa música para dar vantagem contra medo e enfeitiçamento a quem está perto.</li>' : ''}
+        ${s.nivel >= 10 ? '<li><b>Segredos Mágicos (N10/14/18):</b> aprende magias de qualquer classe.</li>' : ''}
+        ${s.nivel >= 20 ? '<li><b>Inspiração Suprema (N20):</b> recupera toda a Inspiração ao rolar iniciativa sem nenhuma.</li>' : ''}
+      </ul>
+      ${seletorSubclasse(s)}${blocoSubFeats(s)}</div>`;
+  }
+
+  // BÁRBARO — marcial
+  function painelBarbaro(s) {
+    const attrs = atributosFinais(s);
+    const furores = s.nivel >= 20 ? '∞' : s.nivel >= 17 ? 6 : s.nivel >= 12 ? 5 : s.nivel >= 6 ? 4 : (s.nivel >= 3 ? 3 : 2);
+    const bonus = s.nivel >= 16 ? 4 : (s.nivel >= 9 ? 3 : 2);
+    const ataques = s.nivel >= 5 ? 2 : 1;
+    const critico = s.nivel >= 17 ? 3 : s.nivel >= 13 ? 2 : (s.nivel >= 9 ? 1 : 0);
+    return `<div class="classe-painel-box mago"><h3>🪓 Bárbaro — Nível ${s.nivel}</h3>
+      <div class="criador-hint">Guerreiro primal movido pela Fúria. Resistente e devastador no corpo a corpo.</div>
+      <div class="mago-stats">
+        <div class="mago-card"><span>${furores}</span><small>Furores/descanso</small></div>
+        <div class="mago-card"><span>+${bonus}</span><small>Dano na Fúria</small></div>
+        <div class="mago-card"><span>${10 + mod(attrs.des) + mod(attrs.con)}</span><small>CA sem armadura</small></div>
+        <div class="mago-card"><span>${ataques}</span><small>Ataques por ação</small></div>
+      </div>
+      <h4>Características de Bárbaro</h4>
+      <ul class="mago-feats">
+        <li><b>Fúria:</b> ação bônus — +${bonus} de dano corpo a corpo de Força, vantagem em testes/salvas de Força e resistência a concussão/perfurante/cortante (1 min).</li>
+        <li><b>Defesa sem Armadura:</b> CA = 10 + Destreza + Constituição.</li>
+        ${s.nivel >= 2 ? '<li><b>Ataque Descuidado (N2):</b> vantagem nos ataques de Força, mas inimigos também têm contra você. <b>Sentido de Perigo</b> (vantagem em salvas de Des).</li>' : ''}
+        ${s.nivel >= 5 ? '<li><b>Movimento Rápido (N5):</b> +3m de deslocamento sem armadura pesada.</li>' : ''}
+        ${s.nivel >= 7 ? '<li><b>Instinto Selvagem (N7):</b> vantagem na iniciativa.</li>' : ''}
+        ${critico ? `<li><b>Crítico Selvagem (N9/13/17):</b> +${critico} dado(s) de dano da arma em acertos críticos.</li>` : ''}
+        ${s.nivel >= 11 ? '<li><b>Fúria Implacável (N11):</b> ao cair a 0 PV durante a Fúria, faz salva de CON para ficar com 1.</li>' : ''}
+        ${s.nivel >= 18 ? '<li><b>Corpo Indomável (N18):</b> vantagem em salvas de Força.</li>' : ''}
+        ${s.nivel >= 20 ? '<li><b>Força Primitiva (N20):</b> Força e Constituição sobem para 24 (máx. 24).</li>' : ''}
+      </ul>
+      ${seletorSubclasse(s)}${blocoSubFeats(s)}</div>`;
+  }
+
+  // DRUIDA — conjurador que prepara (Sabedoria)
+  function painelDruida(s) {
+    const prep = Math.max(1, mod(atributosFinais(s).sab) + s.nivel);
+    const ndForma = s.nivel >= 8 ? '1 (qualquer desloc.)' : (s.nivel >= 4 ? '½ (sem voo)' : '¼ (sem voo/natação)');
+    return `<div class="classe-painel-box mago"><h3>🌿 Druida — Nível ${s.nivel}</h3>
+      <div class="criador-hint">Conjurador da natureza (Sabedoria) que <b>prepara</b> magias da lista inteira e assume Forma Selvagem.</div>
+      ${cardsConj('Druida', s, 'sab', { valor: prep, rotulo: 'Preparadas/dia' })}
+      <h4>Características de Druida</h4>
+      <ul class="mago-feats">
+        <li><b>Druídico:</b> idioma secreto dos druidas.</li>
+        ${s.nivel >= 2 ? `<li><b>Forma Selvagem (N2):</b> 2 usos/descanso — vira feras de até ND ${ndForma}.</li>` : ''}
+        ${s.nivel >= 18 ? '<li><b>Conjuração Atemporal (N18):</b> pode conjurar magias enquanto estiver em Forma Selvagem.</li>' : ''}
+        ${s.nivel >= 20 ? '<li><b>Arquidruida (N20):</b> usos ilimitados de Forma Selvagem; ignora componentes V/S de magias de druida.</li>' : ''}
+      </ul>
+      ${seletorSubclasse(s)}${blocoSubFeats(s)}</div>`;
+  }
+
+  // MONGE — marcial (Ki)
+  function painelMonge(s) {
+    const attrs = atributosFinais(s);
+    const pb = PB(s.nivel);
+    const ki = s.nivel >= 2 ? s.nivel : 0;
+    const am = s.nivel >= 17 ? 'd10' : s.nivel >= 11 ? 'd8' : (s.nivel >= 5 ? 'd6' : 'd4');
+    const desloc = s.nivel >= 18 ? 9 : s.nivel >= 14 ? 7.5 : s.nivel >= 10 ? 6 : s.nivel >= 6 ? 4.5 : (s.nivel >= 2 ? 3 : 0);
+    const ataques = s.nivel >= 5 ? 2 : 1;
+    return `<div class="classe-painel-box mago"><h3>👊 Monge — Nível ${s.nivel}</h3>
+      <div class="criador-hint">Artista marcial que canaliza o Ki. Rápido, preciso e difícil de acertar.</div>
+      <div class="mago-stats">
+        <div class="mago-card"><span>${ki}</span><small>Pontos de Ki</small></div>
+        <div class="mago-card"><span>${am}</span><small>Artes Marciais</small></div>
+        <div class="mago-card"><span>${10 + mod(attrs.des) + mod(attrs.sab)}</span><small>CA sem armadura</small></div>
+        <div class="mago-card"><span>${8 + pb + mod(attrs.sab)}</span><small>CD de Ki</small></div>
+        ${desloc ? `<div class="mago-card"><span>+${desloc}m</span><small>Deslocamento</small></div>` : ''}
+        <div class="mago-card"><span>${ataques}</span><small>Ataques por ação</small></div>
+      </div>
+      <h4>Características de Monge</h4>
+      <ul class="mago-feats">
+        <li><b>Artes Marciais:</b> usa Destreza com armas de monge/desarmado (dano ${am}); ataque desarmado bônus a cada ataque.</li>
+        ${s.nivel >= 2 ? '<li><b>Ki (N2):</b> Rajada de Golpes (2 ataques bônus), Defesa Paciente (Esquiva) e Passo do Vento (Disparar/Desengajar). Recupera em descanso curto.</li>' : ''}
+        ${s.nivel >= 3 ? '<li><b>Defletir Projéteis (N3):</b> reação para reduzir/anular dano de ataques à distância.</li>' : ''}
+        ${s.nivel >= 5 ? '<li><b>Golpe Atordoante (N5):</b> gasta Ki ao acertar para atordoar (salva de CON).</li>' : ''}
+        ${s.nivel >= 7 ? '<li><b>Evasão / Quietude da Mente (N7):</b> metade do dano em área; remove enfeitiçar/medo de si.</li>' : ''}
+        ${s.nivel >= 10 ? '<li><b>Purificar o Corpo (N10):</b> imune a doenças e veneno.</li>' : ''}
+        ${s.nivel >= 14 ? '<li><b>Alma de Diamante (N14):</b> proficiência em todas as salvaguardas; gasta Ki para repetir uma falha.</li>' : ''}
+        ${s.nivel >= 18 ? '<li><b>Corpo Vazio (N18):</b> gasta Ki para ficar invisível e resistente; ou Astral.</li>' : ''}
+        ${s.nivel >= 20 ? '<li><b>Mente e Corpo Perfeitos (N20):</b> Força, Destreza e Sabedoria viram no mínimo... +atributos lendários.</li>' : ''}
+      </ul>
+      ${seletorSubclasse(s)}${blocoSubFeats(s)}</div>`;
+  }
+
+  // PALADINO — meio-conjurador que prepara (Carisma)
+  function painelPaladino(s) {
+    const prep = s.nivel >= 2 ? Math.max(1, Math.floor(s.nivel / 2) + mod(atributosFinais(s).car)) : 0;
+    const pool = 5 * s.nivel;
+    const ataques = s.nivel >= 5 ? 2 : 1;
+    return `<div class="classe-painel-box mago"><h3>🛡️ Paladino — Nível ${s.nivel}</h3>
+      <div class="criador-hint">Guerreiro sagrado (Carisma). Combina marcial, magia e auras; pune inimigos com energia divina.</div>
+      <div class="mago-stats">
+        <div class="mago-card"><span>${pool}</span><small>Cura pelas Mãos (PV)</small></div>
+        <div class="mago-card"><span>${ataques}</span><small>Ataques por ação</small></div>
+        ${s.nivel >= 2 ? cardsConjInline('Paladino', s, 'car', { valor: prep, rotulo: 'Preparadas/dia' }) : '<div class="mago-card"><span>N2</span><small>Conjuração começa</small></div>'}
+      </div>
+      <h4>Características de Paladino</h4>
+      <ul class="mago-feats">
+        <li><b>Sentido Divino:</b> detecta celestiais, corruptores e mortos-vivos. <b>Cura pelas Mãos:</b> reserva de ${pool} PV ao toque.</li>
+        ${s.nivel >= 2 ? '<li><b>Punição Divina (N2):</b> ao acertar corpo a corpo, gasta espaço de magia para +2d8 radiante (+1d8 por círculo acima do 1º). <b>Estilo de Luta</b>.</li>' : ''}
+        ${s.nivel >= 3 ? '<li><b>Saúde Divina (N3):</b> imune a doenças.</li>' : ''}
+        ${s.nivel >= 6 ? '<li><b>Aura de Proteção (N6):</b> você e aliados a 3m (9m no N18) somam seu Carisma às salvaguardas.</li>' : ''}
+        ${s.nivel >= 10 ? '<li><b>Aura de Coragem (N10):</b> você e aliados perto não podem ser amedrontados.</li>' : ''}
+        ${s.nivel >= 11 ? '<li><b>Punição Divina Aprimorada (N11):</b> todo ataque corpo a corpo causa +1d8 radiante.</li>' : ''}
+        ${s.nivel >= 14 ? '<li><b>Toque Purificador (N14):</b> usa Cura pelas Mãos para remover venenos/doenças.</li>' : ''}
+      </ul>
+      ${seletorSubclasse(s)}${blocoSubFeats(s)}</div>`;
+  }
+
+  // PATRULHEIRO — meio-conjurador (conhece, Sabedoria)
+  function painelPatrulheiro(s) {
+    const conh = s.nivel >= 2 ? magiasNoNivel('Patrulheiro', s.nivel, atributosFinais(s)) : 0;
+    const ataques = s.nivel >= 5 ? 2 : 1;
+    return `<div class="classe-painel-box mago"><h3>🏹 Patrulheiro — Nível ${s.nivel}</h3>
+      <div class="criador-hint">Caçador e explorador (Sabedoria). Meio-conjurador que domina o território e os inimigos prediletos.</div>
+      <div class="mago-stats">
+        <div class="mago-card"><span>${ataques}</span><small>Ataques por ação</small></div>
+        ${s.nivel >= 2 ? cardsConjInline('Patrulheiro', s, 'sab', { valor: conh, rotulo: 'Magias conhecidas' }) : '<div class="mago-card"><span>N2</span><small>Conjuração começa</small></div>'}
+      </div>
+      <h4>Características de Patrulheiro</h4>
+      <ul class="mago-feats">
+        <li><b>Inimigo Predileto:</b> vantagem para rastrear/lembrar de um tipo de criatura; idioma extra.</li>
+        <li><b>Explorador Nato:</b> deslocamento e furtividade no terreno favorito; viagem eficiente.</li>
+        ${s.nivel >= 3 ? '<li><b>Consciência Primitiva (N3):</b> gasta espaço para detectar tipos de criatura por perto.</li>' : ''}
+        ${s.nivel >= 8 ? '<li><b>Passos Ágeis (N8):</b> ignora terreno difícil natural.</li>' : ''}
+        ${s.nivel >= 10 ? '<li><b>Esconder-se em Plena Vista (N10):</b> camuflagem que dá +10 em Furtividade parado.</li>' : ''}
+        ${s.nivel >= 14 ? '<li><b>Desaparecer (N14):</b> Esconder-se como ação bônus; não pode ser rastreado.</li>' : ''}
+        ${s.nivel >= 18 ? '<li><b>Sentidos Ferinos (N18):</b> percebe criaturas invisíveis/ocultas por perto.</li>' : ''}
+        ${s.nivel >= 20 ? '<li><b>Caçador Supremo (N20):</b> ataques extras contra o inimigo predileto.</li>' : ''}
+      </ul>
+      ${seletorSubclasse(s)}${blocoSubFeats(s)}</div>`;
+  }
+
+  // FEITICEIRO — conjurador (conhece, Carisma)
+  function painelFeiticeiro(s) {
+    const conh = magiasNoNivel('Feiticeiro', s.nivel, atributosFinais(s));
+    const pontos = s.nivel >= 2 ? s.nivel : 0;
+    const metamagia = s.nivel >= 17 ? 4 : s.nivel >= 10 ? 3 : (s.nivel >= 3 ? 2 : 0);
+    return `<div class="classe-painel-box mago"><h3>✴️ Feiticeiro — Nível ${s.nivel}</h3>
+      <div class="criador-hint">Magia inata (Carisma). Molda magias com Metamagia gastando Pontos de Feitiçaria.</div>
+      ${cardsConj('Feiticeiro', s, 'car', { valor: conh, rotulo: 'Magias conhecidas' })}
+      <h4>Características de Feiticeiro</h4>
+      <ul class="mago-feats">
+        ${s.nivel >= 2 ? `<li><b>Fontes de Feitiçaria (N2):</b> ${pontos} pontos — converte entre pontos e espaços de magia.</li>` : ''}
+        ${metamagia ? `<li><b>Metamagia (N3/10/17):</b> conhece ${metamagia} opções (ex.: Magia Gêmea, Magia Acelerada, Magia Sutil).</li>` : ''}
+        ${s.nivel >= 20 ? '<li><b>Restauração de Feitiçaria (N20):</b> recupera 4 Pontos de Feitiçaria num descanso curto.</li>' : ''}
+      </ul>
+      ${seletorSubclasse(s)}${blocoSubFeats(s)}</div>`;
+  }
+
+  // BRUXO — conjurador de pacto (Carisma)
+  function painelBruxo(s) {
+    const attrs = atributosFinais(s);
+    const pb = PB(s.nivel);
+    const car = mod(attrs.car);
+    const pacto = (CLASSES.bruxo.niveis.find(n => n.nivel === s.nivel) || {}).pactoBruxo || { slots: 1, nivel: 1 };
+    const truques = truquesNoNivel('Bruxo', s.nivel);
+    const conh = magiasNoNivel('Bruxo', s.nivel, attrs);
+    const invoc = s.nivel >= 18 ? 8 : s.nivel >= 15 ? 7 : s.nivel >= 12 ? 6 : s.nivel >= 9 ? 5 : s.nivel >= 7 ? 4 : s.nivel >= 5 ? 3 : (s.nivel >= 2 ? 2 : 0);
+    return `<div class="classe-painel-box mago"><h3>🜏 Bruxo — Nível ${s.nivel}</h3>
+      <div class="criador-hint">Poder vindo de um Patrono (Carisma). Poucos espaços, mas que recarregam em descanso curto e sobem ao círculo máximo.</div>
+      <div class="mago-stats">
+        <div class="mago-card"><span>${8 + pb + car}</span><small>CD de Magia</small></div>
+        <div class="mago-card"><span>+${pb + car}</span><small>Ataque Mágico</small></div>
+        <div class="mago-card"><span>${pacto.slots}×${pacto.nivel}º</span><small>Espaços de Pacto</small></div>
+        <div class="mago-card"><span>${truques}</span><small>Truques</small></div>
+        <div class="mago-card"><span>${conh}</span><small>Magias conhecidas</small></div>
+        <div class="mago-card"><span>${invoc}</span><small>Invocações</small></div>
+      </div>
+      <h4>Características de Bruxo</h4>
+      <ul class="mago-feats">
+        <li><b>Magia de Pacto:</b> ${pacto.slots} espaço(s), todos de ${pacto.nivel}º círculo, recuperados em <b>descanso curto</b>.</li>
+        ${s.nivel >= 2 ? `<li><b>Invocações Mágicas (N2):</b> ${invoc} invocações (ex.: Visão do Diabo, Explosão Agonizante, Máscara de Mil Faces).</li>` : ''}
+        ${s.nivel >= 3 ? '<li><b>Pacto Místico (N3):</b> escolhe Corrente (familiar), Lâmina (arma de pacto) ou Tomo (grimório de truques).</li>' : ''}
+        ${s.nivel >= 11 ? '<li><b>Arcano Místico (N11+):</b> 1 magia de 6º (depois 7º/8º/9º) que conjura 1×/descanso longo sem espaço.</li>' : ''}
+        ${s.nivel >= 20 ? '<li><b>Mestre dos Mistérios (N20):</b> recupera todos os espaços de pacto 1×/dia rapidamente.</li>' : ''}
+      </ul>
+      ${seletorSubclasse(s)}${blocoSubFeats(s)}</div>`;
+  }
+
+  // cartões de conjuração "soltos" (para encaixar dentro de um grid já aberto)
+  function cardsConjInline(classe, s, attrChave, prep) {
+    const attrs = atributosFinais(s);
+    const m = mod(attrs[attrChave]);
+    const pb = PB(s.nivel);
+    const maxc = maxCirculo(classe, s.nivel);
+    return `<div class="mago-card"><span>${8 + pb + m}</span><small>CD de Magia</small></div>
+      <div class="mago-card"><span>${maxc}º</span><small>Círculo máx.</small></div>
+      <div class="mago-card"><span>${prep.valor}</span><small>${prep.rotulo}</small></div>`;
+  }
+
+  // Mapa de painéis específicos (todas as 12 classes do PHB)
   const PAINEIS_CLASSE = {
     'Mago': painelMago,
+    'Guerreiro': painelGuerreiro,
+    'Ladino': painelLadino,
+    'Clérigo': painelClerigo,
+    'Bardo': painelBardo,
+    'Bárbaro': painelBarbaro,
+    'Druida': painelDruida,
+    'Monge': painelMonge,
+    'Paladino': painelPaladino,
+    'Patrulheiro': painelPatrulheiro,
+    'Feiticeiro': painelFeiticeiro,
+    'Bruxo': painelBruxo,
   };
 
   // ---------- Peso / carga (etapa 3) ----------

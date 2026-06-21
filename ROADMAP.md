@@ -32,18 +32,18 @@ Cada bloco entrega: características base (com mecânica) + características de 
 
 | Classe | Tipo | Subclasses | 1–7 | 8–14 | 15–20 |
 |---|---|---|:--:|:--:|:--:|
-| Mago | Conjurador | 8 escolas | [x] | [x] | [ ] |
-| Guerreiro | Marcial | Campeão, Mestre de Batalha, Cav. Arcano | [ ] | [ ] | [ ] |
-| Monge | Marcial | Mão Aberta, Sombra, 4 Elementos | [ ] | [ ] | [ ] |
-| Clérigo | Conjurador (prepara) | 7 domínios | [ ] | [ ] | [ ] |
-| Ladino | Perícia | Ladrão, Assassino, Trapaceiro Arcano | [ ] | [ ] | [ ] |
-| Bárbaro | Marcial | Berserker, Totêmico | [ ] | [ ] | [ ] |
-| Patrulheiro | Meio-conjurador | Caçador, Senhor das Feras | [ ] | [ ] | [ ] |
-| Paladino | Meio-conjurador | Devoção, Anciões, Vingança | [ ] | [ ] | [ ] |
-| Bardo | Conjurador | Conhecimento, Bravura | [ ] | [ ] | [ ] |
-| Druida | Conjurador | Terra, Lua | [ ] | [ ] | [ ] |
-| Feiticeiro | Conjurador | Dracônico, Selvagem | [ ] | [ ] | [ ] |
-| Bruxo | Conjurador (pacto) | Corruptor, Arquifada, Grande Antigo | [ ] | [ ] | [ ] |
+| Mago | Conjurador | 8 escolas | [x] | [x] | [x] |
+| Guerreiro | Marcial | Campeão, Mestre de Batalha, Cav. Arcano | [x] | [x] | [x] |
+| Monge | Marcial | Mão Aberta, Sombra, 4 Elementos | [x] | [x] | [x] |
+| Clérigo | Conjurador (prepara) | 7 domínios | [x] | [x] | [x] |
+| Ladino | Perícia | Ladrão, Assassino, Trapaceiro Arcano | [x] | [x] | [x] |
+| Bárbaro | Marcial | Berserker, Totêmico | [x] | [x] | [x] |
+| Patrulheiro | Meio-conjurador | Caçador, Senhor das Feras | [x] | [x] | [x] |
+| Paladino | Meio-conjurador | Devoção, Anciões, Vingança | [x] | [x] | [x] |
+| Bardo | Conjurador | Conhecimento, Bravura | [x] | [x] | [x] |
+| Druida | Conjurador | Terra, Lua | [x] | [x] | [x] |
+| Feiticeiro | Conjurador | Dracônico, Selvagem | [x] | [x] | [x] |
+| Bruxo | Conjurador (pacto) | Corruptor, Arquifada, Grande Antigo | [x] | [x] | [x] |
 
 **Alinhamento de magias por bloco (conjurador pleno):** 1–7 = até 4º círculo · 8–14 = 5º a 7º · 15–20 = 8º/9º + capstone.
 

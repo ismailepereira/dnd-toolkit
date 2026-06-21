@@ -313,7 +313,8 @@ const CARACTERISTICAS_DETALHE = {
   'Surto de Ação': 'Em seu turno, você pode realizar uma ação adicional. Recupera em descanso curto ou longo.',
   'Retomar o Fôlego': 'Como ação bônus, recupera 1d10 + nível de Guerreiro de PV. Recupera em descanso curto/longo.',
   'Ataque Extra': 'Você ataca duas (ou mais) vezes ao usar a ação de Ataque.',
-  'Indomável': 'Pode rolar de novo uma salvaguarda que falhou (1+/descanso longo).',
+  'Indomável': 'Pode rolar de novo uma salvaguarda que falhou (Guerreiro: 1 uso no N9, 2 no N13, 3 no N17, por descanso longo).',
+  'Arquétipo Marcial': 'No N3 o Guerreiro escolhe um arquétipo (Campeão, Mestre de Batalha ou Cavaleiro Arcano) que molda sua evolução.',
   'Fúria': 'Como ação bônus: vantagem em testes/salvas de Força, +dano corpo a corpo e resistência a concussão/perfurante/cortante. Dura 1 min.',
   'Defesa sem Armadura': 'Sem armadura, sua CA usa um atributo extra (Bárbaro: +CON; Monge: +SAB).',
   'Ataque Imprudente': 'Ganha vantagem nos ataques corpo a corpo de Força no turno, mas ataques contra você também têm vantagem.',
@@ -321,17 +322,36 @@ const CARACTERISTICAS_DETALHE = {
   'Ação Ardilosa': 'Pode Disparar, Desengajar ou Esconder-se como ação bônus em cada turno.',
   'Esquiva Sobrenatural': 'Reação para reduzir à metade o dano de um ataque que você enxerga.',
   'Evasão': 'Em efeitos de área com salva de Destreza, sofre metade do dano (ou nenhum, se passar).',
+  'Gíria de Ladrão': 'Código secreto de símbolos e jargão que só ladrões entendem, para passar mensagens ocultas.',
+  'Especialização': 'Dobra o bônus de proficiência em mais 2 perícias (ou ferramentas de ladrão).',
+  'Talento Confiável': 'Em testes de perícia em que tem proficiência, trate qualquer rolagem do d20 igual ou menor que 9 como 10.',
+  'Sentido às Cegas': 'Enquanto puder ouvir, sabe a localização de criaturas ocultas ou invisíveis a até 3m.',
+  'Mente Escorregadia': 'Ganha proficiência em salvaguardas de Sabedoria.',
+  'Elusivo': 'Nenhuma jogada de ataque tem vantagem contra você, a menos que esteja incapacitado.',
+  'Golpe de Sorte': 'Se errar um ataque, pode transformar em acerto; ou se falhar um teste de atributo, tratar o d20 como 20. 1×/descanso curto ou longo.',
   'Pontos de Ki': 'Energia mística para Rajada de Golpes, Defesa Paciente, Passo do Vento e outras técnicas. Recupera em descanso curto.',
   'Rajada de Golpes': 'Após a ação de Ataque, gaste 1 Ki para 2 ataques desarmados como ação bônus.',
   'Movimento sem Armadura': 'Seu deslocamento aumenta enquanto não usar armadura nem escudo.',
   'Inspiração Bárdica': 'Como ação bônus, dá a um aliado um dado de inspiração para somar a um ataque, teste ou salva.',
-  'Canalizar Divindade': 'Efeito divino da sua divindade/domínio (ex.: Expulsar Mortos-Vivos). Recupera em descanso curto.',
+  'Canalizar Divindade': 'Efeito divino da sua divindade/domínio (ex.: Expulsar Mortos-Vivos). Recupera em descanso curto. Clérigo: 1 uso no N2, 2 no N6, 3 no N18.',
+  'Domínio Divino': 'No N1 o Clérigo escolhe um domínio que concede magias sempre preparadas e poderes próprios em 1/2/6/8/17.',
+  'Destruir Mortos-Vivos': 'Ao Expulsar Mortos-Vivos, criaturas com Nível de Desafio até o limite (½ no N5; 1/2/3/4 em 8/11/14/17) são destruídas no lugar de expulsas.',
+  'Intervenção Divina': 'Ação: role d100; se tirar ≤ nível de Clérigo, sua divindade intervém. Recupera em 7 dias (ou 1 descanso longo se funcionar). No N20 (Aprimorada) funciona automaticamente.',
   'Imposição das Mãos': 'Reserva de cura igual a 5× seu nível de Paladino, distribuída ao toque; também cura doença/veneno.',
   'Sentido Divino': 'Detecta celestiais, corruptores e mortos-vivos próximos.',
   'Punição Divina': 'Ao acertar com arma corpo a corpo, gaste um espaço de magia para +2d8 (ou mais) de dano radiante.',
   'Forma Selvagem': 'Transforma-se em uma fera que você já viu, assumindo seus atributos físicos. Recupera em descanso curto.',
   'Conjuração': 'Você lança magias da sua classe usando espaços de magia e o atributo de conjuração.',
   'Recuperação Arcana': 'Em um descanso curto, recupera espaços de magia (Mago).',
+  'Magias de 5º Círculo': 'Abre o 5º círculo de magia e concede 1 espaço dele (controle de campo e dano pesado).',
+  'Magias de 6º Círculo': 'Abre o 6º círculo de magia e concede 1 espaço dele.',
+  'Magias de 7º Círculo': 'Abre o 7º círculo de magia e concede 1 espaço dele.',
+  'Magias de 8º Círculo': 'Abre o 8º círculo de magia e concede 1 espaço dele (Mago N15).',
+  'Magias de 9º Círculo': 'Abre o 9º círculo — as magias mais poderosas do jogo — e concede 1 espaço dele (Mago N17).',
+  'Domínio de Magia': 'Escolha 1 magia de 1º e 1 de 2º círculo do grimório: enquanto preparadas, conjura ambas no círculo mais baixo sem gastar espaço, à vontade (troca com 8h de estudo). Mago N18.',
+  'Maestria de Magias': 'Escolha 1 magia de 1º e 1 de 2º círculo do grimório: enquanto preparadas, conjura ambas no círculo mais baixo sem gastar espaço, à vontade. Mago N18.',
+  'Magias-Assinatura': 'Escolha 2 magias de 3º círculo: ficam sempre preparadas (não contam no limite) e você conjura cada uma 1× no 3º círculo sem gastar espaço, recuperando em descanso curto. Mago N20.',
+  'Magia Atemporal': 'Duas magias de 3º círculo sempre preparadas que você conjura 1× sem gastar espaço (recupera em descanso curto). Mago N20.',
   'Sortudo (Halfling)': 'Ao rolar 1 natural num d20 de ataque, teste ou salva, rerrole o dado.',
 };
 
@@ -534,6 +554,296 @@ const SUBCLASSE_FEATURES = {
     10: [['Metamorfo', 'Conjura Polimorfia em si mesmo sem gastar espaço (formas de fera limitadas), 1×/descanso.']],
     14: [['Mestre Transmutador', 'Consome a pedra para um grande efeito: rejuvenescer, restaurar, ou tornar a pedra permanente.']],
   },
+
+  // ---------- GUERREIRO ----------
+  'Campeão': {
+    3: [['Crítico Aprimorado', 'Suas jogadas de ataque com arma causam crítico em 19 ou 20 no dado (não só 20).']],
+    7: [['Atleta Notável', 'Some metade do bônus de proficiência (arredondado p/ cima) a testes de Força, Destreza e Constituição que não já tenham proficiência. Salto em distância +alguns metros (mod. de Força).']],
+    10: [['Estilo de Luta Adicional', 'Escolhe um segundo Estilo de Luta.']],
+    15: [['Crítico Superior', 'Suas jogadas de ataque com arma causam crítico em 18, 19 ou 20.']],
+    18: [['Sobrevivente', 'No início de cada turno, se estiver com até metade do PV (e não a 0), recupera 5 + mod. de Constituição de PV.']],
+  },
+  'Mestre de Batalha': {
+    3: [
+      ['Manobras de Combate', 'Aprende 3 manobras. Tem 4 dados de superioridade (d8) que gasta para ativá-las; CD = 8 + prof + Força ou Destreza. Recupera todos em descanso curto/longo. (Ver lista de manobras no painel.)'],
+      ['Sabe Disso (Student of War)', 'Ganha proficiência com um tipo de ferramenta de artesão.'],
+    ],
+    7: [['Conhecer o Inimigo', 'Estudando uma criatura por 1 minuto, descobre se ela é igual, superior ou inferior a você em Força, Destreza, Constituição, CA, PV atual, total de níveis de classe e níveis de Guerreiro. (Sobe para 5 dados e 5 manobras.)']],
+    10: [['Manobras Aprimoradas', 'Seus dados de superioridade tornam-se d10. (Aprende +2 manobras, total 7.)']],
+    15: [['Manobras Implacáveis', 'Se rolar iniciativa sem nenhum dado de superioridade, recupera 1. (Sobe para 6 dados e 9 manobras.)']],
+    18: [['Manobras Superiores', 'Seus dados de superioridade tornam-se d12.']],
+  },
+  'Cavaleiro Arcano': {
+    3: [
+      ['Conjuração (1/3 Mago)', 'Conjura magias da lista de Mago (Abjuração e Evocação) usando Inteligência. Começa com 2 truques e 3 magias conhecidas; espaços de magia parciais (até 4º círculo no N19). CD = 8 + prof + INT.'],
+      ['Vínculo com Arma', 'Ritual de 1h vincula até 2 armas: não pode ser desarmado delas contra a vontade e pode invocá-las para a mão como ação bônus (mesmo plano).'],
+    ],
+    7: [['Magia de Guerra', 'Ao usar a ação para conjurar um truque, pode fazer 1 ataque de arma como ação bônus.']],
+    10: [['Golpe Arcano', 'Ao acertar uma criatura com ataque de arma, ela fica com desvantagem na próxima salvaguarda contra uma magia sua, até o fim do seu próximo turno.']],
+    15: [['Carga Arcana', 'Ao usar Surto de Ação, pode se teletransportar até 9m antes ou depois da ação adicional.']],
+    18: [['Magia de Guerra Aprimorada', 'Ao usar a ação para conjurar qualquer magia (não só truque), pode fazer 1 ataque de arma como ação bônus.']],
+  },
+
+  // ---------- LADINO ----------
+  'Ladrão': {
+    3: [
+      ['Mãos Rápidas', 'Use a Ação Ardilosa (ação bônus) para Prestidigitação, usar um objeto, abrir fechadura ou desarmar armadilha com as ferramentas de ladrão.'],
+      ['Trabalho em Altura', 'Escalar não custa deslocamento extra; ao saltar à distância, percorre +alguns metros (mod. de Destreza).'],
+    ],
+    9: [['Furtividade Suprema', 'Tem vantagem em testes de Destreza (Furtividade) se não se mover mais que metade do deslocamento no turno.']],
+    13: [['Usar Itens Mágicos', 'Ignora todos os requisitos de classe, raça e nível para usar itens mágicos.']],
+    17: [['Reflexos de Ladrão', 'Na 1ª rodada de combate, faz dois turnos: um na sua iniciativa e outro na sua iniciativa −10 (não vale se for surpreendido).']],
+  },
+  'Assassino': {
+    3: [
+      ['Proficiências de Assassino', 'Ganha proficiência com kit de disfarces e kit de envenenamento.'],
+      ['Assassinar', 'Vantagem em ataques contra criaturas que ainda não agiram no combate. Qualquer acerto numa criatura surpresa é um acerto crítico.'],
+    ],
+    9: [['Perito em Infiltração', 'Passa 7 dias e 25 po para criar uma identidade falsa convincente e documentada.']],
+    13: [['Impostor', 'Após estudar uma pessoa por 3h, imita fala, escrita e comportamento dela de forma convincente.']],
+    17: [['Golpe Mortal', 'Ao acertar e causar Ataque Furtivo numa criatura surpresa, ela faz salva de Constituição (CD 8+Des+prof) ou o dano do ataque é dobrado.']],
+  },
+  'Trapaceiro Arcano': {
+    3: [
+      ['Conjuração (1/3 Mago)', 'Conjura magias da lista de Mago (Encantamento e Ilusão) usando Inteligência. Começa com 3 truques (incl. Mão Mágica) e 3 magias conhecidas; até o 4º círculo no N19. CD = 8 + prof + INT.'],
+      ['Prestidigitação Fantasma (Mão Mágica)', 'Sua Mão Mágica fica invisível e pode: guardar/recuperar objeto, abrir porta/recipiente destrancado, usar ferramentas de ladrão a distância — controlando-a como ação bônus.'],
+    ],
+    9: [['Emboscada Mágica', 'Se estiver escondido ao conjurar uma magia numa criatura, ela tem desvantagem na salvaguarda contra essa magia.']],
+    13: [['Trapaceiro Versátil', 'Use a Mão Mágica para distrair uma criatura a até 1,5m dela: você tem vantagem em ataques contra essa criatura até o fim do turno.']],
+    17: [['Ladrão de Magias', 'Quando uma criatura conjura nas suas proximidades, use a reação para impor desvantagem; se ela falhar/errar, você rouba a magia (pode conjurá-la 1×) e ela não pode usá-la por 8h.']],
+  },
+
+  // ---------- CLÉRIGO (domínios escolhidos no N1; evoluem em 1/2/6/8/17) ----------
+  'Domínio da Vida': {
+    1: [
+      ['Proficiência com Armadura Pesada', 'O Domínio da Vida concede proficiência com armadura pesada.'],
+      ['Discípulo da Vida', 'Suas magias de cura de 1º círculo ou maior recuperam +2 + o círculo da magia de PV adicionais.'],
+    ],
+    2: [['Canalizar Divindade: Preservar a Vida', 'Cura total = 5× nível de Clérigo, distribuída entre criaturas a até 9m, mas nenhuma além da metade do PV máximo.']],
+    6: [['Curandeiro Abençoado', 'Quando uma magia sua cura outra criatura, você também recupera 2 + o círculo da magia de PV.']],
+    8: [['Golpe Divino', '1×/turno, ao acertar com arma, +1d8 de dano radiante (sobe para 2d8 no N14).']],
+    17: [['Cura Suprema', 'Ao conjurar magia de cura com dados, use o valor máximo de cada dado em vez de rolar.']],
+  },
+  'Domínio da Luz': {
+    1: [
+      ['Truque Bônus (Luz)', 'Aprende o truque Luz, que não conta no seu total.'],
+      ['Flash de Advertência', 'Reação ao ser atacado (ou Sab usos/descanso longo): impõe desvantagem à jogada de ataque.'],
+    ],
+    2: [['Canalizar Divindade: Radiância da Aurora', 'Dissipa escuridão mágica em 9m e causa 2d10 + nível de Clérigo de dano radiante (metade na salva).']],
+    6: [['Flash de Advertência Aprimorado', 'Pode usar o Flash de Advertência também para proteger outra criatura a até 9m.']],
+    8: [['Potência de Conjuração', 'Some seu modificador de Sabedoria ao dano dos seus truques de Clérigo.']],
+    17: [['Coroa de Luz', 'Ação: emana luz por 1 min; inimigos na luz têm desvantagem em salvas contra suas magias de fogo e radiância.']],
+  },
+  'Domínio da Guerra': {
+    1: [
+      ['Proficiências de Guerra', 'Proficiência com armas marciais e armadura pesada.'],
+      ['Sacerdote de Guerra', 'Quando usa a ação de Ataque, faz um ataque de arma adicional como ação bônus (Sab usos/descanso).'],
+    ],
+    2: [['Canalizar Divindade: Ataque Guiado', 'Soma +10 a uma jogada de ataque sua (decide antes de saber se acerta).']],
+    6: [['Canalizar Divindade: Bênção do Deus da Guerra', 'Reação: gasta CD para dar +10 ao ataque de uma criatura a até 9m.']],
+    8: [['Golpe Divino', '1×/turno, ao acertar com arma, +1d8 de dano (do tipo da arma); sobe para 2d8 no N14.']],
+    17: [['Avatar da Batalha', 'Resistência a dano de concussão, perfurante e cortante de armas não-mágicas.']],
+  },
+  'Domínio do Engano': {
+    1: [['Bênção do Trapaceiro', 'Toque: dá a uma criatura vantagem em testes de Destreza (Furtividade) por 1 hora.']],
+    2: [['Canalizar Divindade: Invocar Duplicidade', 'Cria uma ilusão perfeita sua por 1 min; pode conjurar a partir dela e tem vantagem em ataques se você e ela flanquearem o alvo.']],
+    6: [['Canalizar Divindade: Manto de Sombras', 'Fica invisível até o fim do seu próximo turno.']],
+    8: [['Golpe Divino', '1×/turno, ao acertar com arma, +1d8 de dano venenoso (sobe para 2d8 no N14).']],
+    17: [['Duplicidade Aprimorada', 'Ao Invocar Duplicidade, cria até 4 ilusões de uma vez.']],
+  },
+  'Domínio do Conhecimento': {
+    1: [['Bênçãos do Conhecimento', 'Aprende 2 idiomas e ganha proficiência + especialização (dobra prof.) em 2 perícias entre Arcanismo, História, Natureza e Religião.']],
+    2: [['Canalizar Divindade: Conhecimento das Eras', 'Por 10 min, ganha proficiência com qualquer perícia ou ferramenta à escolha.']],
+    6: [['Canalizar Divindade: Ler Pensamentos', 'Lê a mente de uma criatura e pode lançar Sugestão nela sem gastar espaço.']],
+    8: [['Potência de Conjuração', 'Some seu modificador de Sabedoria ao dano dos seus truques de Clérigo.']],
+    17: [['Visões do Passado', 'Concentração/meditação para ver visões da história de um objeto ou local.']],
+  },
+  'Domínio da Natureza': {
+    1: [
+      ['Acólito da Natureza', 'Aprende 1 truque de Druida e ganha proficiência em uma entre Adestrar Animais, Natureza e Sobrevivência; também proficiência com armadura pesada.'],
+    ],
+    2: [['Canalizar Divindade: Encantar Animais e Plantas', 'Criaturas do tipo fera ou planta a 9m fazem salva de Sabedoria ou ficam enfeitiçadas por 1 min.']],
+    6: [['Amenizar Elementos', 'Reação: concede a si ou a aliado a 9m resistência a dano de ácido, frio, fogo, relâmpago ou trovão.']],
+    8: [['Golpe Divino', '1×/turno, ao acertar com arma, +1d8 de dano de frio, fogo ou relâmpago (sobe para 2d8 no N14).']],
+    17: [['Mestre da Natureza', 'Pode comandar (sem ação) as criaturas enfeitiçadas pelo seu Canalizar Divindade.']],
+  },
+  'Domínio da Tempestade': {
+    1: [
+      ['Proficiências de Tempestade', 'Proficiência com armas marciais e armadura pesada.'],
+      ['Fúria da Tempestade', 'Reação ao ser atingido corpo a corpo: o atacante faz salva de Destreza ou sofre 2d8 de trovão (Sab usos/descanso).'],
+    ],
+    2: [['Canalizar Divindade: Ira Destrutiva', 'Maximiza o dano de trovão ou relâmpago de uma magia/efeito seu em vez de rolar.']],
+    6: [['Golpe Trovejante', 'Quando causa dano elétrico a uma criatura Grande ou menor, pode empurrá-la até 3m.']],
+    8: [['Golpe Divino', '1×/turno, ao acertar com arma, +1d8 de dano de trovão (sobe para 2d8 no N14).']],
+    17: [['Filho da Tempestade', 'Ao ar livre em clima de tempestade, ganha deslocamento de voo igual ao seu deslocamento.']],
+  },
+
+  // ---------- BARDO ----------
+  'Colégio do Conhecimento': {
+    3: [
+      ['Proficiências Bônus', 'Ganha proficiência em 3 perícias à escolha.'],
+      ['Palavras Cortantes', 'Reação: gasta uma Inspiração de Bardo para subtrair o dado de uma jogada de ataque, teste de habilidade ou dano de uma criatura a até 18m.'],
+    ],
+    6: [['Segredos Mágicos Adicionais', 'Aprende 2 magias de qualquer classe (contam como magias de bardo).']],
+    14: [['Habilidade Incomparável', 'Pode somar uma Inspiração de Bardo a qualquer teste de habilidade seu.']],
+  },
+  'Colégio da Bravura': {
+    3: [
+      ['Proficiências Bônus', 'Proficiência com armadura média, escudos e armas marciais.'],
+      ['Inspiração de Combate', 'A criatura com sua Inspiração pode gastá-la para somar o dado ao dano de uma arma, ou somar à CA contra um ataque.'],
+    ],
+    6: [['Ataque Extra', 'Ataca duas vezes ao usar a ação de Ataque.']],
+    14: [['Magia de Batalha', 'Ao usar a ação para conjurar uma magia, pode fazer um ataque de arma como ação bônus.']],
+  },
+
+  // ---------- BÁRBARO ----------
+  'Caminho do Berserker': {
+    3: [['Frenesi', 'Ao entrar em Fúria, pode entrar em frenesi: 1 ataque corpo a corpo bônus por turno enquanto durar. Ao acabar, ganha 1 nível de exaustão.']],
+    6: [['Fúria Insana', 'Durante a Fúria, não pode ser enfeitiçado nem amedrontado (se já estiver, o efeito é suspenso).']],
+    10: [['Presença Intimidadora', 'Ação: uma criatura a 9m faz salva de Sabedoria ou fica amedrontada de você; pode renovar a cada turno.']],
+    14: [['Retaliação', 'Reação ao sofrer dano de uma criatura a até 1,5m: faz um ataque corpo a corpo contra ela.']],
+  },
+  'Caminho do Guerreiro Totêmico': {
+    3: [['Totem do Espírito', 'Escolhe um espírito: Urso (resistência a todo dano exceto psíquico durante a Fúria), Águia (Disparar como bônus, ataques contra você têm desvantagem) ou Lobo (aliados têm vantagem contra inimigos a 1,5m de você).']],
+    6: [['Aspecto da Besta', 'Ganha um benefício constante do animal: Urso (capacidade de carga dobrada), Águia (visão aguçada) ou Lobo (rastrear/furtividade em grupo).']],
+    10: [['Andarilho Espiritual', 'Pode conjurar Comunhão com a Natureza como ritual.']],
+    14: [['Sintonia Totêmica', 'Benefício de combate do totem: Urso (inimigos a 1,5m têm desvantagem em ataques contra outros), Águia (voa por curtos períodos) ou Lobo (derruba o alvo ao acertar corpo a corpo).']],
+  },
+
+  // ---------- DRUIDA ----------
+  'Círculo da Terra': {
+    2: [
+      ['Truque Bônus', 'Aprende um truque de druida adicional.'],
+      ['Recuperação Natural', 'Num descanso curto (1×/dia), recupera espaços de magia somando até metade do seu nível de druida (nenhum acima do 5º).'],
+      ['Magias do Círculo', 'Conforme o bioma (ártico, costa, deserto, floresta, pântano, etc.), ganha magias sempre preparadas.'],
+    ],
+    6: [['Passos da Terra', 'Terreno difícil natural não reduz seu deslocamento; passa por plantas sem dano/atraso.']],
+    10: [['Defesa Natural', 'Imune a veneno e doença; não pode ser enfeitiçado nem amedrontado por elementais e fadas.']],
+    14: [['Santuário Natural', 'Feras e plantas fazem salva de Sabedoria para conseguir atacá-lo.']],
+  },
+  'Círculo da Lua': {
+    2: [
+      ['Forma Selvagem de Combate', 'Pode usar Forma Selvagem como ação bônus e assumir feras de combate de até ND 1.'],
+      ['PV de Fera', 'Como ação bônus na forma, gasta espaço de magia para curar 1d8 por círculo do espaço.'],
+    ],
+    6: [['Ataques Primitivos', 'Seus ataques na Forma Selvagem contam como mágicos; pode assumir feras de até ND 6.']],
+    10: [['Forma Elemental', 'Pode gastar 2 usos de Forma Selvagem para se transformar em um elemental do ar, terra, fogo ou água.']],
+    14: [['Mil Formas', 'Pode conjurar Alterar-se à vontade.']],
+  },
+
+  // ---------- MONGE ----------
+  'Caminho da Mão Aberta': {
+    3: [['Técnica da Mão Aberta', 'Ao acertar com Rajada de Golpes, escolhe: derrubar (salva de Des), empurrar 4,5m (salva de For) ou negar reações do alvo até seu próximo turno.']],
+    6: [['Totalidade do Corpo', 'Ação: cura a si mesmo 3× seu nível de monge de PV (1×/descanso longo).']],
+    11: [['Tranquilidade', 'Ao terminar um descanso longo, ganha o efeito de Santuário (CD = 8 + Sab + prof) até o próximo descanso.']],
+    17: [['Palma Vibrante', 'Gasta 3 Ki ao acertar: planta vibrações letais. Em até alguns dias, pode liberar — salva de Constituição ou cai a 0 PV (ou metade do dano se passar).']],
+  },
+  'Caminho da Sombra': {
+    3: [['Artes das Sombras', 'Gasta 2 Ki para conjurar Escuridão, Passo Enevoado, Visão no Escuro, Passos sem Pegadas ou Silêncio; aprende o truque Ilusão Menor.']],
+    6: [['Passo das Sombras', 'Na penumbra/escuridão, ação bônus para teleportar até 18m a outra área sombria; vantagem no 1º ataque corpo a corpo até o fim do turno.']],
+    11: [['Manto de Sombras', 'Em penumbra/escuridão, ação para ficar invisível enquanto permanecer na sombra e não atacar/conjurar.']],
+    17: [['Oportunista', 'Quando uma criatura a 1,5m é atingida por outra, você pode fazer um ataque corpo a corpo contra ela como reação.']],
+  },
+  'Caminho dos Quatro Elementos': {
+    3: [['Discípulo dos Elementos', 'Aprende a disciplina Sintonia Elemental + 1 disciplina; gasta Ki para conjurar magias elementais (ex.: Punho da Fúria Inflamada, Garras do Inverno).']],
+    6: [['Disciplina Elemental Adicional', 'Aprende mais uma disciplina elemental; pode conjurar magias de círculos maiores gastando mais Ki.']],
+    11: [['Disciplina Elemental Adicional', 'Aprende mais uma disciplina elemental.']],
+    17: [['Disciplina Elemental Adicional', 'Aprende mais uma disciplina elemental (até magias de 5º círculo elementais).']],
+  },
+
+  // ---------- PALADINO (juramentos: Canalizar Divindade no N3, auras, capstone no N20) ----------
+  'Juramento da Devoção': {
+    3: [['Canalizar Divindade: Arma Sagrada e Expulsar os Profanos', 'Arma Sagrada: +Carisma nas jogadas de ataque com uma arma por 1 min, que emite luz. Expulsar os Profanos: corruptores e mortos-vivos a 9m fazem salva ou fogem.']],
+    7: [['Aura de Devoção', 'Você e aliados a 3m (9m no N18) não podem ser enfeitiçados.']],
+    15: [['Pureza de Espírito', 'Está sempre sob o efeito de Proteção contra o Mal e o Bem.']],
+    20: [['Nimbo Sagrado', 'Ação (1×/descanso longo): emana luz solar por 1 min; inimigos na aura sofrem 10 de dano radiante por turno e você tem vantagem em salvas contra magias de conjuradores corruptores/mortos-vivos.']],
+  },
+  'Juramento dos Anciões': {
+    3: [['Canalizar Divindade: Ira Natural e Repreender o Profano', 'Ira Natural: enraíza uma criatura (salva de Força/Destreza ou fica impedida). Repreender o Profano: corruptores e mortos-vivos fogem.']],
+    7: [['Aura de Guarda', 'Você e aliados a 3m (9m no N18) têm resistência a dano de magias.']],
+    15: [['Sentinela Imortal', 'Ao cair a 0 PV (e não morrer de imediato), volta a 1 PV (1×/descanso longo); não envelhece magicamente e dispensa dormir.']],
+    20: [['Campeão dos Anciões', 'Ação (1×/descanso longo): por 1 min, ganha resistência a todo dano, regenera 10 PV/turno e conjura magias de paladino mais rápido.']],
+  },
+  'Juramento da Vingança': {
+    3: [['Canalizar Divindade: Voto de Inimizade e Repreender o Profano', 'Voto de Inimizade: por 1 min, tem vantagem em ataques contra uma criatura. Repreender o Profano: afasta corruptores e mortos-vivos.']],
+    7: [['Implacável', 'Quando uma criatura sua reduz seu deslocamento a 0 ou você acerta um ataque de oportunidade, pode se mover até metade do deslocamento.']],
+    15: [['Alma da Vingança', 'Quando o alvo do seu Voto de Inimizade ataca, você pode fazer um ataque corpo a corpo contra ele como reação.']],
+    20: [['Anjo Vingador', 'Ação (1×/descanso longo): por 1h, ganha asas (voo) e emite uma aura de pavor (inimigos a 9m fazem salva ou ficam amedrontados).']],
+  },
+
+  // ---------- PATRULHEIRO ----------
+  'Caçador': {
+    3: [['Presa do Caçador', 'Escolhe: Assassino de Colossos (+1d8 a um alvo já ferido, 1×/turno), Destruidor de Hordas (ataque extra num 2º inimigo adjacente) ou Algoz de Gigantes (reação ao ataque de inimigo Grande+).']],
+    7: [['Táticas Defensivas', 'Escolhe: Escapar da Horda, Defesa Multiataque ou Vontade de Aço (contra medo).']],
+    11: [['Multiataque', 'Escolhe: Flecha Múltipla (uma flecha atinge 3 alvos) ou Ataque Giratório (ataca todos ao redor).']],
+    15: [['Defesa Suprema do Caçador', 'Escolhe: Evasão, Permanecer Vigilante ou Esquiva Sobrenatural conforme a tática escolhida.']],
+  },
+  'Senhor das Feras': {
+    3: [['Companheiro Animal Primitivo', 'Ganha uma fera companheira (ND ≤ ¼) que age conforme seus comandos e usa seu bônus de proficiência.']],
+    7: [['Camaradagem Excepcional', 'O companheiro pode usar Esquiva quando você não dá comando; ganha bônus de PV e ataque.']],
+    11: [['Fúria Bestial', 'Seu companheiro pode atacar duas vezes ao receber o comando de Atacar.']],
+    15: [['Compartilhar Magias', 'Ao conjurar uma magia em si mesmo, pode afetar também o companheiro a 9m.']],
+  },
+
+  // ---------- FEITICEIRO ----------
+  'Linhagem Dracônica': {
+    1: [
+      ['Ancestral Dragão', 'Escolhe um tipo de dragão (define um tipo de dano). Soma o dobro da proficiência em testes de Carisma com dragões.'],
+      ['Resiliência Dracônica', 'PV máximo +1 por nível de feiticeiro; sem armadura, sua CA é 13 + Destreza.'],
+    ],
+    6: [['Afinidade Elemental', 'Some seu modificador de Carisma ao dano de magias do seu tipo de dano; pode gastar 1 ponto para ganhar resistência a esse dano por 1h.']],
+    14: [['Asas do Dragão', 'Ação bônus: ganha asas e deslocamento de voo igual ao seu deslocamento, enquanto não usar armadura pesada.']],
+    18: [['Presença Dracônica', 'Ação (5 pontos): aura de 18m de pavor ou fascínio; inimigos fazem salva de Sabedoria ou ficam amedrontados/enfeitiçados.']],
+  },
+  'Magia Selvagem': {
+    1: [
+      ['Surto de Magia Selvagem', 'Ao conjurar magia de 1º+, o Mestre pode pedir um teste: em 1 num d20, role na Tabela de Surto de Magia Selvagem (efeito caótico).'],
+      ['Marés do Caos', 'Ganha vantagem em uma jogada de ataque, teste ou salva; recupera após causar um Surto de Magia Selvagem.'],
+    ],
+    6: [['Flexão da Sorte', 'Reação (2 pontos): some ou subtraia 1d4 de uma jogada de ataque, teste ou salva de qualquer criatura.']],
+    14: [['Caos Controlado', 'Quando rola na tabela de Surto, pode rolar duas vezes e escolher o resultado.']],
+    18: [['Pandemônio Mágico (Bombardeio)', 'Quando rola dano de magia e tira o valor máximo num dado, pode rolá-lo de novo e somar.']],
+  },
+
+  // ---------- BRUXO (pacto no N3; invocações à parte) ----------
+  'O Corruptor (Fiend)': {
+    1: [['Bênção do Senhor Sombrio', 'Quando uma criatura que você enxerga morre, ganha PV temporários iguais ao seu Carisma + nível de bruxo.']],
+    6: [['Sorte do Senhor Sombrio', 'Some 1d10 a um teste de habilidade ou salvaguarda sua (1×/descanso curto).']],
+    10: [['Resiliência Infernal', 'No fim de um descanso curto, escolhe um tipo de dano e ganha resistência a ele até escolher outro.']],
+    14: [['Arremesso pelo Inferno', 'Ao acertar uma criatura, pode bani-la pelos planos infernais: ela reaparece no fim do seu próximo turno sofrendo 10d10 de dano psíquico.']],
+  },
+  'O Arquifada (Archfey)': {
+    1: [['Presença Feérica', 'Ação: criaturas a 3m fazem salva de Sabedoria ou ficam enfeitiçadas ou amedrontadas (à sua escolha) até o fim do seu próximo turno.']],
+    6: [['Refúgio Sombrio', 'Quando sofre dano, reação para ficar invisível e teleportar até 18m (1×/descanso curto).']],
+    10: [['Defesas Enganosas', 'Não pode ser enfeitiçado; se algo tentar, pode refletir o efeito de volta no atacante.']],
+    14: [['Delírio Sombrio', 'Ação: mergulha uma criatura enfeitiçada/amedrontada num reino ilusório de êxtase ou terror por 1 min.']],
+  },
+  'O Grande Antigo (Great Old One)': {
+    1: [['Mente Acorrentada', 'Telepatia com qualquer criatura que você veja, a até 9m (idioma em comum).']],
+    6: [['Guarda Entrópica', 'Reação ao ser atacado: o atacante tem desvantagem; se errar, seu próximo ataque contra ele tem vantagem (1×/descanso curto).']],
+    10: [['Escudo de Pensamentos', 'Seus pensamentos não podem ser lidos; resistência a dano psíquico e reflete metade do dano psíquico no atacante.']],
+    14: [['Criar Escravo', 'Toque: uma criatura incapacitada faz salva de Sabedoria ou fica enfeitiçada por você até ser dissipado, com comunicação telepática a qualquer distância (mesmo plano).']],
+  },
+};
+
+// Manobras do Mestre de Batalha (PHB) — referência para o jogador escolher
+const MANOBRAS_BATALHA = {
+  'Ataque Comandante': 'Gasta 1 dado para um aliado usar a reação e fazer 1 ataque; soma o dado ao dano.',
+  'Ataque Ágil': 'Some o dado ao dano de um ataque; pode também Desengajar como parte da ação.',
+  'Ataque Desarmante': 'Ao acertar, alvo faz salva de Força ou derruba um item; soma o dado ao dano.',
+  'Ataque Derrubante': 'Ao acertar (alvo Grande ou menor), faz salva de Força ou cai Caído; soma o dado ao dano.',
+  'Ataque Empurrão': 'Ao acertar (alvo Grande ou menor), faz salva de Força ou é empurrado até 4,5m; soma o dado ao dano.',
+  'Ataque Provocante': 'Ao acertar, alvo faz salva de Sabedoria ou tem desvantagem em ataques contra outros que não você; soma o dado ao dano.',
+  'Ataque de Precisão': 'Soma o dado a uma jogada de ataque (pode ser após ver o resultado, antes de acertar/errar).',
+  'Ataque Distraente': 'Ao acertar, o próximo ataque de um aliado contra esse alvo tem vantagem; soma o dado ao dano.',
+  'Manobra Evasiva': 'Como reação ao ser atingido, some o dado à sua CA contra esse ataque.',
+  'Finta': 'Vantagem no próximo ataque contra um alvo neste turno; soma o dado ao dano.',
+  'Manobra Defensiva': 'Como reação quando um aliado próximo é atacado, some o dado à CA dele.',
+  'Disciplina de Combate': 'Some o dado a um teste de perícia (Atletismo etc.) ou de iniciativa.',
+  'Varredura': 'Some o dado a um ataque; uma segunda criatura adjacente ao alvo sofre o dano do dado.',
+  'Riposte': 'Como reação quando uma criatura erra você corpo a corpo, faz 1 ataque contra ela; soma o dado ao dano.',
+  'Comandar Aliado': 'Concede a um aliado vantagem na próxima jogada de ataque, somando o dado de superioridade.',
+  'Postura Vigilante': 'Some o dado à iniciativa rolada (manobra de prontidão).',
 };
 
 // Características de uma subclasse acumuladas até um nível (lista {nivel, nome, desc})

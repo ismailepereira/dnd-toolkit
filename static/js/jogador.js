@@ -42,17 +42,35 @@ function salvarFichas() {
   return _filaSalvarFichas;
 }
 
+function minhaFichaId() { try { return localStorage.getItem('dnd_minha_ficha'); } catch (e) { return null; } }
+function setMinhaFicha(id) { try { id ? localStorage.setItem('dnd_minha_ficha', id) : localStorage.removeItem('dnd_minha_ficha'); } catch (e) {} }
+function jogarFicha(f) { Jogo.abrir(f, { aoAtualizar: () => { salvarFichas(); renderFichas(); } }); }
+
 function renderFichas() {
   listaFichas.innerHTML = '';
   if (fichas.length === 0) {
     listaFichas.innerHTML = '<p style="color:var(--text-dim)">Nenhuma ficha ainda. Clique em "+ Nova Ficha" para criar a sua.</p>';
     return;
   }
-  fichas.forEach(f => {
+  const minhaId = minhaFichaId();
+  const minha = fichas.find(f => f.id === minhaId);
+  // atalho "Jogar minha ficha"
+  if (minha) {
+    const banner = document.createElement('div');
+    banner.className = 'minha-ficha-banner';
+    banner.innerHTML = `<span>⭐ Sua ficha: <b>${escapeHtml(minha.nome || 'Sem nome')}</b></span><button class="btn-primary" id="btnJogarMinha">▶ Jogar minha ficha</button>`;
+    banner.querySelector('#btnJogarMinha').addEventListener('click', () => jogarFicha(minha));
+    listaFichas.appendChild(banner);
+  }
+  // ordena com a "minha" primeiro
+  const ordenadas = [...fichas].sort((x, y) => (y.id === minhaId) - (x.id === minhaId));
+  ordenadas.forEach(f => {
     const pct = f.hpMax > 0 ? Math.max(0, Math.min(100, (f.hpAtual / f.hpMax) * 100)) : 0;
+    const ehMinha = f.id === minhaId;
     const card = document.createElement('div');
-    card.className = 'ficha-card';
+    card.className = 'ficha-card' + (ehMinha ? ' minha' : '');
     card.innerHTML = `
+      <button class="ficha-estrela" data-estrela="${f.id}" title="${ehMinha ? 'Esta é a minha ficha' : 'Marcar como minha ficha'}">${ehMinha ? '⭐' : '☆'}</button>
       <h3>${escapeHtml(f.nome) || 'Sem nome'}</h3>
       <div class="sub">${escapeHtml(f.raca) || ''} ${escapeHtml(f.classe) || ''} - Nível ${f.nivel}</div>
       <div>HP: ${f.hpAtual} / ${f.hpMax} | CA: ${f.ca}</div>
@@ -62,11 +80,13 @@ function renderFichas() {
         <button class="btn-editar" data-editar="${f.id}">✎ Editar</button>
       </div>
     `;
-    card.querySelector('[data-jogar]').addEventListener('click', (e) => {
-      e.stopPropagation();
-      Jogo.abrir(f, { aoAtualizar: () => { salvarFichas(); renderFichas(); } });
-    });
+    card.querySelector('[data-jogar]').addEventListener('click', (e) => { e.stopPropagation(); jogarFicha(f); });
     card.querySelector('[data-editar]').addEventListener('click', (e) => { e.stopPropagation(); abrirFicha(f.id); });
+    card.querySelector('[data-estrela]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      setMinhaFicha(ehMinha ? null : f.id);
+      renderFichas();
+    });
     listaFichas.appendChild(card);
   });
 }
@@ -313,11 +333,24 @@ async function atualizarCombateJog() {
 }
 atualizarCombateJog();
 
+// ===== Handouts (notas compartilhadas pelo Mestre) =====
+const listaHandouts = document.getElementById('listaHandouts');
+function renderHandouts(notas) {
+  if (!listaHandouts) return;
+  const compartilhadas = (notas || []).filter(n => n.compartilhada);
+  if (!compartilhadas.length) { listaHandouts.innerHTML = '<p style="color:var(--text-dim)">Nenhum handout compartilhado ainda.</p>'; return; }
+  listaHandouts.innerHTML = compartilhadas.map(n => `<div class="handout-card"><h3>📜 ${escapeHtml(n.titulo || 'Handout')}</h3><div class="handout-conteudo">${escapeHtml(n.conteudo || '').replace(/\n/g, '<br>')}</div></div>`).join('');
+}
+async function atualizarHandouts() {
+  try { renderHandouts(await (await fetch('/api/notas')).json()); } catch (e) {}
+}
+atualizarHandouts();
+
 // =====================================================
 // TEMPO REAL (Firestore) - atualiza ficha/bestiário/combate na hora
 // =====================================================
 if (window.RT && RT.ativo()) {
-  let _lf = '', _lv = '', _lc = '';
+  let _lf = '', _lv = '', _lc = '', _ln = '';
   RT.ouvir(estado => {
     ultimoRT = Date.now();
     const sf = JSON.stringify(estado.fichas || []);
@@ -326,6 +359,8 @@ if (window.RT && RT.ativo()) {
     if (sv !== _lv) { _lv = sv; monstrosVisiveis = estado.monstros_visiveis || []; popularTipoJogador(); renderMonstros(); }
     const sc = JSON.stringify(estado.combate || {});
     if (sc !== _lc) { _lc = sc; renderCombateJog(estado.combate || {}); }
+    const sn = JSON.stringify((estado.notas || []).filter(n => n.compartilhada));
+    if (sn !== _ln) { _ln = sn; renderHandouts(estado.notas || []); }
   });
 }
 // polling de fallback (auto-suprimido quando o tempo real está entregando dados)

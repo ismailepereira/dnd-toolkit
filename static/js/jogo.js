@@ -206,6 +206,11 @@ const Jogo = (function () {
       <p>${esc(d.descricao)}</p>${acoes}</div></details>`;
   }
 
+  // XP acumulado necessário para cada nível (PHB)
+  const XP_NIVEL = [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000, 120000, 140000, 165000, 195000, 225000, 265000, 305000, 355000];
+  function xpProxNivel(nivel) { return nivel >= 20 ? null : XP_NIVEL[nivel]; } // XP p/ alcançar nivel+1
+  function podeSubirPorXP(f) { const alvo = xpProxNivel(f.nivel || 1); return alvo != null && (f.xp || 0) >= alvo; }
+
   // ----- render -----
   function render() {
     garantirEstado();
@@ -401,9 +406,10 @@ const Jogo = (function () {
           <div class="jg-sub">${esc(f.raca)} · ${esc(f.classe)} nível ${f.nivel}${f.estilo ? ' · ' + esc(f.estilo) : ''}</div>
         </div>
         <div class="jg-rest">
-          <button id="jgSubirNivel" class="btn-primary">⬆️ Subir de Nível</button>
+          <button id="jgSubirNivel" class="btn-primary${podeSubirPorXP(f) ? ' jg-pulsa' : ''}">⬆️ Subir de Nível${podeSubirPorXP(f) ? ' ✨' : ''}</button>
           <button id="jgDescCurto" class="btn-secondary">☕ Descanso Curto</button>
           <button id="jgDescLongo" class="btn-secondary">🌙 Descanso Longo</button>
+          <button id="jgPDF" class="btn-secondary">🖨️ Ficha PDF</button>
         </div>
       </div>
 
@@ -431,6 +437,13 @@ const Jogo = (function () {
               <button id="jgOuroMais" class="btn-mini">+</button><button id="jgOuroMenos" class="btn-mini">−</button>
             </div>
           </div>
+          <div class="jg-bloco"><h4>Experiência</h4>
+            <div class="jg-ouro"><b>${(f.xp || 0).toLocaleString('pt-BR')} XP</b>
+              <input type="number" id="jgXpVal" value="100" style="width:72px">
+              <button id="jgXpMais" class="btn-mini">+ Ganhar</button>
+            </div>
+            <div class="pv-linha">${xpProxNivel(f.nivel || 1) == null ? 'Nível máximo (20).' : `Próximo nível: <b>${xpProxNivel(f.nivel).toLocaleString('pt-BR')}</b> XP${podeSubirPorXP(f) ? ' — <span class="jg-subir-ok">pode subir! ✨</span>' : ''}`}</div>
+          </div>
           ${condHtml}${logHtml}
         </div>
         <div>${armasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}</div>
@@ -456,6 +469,15 @@ const Jogo = (function () {
     const ov = () => Math.max(0, Number($('jgOuroVal').value) || 0);
     $('jgOuroMais').onclick = () => { ficha.ouro += ov(); salvar(); };
     $('jgOuroMenos').onclick = () => { ficha.ouro = Math.max(0, ficha.ouro - ov()); salvar(); };
+
+    if ($('jgXpMais')) $('jgXpMais').onclick = () => {
+      const v = Math.max(0, Number($('jgXpVal').value) || 0);
+      ficha.xp = (ficha.xp || 0) + v;
+      log(`Ganhou ${v} XP (total ${ficha.xp})`);
+      if (podeSubirPorXP(ficha)) log('✨ XP suficiente para subir de nível!');
+      salvar();
+    };
+    if ($('jgPDF')) $('jgPDF').onclick = () => exportarFichaPDF(ficha);
 
     // inventário
     if ($('jgAddItem')) $('jgAddItem').onclick = () => {
@@ -522,6 +544,65 @@ const Jogo = (function () {
       if (r) { log(`${b.dataset.nome}: dano ${r.total} (${r.txt})`); render(); }
     });
     document.querySelectorAll('[data-preparar]').forEach(b => b.onclick = () => alternarPreparada(b.dataset.preparar));
+  }
+
+  // ----- Exportar ficha em PDF (janela imprimível -> Salvar como PDF) -----
+  function exportarFichaPDF(f) {
+    const e = s => String(s == null ? '' : s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+    const a = f.atributos || {};
+    const chave = (typeof CLASSE_NOME_PARA_CHAVE !== 'undefined') ? CLASSE_NOME_PARA_CHAVE[f.classe] : null;
+    const cls = (typeof CLASSES !== 'undefined' && chave) ? CLASSES[chave] : null;
+    const pb = (typeof PB === 'function') ? PB(f.nivel || 1) : 2;
+    const ATTRS = [['for', 'FOR'], ['des', 'DES'], ['con', 'CON'], ['int', 'INT'], ['sab', 'SAB'], ['car', 'CAR']];
+    const NOMES = { for: 'Força', des: 'Destreza', con: 'Constituição', int: 'Inteligência', sab: 'Sabedoria', car: 'Carisma' };
+    const fmtMod = m => (m >= 0 ? '+' : '') + m;
+    const attrCards = ATTRS.map(([k, r]) => `<div class="c"><b>${r}</b><span>${a[k] ?? 10}</span><i>${fmtMod(mod(a[k] ?? 10))}</i></div>`).join('');
+    const salvas = ATTRS.map(([k]) => { const prof = cls && (cls.salvaguardas || []).includes(NOMES[k]); return `<li>${NOMES[k]}: <b>${fmtMod(mod(a[k] ?? 10) + (prof ? pb : 0))}</b>${prof ? ' (prof.)' : ''}</li>`; }).join('');
+    const nd = cls ? cls.niveis.find(n => n.nivel === (f.nivel || 1)) : null;
+    const feats = (nd && nd.caracteristicas.length) ? nd.caracteristicas.map(c => `<li>${e(c)}</li>`).join('') : '<li>—</li>';
+    const ant = (typeof ANTECEDENTES !== 'undefined') ? ANTECEDENTES[f.antecedente] : null;
+    const truques = (f.truques || []).map(e).join(', ') || '—';
+    const magias = (f.magias1 || []).map(e).join(', ') || '—';
+    const itens = [(f.armadura && f.armadura !== 'Sem armadura') ? f.armadura + (f.escudo ? ' + Escudo' : '') : '', ...(f.itens || [])].filter(Boolean).map(e).join(', ') || '—';
+    const sint = (f.sintonizados || []).map(e).join(', ');
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Ficha — ${e(f.nome)}</title>
+      <style>
+        body{font-family:Georgia,'Times New Roman',serif;color:#1a1a1a;max-width:780px;margin:0 auto;padding:24px;}
+        h1{margin:0;font-size:26px;border-bottom:3px solid #7c2d12;padding-bottom:6px;}
+        .sub{color:#555;margin:4px 0 14px;font-size:14px;}
+        .attrs{display:flex;gap:8px;margin:12px 0;}
+        .attrs .c{flex:1;border:1px solid #999;border-radius:8px;text-align:center;padding:6px;}
+        .attrs .c b{display:block;font-size:11px;color:#7c2d12;}
+        .attrs .c span{display:block;font-size:20px;font-weight:bold;}
+        .attrs .c i{font-style:normal;color:#555;}
+        .stats{display:flex;gap:18px;margin:10px 0;font-size:15px;}
+        .stats b{font-size:18px;}
+        .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+        h3{color:#7c2d12;border-bottom:1px solid #ccc;font-size:14px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px;}
+        ul{margin:4px 0;padding-left:18px;font-size:13px;} li{margin:2px 0;}
+        p{font-size:13px;margin:4px 0;}
+        @media print{body{padding:0;} button{display:none;}}
+      </style></head><body>
+      <h1>${e(f.nome || 'Personagem')}</h1>
+      <div class="sub">${e(f.raca)} · ${e(f.classe)} nível ${f.nivel}${f.subclasse ? ' (' + e(f.subclasse) + ')' : ''}${f.antecedente ? ' · ' + e(f.antecedente) : ''}${f.estilo ? ' · ' + e(f.estilo) : ''}</div>
+      <div class="attrs">${attrCards}</div>
+      <div class="stats"><span>PV <b>${f.hpMax}</b></span><span>CA <b>${f.ca}</b></span><span>Inic. <b>${fmtMod(f.iniciativa || 0)}</b></span><span>Prof. <b>+${pb}</b></span><span>XP <b>${(f.xp || 0).toLocaleString('pt-BR')}</b></span><span>Ouro <b>${f.ouro || 0} po</b></span></div>
+      <div class="grid">
+        <div><h3>Salvaguardas</h3><ul>${salvas}</ul>
+          <h3>Características de Classe (Nível ${f.nivel})</h3><ul>${feats}</ul>
+          ${ant ? `<h3>Antecedente — ${e(f.antecedente)}</h3><p><b>${e(ant.caracteristica)}</b></p>${ant.ferramentas && ant.ferramentas.length ? `<p>Ferramentas: ${ant.ferramentas.map(e).join(', ')}</p>` : ''}${ant.equipamento ? `<p>Equipamento: ${e(ant.equipamento)}</p>` : ''}` : ''}
+        </div>
+        <div><h3>Equipamento</h3><p>${itens}</p>${sint ? `<p><b>Sintonizado:</b> ${sint}</p>` : ''}
+          <h3>Truques</h3><p>${truques}</p>
+          <h3>Magias</h3><p>${magias}</p>
+        </div>
+      </div>
+      <p style="margin-top:20px;color:#999;font-size:11px;text-align:center;">Gerado pelo D&D Toolkit · Desenvolvido por ismailepereira</p>
+      <script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>
+      </body></html>`;
+    const w = window.open('', '_blank');
+    if (!w) { alert('Permita pop-ups para exportar a ficha em PDF.'); return; }
+    w.document.write(html); w.document.close();
   }
 
   function abrir(f, opts) {

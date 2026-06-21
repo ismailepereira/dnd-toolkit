@@ -19,6 +19,7 @@
     <nav class="tabs">
       <button class="tab-btn active" data-tab="fichas">Fichas</button>
       <button class="tab-btn" data-tab="combate">Combate</button>
+      <button class="tab-btn" data-tab="encontros">Encontros</button>
       <button class="tab-btn" data-tab="notas">Notas / NPCs</button>
       <button class="tab-btn" data-tab="progressao">Progressão</button>
       <button class="tab-btn" data-tab="bestiario">Bestiário</button>
@@ -60,6 +61,37 @@
       <div class="combate-layout">
         <div id="listaCombate" class="combat-list"></div>
         <div class="combate-log-box"><h4>Histórico</h4><ul id="combateLog"></ul></div>
+      </div>
+    </section>
+
+    <!-- ENCONTROS (montador com orçamento de XP) -->
+    <section id="encontros" class="tab-content">
+      <div class="panel-header"><h2>Montador de Encontros</h2></div>
+      <div class="enc-layout">
+        <div class="enc-builder">
+          <div class="enc-grupo">
+            <h4>Grupo</h4>
+            <div id="encParty" class="criador-hint"></div>
+            <label class="enc-manual"><input type="checkbox" id="encUsarManual"> Definir grupo manualmente:</label>
+            <div id="encManualWrap" class="hidden"><input type="number" id="encQtdPJ" value="4" min="1" style="width:54px"> PJs nível <input type="number" id="encNivelPJ" value="3" min="1" max="20" style="width:54px"></div>
+          </div>
+          <div class="enc-grupo">
+            <h4>Monstros do encontro</h4>
+            <div class="add-monstro"><select id="encMonstroSel"></select><input type="number" id="encMonstroQtd" value="1" min="1" style="width:54px"><button id="encAddMonstro" class="btn-secondary">+ Adicionar</button></div>
+            <div id="encMonstros" class="enc-monstros"></div>
+          </div>
+          <div id="encMedidor" class="enc-medidor"></div>
+          <div class="enc-acoes">
+            <input type="text" id="encNome" placeholder="Nome do encontro (ex.: Emboscada na ponte)">
+            <button id="encSalvar" class="btn-primary">💾 Salvar</button>
+            <button id="encLancar" class="btn-secondary">⚔️ Lançar no Combate</button>
+            <button id="encLimpar" class="btn-danger">Limpar</button>
+          </div>
+        </div>
+        <div class="enc-salvos">
+          <h4>Encontros salvos</h4>
+          <div id="encSalvosLista"></div>
+        </div>
       </div>
     </section>
 

@@ -515,74 +515,188 @@ carregarCombate();
 // =====================================================
 // NOTAS / NPCs
 // =====================================================
-let notas = Storage.get('dnd_notas', []);
+let notas = [];
 let notaAtualId = null;
 
 const listaNotas = document.getElementById('listaNotas');
 const editorNota = document.getElementById('editorNota');
 
+let _filaNotas = Promise.resolve();
 function salvarNotas() {
-  Storage.set('dnd_notas', notas);
+  const body = JSON.stringify(notas);
+  _filaNotas = _filaNotas.then(() => fetch('/api/notas', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body })).catch(() => {});
+  return _filaNotas;
+}
+async function carregarNotas() {
+  try { notas = await (await fetch('/api/notas')).json(); } catch (e) { notas = []; }
+  if (!Array.isArray(notas)) notas = [];
+  renderListaNotas(); renderEditorNota();
 }
 
 function renderListaNotas() {
+  if (!listaNotas) return;
   listaNotas.innerHTML = '';
   notas.forEach(n => {
     const div = document.createElement('div');
     div.className = 'nota-item' + (n.id === notaAtualId ? ' active' : '');
-    div.textContent = n.titulo || '(sem título)';
-    div.addEventListener('click', () => {
-      notaAtualId = n.id;
-      renderListaNotas();
-      renderEditorNota();
-    });
+    div.innerHTML = `${escapeHtml(n.titulo || '(sem título)')}${n.compartilhada ? ' <span class="nota-share" title="Compartilhada com os jogadores">👁</span>' : ''}`;
+    div.addEventListener('click', () => { notaAtualId = n.id; renderListaNotas(); renderEditorNota(); });
     listaNotas.appendChild(div);
   });
 }
 
 function renderEditorNota() {
+  if (!editorNota) return;
   const n = notas.find(x => x.id === notaAtualId);
   if (!n) {
-    editorNota.innerHTML = '<p style="color:var(--text-dim)">Selecione ou crie uma nota.</p>';
+    editorNota.innerHTML = '<p style="color:var(--text-dim)">Selecione ou crie uma nota/handout.</p>';
     return;
   }
   editorNota.innerHTML = `
     <input type="text" id="notaTitulo" value="${escapeHtml(n.titulo)}" placeholder="Título (ex: NPC - Taverneiro Brom)">
     <textarea id="notaConteudo" placeholder="Anotações...">${escapeHtml(n.conteudo)}</textarea>
+    <label class="nota-compartilhar"><input type="checkbox" id="notaShare" ${n.compartilhada ? 'checked' : ''}> 👁 Compartilhar com os jogadores (handout)</label>
     <div class="modal-actions">
       <button id="excluirNota" class="btn-danger">Excluir nota</button>
     </div>
   `;
-  document.getElementById('notaTitulo').addEventListener('input', e => {
-    n.titulo = e.target.value;
-    salvarNotas();
-    renderListaNotas();
-  });
-  document.getElementById('notaConteudo').addEventListener('input', e => {
-    n.conteudo = e.target.value;
-    salvarNotas();
-  });
+  document.getElementById('notaTitulo').addEventListener('input', e => { n.titulo = e.target.value; salvarNotas(); renderListaNotas(); });
+  document.getElementById('notaConteudo').addEventListener('input', e => { n.conteudo = e.target.value; salvarNotas(); });
+  document.getElementById('notaShare').addEventListener('change', e => { n.compartilhada = e.target.checked; salvarNotas(); renderListaNotas(); });
   document.getElementById('excluirNota').addEventListener('click', () => {
     if (!confirm('Excluir esta nota?')) return;
     notas = notas.filter(x => x.id !== n.id);
     notaAtualId = notas[0]?.id || null;
-    salvarNotas();
-    renderListaNotas();
-    renderEditorNota();
+    salvarNotas(); renderListaNotas(); renderEditorNota();
   });
 }
 
-document.getElementById('novaNota').addEventListener('click', () => {
-  const nova = { id: uid(), titulo: 'Nova Nota', conteudo: '' };
+const btnNovaNota = document.getElementById('novaNota');
+if (btnNovaNota) btnNovaNota.addEventListener('click', () => {
+  const nova = { id: uid(), titulo: 'Nova Nota', conteudo: '', compartilhada: false };
   notas.unshift(nova);
   notaAtualId = nova.id;
-  salvarNotas();
-  renderListaNotas();
-  renderEditorNota();
+  salvarNotas(); renderListaNotas(); renderEditorNota();
 });
 
-renderListaNotas();
-renderEditorNota();
+carregarNotas();
+
+// =====================================================
+// MONTADOR DE ENCONTROS (orçamento de XP) — Fase 4.2/4.3
+// =====================================================
+// Limiares de XP por nível de personagem (DMG): [fácil, médio, difícil, mortal]
+const XP_LIMIARES = {
+  1: [25, 50, 75, 100], 2: [50, 100, 150, 200], 3: [75, 150, 225, 400], 4: [125, 250, 375, 500],
+  5: [250, 500, 750, 1100], 6: [300, 600, 900, 1400], 7: [350, 750, 1100, 1700], 8: [450, 900, 1300, 1900],
+  9: [550, 1100, 1600, 2400], 10: [600, 1200, 1900, 2800], 11: [800, 1600, 2400, 3600], 12: [1000, 2000, 3000, 4500],
+  13: [1100, 2200, 3400, 5100], 14: [1250, 2500, 3800, 5700], 15: [1400, 2800, 4300, 6400], 16: [1600, 3200, 4800, 7200],
+  17: [2000, 3900, 5900, 8800], 18: [2100, 4200, 6300, 9500], 19: [2400, 4900, 7300, 10900], 20: [2800, 5700, 8500, 12700],
+};
+function multEncontro(n) { return n <= 1 ? 1 : n === 2 ? 1.5 : n <= 6 ? 2 : n <= 10 ? 2.5 : n <= 14 ? 3 : 4; }
+
+let encMonstros = [];          // [{nome, qtd}]
+let encontrosSalvos = [];
+
+const $enc = id => document.getElementById(id);
+const encMonstroSel = $enc('encMonstroSel');
+if (encMonstroSel) MONSTROS.forEach(m => { const o = document.createElement('option'); o.value = m.nome; o.textContent = `${m.nome} (ND ${m.cr} · ${m.pe || 0} PE)`; encMonstroSel.appendChild(o); });
+
+function nivelDosPJs() {
+  if ($enc('encUsarManual') && $enc('encUsarManual').checked) {
+    const q = Math.max(1, Number($enc('encQtdPJ').value) || 1);
+    const nv = Math.min(20, Math.max(1, Number($enc('encNivelPJ').value) || 1));
+    return Array(q).fill(nv);
+  }
+  return (fichas || []).map(f => Math.min(20, Math.max(1, f.nivel || 1)));
+}
+function limiaresGrupo() {
+  const niveis = nivelDosPJs();
+  const t = [0, 0, 0, 0];
+  niveis.forEach(nv => { const L = XP_LIMIARES[nv] || XP_LIMIARES[1]; for (let i = 0; i < 4; i++) t[i] += L[i]; });
+  return { t, n: niveis.length };
+}
+function renderEncParty() {
+  const wrap = $enc('encParty'); if (!wrap) return;
+  const { t, n } = limiaresGrupo();
+  const manual = $enc('encUsarManual') && $enc('encUsarManual').checked;
+  wrap.innerHTML = `${n} PJ(s)${manual ? ' (manual)' : ' (das fichas)'} · Limiares do grupo — Fácil <b>${t[0]}</b> · Médio <b>${t[1]}</b> · Difícil <b>${t[2]}</b> · Mortal <b>${t[3]}</b> PE`;
+}
+function renderEncMonstros() {
+  const wrap = $enc('encMonstros'); if (!wrap) return;
+  wrap.innerHTML = encMonstros.length ? encMonstros.map((e, i) => {
+    const m = MONSTROS.find(x => x.nome === e.nome);
+    return `<div class="enc-mon"><span>${e.qtd}× ${escapeHtml(e.nome)} <small>(${(m && m.pe || 0) * e.qtd} PE)</small></span><button data-encrem="${i}" title="Remover">✕</button></div>`;
+  }).join('') : '<span class="criador-hint">Nenhum monstro adicionado.</span>';
+  wrap.querySelectorAll('[data-encrem]').forEach(b => b.onclick = () => { encMonstros.splice(+b.dataset.encrem, 1); renderEnc(); });
+}
+function renderEncMedidor() {
+  const wrap = $enc('encMedidor'); if (!wrap) return;
+  const totalMon = encMonstros.reduce((s, e) => s + e.qtd, 0);
+  const xpBruto = encMonstros.reduce((s, e) => { const m = MONSTROS.find(x => x.nome === e.nome); return s + (m && m.pe || 0) * e.qtd; }, 0);
+  const mult = multEncontro(totalMon);
+  const xpAjust = Math.round(xpBruto * mult);
+  const { t } = limiaresGrupo();
+  let dif = 'Trivial', cor = '#6e7681';
+  if (xpAjust >= t[3]) { dif = 'MORTAL'; cor = '#e94560'; }
+  else if (xpAjust >= t[2]) { dif = 'Difícil'; cor = '#d29922'; }
+  else if (xpAjust >= t[1]) { dif = 'Médio'; cor = '#3fb950'; }
+  else if (xpAjust >= t[0]) { dif = 'Fácil'; cor = '#58a6ff'; }
+  wrap.innerHTML = `<div class="enc-med-linha">XP bruto <b>${xpBruto}</b> · ${totalMon} monstro(s) → ×${mult} → <b>XP ajustado ${xpAjust}</b></div>
+    <div class="enc-dif" style="color:${cor}">Dificuldade: <b>${dif}</b></div>
+    <div class="enc-xprecompensa">Recompensa de XP (bruta, dividir pelo grupo): <b>${xpBruto}</b> PE</div>`;
+}
+function renderEncSalvos() {
+  const wrap = $enc('encSalvosLista'); if (!wrap) return;
+  wrap.innerHTML = encontrosSalvos.length ? encontrosSalvos.map(e => {
+    const totalMon = (e.monstros || []).reduce((s, m) => s + m.qtd, 0);
+    return `<div class="enc-salvo"><span><b>${escapeHtml(e.nome)}</b> <small>(${totalMon} monstros)</small></span>
+      <span class="enc-salvo-btns"><button data-enccarregar="${e.id}" title="Carregar">📂</button><button data-enclancar="${e.id}" title="Lançar no combate">⚔️</button><button data-encdel="${e.id}" class="btn-danger" title="Excluir">✕</button></span></div>`;
+  }).join('') : '<span class="criador-hint">Nenhum encontro salvo.</span>';
+  wrap.querySelectorAll('[data-enccarregar]').forEach(b => b.onclick = () => { const e = encontrosSalvos.find(x => x.id === b.dataset.enccarregar); if (e) { encMonstros = JSON.parse(JSON.stringify(e.monstros || [])); if ($enc('encNome')) $enc('encNome').value = e.nome; renderEnc(); } });
+  wrap.querySelectorAll('[data-enclancar]').forEach(b => b.onclick = () => { const e = encontrosSalvos.find(x => x.id === b.dataset.enclancar); if (e) lancarEncontro(e.monstros); });
+  wrap.querySelectorAll('[data-encdel]').forEach(b => b.onclick = () => { encontrosSalvos = encontrosSalvos.filter(x => x.id !== b.dataset.encdel); salvarEncontros(); renderEncSalvos(); });
+}
+function renderEnc() { renderEncParty(); renderEncMonstros(); renderEncMedidor(); }
+
+function lancarEncontro(lista) {
+  (lista || []).forEach(e => addMonstro(e.nome, e.qtd));
+  alert(`Encontro lançado no Combate (${(lista || []).reduce((s, e) => s + e.qtd, 0)} monstros).`);
+}
+
+let _filaEnc = Promise.resolve();
+function salvarEncontros() {
+  const body = JSON.stringify(encontrosSalvos);
+  _filaEnc = _filaEnc.then(() => fetch('/api/encontros', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body })).catch(() => {});
+  return _filaEnc;
+}
+async function carregarEncontros() {
+  try { encontrosSalvos = await (await fetch('/api/encontros')).json(); } catch (e) { encontrosSalvos = []; }
+  if (!Array.isArray(encontrosSalvos)) encontrosSalvos = [];
+  renderEncSalvos();
+}
+
+if ($enc('encAddMonstro')) {
+  $enc('encAddMonstro').onclick = () => {
+    const nome = encMonstroSel.value, qtd = Math.max(1, Number($enc('encMonstroQtd').value) || 1);
+    const ex = encMonstros.find(e => e.nome === nome);
+    if (ex) ex.qtd += qtd; else encMonstros.push({ nome, qtd });
+    renderEnc();
+  };
+  $enc('encUsarManual').onchange = () => { $enc('encManualWrap').classList.toggle('hidden', !$enc('encUsarManual').checked); renderEnc(); };
+  $enc('encQtdPJ').oninput = renderEnc;
+  $enc('encNivelPJ').oninput = renderEnc;
+  $enc('encLimpar').onclick = () => { encMonstros = []; if ($enc('encNome')) $enc('encNome').value = ''; renderEnc(); };
+  $enc('encLancar').onclick = () => { if (!encMonstros.length) return alert('Adicione monstros ao encontro.'); lancarEncontro(encMonstros); };
+  $enc('encSalvar').onclick = () => {
+    const nome = ($enc('encNome').value || '').trim() || 'Encontro sem nome';
+    if (!encMonstros.length) return alert('Adicione monstros antes de salvar.');
+    encontrosSalvos.unshift({ id: uid(), nome, monstros: JSON.parse(JSON.stringify(encMonstros)) });
+    salvarEncontros(); renderEncSalvos();
+    alert(`Encontro "${nome}" salvo.`);
+  };
+  renderEnc();
+  carregarEncontros();
+}
 
 // =====================================================
 // PROGRESSÃO DE CLASSE
@@ -1049,7 +1163,7 @@ document.getElementById('rolarDado').addEventListener('click', () => {
 // TEMPO REAL (Firestore) - atualiza as telas quando o estado muda
 // =====================================================
 if (window.RT && RT.ativo()) {
-  let _lf = '', _lc = '', _lv = '';
+  let _lf = '', _lc = '', _lv = '', _ln = '';
   RT.ouvir(estado => {
     const sf = JSON.stringify(estado.fichas || []);
     if (sf !== _lf) { _lf = sf; fichas = estado.fichas || []; renderFichas(); }
@@ -1057,5 +1171,11 @@ if (window.RT && RT.ativo()) {
     if (sc !== _lc) { _lc = sc; combate = estado.combate || { combatentes: [], turno: 0, rodada: 1, log: [] }; renderCombate(); }
     const sv = JSON.stringify(estado.monstros_visiveis || []);
     if (sv !== _lv) { _lv = sv; monstrosVisiveis = estado.monstros_visiveis || []; renderMonstros(); }
+    const sn = JSON.stringify(estado.notas || []);
+    if (sn !== _ln) {
+      _ln = sn;
+      const editando = document.activeElement && ['notaTitulo', 'notaConteudo'].includes(document.activeElement.id);
+      if (!editando) { notas = estado.notas || []; renderListaNotas(); renderEditorNota(); }
+    }
   });
 }

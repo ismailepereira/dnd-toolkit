@@ -71,11 +71,11 @@ Cada bloco entrega: características base (com mecânica) + características de 
 ---
 
 ## 🧑‍🤝‍🧑 FASE 4 — Qualidade de vida (Jogador & Mestre)
-- [ ] 4.1 "Minha ficha" por jogador (cada um abre direto a sua) — decidir login por jogador
-- [ ] 4.2 Montador de encontros com orçamento de XP (fácil/médio/difícil/mortal)
-- [ ] 4.3 Encontros salvos + templates rápidos de NPC
-- [ ] 4.4 Notas / handouts compartilhados em tempo real
-- [ ] 4.5 Exportar ficha em PDF + subir de nível por XP
+- [x] 4.1 "Minha ficha" por jogador — estrela ⭐ marca a ficha do jogador (localStorage), atalho "Jogar minha ficha" + destaque/ordenação (sem mexer no login compartilhado)
+- [x] 4.2 Montador de encontros com orçamento de XP — aba Encontros: limiares fácil/médio/difícil/mortal (das fichas ou manual), multiplicador por nº de monstros, dificuldade calculada + recompensa de XP
+- [x] 4.3 Encontros salvos + NPC rápido — salvar/carregar/excluir encontros (estado compartilhado) e "lançar no combate"; NPC avulso e "+ Aliado" no rastreador
+- [x] 4.4 Notas / handouts compartilhados em tempo real — notas no estado compartilhado com flag de handout; aba Handouts do jogador (somente as compartilhadas), sync em tempo real
+- [x] 4.5 Exportar ficha em PDF + subir por XP — botão "Ficha PDF" (janela imprimível) no Modo de Jogo; rastreio de XP com aviso/pulso ao atingir o nível seguinte
 
 ---
 

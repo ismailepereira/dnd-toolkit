@@ -29,6 +29,8 @@ ESTADO_PADRAO = {
     'fichas': [],
     'monstros_visiveis': [],
     'combate': {'combatentes': [], 'turno': 0, 'rodada': 1, 'log': []},
+    'notas': [],       # notas/handouts do Mestre (com flag 'compartilhada' p/ jogadores)
+    'encontros': [],   # encontros salvos do montador (lançáveis no combate)
 }
 
 # ---------------------------------------------------------------
@@ -205,6 +207,40 @@ def api_get_combate():
 def api_put_combate():
     estado = carregar_estado()
     estado['combate'] = request.get_json(force=True) or ESTADO_PADRAO['combate']
+    salvar_estado(estado)
+    return jsonify({'ok': True})
+
+
+@app.route('/api/notas', methods=['GET'])
+@login_obrigatorio()
+def api_get_notas():
+    notas = carregar_estado().get('notas', [])
+    # jogador só recebe as notas/handouts compartilhadas
+    if session.get('papel') != 'mestre':
+        notas = [n for n in notas if n.get('compartilhada')]
+    return jsonify(notas)
+
+
+@app.route('/api/notas', methods=['PUT'])
+@login_obrigatorio(papeis=['mestre'])
+def api_put_notas():
+    estado = carregar_estado()
+    estado['notas'] = request.get_json(force=True) or []
+    salvar_estado(estado)
+    return jsonify({'ok': True})
+
+
+@app.route('/api/encontros', methods=['GET'])
+@login_obrigatorio(papeis=['mestre'])
+def api_get_encontros():
+    return jsonify(carregar_estado().get('encontros', []))
+
+
+@app.route('/api/encontros', methods=['PUT'])
+@login_obrigatorio(papeis=['mestre'])
+def api_put_encontros():
+    estado = carregar_estado()
+    estado['encontros'] = request.get_json(force=True) or []
     salvar_estado(estado)
     return jsonify({'ok': True})
 

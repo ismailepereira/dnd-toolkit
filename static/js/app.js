@@ -699,6 +699,61 @@ if ($enc('encAddMonstro')) {
 }
 
 // =====================================================
+// BACKUP — exportar/importar (Fase 5.2)
+// =====================================================
+async function exportarBackup() {
+  try {
+    const [fichasD, monstros, comb, notasD, enc] = await Promise.all([
+      fetch('/api/fichas').then(r => r.json()),
+      fetch('/api/monstros_visiveis').then(r => r.json()),
+      fetch('/api/combate').then(r => r.json()),
+      fetch('/api/notas').then(r => r.json()),
+      fetch('/api/encontros').then(r => r.json()),
+    ]);
+    const camp = window.CAMPANHA_ID || 'principal';
+    const dump = { _app: 'dnd-toolkit', _versao: 1, _campanha: camp, _data: new Date().toISOString(), fichas: fichasD, monstros_visiveis: monstros, combate: comb, notas: notasD, encontros: enc };
+    const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `backup-${camp}-${dump._data.slice(0, 10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+  } catch (e) { alert('Falha ao exportar: ' + e); }
+}
+async function importarBackup(file) {
+  let d;
+  try { d = JSON.parse(await file.text()); } catch (e) { return alert('Arquivo inválido (não é JSON).'); }
+  if (d._app !== 'dnd-toolkit' && !confirm('Este arquivo não parece um backup do D&D Toolkit. Importar mesmo assim?')) return;
+  if (!confirm(`Isto vai SUBSTITUIR os dados da campanha atual ("${window.CAMPANHA_ID || 'principal'}") pelos do backup. Continuar?`)) return;
+  const put = (url, data) => fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  try {
+    await put('/api/fichas', d.fichas || []);
+    await put('/api/monstros_visiveis', d.monstros_visiveis || []);
+    await put('/api/combate', d.combate || { combatentes: [], turno: 0, rodada: 1, log: [] });
+    await put('/api/notas', d.notas || []);
+    await put('/api/encontros', d.encontros || []);
+    alert('Backup importado! Recarregando a página…');
+    location.reload();
+  } catch (e) { alert('Falha ao importar: ' + e); }
+}
+(function montarBackup() {
+  const btn = document.getElementById('btnBackup');
+  if (!btn) return;
+  const painel = document.createElement('div');
+  painel.className = 'a11y-painel'; painel.hidden = true; painel.style.top = '64px'; painel.style.right = '16px'; painel.style.bottom = 'auto';
+  painel.innerHTML = `<h4>💾 Backup da campanha</h4>
+    <div class="a11y-linha"><button class="a11y-op" id="bkExport" style="width:100%">⬇️ Exportar (.json)</button></div>
+    <div class="a11y-linha"><button class="a11y-op" id="bkImport" style="width:100%">⬆️ Importar de arquivo</button></div>
+    <input type="file" id="bkFile" accept="application/json,.json" hidden>
+    <div class="criador-hint">Rede de segurança além do Firestore. A importação substitui a campanha atual.</div>`;
+  document.body.appendChild(painel);
+  btn.addEventListener('click', () => { painel.hidden = !painel.hidden; });
+  document.addEventListener('click', e => { if (!painel.hidden && !painel.contains(e.target) && e.target !== btn) painel.hidden = true; });
+  painel.querySelector('#bkExport').addEventListener('click', () => { exportarBackup(); painel.hidden = true; });
+  painel.querySelector('#bkImport').addEventListener('click', () => painel.querySelector('#bkFile').click());
+  painel.querySelector('#bkFile').addEventListener('change', e => { if (e.target.files[0]) importarBackup(e.target.files[0]); });
+})();
+
+// =====================================================
 // PROGRESSÃO DE CLASSE
 // =====================================================
 const progClasse = document.getElementById('progClasse');

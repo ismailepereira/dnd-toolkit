@@ -32,7 +32,8 @@
     ouvir(cb) {
       if (!ok) return false;
       try {
-        fsdb.collection('campanha').doc('principal').onSnapshot(
+        const docId = (window.CAMPANHA_ID || 'principal');
+        fsdb.collection('campanha').doc(docId).onSnapshot(
           snap => { if (snap.exists) cb(snap.data() || {}); },
           err => console.warn('[RT] onSnapshot erro (verifique as Regras do Firestore):', err.code || err)
         );

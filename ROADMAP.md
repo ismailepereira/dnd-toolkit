@@ -80,10 +80,10 @@ Cada bloco entrega: características base (com mecânica) + características de 
 ---
 
 ## ♿ FASE 5 — Acessibilidade & robustez
-- [ ] 5.1 Acessibilidade: tamanho de fonte, alto contraste, navegação por teclado, ARIA
-- [ ] 5.2 Backup exportar/importar (rede de segurança além do Firestore)
-- [ ] 5.3 Multi-campanha (mais de uma mesa no mesmo app)
-- [ ] 5.4 Segurança: senhas com hash / Login do Firebase; regras Firestore mais estritas
+- [x] 5.1 Acessibilidade — widget ♿ (compartilhado): tamanho de fonte (zoom 90–150%), alto contraste, foco visível por teclado, navegação por setas nas abas e ARIA (role tablist/tab); preferências no localStorage
+- [x] 5.2 Backup exportar/importar — botão 💾 Backup no Mestre: exporta `.json` (fichas/monstros/combate/notas/encontros) e importa substituindo a campanha atual
+- [x] 5.3 Multi-campanha — cada mesa é um doc `campanha/<id>` (padrão `principal`); seletor no cabeçalho cria/troca; cliente (RT) escuta o doc da campanha ativa; isolado por campanha
+- [x] 5.4 Segurança — login aceita senha em hash do Werkzeug (`senha_confere`, retrocompatível com texto puro); `SEGURANCA.md` documenta hash, regras do Firestore, exposição de notas no RT, multi-campanha e backup. (Login do Firebase + regras por usuário ficam como evolução futura.)
 
 ---
 

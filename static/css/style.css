@@ -1029,6 +1029,35 @@ input, textarea, .form-grid select {
 .ficha-card.minha { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .ficha-estrela { position: absolute; top: 8px; right: 8px; background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--accent); }
 
+/* ============ ACESSIBILIDADE (Fase 5.1) ============ */
+/* Alto contraste: redefine as variáveis de tema */
+body.alto-contraste {
+  --bg: #000; --bg-panel: #000; --bg-card: #111; --accent: #ffd400; --accent2: #003a80;
+  --text: #fff; --text-dim: #e8e8e8; --border: #fff;
+}
+body.alto-contraste .btn-secondary, body.alto-contraste .btn-primary, body.alto-contraste .btn-danger,
+body.alto-contraste button, body.alto-contraste input, body.alto-contraste select, body.alto-contraste textarea {
+  border: 1px solid #fff !important;
+}
+body.alto-contraste a { color: #ffd400; }
+/* Foco visível por teclado (acessibilidade de navegação) */
+:focus-visible { outline: 3px solid #ffd400; outline-offset: 2px; border-radius: 3px; }
+
+/* Widget de acessibilidade (botão flutuante + painel) */
+.a11y-btn { position: fixed; bottom: 16px; right: 16px; z-index: 9000; width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--accent); background: var(--bg-panel); color: var(--text); font-size: 1.4rem; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,.4); }
+.a11y-painel { position: fixed; bottom: 74px; right: 16px; z-index: 9000; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px; width: 240px; box-shadow: 0 4px 20px rgba(0,0,0,.5); }
+.a11y-painel[hidden] { display: none; }
+.a11y-painel h4 { margin: 0 0 10px; font-size: 0.95rem; }
+.a11y-linha { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0; font-size: 0.85rem; }
+.a11y-linha .a11y-botoes { display: flex; gap: 6px; }
+.a11y-painel button.a11y-op { background: var(--bg-card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 4px 10px; cursor: pointer; min-width: 34px; }
+.a11y-painel button.a11y-op[aria-pressed="true"] { background: var(--accent); color: #fff; }
+
+/* Seletor de campanha (Fase 5.3) */
+.campanha-form { display: inline-flex; align-items: center; gap: 4px; }
+.campanha-form input { width: 110px; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 5px 7px; font-size: 0.85rem; }
+.campanha-rotulo { font-size: 1rem; }
+
 @media (max-width: 820px) {
   .combate-layout { grid-template-columns: 1fr; }
   .combate-log-box { position: static; max-height: none; }

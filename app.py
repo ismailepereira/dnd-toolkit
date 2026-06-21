@@ -1,9 +1,11 @@
 import json
 import os
+import re
 from functools import wraps
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
+from werkzeug.security import check_password_hash
 
 load_dotenv()
 
@@ -75,12 +77,31 @@ except Exception as e:  # pragma: no cover
         print('[Firebase] Indisponível, usando arquivo local:', e)
     db = None
 
-DOC_CAMPANHA = ('campanha', 'principal')  # coleção, documento
+COLECAO_CAMPANHA = 'campanha'
+
+
+def campanha_atual():
+    """ID da mesa ativa (multi-campanha). Sanitizado; padrão 'principal'."""
+    c = re.sub(r'[^a-zA-Z0-9_-]', '', str(session.get('campanha', 'principal')))
+    return c or 'principal'
+
+
+def _data_file():
+    c = campanha_atual()
+    nome = 'estado.json' if c == 'principal' else f'estado_{c}.json'
+    return os.path.join(BASE_DIR, 'data', nome)
+
+
+def senha_confere(armazenada, fornecida):
+    """Aceita senha em texto puro (padrão) ou hash do Werkzeug (produção)."""
+    if isinstance(armazenada, str) and armazenada.startswith(('pbkdf2:', 'scrypt:')):
+        return check_password_hash(armazenada, fornecida)
+    return armazenada == fornecida
 
 
 def carregar_estado():
     if db is not None:
-        ref = db.collection(DOC_CAMPANHA[0]).document(DOC_CAMPANHA[1])
+        ref = db.collection(COLECAO_CAMPANHA).document(campanha_atual())
         snap = ref.get()
         if snap.exists:
             estado = snap.to_dict() or {}
@@ -91,9 +112,10 @@ def carregar_estado():
             estado.setdefault(chave, valor)
         return estado
     # fallback: arquivo local
-    if not os.path.exists(DATA_FILE):
+    caminho = _data_file()
+    if not os.path.exists(caminho):
         salvar_estado(ESTADO_PADRAO)
-    with open(DATA_FILE, 'r', encoding='utf-8') as f:
+    with open(caminho, 'r', encoding='utf-8') as f:
         estado = json.load(f)
     for chave, valor in ESTADO_PADRAO.items():
         estado.setdefault(chave, valor)
@@ -102,10 +124,11 @@ def carregar_estado():
 
 def salvar_estado(estado):
     if db is not None:
-        db.collection(DOC_CAMPANHA[0]).document(DOC_CAMPANHA[1]).set(estado)
+        db.collection(COLECAO_CAMPANHA).document(campanha_atual()).set(estado)
         return
-    os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+    caminho = _data_file()
+    os.makedirs(os.path.dirname(caminho), exist_ok=True)
+    with open(caminho, 'w', encoding='utf-8') as f:
         json.dump(estado, f, ensure_ascii=False, indent=2)
 
 
@@ -138,7 +161,7 @@ def login():
         usuario = request.form.get('usuario', '').strip()
         senha = request.form.get('senha', '')
         dados = USUARIOS.get(usuario)
-        if dados and dados['senha'] == senha:
+        if dados and senha_confere(dados['senha'], senha):
             session['usuario'] = usuario
             session['papel'] = dados['papel']
             return redirect(url_for('index'))
@@ -155,13 +178,21 @@ def logout():
 @app.route('/mestre')
 @login_obrigatorio(papeis=['mestre'])
 def mestre():
-    return render_template('mestre.html', usuario=session['usuario'])
+    return render_template('mestre.html', usuario=session['usuario'], campanha=campanha_atual())
 
 
 @app.route('/jogador')
 @login_obrigatorio(papeis=['mestre', 'jogador'])
 def jogador():
-    return render_template('jogador.html', usuario=session['usuario'])
+    return render_template('jogador.html', usuario=session['usuario'], campanha=campanha_atual())
+
+
+@app.route('/campanha', methods=['POST'])
+@login_obrigatorio(papeis=['mestre'])
+def trocar_campanha():
+    c = re.sub(r'[^a-zA-Z0-9_-]', '', request.form.get('campanha', '').strip())
+    session['campanha'] = c or 'principal'
+    return redirect(url_for('mestre'))
 
 
 # ===== API =====

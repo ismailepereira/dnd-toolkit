@@ -985,6 +985,12 @@ input, textarea, .form-grid select {
 .area-alvos { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin-bottom: 10px; }
 .area-acoes { display: flex; gap: 8px; }
 
+/* Sintonização de itens mágicos (Modo de Jogo) */
+.jg-sint { display: flex; gap: 8px; align-items: flex-start; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 5px; cursor: pointer; }
+.jg-sint.on { border-color: var(--accent); background: rgba(124,77,255,0.08); }
+.jg-sint input { margin-top: 3px; }
+.jg-sint small { color: var(--text-dim); }
+
 @media (max-width: 820px) {
   .combate-layout { grid-template-columns: 1fr; }
   .combate-log-box { position: static; max-height: none; }

@@ -373,6 +373,25 @@ const Jogo = (function () {
       <div class="pv-linha"><strong>Armadura:</strong> ${esc(f.armadura || 'Sem armadura')}${f.escudo ? ' + Escudo' : ''}</div>
       <div class="chips">${itensChips || '<span class="criador-hint">Sem itens.</span>'}</div>
       <div class="criador-add-item" style="margin-top:6px"><select id="jgItemSel">${optsItens}</select><button id="jgAddItem" class="btn-mini">+ Adicionar</button></div></div>`;
+
+    // Sintonização (itens mágicos) — máx. 3
+    let sintHtml = '';
+    if (typeof itemMagico === 'function') {
+      const meusMagicos = (f.itens || []).map(itemMagico).filter(Boolean);
+      const sintonizaveis = meusMagicos.filter(m => m.sintonia);
+      const passivos = meusMagicos.filter(m => !m.sintonia);
+      f.sintonizados = (f.sintonizados || []).filter(n => sintonizaveis.some(m => m.nome === n));
+      const nSint = f.sintonizados.length;
+      if (meusMagicos.length) {
+        sintHtml = `<div class="jg-bloco"><h4>Sintonização <small>(${nSint}/3)</small></h4>
+          ${sintonizaveis.length ? sintonizaveis.map(m => {
+            const on = f.sintonizados.includes(m.nome);
+            return `<label class="jg-sint ${on ? 'on' : ''}"><input type="checkbox" data-sint="${esc(m.nome)}" ${on ? 'checked' : ''} ${!on && nSint >= 3 ? 'disabled' : ''}>
+              <span><b>${esc(m.nome)}</b> <small>(${esc(m.raridade)})</small><br><small>${esc(m.efeito)}</small></span></label>`;
+          }).join('') : '<span class="criador-hint">Nenhum item que exija sintonização.</span>'}
+          ${passivos.length ? `<div class="criador-hint" style="margin-top:6px">⚙️ Sempre ativos (sem sintonização): ${passivos.map(m => esc(m.nome)).join(', ')}.</div>` : ''}</div>`;
+      }
+    }
     const avisosHtml = avisos.length ? `<div class="jg-bloco pv-avisos"><h4>⚠ Penalidades</h4>${avisos.map(a => `<div class="pv-linha">${esc(a.texto)}</div>`).join('')}</div>` : '';
 
     $('modalJogoBody').innerHTML = `
@@ -414,7 +433,7 @@ const Jogo = (function () {
           </div>
           ${condHtml}${logHtml}
         </div>
-        <div>${armasHtml}${concHtml}${avisosHtml}${inventarioHtml}${magiasHtml}${caracHtml}</div>
+        <div>${armasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}</div>
       </div>
     `;
 
@@ -447,6 +466,20 @@ const Jogo = (function () {
     };
     document.querySelectorAll('[data-rinv]').forEach(b => b.onclick = () => {
       ficha.itens = (ficha.itens || []).filter(x => x !== b.dataset.rinv);
+      salvar();
+    });
+    // sintonização (máx. 3)
+    document.querySelectorAll('[data-sint]').forEach(chk => chk.onchange = () => {
+      const nome = chk.dataset.sint;
+      ficha.sintonizados = ficha.sintonizados || [];
+      if (chk.checked) {
+        if (ficha.sintonizados.length >= 3) { chk.checked = false; return; }
+        if (!ficha.sintonizados.includes(nome)) ficha.sintonizados.push(nome);
+        log(`Sintonizou com ${nome}`);
+      } else {
+        ficha.sintonizados = ficha.sintonizados.filter(x => x !== nome);
+        log(`Desfez a sintonização com ${nome}`);
+      }
       salvar();
     });
     document.querySelectorAll('[data-rolararma]').forEach(b => b.onclick = () => {

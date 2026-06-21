@@ -64,9 +64,9 @@ Cada bloco entrega: características base (com mecânica) + características de 
 ---
 
 ## 📚 FASE 3 — Compêndio & itens
-- [ ] 3.1 Completar magias do PHB (~200 faltando; fazer junto da Fase 1, por classe)
-- [ ] 3.2 Itens mágicos com efeitos + sintonização (máx. 3)
-- [ ] 3.3 Antecedentes completos (ferramentas, idiomas, equipamento, característica)
+- [~] 3.1 Completar magias do PHB — lote desta fase adicionado (smites, utilidade, cura/ressurreição, adivinhação, terremoto etc.); ~278 magias no total. Segue como trabalho contínuo até 100% do PHB.
+- [x] 3.2 Itens mágicos com efeitos + sintonização (máx. 3) — catálogo `ITENS_MAGICOS` (26, com raridade/sintonia/efeito) na loja; rastreador de Sintonização no Modo de Jogo (toggle, trava de 3, passivos "sempre ativos")
+- [x] 3.3 Antecedentes completos — 13 antecedentes com perícias, ferramentas, idiomas, equipamento e característica; bloco no preview do Criador
 
 ---
 

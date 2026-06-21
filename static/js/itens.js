@@ -56,10 +56,52 @@ const ITENS_PADRAO = [
   { nome: 'Carroça', categoria: 'Montaria', preco: '35 po', peso: '-', descricao: 'Transporte de carga, deslocamento 9m' },
   { nome: 'Barco a Remo', categoria: 'Montaria', preco: '50 po', peso: '-', descricao: 'Deslocamento 4,5km/h em água' },
 
-  // Itens mágicos comuns
-  { nome: 'Poção de Cura Maior', categoria: 'Mágico', preco: '~500 po', peso: '0,25 kg', descricao: 'Recupera 4d4+4 PV ao beber' },
-  { nome: 'Anel de Proteção', categoria: 'Mágico', preco: 'Raro', peso: '-', descricao: '+1 CA e testes de resistência (requer sintonização)' },
-  { nome: 'Capa de Proteção', categoria: 'Mágico', preco: 'Raro', peso: '1 kg', descricao: '+1 CA e testes de resistência (requer sintonização)' },
-  { nome: 'Bolsa de Devoração', categoria: 'Mágico', preco: 'Incomum', peso: '14,5 kg', descricao: 'Espaço extradimensional, 250kg de capacidade' },
-  { nome: 'Pergaminho de Proteção', categoria: 'Mágico', preco: 'Raro', peso: '-', descricao: 'Proteção contra um tipo de criatura por 5 minutos' },
 ];
+
+// =====================================================
+// ITENS MÁGICOS (PHB/DMG) — com raridade, sintonização e efeito
+// sintonia=true exige sintonização (máx. 3 itens sintonizados por personagem)
+// =====================================================
+const ITENS_MAGICOS = [
+  // Poções (consumíveis, sem sintonização)
+  { nome: 'Poção de Cura Maior', raridade: 'Incomum', sintonia: false, tipo: 'Poção', peso: '0,25 kg', efeito: 'Recupera 4d4+4 PV ao beber.' },
+  { nome: 'Poção de Cura Superior', raridade: 'Raro', sintonia: false, tipo: 'Poção', peso: '0,25 kg', efeito: 'Recupera 8d4+8 PV ao beber.' },
+  { nome: 'Poção de Força do Gigante da Colina', raridade: 'Incomum', sintonia: false, tipo: 'Poção', peso: '0,25 kg', efeito: 'Sua Força vira 21 por 1 hora.' },
+  { nome: 'Poção de Resistência', raridade: 'Incomum', sintonia: false, tipo: 'Poção', peso: '0,25 kg', efeito: 'Resistência a um tipo de dano por 1 hora.' },
+  { nome: 'Poção de Voo', raridade: 'Raro', sintonia: false, tipo: 'Poção', peso: '0,25 kg', efeito: 'Ganha deslocamento de voo de 18m por 1 hora.' },
+  { nome: 'Poção de Invisibilidade', raridade: 'Muito raro', sintonia: false, tipo: 'Poção', peso: '0,25 kg', efeito: 'Fica invisível por 1 hora (acaba se atacar/conjurar).' },
+  // Armas e armaduras
+  { nome: 'Espada Longa +1', raridade: 'Incomum', sintonia: false, tipo: 'Arma', peso: '1,5 kg', efeito: '+1 nas jogadas de ataque e dano (1d8+1 corte mágico).' },
+  { nome: 'Espada Flamejante', raridade: 'Raro', sintonia: true, tipo: 'Arma', peso: '1,5 kg', efeito: 'Por ação bônus pega fogo: +2d6 de dano de fogo e emite luz.' },
+  { nome: 'Armadura +1', raridade: 'Raro', sintonia: false, tipo: 'Armadura', peso: '-', efeito: '+1 na Classe de Armadura.' },
+  { nome: 'Escudo +1', raridade: 'Incomum', sintonia: false, tipo: 'Armadura', peso: '3 kg', efeito: '+1 na CA, além do bônus normal de escudo.' },
+  // Anéis (sintonização)
+  { nome: 'Anel de Proteção', raridade: 'Raro', sintonia: true, tipo: 'Anel', peso: '-', efeito: '+1 na CA e em todas as salvaguardas.' },
+  { nome: 'Anel de Resistência', raridade: 'Raro', sintonia: true, tipo: 'Anel', peso: '-', efeito: 'Resistência a um tipo de dano (definido pela gema).' },
+  { nome: 'Anel de Ação Livre', raridade: 'Raro', sintonia: true, tipo: 'Anel', peso: '-', efeito: 'Imune a terreno difícil; não pode ser paralisado/agarrado por magia.' },
+  { nome: 'Anel de Saltos', raridade: 'Incomum', sintonia: true, tipo: 'Anel', peso: '-', efeito: 'Conjura Saltar em si mesmo à vontade (ação bônus).' },
+  // Maravilhosos
+  { nome: 'Capa de Proteção', raridade: 'Raro', sintonia: true, tipo: 'Maravilhoso', peso: '1 kg', efeito: '+1 na CA e em todas as salvaguardas.' },
+  { nome: 'Manto Élfico', raridade: 'Incomum', sintonia: true, tipo: 'Maravilhoso', peso: '0,5 kg', efeito: 'Vantagem em Furtividade; criaturas têm desvantagem para te perceber pela visão.' },
+  { nome: 'Botas Aladas', raridade: 'Incomum', sintonia: true, tipo: 'Maravilhoso', peso: '0,5 kg', efeito: 'Deslocamento de voo igual ao seu, até 4 horas (recarrega 2h/dia).' },
+  { nome: 'Botas da Rapidez', raridade: 'Raro', sintonia: true, tipo: 'Maravilhoso', peso: '0,5 kg', efeito: 'Ação bônus: dobra o deslocamento e ataques de oportunidade têm desvantagem (até 10 min/descanso).' },
+  { nome: 'Amuleto da Saúde', raridade: 'Raro', sintonia: true, tipo: 'Maravilhoso', peso: '-', efeito: 'Sua Constituição vira 19 enquanto sintonizado.' },
+  { nome: 'Cinto da Força do Gigante da Pedra', raridade: 'Muito raro', sintonia: true, tipo: 'Maravilhoso', peso: '0,5 kg', efeito: 'Sua Força vira 23 enquanto sintonizado.' },
+  { nome: 'Pedra da Sorte', raridade: 'Incomum', sintonia: true, tipo: 'Maravilhoso', peso: '-', efeito: '+1 em testes de habilidade e salvaguardas.' },
+  { nome: 'Bolsa de Devoração (Bag of Holding)', raridade: 'Incomum', sintonia: false, tipo: 'Maravilhoso', peso: '7 kg', efeito: 'Espaço extradimensional: guarda até 250 kg / 1,1 m³ pesando sempre 7 kg.' },
+  // Varinhas / cajados
+  { nome: 'Varinha de Mísseis Mágicos', raridade: 'Incomum', sintonia: false, tipo: 'Varinha', peso: '0,5 kg', efeito: '7 cargas: gasta 1+ para conjurar Mísseis Mágicos (recupera 1d6+1/amanhecer).' },
+  { nome: 'Varinha da Teia', raridade: 'Incomum', sintonia: true, tipo: 'Varinha', peso: '0,5 kg', efeito: '7 cargas: conjura Teia (CD 15) gastando 1 carga.' },
+  { nome: 'Cajado da Cura', raridade: 'Raro', sintonia: true, tipo: 'Cajado', peso: '2 kg', efeito: 'Cargas para conjurar Curar Ferimentos, Restauração Menor e Cura em Massa.' },
+  // Pergaminhos
+  { nome: 'Pergaminho de Proteção', raridade: 'Raro', sintonia: false, tipo: 'Pergaminho', peso: '-', efeito: 'Proteção contra um tipo de criatura (à escolha) por 5 minutos.' },
+];
+
+// Adiciona os itens mágicos ao catálogo da loja/inventário (com a etiqueta de raridade no preço)
+ITENS_MAGICOS.forEach(im => ITENS_PADRAO.push({
+  nome: im.nome, categoria: 'Mágico', preco: im.raridade, peso: im.peso || '-',
+  descricao: im.efeito + (im.sintonia ? ' (requer sintonização)' : ''),
+}));
+
+// Lookup do item mágico estruturado por nome
+function itemMagico(nome) { return ITENS_MAGICOS.find(i => i.nome === nome) || null; }

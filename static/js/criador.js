@@ -186,6 +186,11 @@ const Criador = (function () {
       <div class="pv-bloco"><h4>Perícias</h4><div class="pv-pericias">${periciasHtml}</div></div>
       ${c.tracos.length ? `<div class="pv-bloco"><h4>Traços Raciais</h4><ul>${c.tracos.map(t => `<li>${escHtml(t)}</li>`).join('')}</ul></div>` : ''}
       <div class="pv-bloco"><h4>Características de Classe (Nível ${s.nivel})</h4><ul>${caracteristicas}</ul></div>
+      ${(() => { const a = ANTECEDENTES[s.antecedente]; if (!a) return ''; return `<div class="pv-bloco"><h4>Antecedente — ${escHtml(s.antecedente)}</h4>
+        <div class="pv-linha"><strong>Característica:</strong> ${escHtml(a.caracteristica)}</div>
+        ${a.ferramentas && a.ferramentas.length ? `<div class="pv-linha"><strong>Ferramentas:</strong> ${a.ferramentas.map(escHtml).join(', ')}</div>` : ''}
+        ${a.idiomas ? `<div class="pv-linha"><strong>Idiomas extras:</strong> ${a.idiomas}</div>` : ''}
+        ${a.equipamento ? `<div class="pv-linha"><strong>Equipamento:</strong> ${escHtml(a.equipamento)}</div>` : ''}</div>`; })()}
       ${s.estilo ? `<div class="pv-bloco"><h4>Estilo de Combate</h4><div class="pv-linha">${escHtml(s.estilo)}: ${escHtml(ESTILOS_LUTA[s.estilo] || '')}</div></div>` : ''}
       ${conjHtml}
       ${armasHtml}

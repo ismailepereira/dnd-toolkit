@@ -302,6 +302,41 @@ const MAGIAS_DETALHE = {
   'Metamorfose (Shapechange)': { nivel: 9, escola: 'Transmutação', tempo: '1 ação', alcance: 'Pessoal', duracao: 'Concentração 1 hora', dano: '—', salva: '—', descricao: 'Transforma-se em qualquer criatura de ND até o seu nível, mantendo sua mente e podendo trocar de forma a cada turno.' },
   'Metamorfose Verdadeira (True Polymorph)': { nivel: 9, escola: 'Transmutação', tempo: '1 ação', alcance: '9m', duracao: 'Concentração 1 hora', dano: '—', salva: 'Sabedoria', descricao: 'DT Sabedoria ou transforma uma criatura em outra criatura/objeto (ou objeto em criatura); mantida por toda a duração, vira permanente.' },
   'Pavor (Weird)': { nivel: 9, escola: 'Ilusão', tempo: '1 ação', alcance: '36m', duracao: 'Concentração 1 min', dano: '4d10 psíquico', salva: 'Sabedoria', descricao: 'Como Assassino Fantasmagórico, mas afeta todas as criaturas numa esfera de 9m: DT Sabedoria ou amedrontadas e 4d10 psíquico por rodada.' },
+
+  // ===== LOTE FASE 3 — magias do PHB que faltavam =====
+  // 1º — golpes do Paladino e utilidade
+  'Golpe Trovejante (Thunderous Smite)': { nivel: 1, escola: 'Evocação', tempo: '1 ação bônus', alcance: 'Pessoal', duracao: 'Concentração 1 min', dano: '2d6 trovão', salva: 'Força', descricao: 'O próximo acerto com arma causa +2d6 de trovão; o alvo faz salva de Força ou cai Caído e é empurrado 3m.' },
+  'Golpe Iracundo (Wrathful Smite)': { nivel: 1, escola: 'Evocação', tempo: '1 ação bônus', alcance: 'Pessoal', duracao: 'Concentração 1 min', dano: '1d6 psíquico', salva: 'Sabedoria', descricao: 'O próximo acerto com arma causa +1d6 psíquico; o alvo faz salva de Sabedoria ou fica amedrontado de você.' },
+  // 2º
+  'Aprimorar Habilidade (Enhance Ability)': { nivel: 2, escola: 'Transmutação', tempo: '1 ação', alcance: 'Toque', duracao: 'Concentração 1 hora', dano: '—', salva: '—', descricao: 'Concede vantagem em testes de um atributo (e benefícios extras: PV temporários, não cair, capacidade de carga, etc.).' },
+  'Proteção contra Veneno (Protection from Poison)': { nivel: 2, escola: 'Abjuração', tempo: '1 ação', alcance: 'Toque', duracao: '1 hora', dano: '—', salva: '—', descricao: 'Neutraliza um veneno no alvo e dá vantagem em salvas contra veneno + resistência a dano de veneno.' },
+  'Lâmina Flamejante (Flame Blade)': { nivel: 2, escola: 'Evocação', tempo: '1 ação bônus', alcance: 'Pessoal', duracao: 'Concentração 10 min', dano: '3d6 fogo', salva: 'Ataque corpo a corpo', descricao: 'Cria uma espada flamejante; ataque mágico corpo a corpo causando 3d6 de fogo e iluminando a área.' },
+  'Crescimento de Espinhos (Spike Growth)': { nivel: 2, escola: 'Transmutação', tempo: '1 ação', alcance: '45m', duracao: 'Concentração 10 min', dano: '2d4 perfurante', salva: '—', descricao: 'Área de 6m vira terreno difícil de espinhos: 2d4 de dano a cada 1,5m percorridos.' },
+  'Augúrio (Augury)': { nivel: 2, escola: 'Adivinhação', tempo: '1 min', alcance: 'Pessoal', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'Pergunta sobre um plano para até 30 min adiante: recebe Bom, Ruim, Bom e Ruim, ou Nada.' },
+  'Encontrar Corcel (Find Steed)': { nivel: 2, escola: 'Conjuração', tempo: '10 min', alcance: '9m', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'Invoca um corcel celestial/feérico leal e inteligente; vínculo telepático e proteção mágica compartilhada.' },
+  // 3º
+  'Crescimento Vegetal (Plant Growth)': { nivel: 3, escola: 'Transmutação', tempo: '1 ação ou 8h', alcance: '45m', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'Faz plantas crescerem: área de 30m vira terreno difícil (deslocamento a 1/4) ou enriquece colheitas por 1 ano.' },
+  'Luz do Dia (Daylight)': { nivel: 3, escola: 'Evocação', tempo: '1 ação', alcance: '18m', duracao: '1 hora', dano: '—', salva: '—', descricao: 'Esfera de luz solar de 18m; dissipa escuridão mágica de 3º círculo ou menor na área.' },
+  // 4º
+  'Adivinhação (Divination)': { nivel: 4, escola: 'Adivinhação', tempo: '1 ação', alcance: 'Pessoal', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'Pergunta sobre um objetivo/evento em até 7 dias e recebe um presságio verdadeiro (mas curto) do seu deus.' },
+  'Crescimento Descomunal (Giant Insect)': { nivel: 4, escola: 'Transmutação', tempo: '1 ação', alcance: '9m', duracao: 'Concentração 10 min', dano: '—', salva: '—', descricao: 'Transforma até 10 insetos comuns em versões gigantes e venenosas que obedecem aos seus comandos.' },
+  // 5º
+  'Comunhão (Commune)': { nivel: 5, escola: 'Adivinhação', tempo: '1 min', alcance: 'Pessoal', duracao: '1 min', dano: '—', salva: '—', descricao: 'Faz até 3 perguntas de sim/não ao seu deus (ou servo dele).' },
+  'Comunhão com a Natureza (Commune with Nature)': { nivel: 5, escola: 'Adivinhação', tempo: '1 min', alcance: 'Pessoal', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'Sintoniza-se com a natureza num raio de 5 km (ou 90m subterrâneo) e descobre 3 fatos do terreno/criaturas/água/plantas.' },
+  'Praga (Contagion)': { nivel: 5, escola: 'Necromancia', tempo: '1 ação', alcance: 'Toque', duracao: '7 dias', dano: '—', salva: 'Constituição', descricao: 'Ataque corpo a corpo que inflige uma doença (cegueira, definhamento, febre etc.) após 3 falhas em salvas de Constituição.' },
+  'Reencarnar (Reincarnate)': { nivel: 5, escola: 'Transmutação', tempo: '1 hora', alcance: 'Toque', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'Cria um novo corpo (raça determinada aleatoriamente) para a alma de uma criatura morta há até 10 dias.' },
+  // 6º
+  'Barreira de Lâminas (Blade Barrier)': { nivel: 6, escola: 'Evocação', tempo: '1 ação', alcance: '27m', duracao: 'Concentração 10 min', dano: '6d10 corte', salva: 'Destreza', descricao: 'Parede de lâminas giratórias (cobertura 3/4); atravessar/iniciar o turno nela: DT Destreza ou 6d10 de corte.' },
+  'Encontrar o Caminho (Find the Path)': { nivel: 6, escola: 'Adivinhação', tempo: '1 min', alcance: 'Pessoal', duracao: 'Concentração 1 dia', dano: '—', salva: '—', descricao: 'Conhece a rota mais curta e direta até um local que você já visitou.' },
+  // 7º
+  'Ressurreição (Resurrection)': { nivel: 7, escola: 'Necromancia', tempo: '1 hora', alcance: 'Toque', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'Revive uma criatura morta há até 100 anos (corpo intacto), com PV cheios e sem penalidades.' },
+  'Palavra Divina (Divine Word)': { nivel: 7, escola: 'Evocação', tempo: '1 ação bônus', alcance: '9m', duracao: 'Instantânea', dano: '—', salva: 'Carisma', descricao: 'DT Carisma: conforme o PV, criaturas ficam surdas, cegas, atordoadas ou morrem; celestiais/elementais/corruptores/fadas são banidos.' },
+  // 8º
+  'Terremoto (Earthquake)': { nivel: 8, escola: 'Evocação', tempo: '1 ação', alcance: '150m', duracao: 'Concentração 1 min', dano: '—', salva: 'Destreza', descricao: 'Tremor numa área de 30m: derruba criaturas, abre fendas, desaba estruturas e rompe concentração.' },
+  'Aura Sagrada (Holy Aura)': { nivel: 8, escola: 'Abjuração', tempo: '1 ação', alcance: 'Pessoal', duracao: 'Concentração 1 min', dano: '—', salva: 'Constituição', descricao: 'Aliados a 9m: vantagem em salvas, ataques contra eles com desvantagem, e cegam corruptores/mortos-vivos que os acertam corpo a corpo.' },
+  // 9º
+  'Ressurreição Verdadeira (True Resurrection)': { nivel: 9, escola: 'Necromancia', tempo: '1 hora', alcance: 'Toque', duracao: 'Instantânea', dano: '—', salva: '—', descricao: 'Revive uma criatura morta há até 200 anos (mesmo sem corpo), curando tudo e removendo maldições/doenças/venenos.' },
+  'Tempestade Vingadora (Storm of Vengeance)': { nivel: 9, escola: 'Conjuração', tempo: '1 ação', alcance: '1,5 km', duracao: 'Concentração 1 min', dano: 'até 10d6/2d6', salva: 'Constituição/Destreza', descricao: 'Tempestade colossal: a cada rodada um efeito novo — trovão ensurdecedor, ácido, relâmpagos, granizo, chuva e vendaval.' },
 };
 
 // =====================================================

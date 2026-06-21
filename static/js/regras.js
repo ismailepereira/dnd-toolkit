@@ -309,6 +309,22 @@ const MAGIAS_CLASSES = {
   'Projeção Astral (Astral Projection)': ['Mago', 'Clérigo', 'Bruxo'], 'Presciência (Foresight)': ['Mago', 'Bardo', 'Druida', 'Bruxo'], 'Portal (Gate)': ['Mago', 'Clérigo', 'Feiticeiro'],
   'Aprisionamento (Imprisonment)': ['Mago', 'Bruxo'], 'Muralha Prismática (Prismatic Wall)': ['Mago'], 'Metamorfose (Shapechange)': ['Mago', 'Druida'],
   'Metamorfose Verdadeira (True Polymorph)': ['Mago', 'Bardo'], 'Pavor (Weird)': ['Mago'],
+
+  // ===== LOTE FASE 3 — listas de classe das novas magias =====
+  'Golpe Trovejante (Thunderous Smite)': ['Paladino'], 'Golpe Iracundo (Wrathful Smite)': ['Paladino'],
+  'Aprimorar Habilidade (Enhance Ability)': ['Bardo', 'Clérigo', 'Druida', 'Feiticeiro', 'Mago'],
+  'Proteção contra Veneno (Protection from Poison)': ['Clérigo', 'Druida', 'Paladino', 'Patrulheiro', 'Feiticeiro'],
+  'Lâmina Flamejante (Flame Blade)': ['Druida'], 'Crescimento de Espinhos (Spike Growth)': ['Druida', 'Patrulheiro'],
+  'Augúrio (Augury)': ['Clérigo'], 'Encontrar Corcel (Find Steed)': ['Paladino'],
+  'Crescimento Vegetal (Plant Growth)': ['Bardo', 'Druida', 'Patrulheiro'],
+  'Luz do Dia (Daylight)': ['Clérigo', 'Druida', 'Paladino', 'Patrulheiro', 'Feiticeiro', 'Mago'],
+  'Adivinhação (Divination)': ['Clérigo'], 'Crescimento Descomunal (Giant Insect)': ['Druida'],
+  'Comunhão (Commune)': ['Clérigo'], 'Comunhão com a Natureza (Commune with Nature)': ['Druida', 'Patrulheiro'],
+  'Praga (Contagion)': ['Clérigo', 'Druida'], 'Reencarnar (Reincarnate)': ['Druida'],
+  'Barreira de Lâminas (Blade Barrier)': ['Clérigo'], 'Encontrar o Caminho (Find the Path)': ['Bardo', 'Clérigo', 'Druida'],
+  'Ressurreição (Resurrection)': ['Bardo', 'Clérigo'], 'Palavra Divina (Divine Word)': ['Clérigo'],
+  'Terremoto (Earthquake)': ['Clérigo', 'Druida', 'Feiticeiro'], 'Aura Sagrada (Holy Aura)': ['Clérigo'],
+  'Ressurreição Verdadeira (True Resurrection)': ['Clérigo', 'Druida'], 'Tempestade Vingadora (Storm of Vengeance)': ['Druida'],
 };
 
 // Magias concedidas por subclasse (sempre disponíveis/preparadas)

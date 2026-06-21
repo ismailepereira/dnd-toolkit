@@ -302,7 +302,9 @@ const Criador = (function () {
 
     const disp = magiasDisponiveis(estado.classe, null, estado.nivel); // {truques, circulos, bonus}
     const limTruques = truquesNoNivel(estado.classe, estado.nivel);
-    const limMagias = magiasNoNivel(estado.classe, estado.nivel, atributosFinais(estado));
+    const ehMago = estado.classe === 'Mago';
+    // Mago aprende no GRIMÓRIO (6 no nível 1, +2 por nível); as preparadas do dia (INT+nível) vivem no Modo de Jogo
+    const limMagias = ehMago ? (6 + (estado.nivel - 1) * 2) : magiasNoNivel(estado.classe, estado.nivel, atributosFinais(estado));
     const prepara = !!PREPARA[estado.classe] && estado.classe !== 'Mago';
 
     // truque racial automático (não conta)
@@ -340,7 +342,8 @@ const Criador = (function () {
     }
     const toggleEscola = (estado.classe === 'Mago' && estado.subclasse)
       ? `<button type="button" id="cToggleEscola" class="btn-mini">${mostrarTodasEscolas ? '🔒 Só ' + escHtml(estado.subclasse.replace(/^Escola de\s*/i, '')) : '🔓 Ver todas as escolas'}</button>` : '';
-    $('cMagias1Wrap').innerHTML = `<h4>Magias <span class="criador-hint-inline">(${prepara ? 'prepare' : 'conheça'} ${limMagias} · até ${maxc}º círculo)</span> ${toggleEscola}</h4>${escolaFiltro ? `<div class="criador-hint">🔒 Travado na escola de <b>${escHtml(escolaFiltro)}</b>.</div>` : ''}${porCirculo}`;
+    const verboMagia = ehMago ? 'grimório:' : (prepara ? 'prepare' : 'conheça');
+    $('cMagias1Wrap').innerHTML = `<h4>Magias <span class="criador-hint-inline">(${verboMagia} ${limMagias} · até ${maxc}º círculo)</span> ${toggleEscola}</h4>${ehMago ? `<div class="criador-hint">📖 São as magias do grimório (tudo que o mago aprendeu). No Modo de Jogo você prepara INT + nível delas por dia.</div>` : ''}${escolaFiltro ? `<div class="criador-hint">🔒 Travado na escola de <b>${escHtml(escolaFiltro)}</b>.</div>` : ''}${porCirculo}`;
     const tg = $('cToggleEscola');
     if (tg) tg.addEventListener('click', () => { mostrarTodasEscolas = !mostrarTodasEscolas; renderMagias(); });
 
@@ -475,6 +478,10 @@ const Criador = (function () {
       <ul class="mago-feats">
         <li><b>Conjuração Arcana:</b> prepara ${preparadas} magias (INT ${intMod >= 0 ? '+' : ''}${intMod} + nível ${s.nivel}) do grimório por dia.</li>
         <li><b>Recuperação Arcana:</b> 1×/dia, num descanso curto, recupera espaços de magia somando até ${recArcana} (nenhum acima do 5º).</li>
+        ${s.nivel >= 4 ? '<li><b>Aprimoramento de Habilidade (N4/8/12/16/19):</b> em cada um desses níveis, +2 num atributo, +1 em dois, ou um talento.</li>' : ''}
+        ${s.nivel >= 9 ? '<li><b>Magias de 5º Círculo (N9):</b> abre o 5º círculo — controle de campo e dano pesado (ex.: Telecinésia, Muralha de Pedra, Cone de Frio). Ganha 1 espaço de 5º.</li>' : ''}
+        ${s.nivel >= 11 ? '<li><b>Magias de 6º Círculo (N11):</b> abre o 6º círculo (ex.: Desintegrar, Globo de Invulnerabilidade, Muralha de Gelo). Ganha 1 espaço de 6º.</li>' : ''}
+        ${s.nivel >= 13 ? '<li><b>Magias de 7º Círculo (N13):</b> abre o 7º círculo (ex.: Teleporte, Reversão da Gravidade, Dedo da Morte). Ganha 1 espaço de 7º.</li>' : ''}
         ${s.nivel >= 18 ? '<li><b>Domínio de Magia:</b> 2 magias de 1º/2º círculo viram à vontade.</li>' : ''}
         ${s.nivel >= 20 ? '<li><b>Magia-Assinatura:</b> 2 magias de 3º círculo grátis 1×/descanso curto.</li>' : ''}
       </ul>

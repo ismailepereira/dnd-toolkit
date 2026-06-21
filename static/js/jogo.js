@@ -49,6 +49,22 @@ const Jogo = (function () {
     return m(ficha.atributos[at]) + (profSalva(nomePt) ? pbAtual() : 0);
   }
 
+  // ----- grimório vs. magias preparadas (Mago e demais conjuradores que preparam) -----
+  function ehPreparador() { return typeof PREPARA !== 'undefined' && !!PREPARA[ficha.classe]; }
+  function limitePreparadas() {
+    return (typeof magiasNoNivel === 'function') ? magiasNoNivel(ficha.classe, ficha.nivel, ficha.atributos) : 0;
+  }
+  // magias de círculo que o personagem realmente pode lançar hoje
+  function magiasCastaveis() { return ehPreparador() ? (ficha.preparadas || []) : (ficha.magias1 || []); }
+  function alternarPreparada(nome) {
+    if (!ficha.preparadas) ficha.preparadas = [];
+    const i = ficha.preparadas.indexOf(nome);
+    if (i >= 0) { ficha.preparadas.splice(i, 1); log(`Despreparou ${nome}.`); salvar(); return; }
+    const lim = limitePreparadas();
+    if (ficha.preparadas.length >= lim) { log(`Limite de magias preparadas atingido (${lim}).`); render(); return; }
+    ficha.preparadas.push(nome); log(`Preparou ${nome}.`); salvar();
+  }
+
   function testeMorte() {
     const r = 1 + Math.floor(Math.random() * 20);
     if (r === 20) { ficha.hpAtual = 1; ficha.morteSucessos = 0; ficha.morteFalhas = 0; log('🎲 Teste de Morte: 20 natural! Recupera 1 PV e fica de pé.'); }
@@ -94,6 +110,13 @@ const Jogo = (function () {
     if (ficha.morteSucessos == null) ficha.morteSucessos = 0;
     if (ficha.morteFalhas == null) ficha.morteFalhas = 0;
     if (ficha.concentrando == null) ficha.concentrando = '';
+    // migração: na 1ª vez de um conjurador que prepara, já prepara o que couber do grimório
+    if (!ficha.preparadas) {
+      ficha.preparadas = [];
+      if (ehPreparador()) ficha.preparadas = (ficha.magias1 || []).slice(0, limitePreparadas());
+    }
+    // mantém só preparadas que ainda estão no grimório
+    if (ehPreparador()) ficha.preparadas = ficha.preparadas.filter(n => (ficha.magias1 || []).includes(n));
   }
 
   function salvar() { if (ctx.aoAtualizar) ctx.aoAtualizar(); render(); }
@@ -167,6 +190,22 @@ const Jogo = (function () {
   let registro = [];
   function log(txt) { registro.unshift(txt); registro = registro.slice(0, 8); }
 
+  // card de uma magia (detalhe expansível); comPreparar = mostra botão preparar/despreparar
+  function cardMagia(nome, comPreparar) {
+    const d = (typeof detalheMagia === 'function') ? detalheMagia(nome) : null;
+    const prep = (ficha.preparadas || []).includes(nome);
+    const badge = (comPreparar && prep) ? '<span class="jg-prep-badge">✓ preparada</span>' : '';
+    const btnPrep = comPreparar
+      ? `<button class="btn-mini ${prep ? 'jg-prep-on' : ''}" data-preparar="${esc(nome)}">${prep ? '✓ Despreparar' : '+ Preparar'}</button>`
+      : '';
+    if (!d) return `<div class="jg-magia-simples">${esc(nome)} ${badge} ${btnPrep}</div>`;
+    const rolar = d.dano && /\d+d\d+/.test(d.dano) ? `<button data-rolarmagia="${esc(d.dano)}" data-nome="${esc(nome)}" class="btn-mini">🎲 Rolar dano</button>` : '';
+    const acoes = (btnPrep || rolar) ? `<div class="jg-magia-acoes">${btnPrep}${btnPrep && rolar ? ' ' : ''}${rolar}</div>` : '';
+    return `<details class="jg-magia ${prep && comPreparar ? 'prep' : ''}"><summary>${esc(nome)} ${badge} ${d.dano && d.dano !== '—' ? `<span class="jg-dano">${esc(d.dano)}</span>` : ''}</summary>
+      <div class="jg-magia-corpo"><div class="jg-magia-meta">${d.nivel === 0 ? 'Truque' : d.nivel + 'º'} · ${esc(d.escola)} · ${esc(d.tempo)} · ${esc(d.alcance)} · ${esc(d.duracao)}${d.salva && d.salva !== '—' ? ' · ' + esc(d.salva) : ''}</div>
+      <p>${esc(d.descricao)}</p>${acoes}</div></details>`;
+  }
+
   // ----- render -----
   function render() {
     garantirEstado();
@@ -213,22 +252,51 @@ const Jogo = (function () {
       recHtml += '</div>';
     }
 
-    // magias detalhadas
-    const todasMagias = [...(f.truques || []), ...(f.magias1 || [])];
+    // magias detalhadas: truques (sempre prontos) + grimório/preparadas
+    const truquesF = f.truques || [];
+    const grimorioF = f.magias1 || [];
     let magiasHtml = '';
-    if (todasMagias.length) {
+    if (truquesF.length || grimorioF.length) {
       magiasHtml = '<div class="jg-bloco"><h4>Magias</h4>';
-      todasMagias.forEach(nome => {
-        const d = (typeof detalheMagia === 'function') ? detalheMagia(nome) : null;
-        if (d) {
-          magiasHtml += `<details class="jg-magia"><summary>${esc(nome)} ${d.dano && d.dano !== '—' ? `<span class="jg-dano">${esc(d.dano)}</span>` : ''}</summary>
-            <div class="jg-magia-corpo"><div class="jg-magia-meta">${d.nivel === 0 ? 'Truque' : d.nivel + 'º'} · ${esc(d.escola)} · ${esc(d.tempo)} · ${esc(d.alcance)} · ${esc(d.duracao)}${d.salva && d.salva !== '—' ? ' · ' + esc(d.salva) : ''}</div>
-            <p>${esc(d.descricao)}</p>
-            ${d.dano && /\d+d\d+/.test(d.dano) ? `<button data-rolarmagia="${esc(d.dano)}" data-nome="${esc(nome)}" class="btn-mini">🎲 Rolar dano</button>` : ''}</div></details>`;
+
+      // Truques — sempre disponíveis, não precisam ser preparados
+      if (truquesF.length) {
+        magiasHtml += `<div class="jg-magia-grupo"><h5>Truques <small>(sempre prontos)</small></h5>` +
+          truquesF.map(n => cardMagia(n, false)).join('') + `</div>`;
+      }
+
+      if (ehPreparador() && grimorioF.length) {
+        const lim = limitePreparadas();
+        const prep = f.preparadas || [];
+        const rotuloGrim = f.classe === 'Mago' ? 'Grimório' : 'Magias Conhecidas';
+        // resumo das preparadas (chips clicáveis p/ despreparar)
+        const intMod = m(f.atributos.int);
+        const formula = f.classe === 'Mago' ? ` <small>(INT ${fmt(intMod)} + nível ${f.nivel})</small>` : '';
+        magiasHtml += `<div class="jg-magia-grupo jg-preparadas"><h5>🧠 Preparadas hoje <small>(${prep.length}/${lim})</small>${formula}</h5>`;
+        if (!prep.length) {
+          magiasHtml += `<div class="criador-hint">Nenhuma magia preparada. Prepare magias do ${rotuloGrim.toLowerCase()} abaixo.</div>`;
         } else {
-          magiasHtml += `<div class="jg-magia-simples">${esc(nome)}</div>`;
+          const ordenadas = [...prep].sort((a, b) => ((detalheMagia(a) || {}).nivel || 0) - ((detalheMagia(b) || {}).nivel || 0));
+          magiasHtml += `<div class="jg-prep-chips">` + ordenadas.map(n => {
+            const lv = (detalheMagia(n) || {}).nivel;
+            return `<button class="jg-prep-chip" data-preparar="${esc(n)}" title="Despreparar">${esc(n)}${lv ? ` <i>${lv}º</i>` : ''} ✕</button>`;
+          }).join('') + `</div>`;
         }
-      });
+        magiasHtml += `</div>`;
+
+        // grimório completo agrupado por círculo, com botão preparar/despreparar
+        const circulos = {};
+        grimorioF.forEach(n => { const lv = (detalheMagia(n) || {}).nivel || 1; (circulos[lv] = circulos[lv] || []).push(n); });
+        let grimHtml = '';
+        Object.keys(circulos).map(Number).sort((a, b) => a - b).forEach(lv => {
+          grimHtml += `<div class="jg-circulo"><h6>${lv}º Círculo</h6>` + circulos[lv].map(n => cardMagia(n, true)).join('') + `</div>`;
+        });
+        magiasHtml += `<div class="jg-magia-grupo"><h5>📖 ${rotuloGrim} <small>(${grimorioF.length} magias aprendidas)</small></h5>${grimHtml}</div>`;
+      } else if (grimorioF.length) {
+        // conjuradores que "conhecem" (Feiticeiro, Bardo, Bruxo, Patrulheiro): todas castáveis
+        magiasHtml += `<div class="jg-magia-grupo"><h5>Magias Conhecidas</h5>` +
+          grimorioF.map(n => cardMagia(n, false)).join('') + `</div>`;
+      }
       magiasHtml += '</div>';
     }
 
@@ -279,8 +347,8 @@ const Jogo = (function () {
         return `<button class="jg-skill ${profSalva(a.nome) ? 'prof' : ''}" data-salva="${a.chave}" data-snome="${esc(a.nome)}" data-bonus="${b}">${a.nome.slice(0, 3)} <b>${b >= 0 ? '+' : ''}${b}</b></button>`;
       }).join('') + `</div></div>`;
 
-    // concentração
-    const magiasConc = [...(f.magias1 || [])];
+    // concentração (só entre as magias que dá pra lançar hoje)
+    const magiasConc = [...magiasCastaveis()];
     const concHtml = `<div class="jg-bloco"><h4>Concentração</h4>
       <select id="jgConc"><option value="">— Nenhuma —</option>${magiasConc.map(mg => `<option value="${esc(mg)}" ${f.concentrando === mg ? 'selected' : ''}>${esc(mg)}</option>`).join('')}</select>
       ${f.concentrando ? `<div class="criador-hint">Ao sofrer dano: salva de Constituição (DT 10 ou metade do dano) automática.</div>` : ''}</div>`;
@@ -420,6 +488,7 @@ const Jogo = (function () {
       const r = rolar(b.dataset.rolarmagia);
       if (r) { log(`${b.dataset.nome}: dano ${r.total} (${r.txt})`); render(); }
     });
+    document.querySelectorAll('[data-preparar]').forEach(b => b.onclick = () => alternarPreparada(b.dataset.preparar));
   }
 
   function abrir(f, opts) {

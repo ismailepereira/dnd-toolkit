@@ -846,6 +846,21 @@ input, textarea, .form-grid select {
 .jg-magia-corpo p { font-size: 0.83rem; margin: 4px 0; }
 .jg-magia-simples { font-size: 0.85rem; padding: 3px 0; border-bottom: 1px solid var(--border); }
 .jg-nv-tag { display: inline-block; font-size: 0.62rem; background: var(--accent2); color: var(--text-dim); border-radius: 6px; padding: 0 5px; margin-right: 4px; }
+/* Grimório x magias preparadas */
+.jg-magia-grupo { margin-bottom: 10px; }
+.jg-magia-grupo h5 { margin: 6px 0 4px 0; font-size: 0.78rem; color: var(--text); }
+.jg-magia-grupo h5 small { color: var(--text-dim); font-weight: normal; }
+.jg-circulo { margin: 4px 0 6px 0; }
+.jg-circulo h6 { margin: 4px 0 2px 0; font-size: 0.68rem; text-transform: uppercase; letter-spacing: .4px; color: var(--text-dim); }
+.jg-preparadas { border: 1px solid var(--accent); border-radius: 8px; padding: 8px 10px; background: rgba(233,69,96,0.06); }
+.jg-prep-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.jg-prep-chip { background: rgba(63,185,80,0.15); border: 1px solid #3fb950; color: var(--text); border-radius: 14px; padding: 3px 9px; font-size: 0.78rem; cursor: pointer; }
+.jg-prep-chip i { color: var(--text-dim); font-style: normal; font-size: 0.68rem; }
+.jg-prep-chip:hover { background: rgba(233,69,96,0.2); border-color: var(--accent); }
+.jg-prep-badge { display: inline-block; font-size: 0.62rem; background: #3fb950; color: #06210d; border-radius: 6px; padding: 0 5px; margin-left: 4px; font-weight: 600; }
+.jg-magia.prep > summary { color: #3fb950; }
+.jg-magia-acoes { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
+.btn-mini.jg-prep-on { background: rgba(63,185,80,0.2); border-color: #3fb950; }
 /* Criador em etapas */
 .criador-passos { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 .passo-chip { flex: 1; min-width: 140px; text-align: center; font-size: 0.78rem; padding: 6px 8px; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; }

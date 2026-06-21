@@ -32,7 +32,7 @@ Cada bloco entrega: características base (com mecânica) + características de 
 
 | Classe | Tipo | Subclasses | 1–7 | 8–14 | 15–20 |
 |---|---|---|:--:|:--:|:--:|
-| Mago | Conjurador | 8 escolas | [~] | [ ] | [ ] |
+| Mago | Conjurador | 8 escolas | [x] | [x] | [ ] |
 | Guerreiro | Marcial | Campeão, Mestre de Batalha, Cav. Arcano | [ ] | [ ] | [ ] |
 | Monge | Marcial | Mão Aberta, Sombra, 4 Elementos | [ ] | [ ] | [ ] |
 | Clérigo | Conjurador (prepara) | 7 domínios | [ ] | [ ] | [ ] |
@@ -48,9 +48,9 @@ Cada bloco entrega: características base (com mecânica) + características de 
 **Alinhamento de magias por bloco (conjurador pleno):** 1–7 = até 4º círculo · 8–14 = 5º a 7º · 15–20 = 8º/9º + capstone.
 
 ### Pendência específica do Mago (Bloco A)
-- [ ] Separar **grimório** (tudo que aprendeu) de **magias preparadas** (subconjunto do dia) no Modo de Jogo — *refatora a ficha; melhor fazer em chat novo dedicado*
+- [x] Separar **grimório** (tudo que aprendeu) de **magias preparadas** (INT + nível, do dia) no Modo de Jogo, com botão preparar/despreparar — Criador/Subida usam o tamanho do grimório (6 + 2/nível); preparadas vivem na ficha de jogo
 - [x] Características mecânicas de cada **Escola de Magia** por nível (8 escolas, no painel do Criador e na Subida de Nível) — commit `f5f26f3`
-- [ ] Completar a lista de magias de Mago (temos ~159; faltam as demais do PHB)
+- [x] Completar a lista de magias de Mago (agora **200 magias** de Mago no compêndio, cobrindo truques até 9º círculo)
 
 ---
 

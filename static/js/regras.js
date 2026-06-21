@@ -236,6 +236,52 @@ const MAGIAS_CLASSES = {
   'Confusão (Confusion)': ['Bardo', 'Druida', 'Feiticeiro', 'Mago'], 'Pele de Pedra (Stoneskin)': ['Druida', 'Feiticeiro', 'Mago', 'Patrulheiro'], 'Tentáculos Negros (Black Tentacles)': ['Mago'], 'Proteção contra a Morte (Death Ward)': ['Clérigo', 'Paladino'], 'Escudo de Fogo (Fire Shield)': ['Mago'],
   'Imobilizar Monstro (Hold Monster)': ['Bardo', 'Bruxo', 'Feiticeiro', 'Mago'], 'Cura em Massa Menor (Mass Cure Wounds)': ['Bardo', 'Clérigo', 'Druida'], 'Muralha de Força (Wall of Force)': ['Mago'], 'Golpe Flamejante (Flame Strike)': ['Clérigo'], 'Animar Objetos (Animate Objects)': ['Bardo', 'Feiticeiro', 'Mago'],
   'Banquete dos Heróis (Heroes\' Feast)': ['Clérigo', 'Druida'], 'Muralha de Gelo (Wall of Ice)': ['Mago'], 'Prismática (Prismatic Spray)': ['Feiticeiro', 'Mago'], 'Reversão da Gravidade (Reverse Gravity)': ['Druida', 'Feiticeiro', 'Mago'],
+
+  // ===== LOTE MAGO COMPLETO (PHB) — completa a lista de magias de Mago =====
+  // Truque
+  'Golpe Certeiro (True Strike)': ['Mago', 'Feiticeiro', 'Bardo', 'Bruxo'],
+  // 1º
+  'Alarme (Alarm)': ['Mago', 'Patrulheiro'], 'Recuo Expedito (Expeditious Retreat)': ['Mago', 'Feiticeiro', 'Bruxo'], 'Vida Falsa (False Life)': ['Mago'],
+  'Encontrar Familiar (Find Familiar)': ['Mago'], 'Escrita Ilusória (Illusory Script)': ['Mago', 'Bardo', 'Bruxo'], 'Raio do Enjoo (Ray of Sickness)': ['Mago', 'Feiticeiro'],
+  'Imagem Silenciosa (Silent Image)': ['Mago', 'Feiticeiro', 'Bardo'], 'Disco Flutuante de Tenser (Tenser\'s Floating Disk)': ['Mago'], 'Servo Invisível (Unseen Servant)': ['Mago', 'Bardo', 'Bruxo'],
+  // 2º
+  'Alterar-se (Alter Self)': ['Mago', 'Feiticeiro'], 'Fechadura Arcana (Arcane Lock)': ['Mago'], 'Cegueira/Surdez (Blindness/Deafness)': ['Mago', 'Feiticeiro', 'Bardo', 'Bruxo', 'Clérigo'],
+  'Chama Contínua (Continual Flame)': ['Mago', 'Clérigo'], 'Visão no Escuro (Darkvision)': ['Mago', 'Feiticeiro', 'Druida', 'Patrulheiro'], 'Repouso Tranquilo (Gentle Repose)': ['Mago', 'Clérigo'],
+  'Rajada de Vento (Gust of Wind)': ['Mago', 'Druida', 'Feiticeiro'], 'Localizar Objeto (Locate Object)': ['Mago', 'Bardo', 'Clérigo', 'Druida', 'Patrulheiro'], 'Boca Mágica (Magic Mouth)': ['Mago', 'Bardo'],
+  'Arma Mágica (Magic Weapon)': ['Mago', 'Paladino'], 'Aura Mágica de Nystul (Nystul\'s Magic Aura)': ['Mago'], 'Força Fantasmagórica (Phantasmal Force)': ['Mago', 'Bardo', 'Feiticeiro', 'Bruxo'],
+  'Raio do Enfraquecimento (Ray of Enfeeblement)': ['Mago', 'Bruxo'], 'Truque da Corda (Rope Trick)': ['Mago'],
+  // 3º
+  'Lampejar (Blink)': ['Mago', 'Feiticeiro'], 'Forma Gasosa (Gaseous Form)': ['Mago', 'Feiticeiro', 'Bruxo'], 'Glifo de Vigilância (Glyph of Warding)': ['Mago', 'Bardo', 'Clérigo'],
+  'Círculo Mágico (Magic Circle)': ['Mago', 'Clérigo', 'Paladino', 'Bruxo'], 'Indetectabilidade (Nondetection)': ['Mago', 'Bardo', 'Patrulheiro'], 'Corcel Fantasma (Phantom Steed)': ['Mago'],
+  'Tempestade de Granizo (Sleet Storm)': ['Mago', 'Druida', 'Feiticeiro'], 'Respirar na Água (Water Breathing)': ['Mago', 'Druida', 'Feiticeiro', 'Patrulheiro'],
+  // 4º
+  'Olho Arcano (Arcane Eye)': ['Mago'], 'Definhar (Blight)': ['Mago', 'Druida', 'Feiticeiro', 'Bruxo'], 'Conjurar Elementais Menores (Conjure Minor Elementals)': ['Mago', 'Druida'],
+  'Controlar Água (Control Water)': ['Mago', 'Clérigo', 'Druida'], 'Fabricar (Fabricate)': ['Mago'], 'Terreno Alucinatório (Hallucinatory Terrain)': ['Mago', 'Bardo', 'Druida', 'Bruxo'],
+  'Localizar Criatura (Locate Creature)': ['Mago', 'Bardo', 'Clérigo', 'Druida', 'Paladino', 'Patrulheiro'], 'Assassino Fantasmagórico (Phantasmal Killer)': ['Mago', 'Bruxo'], 'Moldar Pedra (Stone Shape)': ['Mago', 'Clérigo', 'Druida'],
+  // 5º
+  'Mão de Bigby (Bigby\'s Hand)': ['Mago'], 'Conjurar Elemental (Conjure Elemental)': ['Mago', 'Druida'], 'Contatar Outro Plano (Contact Other Plane)': ['Mago', 'Bruxo'],
+  'Criação (Creation)': ['Mago', 'Feiticeiro'], 'Sonho (Dream)': ['Mago', 'Bardo', 'Bruxo'], 'Geas (Geas)': ['Mago', 'Bardo', 'Clérigo', 'Druida', 'Paladino'],
+  'Lendas (Legend Lore)': ['Mago', 'Bardo', 'Clérigo'], 'Despistar (Mislead)': ['Mago', 'Bardo'], 'Modificar Memória (Modify Memory)': ['Mago', 'Bardo'],
+  'Passar pela Parede (Passwall)': ['Mago'], 'Aprisionamento Planar (Planar Binding)': ['Mago', 'Bardo', 'Clérigo', 'Druida'], 'Bisbilhotar (Scrying)': ['Mago', 'Bardo', 'Clérigo', 'Druida', 'Bruxo'],
+  'Aparência (Seeming)': ['Mago', 'Bardo', 'Feiticeiro'], 'Círculo de Teleporte (Teleportation Circle)': ['Mago', 'Bardo', 'Feiticeiro'],
+  // 6º
+  'Portão Arcano (Arcane Gate)': ['Mago', 'Feiticeiro', 'Bruxo'], 'Contingência (Contingency)': ['Mago'], 'Criar Mortos-Vivos (Create Undead)': ['Mago', 'Clérigo', 'Bruxo'],
+  'Mau-Olhado (Eyebite)': ['Mago', 'Bardo', 'Feiticeiro', 'Bruxo'], 'Carne para Pedra (Flesh to Stone)': ['Mago', 'Druida', 'Feiticeiro', 'Bruxo'], 'Receptáculo de Almas (Magic Jar)': ['Mago'],
+  'Sugestão em Massa (Mass Suggestion)': ['Mago', 'Bardo', 'Feiticeiro', 'Bruxo'], 'Mover Terra (Move Earth)': ['Mago', 'Druida', 'Feiticeiro'], 'Esfera Congelante de Otiluke (Otiluke\'s Freezing Sphere)': ['Mago'],
+  'Ilusão Programada (Programmed Illusion)': ['Mago', 'Bardo'], 'Raio Solar (Sunbeam)': ['Mago', 'Druida', 'Feiticeiro'], 'Visão da Verdade (True Seeing)': ['Mago', 'Bardo', 'Clérigo', 'Bruxo'],
+  // 7º
+  'Bola de Fogo Retardada (Delayed Blast Fireball)': ['Mago', 'Feiticeiro'], 'Forma Etérea (Etherealness)': ['Mago', 'Bardo', 'Clérigo', 'Bruxo'], 'Jaula de Força (Forcecage)': ['Mago', 'Bardo', 'Bruxo'],
+  'Miragem Arcana (Mirage Arcane)': ['Mago', 'Bardo', 'Druida'], 'Mansão Magnífica de Mordenkainen (Mordenkainen\'s Magnificent Mansion)': ['Mago', 'Bardo'], 'Espada de Mordenkainen (Mordenkainen\'s Sword)': ['Mago', 'Bardo'],
+  'Mudança de Plano (Plane Shift)': ['Mago', 'Clérigo', 'Druida', 'Feiticeiro', 'Bruxo'], 'Projetar Imagem (Project Image)': ['Mago', 'Bardo'], 'Sequestrar (Sequester)': ['Mago'], 'Simulacro (Simulacrum)': ['Mago'],
+  'Símbolo (Symbol)': ['Mago', 'Bardo', 'Clérigo', 'Druida'],
+  // 8º
+  'Campo Antimagia (Antimagic Field)': ['Mago', 'Clérigo'], 'Antipatia/Simpatia (Antipathy/Sympathy)': ['Mago', 'Druida'], 'Clone (Clone)': ['Mago'],
+  'Controlar o Clima (Control Weather)': ['Mago', 'Clérigo', 'Druida'], 'Semiplano (Demiplane)': ['Mago', 'Bruxo'], 'Debilitar (Feeblemind)': ['Mago', 'Druida', 'Bardo'],
+  'Labirinto (Maze)': ['Mago'], 'Mente em Branco (Mind Blank)': ['Mago', 'Bardo'], 'Telepatia (Telepathy)': ['Mago'],
+  // 9º
+  'Projeção Astral (Astral Projection)': ['Mago', 'Clérigo', 'Bruxo'], 'Presciência (Foresight)': ['Mago', 'Bardo', 'Druida', 'Bruxo'], 'Portal (Gate)': ['Mago', 'Clérigo', 'Feiticeiro'],
+  'Aprisionamento (Imprisonment)': ['Mago', 'Bruxo'], 'Muralha Prismática (Prismatic Wall)': ['Mago'], 'Metamorfose (Shapechange)': ['Mago', 'Druida'],
+  'Metamorfose Verdadeira (True Polymorph)': ['Mago', 'Bardo'], 'Pavor (Weird)': ['Mago'],
 };
 
 // Magias concedidas por subclasse (sempre disponíveis/preparadas)

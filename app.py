@@ -36,7 +36,14 @@ ESTADO_PADRAO = {
 # Credencial: env FIREBASE_KEY_JSON (produção) ou firebase-key.json (local).
 # ---------------------------------------------------------------
 db = None
+# Modo local: USE_LOCAL_DB=1 no .env ignora o Firestore e usa data/estado.json.
+# Serve para desenvolver/testar sem tocar na campanha real e sem precisar de deploy.
+USE_LOCAL_DB = os.environ.get('USE_LOCAL_DB', '').lower() in ('1', 'true', 'sim', 'yes')
+if USE_LOCAL_DB:
+    print('[DB] Modo LOCAL ativo (USE_LOCAL_DB) — usando data/estado.json, Firestore ignorado.')
 try:
+    if USE_LOCAL_DB:
+        raise RuntimeError('modo local forçado')
     import firebase_admin
     from firebase_admin import credentials, firestore
 
@@ -62,7 +69,8 @@ try:
     else:
         print('[Firebase] Sem credencial — usando arquivo local.')
 except Exception as e:  # pragma: no cover
-    print('[Firebase] Indisponível, usando arquivo local:', e)
+    if not USE_LOCAL_DB:
+        print('[Firebase] Indisponível, usando arquivo local:', e)
     db = None
 
 DOC_CAMPANHA = ('campanha', 'principal')  # coleção, documento

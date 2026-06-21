@@ -55,11 +55,11 @@ Cada bloco entrega: características base (com mecânica) + características de 
 ---
 
 ## ⚔️ FASE 2 — Combate mais fiel às regras
-- [ ] 2.1 Resistência / Vulnerabilidade / Imunidade no dano (metade/dobro por tipo)
-- [ ] 2.2 Salva em massa (vários monstros) + dano em área em múltiplos alvos
-- [ ] 2.3 Ataques dos PJs clicáveis no rastreador (igual aos monstros)
-- [ ] 2.4 Ações lendárias / resistência lendária / multiataque automáticos (chefes)
-- [ ] 2.5 Companheiros e invocações como combatentes
+- [x] 2.1 Resistência / Vulnerabilidade / Imunidade no dano (metade/dobro por tipo) — tipo de dano no ataque/dano manual; defesas auto-detectadas dos traços do monstro + editáveis por combatente
+- [x] 2.2 Salva em massa (vários monstros) + dano em área em múltiplos alvos — ferramenta "💥 Dano em Área": fórmula+tipo+salva(CD/atributo/½), rola 1×, aplica salva e resist/vuln por alvo
+- [x] 2.3 Ataques dos PJs clicáveis no rastreador — gerados da ficha (armas via `ataqueArma` + truques de dano escalados, com ataque mágico)
+- [x] 2.4 Ações lendárias / resistência lendária / multiataque (chefes) — botão ⚔ Multiataque (detecta nº do texto), marcar ⭐ Chefe com Resistência Lendária (contador) e Ações Lendárias/rodada (recarregam por rodada)
+- [x] 2.5 Companheiros e invocações como combatentes — botão "+ Aliado" adiciona criatura do bestiário como aliado (stat block + ataques próprios)
 
 ---
 

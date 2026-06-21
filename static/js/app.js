@@ -111,6 +111,36 @@ carregarFichas();
 let combate = { combatentes: [], turno: 0, rodada: 1, log: [] };
 let alvoSelecionado = null;
 
+// ----- Tipos de dano + Resistência / Vulnerabilidade / Imunidade (Fase 2.1) -----
+const DANOS_TIPOS = ['corte', 'perfurante', 'concussão', 'ácido', 'fogo', 'frio', 'elétrico', 'veneno', 'necrótico', 'radiante', 'psíquico', 'trovão', 'força'];
+const semAcento = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+function tipoCanon(t) { if (!t) return null; const s = semAcento(t); return DANOS_TIPOS.find(d => semAcento(d) === s) || null; }
+// multiplicador de dano de um combatente para um tipo (0 imune, 0.5 resist, 2 vuln, 1 normal)
+function multiplicadorDano(c, tipo) {
+  const t = tipoCanon(tipo); if (!t) return 1;
+  if ((c.imune || []).includes(t)) return 0;
+  if ((c.resist || []).includes(t)) return 0.5;
+  if ((c.vuln || []).includes(t)) return 2;
+  return 1;
+}
+function rotuloMult(mult) { return mult === 0 ? ' (IMUNE)' : mult === 0.5 ? ' (resistência ½)' : mult === 2 ? ' (VULNERÁVEL ×2)' : ''; }
+// Auto-detecta defesas a partir dos traços do monstro (texto livre → tipos estruturados)
+function defesasDeTracos(tracos) {
+  const res = { resist: [], vuln: [], imune: [] };
+  (tracos || []).forEach(tx => {
+    const low = semAcento(tx);
+    DANOS_TIPOS.forEach(d => {
+      const dn = semAcento(d);
+      if (!low.includes(dn)) return;
+      // procura a palavra-chave mais próxima antes do tipo
+      if (/imune|imunidade/.test(low) && !res.imune.includes(d)) res.imune.push(d);
+      else if (/vulner/.test(low) && !res.vuln.includes(d)) res.vuln.push(d);
+      else if (/resist/.test(low) && !res.resist.includes(d)) res.resist.push(d);
+    });
+  });
+  return res;
+}
+
 const listaCombate = document.getElementById('listaCombate');
 const turnoInfo = document.getElementById('turnoInfo');
 const combateLog = document.getElementById('combateLog');
@@ -154,70 +184,181 @@ function parseAcoes(m) {
     const nome = a.split(':')[0].trim();
     const bm = a.match(/([+-]\d+)\s*para acertar/);
     const dm = a.match(/\((\d+d\d+(?:[+-]\d+)?)\)/);
-    return { texto: a, nome, bonus: bm ? parseInt(bm[1]) : null, dano: dm ? dm[1] : null };
+    // tipo de dano = palavra após o "(XdY+Z)" ou após "Dano: N (...)"
+    const tm = a.match(/\)\s*([a-zçãéíóôú]+)/i);
+    return { texto: a, nome, bonus: bm ? parseInt(bm[1]) : null, dano: dm ? dm[1] : null, dmgTipo: tm ? tipoCanon(tm[1]) : null };
   }).filter(x => x.bonus !== null || x.dano !== null);
+}
+// nº de ataques do "Múltiplos Ataques / Multiataque" descrito no texto das ações
+function multiataqueDe(m) {
+  const txt = (m.acoes || []).find(a => /m[uú]ltiplos? ataques|multiataque/i.test(a)) || '';
+  if (!txt) return 0;
+  const mm = txt.match(/\b(dois|duas|tr[eê]s|quatro|um[a]?)\b/i);
+  if (mm) { const k = semAcento(mm[1]); return k.startsWith('dois') || k.startsWith('dua') ? 2 : k.startsWith('tre') ? 3 : k.startsWith('quatro') ? 4 : 1; }
+  const dn = txt.match(/(\d+)\s*ataques/i); return dn ? +dn[1] : 2;
+}
+
+// Atributo de conjuração por classe (p/ ataques de truque dos PJs)
+const ATTR_CONJ = { 'Mago': 'int', 'Clérigo': 'sab', 'Druida': 'sab', 'Bardo': 'car', 'Feiticeiro': 'car', 'Bruxo': 'car', 'Paladino': 'car', 'Patrulheiro': 'sab' };
+// Constrói as ações de combate de um PJ a partir da ficha (armas + truques de dano)
+function acoesDoPC(f) {
+  const out = [];
+  const pb = (typeof PB === 'function') ? PB(f.nivel || 1) : 2;
+  // armas que o PJ carrega
+  (f.itens || []).forEach(it => {
+    if (typeof ataqueArma !== 'function') return;
+    const atk = ataqueArma(f, it, pb); // { nome, dano:'1d8+3 corte', ataque, semProf }
+    if (!atk) return;
+    const md = String(atk.dano).match(/(\d+d\d+(?:[+-]\d+)?)\s*([a-zçãéíóôú]+)?/i);
+    out.push({ texto: `${it}: +${atk.ataque} p/ acertar, ${atk.dano}`, nome: it, bonus: atk.ataque, dano: md ? md[1] : null, dmgTipo: md ? tipoCanon(md[2]) : null });
+  });
+  // truques de dano (ataque mágico) — escalam por nível
+  const attr = ATTR_CONJ[f.classe];
+  if (attr && typeof MAGIAS_DETALHE !== 'undefined') {
+    const atqMag = pb + mod(f.atributos[attr]);
+    const escala = 1 + (f.nivel >= 5 ? 1 : 0) + (f.nivel >= 11 ? 1 : 0) + (f.nivel >= 17 ? 1 : 0);
+    (f.truques || []).forEach(tq => {
+      const d = MAGIAS_DETALHE[tq]; if (!d || !d.dano || d.dano === '—') return;
+      const md = String(d.dano).match(/(\d+)d(\d+)\s*([a-zçãéíóôú]+)?/i); if (!md) return;
+      const dados = (+md[1]) * escala, formula = `${dados}d${md[2]}`;
+      out.push({ texto: `${tq} (truque): +${atqMag} p/ acertar, ${formula} ${md[3] || ''}`, nome: tq + ' ✨', bonus: atqMag, dano: formula, dmgTipo: tipoCanon(md[3]) });
+    });
+  }
+  return out;
 }
 
 function addPersonagens() {
   let n = 0;
   fichas.forEach(f => {
     if (combate.combatentes.some(c => c.fichaId === f.id)) return;
-    combate.combatentes.push({ id: uid(), tipo: 'pc', fichaId: f.id, nome: f.nome, iniciativa: dado(20) + (f.iniciativa || 0), hpAtual: f.hpAtual, hpMax: f.hpMax, ca: f.ca, condicoes: [] });
+    combate.combatentes.push({ id: uid(), tipo: 'pc', fichaId: f.id, nome: f.nome, iniciativa: dado(20) + (f.iniciativa || 0), hpAtual: f.hpAtual, hpMax: f.hpMax, ca: f.ca, condicoes: [], acoes: acoesDoPC(f), resist: [], vuln: [], imune: [] });
     n++;
   });
   logCombate(`${n} personagem(ns) entraram no combate`);
   ordenarCombate();
 }
 
-function addMonstro(nome, qtd) {
+function addMonstro(nome, qtd, tipo = 'monstro') {
   const m = MONSTROS.find(x => x.nome === nome); if (!m) return;
   const acoes = parseAcoes(m), hp = soNum(m.hp), ca = soNum(m.ca), desMod = mod(m.atributos.des);
+  const def = defesasDeTracos(m.tracos), multi = multiataqueDe(m);
   for (let i = 0; i < qtd; i++) {
-    combate.combatentes.push({ id: uid(), tipo: 'monstro', monstroNome: nome, nome: m.nome + (qtd > 1 ? ' ' + (i + 1) : ''), iniciativa: dado(20) + desMod, hpAtual: hp, hpMax: hp, ca, condicoes: [], acoes });
+    combate.combatentes.push({ id: uid(), tipo, monstroNome: nome, nome: (tipo === 'aliado' ? '🤝 ' : '') + m.nome + (qtd > 1 ? ' ' + (i + 1) : ''), iniciativa: dado(20) + desMod, hpAtual: hp, hpMax: hp, ca, condicoes: [], acoes, multi, resist: def.resist, vuln: def.vuln, imune: def.imune });
   }
-  logCombate(`${qtd}× ${m.nome} entraram no combate`);
+  logCombate(`${qtd}× ${m.nome} ${tipo === 'aliado' ? 'aliado(s) entraram' : 'entraram'} no combate`);
   ordenarCombate();
+}
+
+// ----- Dano em Área / Salva em massa (Fase 2.2) -----
+const ATRIB_SALVA = { for: 'Força', des: 'Destreza', con: 'Constituição', int: 'Inteligência', sab: 'Sabedoria', car: 'Carisma' };
+function bonusSalva(c, attr) {
+  if (c.tipo === 'pc' && c.fichaId) {
+    const f = fichas.find(x => x.id === c.fichaId); if (!f) return 0;
+    let b = mod(f.atributos[attr]);
+    const cls = (typeof CLASSES !== 'undefined') ? CLASSES[CLASSE_NOME_PARA_CHAVE[f.classe]] : null;
+    if (cls && (cls.salvaguardas || []).includes(ATRIB_SALVA[attr])) b += (typeof PB === 'function' ? PB(f.nivel || 1) : 2);
+    return b;
+  }
+  if ((c.tipo === 'monstro' || c.tipo === 'aliado') && c.monstroNome) {
+    const m = MONSTROS.find(x => x.nome === c.monstroNome); if (m) return mod(m.atributos[attr]);
+  }
+  return 0;
+}
+function renderAreaDano() {
+  const wrap = document.getElementById('areaDanoPanel'); if (!wrap) return;
+  if (wrap.classList.contains('hidden')) return;
+  const tipoOpts = DANOS_TIPOS.map(t => `<option>${t}</option>`).join('');
+  const attrOpts = Object.entries(ATRIB_SALVA).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+  const alvos = combate.combatentes.map(c => `<label class="check-chip mini"><input type="checkbox" data-area-alvo="${c.id}" checked>${escapeHtml(c.nome)}</label>`).join('');
+  wrap.innerHTML = `
+    <h4>💥 Dano em Área / Salva em massa</h4>
+    <div class="area-linha">
+      <label>Dano <input type="text" id="areaFormula" placeholder="ex.: 8d6" value="8d6" style="width:70px"></label>
+      <label>Tipo <select id="areaTipo">${tipoOpts}</select></label>
+      <label>Salva <select id="areaSalvaAttr"><option value="">— nenhuma —</option>${attrOpts}</select></label>
+      <label>CD <input type="number" id="areaCD" value="15" style="width:54px"></label>
+      <label title="Metade do dano se passar na salva"><input type="checkbox" id="areaMetade" checked> ½ se passar</label>
+    </div>
+    <div class="area-alvos"><b>Alvos:</b> ${alvos || '—'}</div>
+    <div class="area-acoes"><button id="areaAplicar" class="btn-danger">Rolar e aplicar</button> <button id="areaFechar" class="btn-secondary">Fechar</button></div>`;
+  document.getElementById('areaFechar').onclick = () => { wrap.classList.add('hidden'); };
+  document.getElementById('areaAplicar').onclick = aplicarAreaDano;
+}
+function aplicarAreaDano() {
+  const formula = document.getElementById('areaFormula').value.trim();
+  const tipo = document.getElementById('areaTipo').value;
+  const attr = document.getElementById('areaSalvaAttr').value;
+  const cd = Number(document.getElementById('areaCD').value) || 0;
+  const metade = document.getElementById('areaMetade').checked;
+  const ids = [...document.querySelectorAll('[data-area-alvo]:checked')].map(x => x.dataset.areaAlvo);
+  if (!ids.length) return alert('Selecione ao menos um alvo.');
+  const dr = rolarFormula(formula);
+  if (!dr.total) return alert('Fórmula de dano inválida (ex.: 8d6).');
+  let resumo = `💥 Área (${dr.txt} ${tipo}${attr ? `, salva ${ATRIB_SALVA[attr]} CD ${cd}` : ''}):`;
+  ids.forEach(id => {
+    const c = combate.combatentes.find(x => x.id === id); if (!c) return;
+    let bruto = dr.total, nota = '';
+    if (attr) {
+      const sv = dado(20), tot = sv + bonusSalva(c, attr), passou = tot >= cd;
+      if (passou) { bruto = metade ? Math.floor(bruto / 2) : 0; nota = ` passou (${tot})`; }
+      else nota = ` falhou (${tot})`;
+    }
+    const { real, mult } = aplicarDanoComb(c, bruto, tipo);
+    resumo += ` [${c.nome}: ${real}${rotuloMult(mult)}${nota}]`;
+  });
+  logCombate(resumo); salvarCombate(); renderCombate();
 }
 
 function ordenarCombate() { combate.combatentes.sort((a, b) => b.iniciativa - a.iniciativa); combate.turno = 0; salvarCombate(); renderCombate(); }
 function proximoTurnoCombate() {
   if (!combate.combatentes.length) return;
   combate.turno++;
-  if (combate.turno >= combate.combatentes.length) { combate.turno = 0; combate.rodada++; logCombate(`— Rodada ${combate.rodada} —`); }
+  if (combate.turno >= combate.combatentes.length) {
+    combate.turno = 0; combate.rodada++; logCombate(`— Rodada ${combate.rodada} —`);
+    // recarrega ações lendárias dos chefes no início de cada rodada
+    combate.combatentes.forEach(c => { if (c.chefe) c.lendAtual = c.lendMax ?? 3; });
+  }
   salvarCombate(); renderCombate();
 }
 
-function aplicarDanoComb(c, v) {
-  c.hpAtual = Math.max(0, c.hpAtual - v);
+function aplicarDanoComb(c, v, tipo) {
+  const mult = multiplicadorDano(c, tipo);
+  const real = Math.floor(v * mult);
+  c.hpAtual = Math.max(0, c.hpAtual - real);
   if (c.tipo === 'pc' && c.fichaId) { const f = fichas.find(x => x.id === c.fichaId); if (f) { f.hpAtual = c.hpAtual; salvarFichas(); } }
+  return { real, mult };
 }
 function curarComb(c, v) {
   c.hpAtual = Math.min(c.hpMax, c.hpAtual + v);
   if (c.tipo === 'pc' && c.fichaId) { const f = fichas.find(x => x.id === c.fichaId); if (f) { f.hpAtual = c.hpAtual; salvarFichas(); } }
 }
 
-function atacar(atacante, acao) {
-  const alvo = combate.combatentes.find(c => c.id === alvoSelecionado);
+function umAtaque(atacante, acao, alvo) {
   const d20 = dado(20), total = d20 + (acao.bonus || 0);
-  let txt = `${atacante.nome} — ${acao.nome}: ataque ${total} (d20 ${d20}${acao.bonus ? (acao.bonus > 0 ? '+' + acao.bonus : acao.bonus) : ''})`;
-  if (!alvo) {
-    if (acao.dano) { const dr = rolarFormula(acao.dano); txt += `; dano ${dr.txt} (selecione um alvo 🎯 p/ aplicar)`; }
-    logCombate(txt); salvarCombate(); renderCombate(); return;
-  }
   const critico = d20 === 20, erroAuto = d20 === 1;
   const acerto = critico || (!erroAuto && total >= alvo.ca);
-  if (acerto && acao.dano) {
-    const dr = rolarFormula(acao.dano);
-    let danoTotal = dr.total;
-    if (critico) { const cr = rolarFormula(acao.dano); danoTotal += cr.dice; }
-    aplicarDanoComb(alvo, danoTotal);
-    txt += `${critico ? ' CRÍTICO!' : ''} → acertou ${alvo.nome}: ${danoTotal} de dano (${dr.txt}). PV ${alvo.hpAtual}/${alvo.hpMax}`;
-    if (alvo.hpAtual === 0) txt += ` 💀 caiu!`;
-  } else if (acerto) {
-    txt += ` → acertou ${alvo.nome} (sem dano definido)`;
-  } else {
-    txt += ` → ERROU ${alvo.nome} (CA ${alvo.ca})`;
+  if (!acerto) return ` · ${acao.nome}: ERROU (${total} vs CA ${alvo.ca})`;
+  if (!acao.dano) return ` · ${acao.nome}: acertou (${total}), sem dano definido`;
+  const dr = rolarFormula(acao.dano);
+  let bruto = dr.total;
+  if (critico) bruto += rolarFormula(acao.dano).dice;
+  const { real, mult } = aplicarDanoComb(alvo, bruto, acao.dmgTipo);
+  return ` · ${acao.nome}: ${critico ? 'CRÍTICO! ' : ''}${real} de dano${acao.dmgTipo ? ' ' + acao.dmgTipo : ''}${rotuloMult(mult)}`;
+}
+
+function atacar(atacante, acao, vezes = 1) {
+  const alvo = combate.combatentes.find(c => c.id === alvoSelecionado);
+  if (!alvo) {
+    const dr = acao.dano ? rolarFormula(acao.dano) : null;
+    logCombate(`${atacante.nome} — ${acao.nome}${dr ? `: dano ${dr.txt}` : ''} (selecione um alvo 🎯 p/ aplicar)`);
+    salvarCombate(); renderCombate(); return;
   }
+  let txt = `${atacante.nome} → ${alvo.nome}${vezes > 1 ? ` (${vezes} ataques)` : ''}:`;
+  for (let i = 0; i < vezes; i++) {
+    txt += umAtaque(atacante, acao, alvo);
+    if (alvo.hpAtual === 0) { txt += ' 💀 caiu!'; break; }
+  }
+  txt += ` — PV ${alvo.hpAtual}/${alvo.hpMax}`;
   logCombate(txt); salvarCombate(); renderCombate();
 }
 
@@ -243,23 +384,44 @@ function renderCombate() {
     const div = document.createElement('div');
     div.className = 'comb-card' + (i === idxAtual ? ' turno' : '') + (c.id === alvoSelecionado ? ' alvo' : '') + (c.hpAtual === 0 ? ' morto' : '');
     const condChips = Object.keys(CONDICOES).map(cd => `<label class="check-chip mini ${c.condicoes.includes(cd) ? 'on' : ''}" title="${escapeHtml(CONDICOES[cd])}"><input type="checkbox" data-cond="${escapeHtml(cd)}" ${c.condicoes.includes(cd) ? 'checked' : ''}>${escapeHtml(cd)}</label>`).join('');
-    const acoesHtml = (c.acoes || []).map((a, ai) => `<button class="comb-acao" data-acao="${ai}" title="${escapeHtml(a.texto)}">${escapeHtml(a.nome)}${a.bonus != null ? ` (${a.bonus >= 0 ? '+' : ''}${a.bonus})` : ''}${a.dano ? ` ${escapeHtml(a.dano)}` : ''}</button>`).join('');
+    const acoesHtml = (c.acoes || []).map((a, ai) => `<button class="comb-acao" data-acao="${ai}" title="${escapeHtml(a.texto)}">${escapeHtml(a.nome)}${a.bonus != null ? ` (${a.bonus >= 0 ? '+' : ''}${a.bonus})` : ''}${a.dano ? ` ${escapeHtml(a.dano)}` : ''}${a.dmgTipo ? ` <i>${escapeHtml(a.dmgTipo)}</i>` : ''}</button>`).join('');
+    const multiBtn = (c.multi > 1 && (c.acoes || []).some(a => a.dano)) ? `<button class="comb-acao multi" data-multi title="Repete o 1º ataque com dano, ${c.multi}×">⚔ Multiataque ×${c.multi}</button>` : '';
+    // defesas
+    const defs = [...(c.resist || []).map(t => `<span class="def-chip r" title="Resistência">½ ${escapeHtml(t)}</span>`),
+      ...(c.vuln || []).map(t => `<span class="def-chip v" title="Vulnerabilidade">×2 ${escapeHtml(t)}</span>`),
+      ...(c.imune || []).map(t => `<span class="def-chip i" title="Imunidade">∅ ${escapeHtml(t)}</span>`)].join('');
+    const nDef = (c.resist || []).length + (c.vuln || []).length + (c.imune || []).length;
+    const defEditor = DANOS_TIPOS.map(t => {
+      const cur = (c.imune || []).includes(t) ? 'imune' : (c.vuln || []).includes(t) ? 'vuln' : (c.resist || []).includes(t) ? 'resist' : '';
+      return `<label class="comb-def-row"><span>${escapeHtml(t)}</span><select data-def="${escapeHtml(t)}"><option value="">—</option><option value="resist"${cur === 'resist' ? ' selected' : ''}>½ Resist</option><option value="vuln"${cur === 'vuln' ? ' selected' : ''}>×2 Vuln</option><option value="imune"${cur === 'imune' ? ' selected' : ''}>∅ Imune</option></select></label>`;
+    }).join('');
+    const tipoOpts = `<option value="">— tipo —</option>` + DANOS_TIPOS.map(t => `<option>${t}</option>`).join('');
     div.innerHTML = `
       <div class="comb-top">
         <span class="comb-ini" title="Iniciativa">${c.iniciativa}</span>
-        <span class="comb-nome">${escapeHtml(c.nome)} <small class="comb-tipo ${c.tipo}">${c.tipo === 'pc' ? 'PJ' : c.tipo === 'monstro' ? 'Monstro' : 'NPC'}</small></span>
+        <span class="comb-nome">${escapeHtml(c.nome)} <small class="comb-tipo ${c.tipo}">${c.tipo === 'pc' ? 'PJ' : c.tipo === 'monstro' ? 'Monstro' : c.tipo === 'aliado' ? 'Aliado' : 'NPC'}</small>${c.chefe ? ' ⭐' : ''}</span>
         <span class="comb-ca">CA ${c.ca}</span>
         <button class="comb-alvo" data-alvo title="Definir como alvo">🎯</button>
         <button class="comb-rem" data-rem title="Remover">✕</button>
       </div>
       <div class="comb-hp">PV ${c.hpAtual}/${c.hpMax}<div class="comb-bar"><div style="width:${pct}%;background:${cor}"></div></div></div>
+      ${defs ? `<div class="comb-defs">${defs}</div>` : ''}
       <div class="comb-acoes-hp">
-        <input type="number" class="comb-val" value="5" style="width:52px">
+        <input type="number" class="comb-val" value="5" style="width:48px">
+        <select class="comb-dmgtipo" title="Tipo de dano (aplica resistência/vulnerabilidade)">${tipoOpts}</select>
         <button class="btn-danger comb-dano" data-dano>− Dano</button>
         <button class="btn-primary comb-cura" data-cura>+ Cura</button>
       </div>
-      ${acoesHtml ? `<div class="comb-ataques">${acoesHtml}</div>` : ''}
+      ${acoesHtml || multiBtn ? `<div class="comb-ataques">${multiBtn}${acoesHtml}</div>` : ''}
       <details class="comb-cond"><summary>Condições${c.condicoes.length ? ' (' + c.condicoes.length + ')' : ''}</summary><div class="jg-cond-grid">${condChips}</div></details>
+      <details class="comb-def"><summary>Defesas${nDef ? ' (' + nDef + ')' : ''}</summary><div class="comb-def-grid">${defEditor}</div></details>
+      <details class="comb-chefe"><summary>Chefe${c.chefe ? ' ⭐' : ''}</summary>
+        <label class="check-chip ${c.chefe ? 'on' : ''}"><input type="checkbox" data-chefe ${c.chefe ? 'checked' : ''}> Chefe (resistência + ações lendárias)</label>
+        ${c.chefe ? `<div class="chefe-track">
+          <div>🛡️ Resistência Lendária: <b data-reslend-val>${c.resLend || 0}</b> <button class="btn-mini" data-reslend="-1">−</button><button class="btn-mini" data-reslend="1">+</button> <button class="btn-mini" data-usa-reslend ${(c.resLend || 0) <= 0 ? 'disabled' : ''}>Usar (falha→sucesso)</button></div>
+          <div>⚡ Ações Lendárias: <b>${c.lendAtual ?? c.lendMax ?? 3}</b>/<input type="number" class="lendmax" data-lendmax value="${c.lendMax ?? 3}" min="0" style="width:42px"> por rodada <button class="btn-mini" data-usa-lend ${(c.lendAtual ?? c.lendMax ?? 3) <= 0 ? 'disabled' : ''}>Usar 1</button></div>
+        </div>` : ''}
+      </details>
     `;
     // selecionar alvo
     div.querySelector('[data-alvo]').addEventListener('click', e => { e.stopPropagation(); alvoSelecionado = (alvoSelecionado === c.id ? null : c.id); renderCombate(); });
@@ -270,20 +432,60 @@ function renderCombate() {
       salvarCombate(); renderCombate();
     });
     const val = () => Math.max(1, Number(div.querySelector('.comb-val').value) || 1);
-    div.querySelector('[data-dano]').addEventListener('click', () => { aplicarDanoComb(c, val()); logCombate(`${c.nome} sofreu ${val()} de dano. PV ${c.hpAtual}/${c.hpMax}`); salvarCombate(); renderCombate(); });
+    const tipoSel = () => div.querySelector('.comb-dmgtipo').value || null;
+    div.querySelector('[data-dano]').addEventListener('click', () => {
+      const { real, mult } = aplicarDanoComb(c, val(), tipoSel());
+      logCombate(`${c.nome} sofreu ${real} de dano${tipoSel() ? ' ' + tipoSel() : ''}${rotuloMult(mult)}. PV ${c.hpAtual}/${c.hpMax}`);
+      salvarCombate(); renderCombate();
+    });
     div.querySelector('[data-cura]').addEventListener('click', () => { curarComb(c, val()); logCombate(`${c.nome} curou ${val()}. PV ${c.hpAtual}/${c.hpMax}`); salvarCombate(); renderCombate(); });
     div.querySelectorAll('[data-acao]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); atacar(c, c.acoes[+b.dataset.acao]); }));
+    const bMulti = div.querySelector('[data-multi]');
+    if (bMulti) bMulti.addEventListener('click', e => { e.stopPropagation(); atacar(c, (c.acoes || []).find(a => a.dano), c.multi); });
     div.querySelectorAll('[data-cond]').forEach(chk => chk.addEventListener('change', () => {
       const cd = chk.dataset.cond;
       if (chk.checked) { if (!c.condicoes.includes(cd)) c.condicoes.push(cd); } else c.condicoes = c.condicoes.filter(x => x !== cd);
       salvarCombate(); renderCombate();
     }));
+    // defesas (resist/vuln/imune)
+    div.querySelectorAll('[data-def]').forEach(sel => sel.addEventListener('change', () => {
+      const t = sel.dataset.def;
+      c.resist = (c.resist || []).filter(x => x !== t); c.vuln = (c.vuln || []).filter(x => x !== t); c.imune = (c.imune || []).filter(x => x !== t);
+      if (sel.value === 'resist') c.resist.push(t); else if (sel.value === 'vuln') c.vuln.push(t); else if (sel.value === 'imune') c.imune.push(t);
+      salvarCombate(); renderCombate();
+    }));
+    // chefe: ações lendárias + resistência lendária
+    const chk = div.querySelector('[data-chefe]');
+    if (chk) chk.addEventListener('change', () => {
+      c.chefe = chk.checked;
+      if (c.chefe) { if (c.resLend == null) c.resLend = 3; if (c.lendMax == null) c.lendMax = 3; c.lendAtual = c.lendMax; }
+      salvarCombate(); renderCombate();
+    });
+    div.querySelectorAll('[data-reslend]').forEach(b => b.addEventListener('click', () => { c.resLend = Math.max(0, (c.resLend || 0) + (+b.dataset.reslend)); salvarCombate(); renderCombate(); }));
+    const bUsaRes = div.querySelector('[data-usa-reslend]');
+    if (bUsaRes) bUsaRes.addEventListener('click', () => { if ((c.resLend || 0) <= 0) return; c.resLend--; logCombate(`🛡️ ${c.nome} usou Resistência Lendária (a salva vira sucesso). Restam ${c.resLend}.`); salvarCombate(); renderCombate(); });
+    const inLendMax = div.querySelector('[data-lendmax]');
+    if (inLendMax) inLendMax.addEventListener('change', () => { c.lendMax = Math.max(0, Number(inLendMax.value) || 0); c.lendAtual = Math.min(c.lendAtual ?? c.lendMax, c.lendMax); salvarCombate(); renderCombate(); });
+    const bUsaLend = div.querySelector('[data-usa-lend]');
+    if (bUsaLend) bUsaLend.addEventListener('click', () => { if ((c.lendAtual ?? c.lendMax ?? 0) <= 0) return; c.lendAtual = (c.lendAtual ?? c.lendMax) - 1; logCombate(`⚡ ${c.nome} usou uma Ação Lendária. Restam ${c.lendAtual} nesta rodada.`); salvarCombate(); renderCombate(); });
     listaCombate.appendChild(div);
   });
+  // mantém o painel de Dano em Área em sincronia com os combatentes atuais
+  const ap = document.getElementById('areaDanoPanel');
+  if (ap && !ap.classList.contains('hidden')) renderAreaDano();
 }
 
 document.getElementById('addPersonagens').addEventListener('click', addPersonagens);
-document.getElementById('addMonstro').addEventListener('click', () => addMonstro(combMonstroSel.value, Math.max(1, Number(document.getElementById('combMonstroQtd').value) || 1)));
+const qtdComb = () => Math.max(1, Number(document.getElementById('combMonstroQtd').value) || 1);
+document.getElementById('addMonstro').addEventListener('click', () => addMonstro(combMonstroSel.value, qtdComb()));
+const btnAliado = document.getElementById('addAliado');
+if (btnAliado) btnAliado.addEventListener('click', () => addMonstro(combMonstroSel.value, qtdComb(), 'aliado'));
+const btnArea = document.getElementById('btnAreaDano');
+if (btnArea) btnArea.addEventListener('click', () => {
+  const wrap = document.getElementById('areaDanoPanel');
+  wrap.classList.toggle('hidden');
+  renderAreaDano();
+});
 document.getElementById('addCombatente').addEventListener('click', () => {
   const nome = prompt('Nome do combatente avulso:'); if (!nome) return;
   const hp = Number(prompt('PV:', '10')) || 10;
@@ -294,7 +496,7 @@ document.getElementById('rolarIniciativa').addEventListener('click', () => {
   combate.combatentes.forEach(c => {
     let bonus = 0;
     if (c.tipo === 'pc' && c.fichaId) { const f = fichas.find(x => x.id === c.fichaId); bonus = f ? (f.iniciativa || 0) : 0; }
-    else if (c.tipo === 'monstro') { const m = MONSTROS.find(x => x.nome === c.monstroNome); bonus = m ? mod(m.atributos.des) : 0; }
+    else if (c.monstroNome) { const m = MONSTROS.find(x => x.nome === c.monstroNome); bonus = m ? mod(m.atributos.des) : 0; }
     c.iniciativa = dado(20) + bonus;
   });
   logCombate('Iniciativa rolada para todos');

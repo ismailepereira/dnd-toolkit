@@ -46,13 +46,16 @@
           <select id="combMonstroSel"></select>
           <input type="number" id="combMonstroQtd" value="1" min="1" title="Quantidade">
           <button id="addMonstro" class="btn-secondary">+ Monstro</button>
+          <button id="addAliado" class="btn-secondary" title="Adiciona a criatura selecionada como aliado (companheiro/invocação)">+ Aliado</button>
         </span>
         <button id="addCombatente" class="btn-secondary">+ Avulso</button>
         <button id="rolarIniciativa" class="btn-secondary">🎲 Rolar Iniciativa</button>
         <button id="proximoTurno" class="btn-secondary">▶ Próximo turno</button>
+        <button id="btnAreaDano" class="btn-secondary">💥 Dano em Área</button>
         <button id="limparCombate" class="btn-danger">Limpar</button>
       </div>
-      <p class="aviso-mestre">Clique em 🎯 para escolher o alvo; aí clique num ataque do monstro para rolar acerto + dano e aplicar automaticamente.</p>
+      <p class="aviso-mestre">Clique em 🎯 para escolher o alvo; aí clique num ataque para rolar acerto + dano (já aplica resistência/vulnerabilidade/imunidade). Use ⚔ Multiataque nos monstros, ⭐ Chefe p/ ações e resistência lendária, e 💥 Dano em Área p/ salva em massa.</p>
+      <div id="areaDanoPanel" class="area-dano hidden"></div>
       <div class="turno-info" id="turnoInfo"></div>
       <div class="combate-layout">
         <div id="listaCombate" class="combat-list"></div>

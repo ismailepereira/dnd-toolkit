@@ -290,13 +290,17 @@ function renderCombateJog(combate) {
       estado = `<div class="comb-status" style="color:${s.cor}">${s.txt}</div>`;
     }
     const conds = (c.condicoes || []).length ? `<div class="comb-conds">${c.condicoes.map(x => `<span class="cond-tag">${escapeHtml(x)}</span>`).join('')}</div>` : '';
+    const defs = [...(c.resist || []).map(t => `<span class="def-chip r">½ ${escapeHtml(t)}</span>`),
+      ...(c.vuln || []).map(t => `<span class="def-chip v">×2 ${escapeHtml(t)}</span>`),
+      ...(c.imune || []).map(t => `<span class="def-chip i">∅ ${escapeHtml(t)}</span>`)].join('');
+    const tipoRot = c.tipo === 'pc' ? 'PJ' : c.tipo === 'aliado' ? 'Aliado' : c.tipo === 'monstro' ? 'Monstro' : 'NPC';
     div.innerHTML = `
       <div class="comb-top">
         <span class="comb-ini">${c.iniciativa}</span>
-        <span class="comb-nome">${escapeHtml(c.nome)} <small class="comb-tipo ${c.tipo}">${c.tipo === 'pc' ? 'PJ' : c.tipo === 'monstro' ? 'Monstro' : 'NPC'}</small></span>
+        <span class="comb-nome">${escapeHtml(c.nome)} <small class="comb-tipo ${c.tipo}">${tipoRot}</small>${c.chefe ? ' ⭐' : ''}</span>
         <span class="comb-ca">CA ${c.ca}</span>
       </div>
-      ${estado}${conds}`;
+      ${estado}${defs ? `<div class="comb-defs">${defs}</div>` : ''}${conds}`;
     listaCombateJog.appendChild(div);
   });
 }

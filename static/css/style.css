@@ -962,6 +962,29 @@ input, textarea, .form-grid select {
 .comb-conds { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
 .cond-tag { background: rgba(210,153,34,0.2); color: #d29922; border-radius: 8px; padding: 1px 7px; font-size: 0.72rem; }
 
+/* Combate Fase 2: defesas, multiataque, chefe, dano em área */
+.comb-acao.multi { background: rgba(233,69,96,0.25); border-color: #e94560; font-weight: 600; }
+.comb-acao i { font-style: normal; opacity: 0.7; }
+.comb-defs { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+.def-chip { border-radius: 8px; padding: 1px 7px; font-size: 0.7rem; border: 1px solid var(--border); }
+.def-chip.r { background: rgba(63,185,80,0.18); color: #3fb950; }
+.def-chip.v { background: rgba(233,69,96,0.18); color: #e94560; }
+.def-chip.i { background: rgba(110,118,129,0.25); color: var(--text-dim); }
+.comb-dmgtipo { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 5px; padding: 4px; font-size: 0.78rem; }
+.comb-def summary, .comb-chefe summary { cursor: pointer; font-size: 0.78rem; color: var(--text-dim); margin-top: 4px; }
+.comb-def-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 3px 10px; margin-top: 5px; }
+.comb-def-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; gap: 6px; }
+.comb-def-row select { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px; font-size: 0.72rem; padding: 1px 3px; }
+.chefe-track { font-size: 0.78rem; display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+.chefe-track .btn-mini { padding: 2px 7px; font-size: 0.72rem; }
+.area-dano { background: var(--bg-card, rgba(255,255,255,0.03)); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin: 8px 0; }
+.area-dano h4 { margin: 0 0 8px; }
+.area-linha { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-bottom: 8px; }
+.area-linha label { font-size: 0.82rem; display: flex; gap: 5px; align-items: center; }
+.area-linha input, .area-linha select { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 5px; padding: 4px; }
+.area-alvos { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin-bottom: 10px; }
+.area-acoes { display: flex; gap: 8px; }
+
 @media (max-width: 820px) {
   .combate-layout { grid-template-columns: 1fr; }
   .combate-log-box { position: static; max-height: none; }

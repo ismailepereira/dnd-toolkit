@@ -110,16 +110,33 @@ const Jogo = (function () {
     if (ficha.morteSucessos == null) ficha.morteSucessos = 0;
     if (ficha.morteFalhas == null) ficha.morteFalhas = 0;
     if (ficha.concentrando == null) ficha.concentrando = '';
-    // migração: na 1ª vez de um conjurador que prepara, já prepara o que couber do grimório
-    if (!ficha.preparadas) {
+    // limpeza: se a classe/subclasse não conjura, limpa dados de magia residuais
+    const _conj = typeof ehConjurador === 'function' && ehConjurador(ficha.classe, ficha.nivel, ficha.subclasse);
+    if (!_conj) {
+      ficha.truques = [];
+      ficha.magias1 = [];
       ficha.preparadas = [];
-      if (ehPreparador()) ficha.preparadas = (ficha.magias1 || []).slice(0, limitePreparadas());
+      ficha.concentrando = '';
+    } else {
+      // migração: na 1ª vez de um conjurador que prepara, já prepara o que couber do grimório
+      if (!ficha.preparadas) {
+        ficha.preparadas = [];
+        if (ehPreparador()) ficha.preparadas = (ficha.magias1 || []).slice(0, limitePreparadas());
+      }
+      // mantém só preparadas que ainda estão no grimório
+      if (ehPreparador()) ficha.preparadas = ficha.preparadas.filter(n => (ficha.magias1 || []).includes(n));
     }
-    // mantém só preparadas que ainda estão no grimório
-    if (ehPreparador()) ficha.preparadas = ficha.preparadas.filter(n => (ficha.magias1 || []).includes(n));
   }
 
-  function salvar() { if (ctx.aoAtualizar) ctx.aoAtualizar(); render(); }
+  function salvar() {
+    // o listener RT pode ter substituído o array fichas — recolocar este objecto no array
+    if (typeof fichas !== 'undefined' && ficha && ficha.id) {
+      const idx = fichas.findIndex(f => f.id === ficha.id);
+      if (idx >= 0) fichas[idx] = ficha;
+    }
+    if (ctx.aoAtualizar) ctx.aoAtualizar();
+    render();
+  }
 
   // checa concentração ao sofrer dano
   function checarConcentracao(dano) {
@@ -217,6 +234,7 @@ const Jogo = (function () {
     const f = ficha, a = f.atributos, pb = nivelObj() ? nivelObj().bonusProf : 2;
     const pctHp = f.hpMax > 0 ? Math.max(0, Math.min(100, (f.hpAtual / f.hpMax) * 100)) : 0;
     const corHp = pctHp > 50 ? '#3fb950' : pctHp > 25 ? '#d29922' : '#e94560';
+    const _ehConj = typeof ehConjurador === 'function' && ehConjurador(f.classe, f.nivel, f.subclasse);
 
     // atributos
     const attrHtml = ATRIBUTOS.map(at => `<div class="jg-attr"><span>${at.nome.slice(0, 3).toUpperCase()}</span><b>${a[at.chave]}</b><i>${fmt(m(a[at.chave]))}</i></div>`).join('');
@@ -257,11 +275,11 @@ const Jogo = (function () {
       recHtml += '</div>';
     }
 
-    // magias detalhadas: truques (sempre prontos) + grimório/preparadas
-    const truquesF = f.truques || [];
-    const grimorioF = f.magias1 || [];
+    // magias detalhadas: truques (sempre prontos) + grimório/preparadas — só para conjuradores
+    const truquesF = _ehConj ? (f.truques || []) : [];
+    const grimorioF = _ehConj ? (f.magias1 || []) : [];
     let magiasHtml = '';
-    if (truquesF.length || grimorioF.length) {
+    if (_ehConj && (truquesF.length || grimorioF.length)) {
       magiasHtml = '<div class="jg-bloco"><h4>Magias</h4>';
 
       // Truques — sempre disponíveis, não precisam ser preparados
@@ -352,11 +370,11 @@ const Jogo = (function () {
         return `<button class="jg-skill ${profSalva(a.nome) ? 'prof' : ''}" data-salva="${a.chave}" data-snome="${esc(a.nome)}" data-bonus="${b}">${a.nome.slice(0, 3)} <b>${b >= 0 ? '+' : ''}${b}</b></button>`;
       }).join('') + `</div></div>`;
 
-    // concentração (só entre as magias que dá pra lançar hoje)
-    const magiasConc = [...magiasCastaveis()];
-    const concHtml = `<div class="jg-bloco"><h4>Concentração</h4>
+    // concentração (só aparece para conjuradores)
+    const magiasConc = _ehConj ? [...magiasCastaveis()] : [];
+    const concHtml = _ehConj ? `<div class="jg-bloco"><h4>Concentração</h4>
       <select id="jgConc"><option value="">— Nenhuma —</option>${magiasConc.map(mg => `<option value="${esc(mg)}" ${f.concentrando === mg ? 'selected' : ''}>${esc(mg)}</option>`).join('')}</select>
-      ${f.concentrando ? `<div class="criador-hint">Ao sofrer dano: salva de Constituição (DT 10 ou metade do dano) automática.</div>` : ''}</div>`;
+      ${f.concentrando ? `<div class="criador-hint">Ao sofrer dano: salva de Constituição (DT 10 ou metade do dano) automática.</div>` : ''}</div>` : '';
 
     // testes de morte (quando a 0 PV)
     const bolinhas = (qtd, max, cls) => { let s = ''; for (let i = 0; i < max; i++) s += `<span class="morte-dot ${i < qtd ? cls : ''}"></span>`; return s; };

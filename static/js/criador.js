@@ -611,7 +611,6 @@ const Criador = (function () {
       <div class="mago-stats">
         <div class="mago-card"><span>${furtivo}d6</span><small>Ataque Furtivo</small></div>
         <div class="mago-card"><span>${pericias}</span><small>Perícias dobradas</small></div>
-        <div class="mago-card"><span>${8 + pb + mod(attrs.des)}</span><small>CD de manobras (Des)</small></div>
       </div>
       <h4>Características de Ladino</h4>
       <ul class="mago-feats">
@@ -997,12 +996,13 @@ const Criador = (function () {
     estado = s;
     preencherCampos();
 
-    // Magias automáticas (após preencher para ter contagem)
-    const cont = contagemMagias();
-    if (cont) {
+    // Magias automáticas (só para conjuradores)
+    if (typeof ehConjurador === 'function' && ehConjurador(s.classe, s.nivel, s.subclasse)) {
+      const limTruques = truquesNoNivel(s.classe, s.nivel, s.subclasse);
+      const limMagias = s.classe === 'Mago' ? (6 + (s.nivel - 1) * 2) : magiasNoNivel(s.classe, s.nivel, atributosFinais(s), s.subclasse);
       const banco = MAGIAS[s.classe] || { truques: [], nivel1: [] };
-      s.truques = [...banco.truques].sort(() => Math.random() - 0.5).slice(0, cont.truques);
-      s.magias1 = [...banco.nivel1].sort(() => Math.random() - 0.5).slice(0, cont.nivel1);
+      s.truques = [...banco.truques].sort(() => Math.random() - 0.5).slice(0, limTruques);
+      s.magias1 = [...banco.nivel1].sort(() => Math.random() - 0.5).slice(0, limMagias);
     }
     renderTudoDinamico();
   }
@@ -1025,10 +1025,15 @@ const Criador = (function () {
   function construirFicha() {
     const c = calcular(estado);
     const s = estado;
+    const conj = typeof ehConjurador === 'function' && ehConjurador(s.classe, s.nivel, s.subclasse);
+    const temEstilo = CLASSES_COM_ESTILO.includes(s.classe);
+    const truquesLimpos = conj ? s.truques : [];
+    const magiasLimpas = conj ? s.magias1 : [];
+    const estiloLimpo = temEstilo ? s.estilo : '';
     const equip = [s.armadura + (s.escudo ? ' + Escudo' : ''), ...s.itens].filter(Boolean).join(', ');
     const magiasTxt = [
-      s.truques.length ? 'Truques: ' + s.truques.join(', ') : '',
-      s.magias1.length ? '1º Círculo: ' + s.magias1.join(', ') : '',
+      truquesLimpos.length ? 'Truques: ' + truquesLimpos.join(', ') : '',
+      magiasLimpas.length ? '1º Círculo: ' + magiasLimpas.join(', ') : '',
       c.conj ? `CD ${c.conj.cd} · Ataque ${(c.conj.ataque >= 0 ? '+' : '') + c.conj.ataque}` : '',
     ].filter(Boolean).join('\n');
     return {
@@ -1042,11 +1047,11 @@ const Criador = (function () {
       ca: c.ca,
       iniciativa: c.iniciativa,
       atributos: c.attrs,
-      estilo: s.estilo,
+      estilo: estiloLimpo,
       subclasse: s.subclasse || '',
       pericias: [...c.perProf],
-      truques: s.truques,
-      magias1: s.magias1,
+      truques: truquesLimpos,
+      magias1: magiasLimpas,
       armadura: s.armadura,
       escudo: s.escudo,
       itens: s.itens,
@@ -1070,10 +1075,11 @@ const Criador = (function () {
       s.antecedente = f.antecedente && ANTECEDENTES[f.antecedente] ? f.antecedente : 'Soldado';
       s.nivel = f.nivel || 1;
       if (f.atributos) s.base = { ...s.base, ...f.atributos };
-      s.estilo = f.estilo || '';
       s.subclasse = f.subclasse || '';
-      s.truques = f.truques || [];
-      s.magias1 = f.magias1 || [];
+      const _conj = typeof ehConjurador === 'function' && ehConjurador(s.classe, s.nivel, s.subclasse);
+      s.estilo = CLASSES_COM_ESTILO.includes(s.classe) ? (f.estilo || '') : '';
+      s.truques = _conj ? (f.truques || []) : [];
+      s.magias1 = _conj ? (f.magias1 || []) : [];
       s.armadura = f.armadura && ARRADURA_OK(f.armadura) ? f.armadura : 'Cota de Malha';
       s.escudo = f.escudo != null ? f.escudo : false;
       s.itens = f.itens || [];

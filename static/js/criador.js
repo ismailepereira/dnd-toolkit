@@ -510,7 +510,8 @@ const Criador = (function () {
         <div class="status-titulo">Status recomendados para ${escHtml(nome)} <span class="sub-nota">edite à vontade ou role os dados</span></div>
         <div class="status-grid">${statusInputs}</div>
         <div class="status-botoes">
-          <button type="button" class="btn-mini" data-acao-attr="recomendado">✔ Recomendado (arranjo padrão)</button>
+          <button type="button" class="btn-mini" data-acao-attr="otimo">✔ Melhor da classe (compra de pontos)</button>
+          <button type="button" class="btn-mini" data-acao-attr="padrao">Arranjo padrão</button>
           <button type="button" class="btn-mini" data-acao-attr="rolar">🎲 Rolar 4d6</button>
         </div>
       </div>`;
@@ -541,8 +542,8 @@ const Criador = (function () {
         if (criandoNovo) {
           estado.ouro = (typeof OURO_INICIAL !== 'undefined' && OURO_INICIAL[estado.classe]) || 0;
           atualizarOuroDisp();
-          // aplica automaticamente o arranjo recomendado da nova classe
-          arranjarPorClasse(ARRANJO_PADRAO);
+          // aplica automaticamente o melhor arranjo legal da nova classe
+          arranjarPorClasse(typeof ARRANJO_OTIMO !== 'undefined' ? ARRANJO_OTIMO : ARRANJO_PADRAO);
           renderAtributosBase();
         }
         renderTudoDinamico();
@@ -574,11 +575,12 @@ const Criador = (function () {
         renderAposAtributos();
       });
     });
-    // status: botões de arranjo recomendado e rolagem 4d6
+    // status: botões de arranjo (ótimo/padrão) e rolagem 4d6
     wrap.querySelectorAll('[data-acao-attr]').forEach(b => {
       b.addEventListener('click', () => {
-        const valores = b.dataset.acaoAttr === 'rolar'
-          ? Array.from({ length: 6 }, rolar4d6)
+        const acao = b.dataset.acaoAttr;
+        const valores = acao === 'rolar' ? Array.from({ length: 6 }, rolar4d6)
+          : acao === 'otimo' && typeof ARRANJO_OTIMO !== 'undefined' ? ARRANJO_OTIMO
           : ARRANJO_PADRAO;
         arranjarPorClasse(valores);
         renderAtributosBase();
@@ -1166,11 +1168,11 @@ const Criador = (function () {
     s.antecedente = escolherAleatorio(Object.keys(ANTECEDENTES));
     s.nivel = estado ? estado.nivel : 1;
 
-    // Atributos: arranjo padrão distribuído pela prioridade da classe (quick build PHB)
+    // Atributos: melhor arranjo legal distribuído pela prioridade da classe
     const ordem = (typeof ATRIBUTOS_PRIORIDADE !== 'undefined' && ATRIBUTOS_PRIORIDADE[s.classe])
       || ['for', 'des', 'con', 'int', 'sab', 'car'];
     const todos = ['for', 'des', 'con', 'int', 'sab', 'car'];
-    const arr = [...ARRANJO_PADRAO];
+    const arr = [...(typeof ARRANJO_OTIMO !== 'undefined' ? ARRANJO_OTIMO : ARRANJO_PADRAO)].sort((a, b) => b - a);
     ordem.forEach((k, i) => { s.base[k] = arr[i]; });
 
     // Subclasse aleatória quando o nível já permite a escolha
@@ -1324,6 +1326,8 @@ const Criador = (function () {
     ctx = opts || {};
     montarSelectsUmaVez();
     carregarFicha(ficha);
+    // ficha nova já nasce com o melhor arranjo legal p/ a classe (compra de pontos)
+    if (criandoNovo && typeof ARRANJO_OTIMO !== 'undefined') arranjarPorClasse(ARRANJO_OTIMO);
     preencherCampos();
     renderTudoDinamico();
     renderItens();

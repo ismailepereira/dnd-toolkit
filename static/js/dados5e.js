@@ -398,6 +398,10 @@ const ATRIBUTOS_PRIORIDADE = {
   'Patrulheiro': ['des', 'sab', 'con', 'for', 'int', 'car'],
 };
 
+// Melhor conjunto de valores dentro das regras (compra de pontos, 27 pts do PHB):
+// dois 15 nos atributos-chave da classe + 14 de apoio. Distribuído via ATRIBUTOS_PRIORIDADE.
+const ARRANJO_OTIMO = [15, 15, 14, 10, 8, 8];
+
 const RACAS_RESUMO = {
   'Anão da Colina':    { simbolo: '⚒️', resumo: 'Resistente e sábio: +1 PV por nível o torna incrivelmente durável. Ideal para Clérigos e Druidas.' },
   'Anão da Montanha':  { simbolo: '⛏️', resumo: 'O anão combatente: força e constituição altas, e proficiência com armaduras leve e média mesmo em classes que não a teriam.' },

@@ -381,6 +381,23 @@ const CLASSES_RESUMO = {
   },
 };
 
+// Ordem de prioridade dos atributos por classe (quick build do PHB).
+// Usada p/ distribuir o arranjo padrão/rolagens do melhor p/ o pior atributo.
+const ATRIBUTOS_PRIORIDADE = {
+  'Bárbaro':     ['for', 'con', 'des', 'sab', 'car', 'int'],
+  'Bardo':       ['car', 'des', 'con', 'sab', 'int', 'for'],
+  'Bruxo':       ['car', 'con', 'des', 'sab', 'int', 'for'],
+  'Clérigo':     ['sab', 'con', 'for', 'des', 'car', 'int'],
+  'Druida':      ['sab', 'con', 'des', 'int', 'car', 'for'],
+  'Feiticeiro':  ['car', 'con', 'des', 'sab', 'int', 'for'],
+  'Guerreiro':   ['for', 'con', 'des', 'sab', 'car', 'int'],
+  'Ladino':      ['des', 'con', 'int', 'sab', 'car', 'for'],
+  'Mago':        ['int', 'con', 'des', 'sab', 'car', 'for'],
+  'Monge':       ['des', 'sab', 'con', 'for', 'int', 'car'],
+  'Paladino':    ['for', 'car', 'con', 'sab', 'des', 'int'],
+  'Patrulheiro': ['des', 'sab', 'con', 'for', 'int', 'car'],
+};
+
 const RACAS_RESUMO = {
   'Anão da Colina':    { simbolo: '⚒️', resumo: 'Resistente e sábio: +1 PV por nível o torna incrivelmente durável. Ideal para Clérigos e Druidas.' },
   'Anão da Montanha':  { simbolo: '⛏️', resumo: 'O anão combatente: força e constituição altas, e proficiência com armaduras leve e média mesmo em classes que não a teriam.' },

@@ -231,9 +231,26 @@ const Criador = (function () {
     wrap.querySelectorAll('[data-attr]').forEach(inp => {
       inp.addEventListener('input', () => {
         estado.base[inp.dataset.attr] = Number(inp.value) || 10;
-        renderPreview();
+        sincronizarAtributosGaleria();
+        renderAposAtributos();
       });
     });
+  }
+
+  // Espelha estado.base nos inputs da galeria de classe (sem re-render, preserva o foco)
+  function sincronizarAtributosGaleria() {
+    document.querySelectorAll('#cGaleriaClasse [data-galeria-attr]').forEach(i => {
+      if (document.activeElement !== i) i.value = estado.base[i.dataset.galeriaAttr];
+    });
+  }
+
+  // Tudo que depende dos valores de atributos (painel de classe, perícias, magias, peso, preview)
+  function renderAposAtributos() {
+    renderPainelClasse();
+    renderPericias();
+    renderMagias();
+    renderPeso();
+    renderPreview();
   }
 
   function renderPericias() {
@@ -444,6 +461,15 @@ const Criador = (function () {
     return a ? a.nome : k;
   }
 
+  // Distribui um conjunto de 6 valores nos atributos, do melhor p/ o pior,
+  // seguindo a prioridade da classe (quick build do PHB)
+  function arranjarPorClasse(valores) {
+    const ordem = (typeof ATRIBUTOS_PRIORIDADE !== 'undefined' && ATRIBUTOS_PRIORIDADE[estado.classe])
+      || ['for', 'des', 'con', 'int', 'sab', 'car'];
+    const v = [...valores].sort((a, b) => b - a);
+    ordem.forEach((k, i) => { estado.base[k] = v[i]; });
+  }
+
   function renderGaleriaClasse() {
     const wrap = $('cGaleriaClasse');
     if (!wrap) return;
@@ -454,6 +480,41 @@ const Criador = (function () {
       const ri = (typeof RACAS_RESUMO !== 'undefined' && RACAS_RESUMO[r]) || {};
       return `<button type="button" class="combo-chip" data-combo-raca="${escHtml(r)}">${ri.simbolo || ''} ${escHtml(r)}</button>`;
     }).join('');
+
+    // Subclasses da classe escolhida
+    const scDef = (typeof SUBCLASSES !== 'undefined' && SUBCLASSES[nome]) || null;
+    let subHtml = '';
+    if (scDef) {
+      const pendente = estado.nivel < scDef.nivel;
+      const cards = scDef.opcoes.map(o => `
+        <button type="button" class="sub-card${estado.subclasse === o.nome ? ' ativo' : ''}" data-galeria-sub="${escHtml(o.nome)}">
+          <b>${escHtml(o.nome)}</b><span>${escHtml(o.desc)}</span>
+        </button>`).join('');
+      subHtml = `
+        <div class="galeria-subclasses">
+          <div class="sub-titulo">Subclasse <span class="sub-nota">${pendente ? `entra em jogo no nível ${scDef.nivel} — pode deixar pré-escolhida` : `escolhida no nível ${scDef.nivel}`}</span></div>
+          <div class="sub-lista">${cards}</div>
+        </div>`;
+    }
+
+    // Status recomendados p/ a classe (arranjo padrão orientado), editáveis + rolagem
+    const ordemPrio = (typeof ATRIBUTOS_PRIORIDADE !== 'undefined' && ATRIBUTOS_PRIORIDADE[nome]) || [];
+    const statusInputs = ATRIBUTOS.map(a => {
+      const rank = ordemPrio.indexOf(a.chave);
+      const cl = rank === 0 ? ' primario' : (rank === 1 ? ' secundario' : '');
+      return `<label class="status-attr${cl}"><span>${a.chave.toUpperCase()}</span>
+        <input type="number" min="3" max="20" data-galeria-attr="${a.chave}" value="${estado.base[a.chave]}"></label>`;
+    }).join('');
+    const statusHtml = `
+      <div class="galeria-status">
+        <div class="status-titulo">Status recomendados para ${escHtml(nome)} <span class="sub-nota">edite à vontade ou role os dados</span></div>
+        <div class="status-grid">${statusInputs}</div>
+        <div class="status-botoes">
+          <button type="button" class="btn-mini" data-acao-attr="recomendado">✔ Recomendado (arranjo padrão)</button>
+          <button type="button" class="btn-mini" data-acao-attr="rolar">🎲 Rolar 4d6</button>
+        </div>
+      </div>`;
+
     const minis = Object.keys(CLASSE_NOME_PARA_CHAVE).map(c => {
       const i = (typeof CLASSES_RESUMO !== 'undefined' && CLASSES_RESUMO[c]) || {};
       return `<button type="button" class="mini-card${c === nome ? ' ativo' : ''}" data-galeria-classe="${escHtml(c)}">
@@ -468,6 +529,8 @@ const Criador = (function () {
         ${cls ? `<div class="galeria-meta">Dado de vida ${cls.dadoVida} · Salvaguardas: ${cls.salvaguardas.join(' e ')}</div>` : ''}
         <p class="galeria-texto">${escHtml(info.resumo || '')}</p>
         ${combos ? `<div class="galeria-combos"><span class="combos-titulo">Melhores raças:</span> ${combos}</div>` : ''}
+        ${subHtml}
+        ${statusHtml}
       </div>
       <div class="galeria-minis">${minis}</div>`;
     wrap.querySelectorAll('[data-galeria-classe]').forEach(b => {
@@ -475,7 +538,13 @@ const Criador = (function () {
         estado.classe = b.dataset.galeriaClasse;
         estado.subclasse = '';
         mostrarTodasEscolas = false;
-        if (criandoNovo) { estado.ouro = (typeof OURO_INICIAL !== 'undefined' && OURO_INICIAL[estado.classe]) || 0; atualizarOuroDisp(); }
+        if (criandoNovo) {
+          estado.ouro = (typeof OURO_INICIAL !== 'undefined' && OURO_INICIAL[estado.classe]) || 0;
+          atualizarOuroDisp();
+          // aplica automaticamente o arranjo recomendado da nova classe
+          arranjarPorClasse(ARRANJO_PADRAO);
+          renderAtributosBase();
+        }
         renderTudoDinamico();
       });
     });
@@ -485,6 +554,35 @@ const Criador = (function () {
         estado.raca = b.dataset.comboRaca;
         renderTudoDinamico();
         irPasso(2);
+      });
+    });
+    // subclasses: clicar seleciona; clicar de novo desmarca
+    wrap.querySelectorAll('[data-galeria-sub]').forEach(b => {
+      b.addEventListener('click', () => {
+        estado.subclasse = (estado.subclasse === b.dataset.galeriaSub) ? '' : b.dataset.galeriaSub;
+        mostrarTodasEscolas = false;
+        renderTudoDinamico();
+      });
+    });
+    // status: edição manual (sem re-render da galeria p/ não perder o foco)
+    wrap.querySelectorAll('[data-galeria-attr]').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const v = Number(inp.value);
+        if (!Number.isFinite(v)) return;
+        estado.base[inp.dataset.galeriaAttr] = Math.max(3, Math.min(20, v));
+        renderAtributosBase();
+        renderAposAtributos();
+      });
+    });
+    // status: botões de arranjo recomendado e rolagem 4d6
+    wrap.querySelectorAll('[data-acao-attr]').forEach(b => {
+      b.addEventListener('click', () => {
+        const valores = b.dataset.acaoAttr === 'rolar'
+          ? Array.from({ length: 6 }, rolar4d6)
+          : ARRANJO_PADRAO;
+        arranjarPorClasse(valores);
+        renderAtributosBase();
+        renderTudoDinamico();
       });
     });
   }
@@ -538,8 +636,9 @@ const Criador = (function () {
     if (!el) return;
     const ic = (typeof CLASSES_RESUMO !== 'undefined' && CLASSES_RESUMO[estado.classe]) || {};
     const ir = (typeof RACAS_RESUMO !== 'undefined' && RACAS_RESUMO[estado.raca]) || {};
+    const sub = estado.subclasse ? ` · ${escHtml(estado.subclasse)}` : '';
     el.innerHTML = `
-      <button type="button" class="resumo-chip" data-ir-passo="1">${ic.simbolo || ''} ${escHtml(estado.classe)} <span class="resumo-editar">alterar</span></button>
+      <button type="button" class="resumo-chip" data-ir-passo="1">${ic.simbolo || ''} ${escHtml(estado.classe)}${sub} <span class="resumo-editar">alterar</span></button>
       <button type="button" class="resumo-chip" data-ir-passo="2">${ir.simbolo || ''} ${escHtml(estado.raca)} <span class="resumo-editar">alterar</span></button>`;
     el.querySelectorAll('[data-ir-passo]').forEach(b => {
       b.addEventListener('click', () => irPasso(Number(b.dataset.irPasso)));
@@ -1067,17 +1166,16 @@ const Criador = (function () {
     s.antecedente = escolherAleatorio(Object.keys(ANTECEDENTES));
     s.nivel = estado ? estado.nivel : 1;
 
-    // Atributos: arranjo padrão direcionado para o atributo principal da classe
-    const principal = {
-      'Guerreiro': 'for', 'Bárbaro': 'for', 'Paladino': 'for',
-      'Mago': 'int', 'Clérigo': 'sab', 'Druida': 'sab', 'Patrulheiro': 'des',
-      'Ladino': 'des', 'Monge': 'des', 'Bardo': 'car', 'Feiticeiro': 'car', 'Bruxo': 'car',
-    }[s.classe] || 'for';
-    const ordem = [principal, 'con', 'des', 'sab', 'int', 'car'].filter((v, i, a) => a.indexOf(v) === i);
+    // Atributos: arranjo padrão distribuído pela prioridade da classe (quick build PHB)
+    const ordem = (typeof ATRIBUTOS_PRIORIDADE !== 'undefined' && ATRIBUTOS_PRIORIDADE[s.classe])
+      || ['for', 'des', 'con', 'int', 'sab', 'car'];
     const todos = ['for', 'des', 'con', 'int', 'sab', 'car'];
-    todos.forEach(k => { if (!ordem.includes(k)) ordem.push(k); });
     const arr = [...ARRANJO_PADRAO];
     ordem.forEach((k, i) => { s.base[k] = arr[i]; });
+
+    // Subclasse aleatória quando o nível já permite a escolha
+    const scDef = (typeof SUBCLASSES !== 'undefined' && SUBCLASSES[s.classe]) || null;
+    if (scDef && s.nivel >= scDef.nivel) s.subclasse = escolherAleatorio(scDef.opcoes).nome;
 
     // Escolha de atributos raciais
     const r = RACAS_DETALHE[s.raca] || {};
@@ -1257,12 +1355,11 @@ const Criador = (function () {
     $('cAnotacoes').addEventListener('input', () => { estado.anotacoes = $('cAnotacoes').value; });
 
     $('btnArranjoPadrao').addEventListener('click', () => {
-      const ordem = ['for', 'des', 'con', 'int', 'sab', 'car'];
-      ordem.forEach((k, i) => estado.base[k] = ARRANJO_PADRAO[i]);
+      arranjarPorClasse(ARRANJO_PADRAO);
       renderAtributosBase(); renderTudoDinamico();
     });
     $('btnRolarAtributos').addEventListener('click', () => {
-      ['for', 'des', 'con', 'int', 'sab', 'car'].forEach(k => estado.base[k] = rolar4d6());
+      arranjarPorClasse(Array.from({ length: 6 }, rolar4d6));
       renderAtributosBase(); renderTudoDinamico();
     });
     $('btnAutoGerar').addEventListener('click', autoGerar);

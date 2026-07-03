@@ -1290,6 +1290,37 @@ body.alto-contraste a { color: #ffd400; }
 .mini-nome { text-align: center; line-height: 1.15; }
 .mini-estrela { position: absolute; top: -6px; right: -4px; font-size: 0.75rem; }
 
+/* Subclasses na galeria de classe */
+.galeria-subclasses { margin-top: 14px; text-align: left; }
+.sub-titulo { font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; }
+.sub-nota { font-weight: 400; color: var(--text-dim); font-size: 0.74rem; }
+.sub-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; }
+.sub-card {
+  display: flex; flex-direction: column; gap: 2px; text-align: left;
+  padding: 8px 10px; border-radius: 8px; cursor: pointer;
+  background: var(--bg-panel); border: 1px solid var(--border);
+  color: var(--text); font: inherit; font-size: 0.76rem;
+}
+.sub-card span { color: var(--text-dim); font-size: 0.72rem; line-height: 1.3; }
+.sub-card:hover { border-color: var(--accent); }
+.sub-card.ativo { border-color: var(--accent); background: rgba(233,69,96,0.14); box-shadow: 0 0 8px rgba(233,69,96,0.2); }
+
+/* Status recomendados na galeria de classe */
+.galeria-status { margin-top: 14px; text-align: left; }
+.status-titulo { font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; }
+.status-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.status-attr { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.7rem; color: var(--text-dim); }
+.status-attr input {
+  width: 100%; text-align: center; padding: 6px 2px; border-radius: 8px;
+  background: var(--bg-panel); border: 1px solid var(--border); color: var(--text); font-size: 0.9rem;
+}
+.status-attr.primario span { color: var(--accent); font-weight: 700; }
+.status-attr.primario input { border-color: var(--accent); box-shadow: 0 0 6px rgba(233,69,96,0.25); }
+.status-attr.secundario span { color: #d4a72c; font-weight: 600; }
+.status-attr.secundario input { border-color: #d4a72c; }
+.status-botoes { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+@media (max-width: 560px) { .status-grid { grid-template-columns: repeat(3, 1fr); } }
+
 .criador-resumo-escolha { display: flex; flex-wrap: wrap; gap: 8px; }
 .resumo-chip {
   display: inline-flex; align-items: center; gap: 6px;

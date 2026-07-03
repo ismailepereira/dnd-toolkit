@@ -313,6 +313,92 @@ const OURO_INICIAL = {
   'Feiticeiro': 75, 'Mago': 100, 'Bruxo': 100,
 };
 
+// =====================================================
+// RESUMOS PARA A GALERIA DE CRIAÇÃO (passo Classe / passo Raça)
+// simbolo: emoji grande no centro | resumo: o que a classe faz
+// papel: função no grupo | melhoresRacas: combinações recomendadas
+// =====================================================
+const CLASSES_RESUMO = {
+  'Bárbaro': {
+    simbolo: '🪓', papel: 'Tanque / Dano corpo a corpo',
+    resumo: 'Um combatente feroz movido pelo Furor: entra em fúria para causar dano brutal e resistir a golpes. Muitos PV (d12), dispensa armadura e vive na linha de frente.',
+    melhoresRacas: ['Meio-Orc', 'Anão da Montanha', 'Humano'],
+  },
+  'Bardo': {
+    simbolo: '🎶', papel: 'Suporte / Utilidade / Cara do grupo',
+    resumo: 'Um conjurador carismático que inspira aliados com música e palavras. Versátil em perícias, cura, controle e enganação — bom em quase tudo.',
+    melhoresRacas: ['Meio-Elfo', 'Tiefling', 'Halfling Pés-Leves'],
+  },
+  'Bruxo': {
+    simbolo: '👁️', papel: 'Dano mágico constante',
+    resumo: 'Fez um pacto com uma entidade poderosa em troca de magia. Poucos espaços de magia, mas recuperam em descanso curto; a Rajada Sobrenatural é o melhor truque de dano do jogo.',
+    melhoresRacas: ['Tiefling', 'Meio-Elfo', 'Humano (Variante)'],
+  },
+  'Clérigo': {
+    simbolo: '📿', papel: 'Curandeiro / Suporte / Versátil',
+    resumo: 'Canal do poder de uma divindade: cura, protege e também luta bem. O Domínio Divino (subclasse no nível 1) define se será mais guerreiro ou mais conjurador.',
+    melhoresRacas: ['Anão da Colina', 'Elfo da Floresta', 'Humano (Variante)'],
+  },
+  'Druida': {
+    simbolo: '🌿', papel: 'Conjurador / Metamorfo / Suporte',
+    resumo: 'Guardião da natureza que conjura magias elementais e se transforma em animais com a Forma Selvagem. Ótimo controle de campo e utilidade fora de combate.',
+    melhoresRacas: ['Elfo da Floresta', 'Anão da Colina', 'Humano (Variante)'],
+  },
+  'Guerreiro': {
+    simbolo: '⚔️', papel: 'Dano / Tanque / Simples de jogar',
+    resumo: 'Mestre de armas e armaduras. Ataques extras, Surto de Ação e Retomar o Fôlego o tornam confiável em qualquer combate. Ideal para quem está começando.',
+    melhoresRacas: ['Anão da Montanha', 'Meio-Orc', 'Humano (Variante)'],
+  },
+  'Ladino': {
+    simbolo: '🗡️', papel: 'Dano preciso / Perícias / Furtividade',
+    resumo: 'Especialista em furtividade e golpes certeiros: o Ataque Furtivo causa dano enorme quando tem vantagem. Rei das perícias — armadilhas, fechaduras e lábia.',
+    melhoresRacas: ['Halfling Pés-Leves', 'Alto Elfo', 'Humano (Variante)'],
+  },
+  'Mago': {
+    simbolo: '🔮', papel: 'Conjurador supremo / Controle',
+    resumo: 'Estudioso da magia arcana com o maior grimório do jogo. Frágil (d6), mas resolve quase qualquer problema com a magia certa. Escolhe uma Escola de Magia no nível 2.',
+    melhoresRacas: ['Gnomo da Floresta', 'Alto Elfo', 'Humano (Variante)'],
+  },
+  'Monge': {
+    simbolo: '🥋', papel: 'Dano rápido / Mobilidade',
+    resumo: 'Artista marcial que canaliza o Ki: vários ataques desarmados, deslocamento altíssimo e o temido Golpe Atordoante. Dispensa armas e armadura.',
+    melhoresRacas: ['Elfo da Floresta', 'Humano (Variante)', 'Halfling Pés-Leves'],
+  },
+  'Paladino': {
+    simbolo: '🛡️', papel: 'Tanque / Dano explosivo / Suporte',
+    resumo: 'Guerreiro sagrado unido por um juramento. A Punição Divina gasta magia para causar dano radiante enorme; auras protegem todo o grupo. Cura pelas mãos.',
+    melhoresRacas: ['Meio-Elfo', 'Draconato', 'Humano (Variante)'],
+  },
+  'Patrulheiro': {
+    simbolo: '🏹', papel: 'Dano à distância / Explorador',
+    resumo: 'Caçador da fronteira: rastreia, explora e elimina inimigos com arco ou duas armas. Meio-conjurador com magias de natureza a partir do nível 2.',
+    melhoresRacas: ['Elfo da Floresta', 'Humano (Variante)', 'Halfling Robusto'],
+  },
+  'Feiticeiro': {
+    simbolo: '🔥', papel: 'Dano mágico / Metamagia',
+    resumo: 'A magia corre no seu sangue. Menos magias que o Mago, mas a Metamagia deixa moldá-las: duplicar, acelerar ou estender feitiços como ninguém.',
+    melhoresRacas: ['Meio-Elfo', 'Draconato', 'Tiefling'],
+  },
+};
+
+const RACAS_RESUMO = {
+  'Anão da Colina':    { simbolo: '⚒️', resumo: 'Resistente e sábio: +1 PV por nível o torna incrivelmente durável. Ideal para Clérigos e Druidas.' },
+  'Anão da Montanha':  { simbolo: '⛏️', resumo: 'O anão combatente: força e constituição altas, e proficiência com armaduras leve e média mesmo em classes que não a teriam.' },
+  'Alto Elfo':         { simbolo: '✨', resumo: 'Elegante e arcano: ganha um truque de Mago de graça. Ótimo para Magos e Ladinos que querem um toque de magia.' },
+  'Elfo da Floresta':  { simbolo: '🍃', resumo: 'Rápido (deslocamento 35) e perceptivo. Esconde-se na natureza. Perfeito para Patrulheiros, Druidas, Clérigos e Monges.' },
+  'Drow (Elfo Negro)': { simbolo: '🌑', resumo: 'Visão no escuro superior (36m) e magias inatas, mas sofre sob luz solar. Combina com Bruxos e Bardos.' },
+  'Halfling Pés-Leves':{ simbolo: '🍀', resumo: 'Sortudo (rerrola 1 no d20) e furtivo — esconde-se atrás de aliados. Excelente para Ladinos e Bardos.' },
+  'Halfling Robusto':  { simbolo: '🍺', resumo: 'Sortudo e resistente a veneno. Pequeno mas difícil de derrubar. Bom para Patrulheiros e Clérigos.' },
+  'Humano':            { simbolo: '🧑', resumo: '+1 em TODOS os atributos. Simples e sólido em qualquer classe — nunca é uma escolha errada.' },
+  'Humano (Variante)': { simbolo: '🎯', resumo: 'Troca os bônus gerais por +1 em dois atributos à escolha, 1 perícia e 1 TALENTO no nível 1 — a raça mais flexível do jogo.' },
+  'Draconato':         { simbolo: '🐉', resumo: 'Sangue de dragão: arma de sopro (2d6) e resistência a um tipo de dano. Forte e carismático — ótimo Paladino ou Feiticeiro.' },
+  'Gnomo da Floresta': { simbolo: '🍄', resumo: 'Inteligente e astuto: vantagem contra magias mentais e o truque Ilusão Menor. Feito para Magos.' },
+  'Gnomo das Rochas':  { simbolo: '⚙️', resumo: 'Inventor curioso: cria pequenos dispositivos e resiste a magias mentais. Combina com Magos e Artífices de alma.' },
+  'Meio-Elfo':         { simbolo: '🌓', resumo: '+2 Carisma, +1 em DOIS atributos à escolha e 2 perícias livres. A melhor raça para Bardos, Bruxos, Feiticeiros e Paladinos.' },
+  'Meio-Orc':          { simbolo: '💪', resumo: 'Fica de pé com 1 PV quando cairia a 0, e críticos devastadores. Nasceu para ser Bárbaro ou Guerreiro.' },
+  'Tiefling':          { simbolo: '😈', resumo: 'Herança infernal: resistência a fogo e magias inatas (Taumaturgia, Repreensão Infernal). Bruxos e Feiticeiros por natureza.' },
+};
+
 // Nomes para o gerador aleatório
 const NOMES_ALEATORIOS = [
   'Thorin', 'Lyra', 'Gareth', 'Sariel', 'Borin', 'Vex', 'Aelar', 'Mira',

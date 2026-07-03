@@ -426,6 +426,9 @@ const Criador = (function () {
   }
 
   function renderTudoDinamico() {
+    renderGaleriaClasse();
+    renderGaleriaRaca();
+    renderResumoEscolha();
     renderEscolhaAtributos();
     renderPainelClasse();
     renderPericias();
@@ -433,6 +436,114 @@ const Criador = (function () {
     renderMagias();
     renderPeso();
     renderPreview();
+  }
+
+  // ---------- Galerias de seleção (passos 1 e 2) ----------
+  function nomeAtributo(k) {
+    const a = ATRIBUTOS.find(x => x.chave === k);
+    return a ? a.nome : k;
+  }
+
+  function renderGaleriaClasse() {
+    const wrap = $('cGaleriaClasse');
+    if (!wrap) return;
+    const nome = estado.classe;
+    const info = (typeof CLASSES_RESUMO !== 'undefined' && CLASSES_RESUMO[nome]) || {};
+    const cls = CLASSES[CLASSE_NOME_PARA_CHAVE[nome]];
+    const combos = (info.melhoresRacas || []).map(r => {
+      const ri = (typeof RACAS_RESUMO !== 'undefined' && RACAS_RESUMO[r]) || {};
+      return `<button type="button" class="combo-chip" data-combo-raca="${escHtml(r)}">${ri.simbolo || ''} ${escHtml(r)}</button>`;
+    }).join('');
+    const minis = Object.keys(CLASSE_NOME_PARA_CHAVE).map(c => {
+      const i = (typeof CLASSES_RESUMO !== 'undefined' && CLASSES_RESUMO[c]) || {};
+      return `<button type="button" class="mini-card${c === nome ? ' ativo' : ''}" data-galeria-classe="${escHtml(c)}">
+        <span class="mini-simbolo">${i.simbolo || '❔'}</span><span class="mini-nome">${escHtml(c)}</span>
+      </button>`;
+    }).join('');
+    wrap.innerHTML = `
+      <div class="galeria-centro">
+        <div class="galeria-simbolo">${info.simbolo || '❔'}</div>
+        <h3 class="galeria-nome">${escHtml(nome)}</h3>
+        ${info.papel ? `<div class="galeria-papel">${escHtml(info.papel)}</div>` : ''}
+        ${cls ? `<div class="galeria-meta">Dado de vida ${cls.dadoVida} · Salvaguardas: ${cls.salvaguardas.join(' e ')}</div>` : ''}
+        <p class="galeria-texto">${escHtml(info.resumo || '')}</p>
+        ${combos ? `<div class="galeria-combos"><span class="combos-titulo">Melhores raças:</span> ${combos}</div>` : ''}
+      </div>
+      <div class="galeria-minis">${minis}</div>`;
+    wrap.querySelectorAll('[data-galeria-classe]').forEach(b => {
+      b.addEventListener('click', () => {
+        estado.classe = b.dataset.galeriaClasse;
+        estado.subclasse = '';
+        mostrarTodasEscolas = false;
+        if (criandoNovo) { estado.ouro = (typeof OURO_INICIAL !== 'undefined' && OURO_INICIAL[estado.classe]) || 0; atualizarOuroDisp(); }
+        renderTudoDinamico();
+      });
+    });
+    // atalho: clicar numa raça recomendada já a seleciona e avança para o passo 2
+    wrap.querySelectorAll('[data-combo-raca]').forEach(b => {
+      b.addEventListener('click', () => {
+        estado.raca = b.dataset.comboRaca;
+        renderTudoDinamico();
+        irPasso(2);
+      });
+    });
+  }
+
+  function renderGaleriaRaca() {
+    const wrap = $('cGaleriaRaca');
+    if (!wrap) return;
+    const nome = estado.raca;
+    const info = (typeof RACAS_RESUMO !== 'undefined' && RACAS_RESUMO[nome]) || {};
+    const det = RACAS_DETALHE[nome] || {};
+    const recomendadas = ((typeof CLASSES_RESUMO !== 'undefined' && CLASSES_RESUMO[estado.classe]) || {}).melhoresRacas || [];
+    const asiFixo = Object.entries(det.asi || {})
+      .map(([k, v]) => `<span class="attr-chip">+${v} ${nomeAtributo(k)}</span>`).join('');
+    const asiEscolha = det.escolhaAtributos
+      ? `<span class="attr-chip escolha">+1 em ${det.escolhaAtributos} atributo${det.escolhaAtributos > 1 ? 's' : ''} à escolha</span>` : '';
+    const meta = [
+      `Deslocamento ${det.deslocamento || 30}`,
+      `Tamanho ${det.tamanho || 'Médio'}`,
+      det.visaoNoEscuro ? `Visão no escuro ${det.visaoNoEscuro}m` : '',
+      det.idiomas ? det.idiomas.join(', ') : '',
+    ].filter(Boolean).join(' · ');
+    const tracos = (det.tracos || []).map(t => `<li>${escHtml(t)}</li>`).join('');
+    const minis = RACAS.flatMap(g => g.opcoes).map(r => {
+      const i = (typeof RACAS_RESUMO !== 'undefined' && RACAS_RESUMO[r]) || {};
+      const rec = recomendadas.includes(r);
+      return `<button type="button" class="mini-card${r === nome ? ' ativo' : ''}${rec ? ' recomendada' : ''}" data-galeria-raca="${escHtml(r)}" ${rec ? `title="Recomendada para ${escHtml(estado.classe)}"` : ''}>
+        <span class="mini-simbolo">${i.simbolo || '❔'}</span><span class="mini-nome">${escHtml(r)}</span>${rec ? '<span class="mini-estrela">⭐</span>' : ''}
+      </button>`;
+    }).join('');
+    wrap.innerHTML = `
+      <div class="galeria-centro">
+        <div class="galeria-simbolo">${info.simbolo || '❔'}</div>
+        <h3 class="galeria-nome">${escHtml(nome)}</h3>
+        <div class="galeria-atributos">${asiFixo}${asiEscolha}</div>
+        <div class="galeria-meta">${escHtml(meta)}</div>
+        <p class="galeria-texto">${escHtml(info.resumo || '')}</p>
+        ${tracos ? `<ul class="galeria-tracos">${tracos}</ul>` : ''}
+      </div>
+      <div class="galeria-minis">${minis}</div>`;
+    wrap.querySelectorAll('[data-galeria-raca]').forEach(b => {
+      b.addEventListener('click', () => {
+        estado.raca = b.dataset.galeriaRaca;
+        renderTudoDinamico();
+      });
+    });
+  }
+
+  // Chips com a escolha feita, exibidos no passo 3
+  function renderResumoEscolha() {
+    const el = $('cResumoEscolha');
+    if (!el) return;
+    const ic = (typeof CLASSES_RESUMO !== 'undefined' && CLASSES_RESUMO[estado.classe]) || {};
+    const ir = (typeof RACAS_RESUMO !== 'undefined' && RACAS_RESUMO[estado.raca]) || {};
+    el.innerHTML = `
+      <button type="button" class="resumo-chip" data-ir-passo="1">${ic.simbolo || ''} ${escHtml(estado.classe)} <span class="resumo-editar">alterar</span></button>
+      <button type="button" class="resumo-chip" data-ir-passo="2">${ir.simbolo || ''} ${escHtml(estado.raca)} <span class="resumo-editar">alterar</span></button>`;
+    el.querySelectorAll('[data-ir-passo]').forEach(b => {
+      b.addEventListener('click', () => irPasso(Number(b.dataset.irPasso)));
+    });
   }
 
   // ---------- Painel detalhado por classe (etapa 2) ----------
@@ -1010,8 +1121,6 @@ const Criador = (function () {
   // ---------- Preencher campos a partir do estado ----------
   function preencherCampos() {
     $('cNome').value = estado.nome;
-    $('cRaca').value = estado.raca;
-    $('cClasse').value = estado.classe;
     $('cAntecedente').value = estado.antecedente;
     $('cNivel').value = estado.nivel;
     $('cArmadura').value = estado.armadura;
@@ -1096,7 +1205,7 @@ const Criador = (function () {
 
   // ---------- Navegação por etapas ----------
   let passo = 1;
-  const TOTAL_PASSOS = 3;
+  const TOTAL_PASSOS = 5;
   function irPasso(n) {
     passo = Math.max(1, Math.min(TOTAL_PASSOS, n));
     document.querySelectorAll('#modalCriador .criador-step').forEach(el => {
@@ -1130,10 +1239,6 @@ const Criador = (function () {
   function montarSelectsUmaVez() {
     if (montado) return;
     montado = true;
-    // Raça
-    $('cRaca').innerHTML = RACAS.flatMap(g => g.opcoes).map(o => `<option value="${o}">${o}</option>`).join('');
-    // Classe
-    $('cClasse').innerHTML = Object.keys(CLASSE_NOME_PARA_CHAVE).map(c => `<option value="${c}">${c}</option>`).join('');
     // Antecedente
     $('cAntecedente').innerHTML = Object.keys(ANTECEDENTES).map(a => `<option value="${a}">${a}</option>`).join('');
     // Nível
@@ -1143,13 +1248,6 @@ const Criador = (function () {
 
     // Listeners
     $('cNome').addEventListener('input', () => { estado.nome = $('cNome').value; renderPreview(); });
-    $('cRaca').addEventListener('change', () => { estado.raca = $('cRaca').value; renderTudoDinamico(); });
-    $('cClasse').addEventListener('change', () => {
-      estado.classe = $('cClasse').value;
-      estado.subclasse = ''; mostrarTodasEscolas = false;
-      if (criandoNovo) { estado.ouro = (typeof OURO_INICIAL !== 'undefined' && OURO_INICIAL[estado.classe]) || 0; atualizarOuroDisp(); }
-      renderTudoDinamico();
-    });
     $('cAntecedente').addEventListener('change', () => { estado.antecedente = $('cAntecedente').value; renderPreview(); });
     $('cNivel').addEventListener('change', () => { estado.nivel = Number($('cNivel').value); renderTudoDinamico(); });
     $('cArmadura').addEventListener('change', () => { estado.armadura = $('cArmadura').value; renderPeso(); renderPreview(); });

@@ -8,22 +8,31 @@
 
       <!-- Indicador de etapas -->
       <div class="criador-passos">
-        <span class="passo-chip" data-passo-chip="1">1 · Identidade & Atributos</span>
-        <span class="passo-chip" data-passo-chip="2">2 · Habilidades & Magias</span>
-        <span class="passo-chip" data-passo-chip="3">3 · Itens & Inventário</span>
+        <span class="passo-chip" data-passo-chip="1">1 · Classe</span>
+        <span class="passo-chip" data-passo-chip="2">2 · Raça</span>
+        <span class="passo-chip" data-passo-chip="3">3 · Identidade & Atributos</span>
+        <span class="passo-chip" data-passo-chip="4">4 · Habilidades & Magias</span>
+        <span class="passo-chip" data-passo-chip="5">5 · Itens & Inventário</span>
       </div>
 
       <div class="criador-layout">
         <!-- Escolhas -->
         <div class="criador-form">
 
-          <!-- ETAPA 1: Identidade, raça, classe, atributos -->
+          <!-- ETAPA 1: Escolha da Classe (galeria) -->
           <div class="criador-step" data-step="1">
+            <div id="cGaleriaClasse" class="galeria-selecao"></div>
+          </div>
+
+          <!-- ETAPA 2: Escolha da Raça (galeria) -->
+          <div class="criador-step hidden" data-step="2">
+            <div id="cGaleriaRaca" class="galeria-selecao"></div>
+          </div>
+
+          <!-- ETAPA 3: Identidade e atributos -->
+          <div class="criador-step hidden" data-step="3">
+            <div id="cResumoEscolha" class="criador-resumo-escolha"></div>
             <label>Nome <input type="text" id="cNome" placeholder="Nome do personagem"></label>
-            <div class="criador-row">
-              <label>Raça <select id="cRaca"></select></label>
-              <label>Classe <select id="cClasse"></select></label>
-            </div>
             <div id="cEscolhaAtributos" class="criador-escolha-attr"></div>
             <div class="criador-row">
               <label>Antecedente <select id="cAntecedente"></select></label>
@@ -39,8 +48,8 @@
             <div id="cAtributos" class="atributos-grid"></div>
           </div>
 
-          <!-- ETAPA 2: Habilidades e magias (painel por classe) -->
-          <div class="criador-step hidden" data-step="2">
+          <!-- ETAPA 4: Habilidades e magias (painel por classe) -->
+          <div class="criador-step hidden" data-step="4">
             <div id="cClassePainel" class="classe-painel"></div>
 
             <h3 id="cEstiloWrap" class="hidden">Estilo de Combate</h3>
@@ -56,8 +65,8 @@
             </div>
           </div>
 
-          <!-- ETAPA 3: Itens, inventário e peso -->
-          <div class="criador-step hidden" data-step="3">
+          <!-- ETAPA 5: Itens, inventário e peso -->
+          <div class="criador-step hidden" data-step="5">
             <h3>Armadura</h3>
             <select id="cArmadura"></select>
             <label class="check-inline"><input type="checkbox" id="cEscudo"> Usar escudo (+2 CA)</label>

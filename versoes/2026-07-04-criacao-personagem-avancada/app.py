@@ -33,8 +33,6 @@ ESTADO_PADRAO = {
     'combate': {'combatentes': [], 'turno': 0, 'rodada': 1, 'log': []},
     'notas': [],       # notas/handouts do Mestre (com flag 'compartilhada' p/ jogadores)
     'encontros': [],   # encontros salvos do montador (lançáveis no combate)
-    'itens_mestre': [],  # itens mágicos criados pelo Mestre (fora do acervo/loja do jogador)
-    'loja_especial_campanha': False,  # Fase 9: libera a Loja Especial (itens mágicos) p/ toda a campanha
 }
 
 # ---------------------------------------------------------------
@@ -276,38 +274,6 @@ def api_get_encontros():
 def api_put_encontros():
     estado = carregar_estado()
     estado['encontros'] = request.get_json(force=True) or []
-    salvar_estado(estado)
-    return jsonify({'ok': True})
-
-
-@app.route('/api/itens_mestre', methods=['GET'])
-@login_obrigatorio()
-def api_get_itens_mestre():
-    # visível para mestre e jogadores (assim a sintonização/inventário reconhece
-    # o item depois que o Mestre o envia a uma ficha), mas só o Mestre cria/edita.
-    return jsonify(carregar_estado().get('itens_mestre', []))
-
-
-@app.route('/api/itens_mestre', methods=['PUT'])
-@login_obrigatorio(papeis=['mestre'])
-def api_put_itens_mestre():
-    estado = carregar_estado()
-    estado['itens_mestre'] = request.get_json(force=True) or []
-    salvar_estado(estado)
-    return jsonify({'ok': True})
-
-
-@app.route('/api/loja_especial', methods=['GET'])
-@login_obrigatorio()
-def api_get_loja_especial():
-    return jsonify({'liberada': bool(carregar_estado().get('loja_especial_campanha', False))})
-
-
-@app.route('/api/loja_especial', methods=['PUT'])
-@login_obrigatorio(papeis=['mestre'])
-def api_put_loja_especial():
-    estado = carregar_estado()
-    estado['loja_especial_campanha'] = bool((request.get_json(force=True) or {}).get('liberada'))
     salvar_estado(estado)
     return jsonify({'ok': True})
 

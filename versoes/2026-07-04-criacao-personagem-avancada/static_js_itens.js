@@ -52,22 +52,9 @@ const ITENS_PADRAO = [
 
   // Montarias/Veículos
   { nome: 'Cavalo de Montaria', categoria: 'Montaria', preco: '75 po', peso: '-', descricao: 'Deslocamento 18m, capacidade 540kg' },
-  { nome: 'Pônei', categoria: 'Montaria', preco: '30 po', peso: '-', descricao: 'Deslocamento 12m, capacidade 250kg' },
   { nome: 'Mula', categoria: 'Montaria', preco: '8 po', peso: '-', descricao: 'Deslocamento 12m, carga pesada' },
   { nome: 'Carroça', categoria: 'Montaria', preco: '35 po', peso: '-', descricao: 'Transporte de carga, deslocamento 9m' },
   { nome: 'Barco a Remo', categoria: 'Montaria', preco: '50 po', peso: '-', descricao: 'Deslocamento 4,5km/h em água' },
-  { nome: 'Sela', categoria: 'Montaria', preco: '10 po', peso: '12,5 kg', descricao: 'Sela comum para montaria' },
-  { nome: 'Alforje (par)', categoria: 'Montaria', preco: '4 po', peso: '4 kg', descricao: 'Guarda suprimentos na montaria' },
-
-  // Instrumentos musicais (Fase 9: categoria própria na loja)
-  { nome: 'Alaúde', categoria: 'Instrumento', preco: '30 po', peso: '1,3 kg', descricao: 'Instrumento musical de cordas' },
-  { nome: 'Lira', categoria: 'Instrumento', preco: '30 po', peso: '1,2 kg', descricao: 'Instrumento musical de cordas' },
-  { nome: 'Viola', categoria: 'Instrumento', preco: '30 po', peso: '0,5 kg', descricao: 'Instrumento musical de cordas' },
-  { nome: 'Flauta', categoria: 'Instrumento', preco: '2 po', peso: '0,5 kg', descricao: 'Instrumento musical de sopro' },
-  { nome: 'Corneta', categoria: 'Instrumento', preco: '5 po', peso: '1 kg', descricao: 'Instrumento musical de sopro' },
-  { nome: 'Gaita de Foles', categoria: 'Instrumento', preco: '30 po', peso: '3 kg', descricao: 'Instrumento musical de sopro' },
-  { nome: 'Tambor', categoria: 'Instrumento', preco: '6 po', peso: '1,5 kg', descricao: 'Instrumento musical de percussão' },
-  { nome: 'Sinos (Instrumento)', categoria: 'Instrumento', preco: '35 po', peso: '0,5 kg', descricao: 'Instrumento musical de percussão' },
 
 ];
 
@@ -116,12 +103,5 @@ ITENS_MAGICOS.forEach(im => ITENS_PADRAO.push({
   descricao: im.efeito + (im.sintonia ? ' (requer sintonização)' : ''),
 }));
 
-// Lookup do item mágico estruturado por nome — inclui itens criados pelo
-// Mestre na ferramenta de criação (window.ITENS_MESTRE, carregados à parte
-// do acervo/loja do jogador), para que sintonização/inventário reconheçam
-// o item assim que o Mestre o enviar a uma ficha.
-function itemMagico(nome) {
-  return ITENS_MAGICOS.find(i => i.nome === nome)
-    || (window.ITENS_MESTRE || []).find(i => i.nome === nome)
-    || null;
-}
+// Lookup do item mágico estruturado por nome
+function itemMagico(nome) { return ITENS_MAGICOS.find(i => i.nome === nome) || null; }

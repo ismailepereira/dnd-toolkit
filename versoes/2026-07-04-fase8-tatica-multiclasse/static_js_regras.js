@@ -64,40 +64,14 @@ function proficienteArma(classe, armaNome) {
   return false; // marcial sem proficiência
 }
 
-// Versões "efetivas": se a ficha for multiclasse (ficha.classes com 2+
-// entradas), usam a união de proficiências das classes (ver multiclasse.js:
-// proficienciasEfetivas). Mono-classe cai exatamente no comportamento antigo.
-function proficienteArmaduraFicha(ficha, armaduraNome) {
-  if (!armaduraNome || armaduraNome === 'Sem armadura') return true;
-  if (ficha.classes && ficha.classes.length > 1 && typeof proficienciasEfetivas === 'function') {
-    const cat = categoriaArmadura(armaduraNome);
-    return proficienciasEfetivas(ficha).armadura.includes(cat);
-  }
-  return proficienteArmadura(ficha.classe, armaduraNome);
-}
-function proficienteArmaFicha(ficha, armaNome) {
-  const tipo = ARMA_TIPO[armaNome];
-  if (!tipo) return true;
-  if (ficha.classes && ficha.classes.length > 1 && typeof proficienciasEfetivas === 'function') {
-    const nivelArma = proficienciasEfetivas(ficha).arma;
-    if (nivelArma === 'marcial') return true;
-    if (tipo.startsWith('simples')) return true;
-    if (nivelArma === 'simples+' && ARMAS_SIMPLES_MAIS.includes(armaNome)) return true;
-    return false;
-  }
-  return proficienteArma(ficha.classe, armaNome);
-}
-
 // Avisos/penalidades de equipamento (sobrepeso e falta de proficiência)
 function penalidadesEquipamento(ficha) {
   const avisos = [];
   const classe = ficha.classe;
-  const multi = !!(ficha.classes && ficha.classes.length > 1);
-  const armaduraSetEfetiva = multi && typeof proficienciasEfetivas === 'function' ? proficienciasEfetivas(ficha).armadura : (PROF_ARMADURA[classe] || []);
-  if (ficha.armadura && ficha.armadura !== 'Sem armadura' && !proficienteArmaduraFicha(ficha, ficha.armadura)) {
+  if (ficha.armadura && ficha.armadura !== 'Sem armadura' && !proficienteArmadura(classe, ficha.armadura)) {
     avisos.push({ tipo: 'armadura', texto: `Sem proficiência com ${ficha.armadura}: desvantagem em testes, ataques e salvas de Força e Destreza, e não pode conjurar magias.` });
   }
-  if (ficha.escudo && !armaduraSetEfetiva.includes('escudo')) {
+  if (ficha.escudo && !(PROF_ARMADURA[classe] || []).includes('escudo')) {
     avisos.push({ tipo: 'escudo', texto: 'Sem proficiência com escudo: penalidade ao usá-lo.' });
   }
   const fmin = FORCA_MIN_ARMADURA[ficha.armadura];
@@ -105,7 +79,7 @@ function penalidadesEquipamento(ficha) {
     avisos.push({ tipo: 'sobrepeso', texto: `Força ${ficha.atributos.for} abaixo do exigido (${fmin}) para ${ficha.armadura}: deslocamento −3m (sobrepeso).`, deslocamento: -3 });
   }
   (ficha.itens || []).forEach(it => {
-    if (ARMA_TIPO[it] && !proficienteArmaFicha(ficha, it)) {
+    if (ARMA_TIPO[it] && !proficienteArma(classe, it)) {
       avisos.push({ tipo: 'arma', texto: `Sem proficiência com ${it}: você não soma o bônus de proficiência ao ataque.` });
     }
   });
@@ -148,7 +122,7 @@ function ataqueArma(ficha, nome, pb) {
   const forMod = mod(ficha.atributos.for), desMod = mod(ficha.atributos.des);
   const usaDes = da.distancia || (da.acuidade && desMod > forMod);
   const atrMod = usaDes ? desMod : forMod;
-  const prof = proficienteArmaFicha(ficha, nome) ? pb : 0;
+  const prof = proficienteArma(ficha.classe, nome) ? pb : 0;
   const ataque = atrMod + prof;
   let dado = da.dano;
   let notaVersatil = '';

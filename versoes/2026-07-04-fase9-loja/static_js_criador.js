@@ -610,71 +610,37 @@ const Criador = (function () {
     }));
   }
 
-  // ----- Loja da criação (Fase 9: categorias unificadas + Loja Especial gated) -----
-  // Loja Básica = equipamento mundano do PHB (equipamento.js/itens.js) — é o
-  // que fica disponível por padrão na criação. Loja Especial = itens
-  // mágicos/raros; só aparece (em modo consulta, sem comprar) se o Mestre
-  // já tiver liberado para a campanha ou para esta ficha (ver loja.js).
-  let lojaCat = null;
-  let lojaMostrarTudo = false;
-  let lojaAbaAtiva = 'basica'; // 'basica' | 'especial'
+  // ----- Loja da criação (catálogo PHB, filtrada por proficiência) -----
+  const CATS_LOJA = [
+    ['arma', '⚔️ Armas'], ['armadura', '🛡️ Armaduras'], ['municao', '🏹 Munição'],
+    ['foco', '🔮 Focos'], ['aventura', '🎒 Aventura'], ['pocao', '🧪 Poções'],
+  ];
+  let lojaCat = 'arma';
   function renderLoja() {
     const wrap = $('cLojaWrap'); if (!wrap) return;
-    if (typeof itensLojaBasica !== 'function') { wrap.innerHTML = ''; return; }
-
-    const especialOk = (typeof lojaEspecialLiberada === 'function') && lojaEspecialLiberada(fichaOriginal);
-    if (lojaAbaAtiva === 'especial' && !especialOk) lojaAbaAtiva = 'basica';
-    const gruposBasicos = agruparPorCategoriaLoja(itensLojaBasica());
-    const gruposEspeciais = especialOk ? agruparPorCategoriaLoja(itensLojaEspecial()) : [];
-    const gruposAtivos = lojaAbaAtiva === 'especial' ? gruposEspeciais : gruposBasicos;
-    if (!lojaCat || !gruposAtivos.some(g => g.chave === lojaCat)) lojaCat = gruposAtivos[0] ? gruposAtivos[0].chave : null;
-
-    const abasPrincipais = `
-      <button type="button" class="btn-mini aba-loja${lojaAbaAtiva === 'basica' ? ' on' : ''}" data-loja-aba="basica">🛒 Loja Básica</button>
-      <button type="button" class="btn-mini aba-loja${lojaAbaAtiva === 'especial' ? ' on' : ''}${especialOk ? '' : ' bloqueada'}" data-loja-aba="especial"${especialOk ? '' : ' title="Bloqueada — peça ao Mestre para liberar a Loja Especial"'}>✨ Loja Especial${especialOk ? '' : ' 🔒'}</button>
-      <button type="button" class="btn-mini" id="btnLojaCompleta">${lojaMostrarTudo ? '📑 Ver por categoria' : '📖 Abrir loja completa'}</button>`;
-    const abasCategoria = gruposAtivos.map(g =>
-      `<button type="button" class="btn-mini aba-loja${lojaCat === g.chave ? ' on' : ''}" data-loja-cat="${g.chave}">${g.rotulo} <small>(${g.itens.length})</small></button>`).join('');
-
-    const linhaItem = i => {
-      const bloqueada = lojaAbaAtiva === 'basica' && (
-        (i.categoriaLoja === 'arma' && !podeUsarArma(estado.classe, i.nome)) ||
-        ((i.categoriaLoja === 'armadura' || i.categoriaLoja === 'escudo') && !podeUsarArmadura(estado.classe, i.nome, estado.subclasse)));
-      const semOuro = lojaAbaAtiva === 'basica' && i.precoPO > estado.ouro;
-      const precoTxt = lojaAbaAtiva === 'especial'
-        ? `${escHtml(i.raridade || '')}${i.sintonia ? ' · sintonia' : ''}`
-        : `${i.precoPO} po${i.pesoTexto ? ' · ' + escHtml(i.pesoTexto) : ''}`;
+    if (typeof CATALOGO === 'undefined') { wrap.innerHTML = ''; return; }
+    const abas = CATS_LOJA.map(([c, r]) =>
+      `<button type="button" class="btn-mini aba-loja${lojaCat === c ? ' on' : ''}" data-loja-cat="${c}">${r}</button>`).join('');
+    const itens = CATALOGO.filter(i => i.cat === lojaCat || (lojaCat === 'armadura' && i.cat === 'escudo'));
+    const linhas = itens.map(i => {
+      const bloqueada = (i.cat === 'arma' && !podeUsarArma(estado.classe, i.nome))
+        || ((i.cat === 'armadura' || i.cat === 'escudo') && !podeUsarArmadura(estado.classe, i.nome, estado.subclasse));
+      const semOuro = i.precoPO > estado.ouro;
       return `<div class="loja-item${bloqueada ? ' bloqueada' : ''}">
         <span class="loja-nome">${escHtml(i.nome)}</span>
-        <span class="loja-desc">${escHtml(i.descricao || '')}</span>
-        <span class="loja-preco">${precoTxt}</span>
-        ${lojaAbaAtiva === 'especial'
-          ? `<span class="loja-cadeado" title="Itens especiais são concedidos pelo Mestre (aba Fichas → Enviar à ficha), não comprados aqui">✨</span>`
-          : (bloqueada
-            ? `<span class="loja-cadeado" title="${escHtml(estado.classe)} não tem proficiência">🔒</span>`
-            : `<button type="button" class="btn-mini" data-comprar="${escHtml(i.nome)}"${semOuro ? ' disabled title="ouro insuficiente"' : ''}>Comprar</button>`)}
+        <span class="loja-desc">${escHtml(descItemCurta(i.nome))}</span>
+        <span class="loja-preco">${i.precoPO} po · ${i.pesoKg} kg</span>
+        ${bloqueada
+          ? `<span class="loja-cadeado" title="${escHtml(estado.classe)} não tem proficiência">🔒</span>`
+          : `<button type="button" class="btn-mini" data-comprar="${escHtml(i.nome)}"${semOuro ? ' disabled title="ouro insuficiente"' : ''}>Comprar</button>`}
       </div>`;
-    };
-    let corpo;
-    if (lojaMostrarTudo) {
-      corpo = gruposAtivos.map(g => `<h4 class="loja-cat-titulo">${g.rotulo}</h4>${g.itens.map(linhaItem).join('')}`).join('')
-        || '<span class="criador-hint">Nenhum item disponível.</span>';
-    } else {
-      const grupo = gruposAtivos.find(g => g.chave === lojaCat);
-      corpo = grupo ? grupo.itens.map(linhaItem).join('') : '<span class="criador-hint">Loja Especial vazia — peça ao Mestre para criar itens (aba Itens Mágicos).</span>';
-    }
-
+    }).join('');
     wrap.innerHTML = `<h3>🛒 Loja <span class="criador-hint-inline">(compre com o ouro rolado; devolver reembolsa 100% antes de salvar)</span></h3>
-      <div class="loja-abas">${abasPrincipais}</div>
-      ${!lojaMostrarTudo ? `<div class="loja-abas loja-abas-cat">${abasCategoria}</div>` : ''}
-      <div class="loja-lista">${corpo}</div>`;
-
-    wrap.querySelectorAll('[data-loja-aba]').forEach(b => b.addEventListener('click', () => {
-      if (b.dataset.lojaAba === 'especial' && !especialOk) return;
-      lojaAbaAtiva = b.dataset.lojaAba; lojaCat = null; renderLoja();
+      <div class="loja-abas">${abas}</div>
+      <div class="loja-lista">${linhas}</div>`;
+    wrap.querySelectorAll('[data-loja-cat]').forEach(b => b.addEventListener('click', () => {
+      lojaCat = b.dataset.lojaCat; renderLoja();
     }));
-    if ($('btnLojaCompleta')) $('btnLojaCompleta').addEventListener('click', () => { lojaMostrarTudo = !lojaMostrarTudo; renderLoja(); });
-    wrap.querySelectorAll('[data-loja-cat]').forEach(b => b.addEventListener('click', () => { lojaCat = b.dataset.lojaCat; renderLoja(); }));
     wrap.querySelectorAll('[data-comprar]').forEach(b => b.addEventListener('click', () => {
       const nome = b.dataset.comprar;
       const preco = precoEmPO(nome);

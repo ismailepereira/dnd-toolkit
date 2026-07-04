@@ -136,20 +136,6 @@ Spec completa em `docs/SPEC-EQUIPAMENTO.md`.
 
 ---
 
-## 🛍️ FASE 9 — Loja reorganizada + Loja Especial (entregue 04/07/2026)
-- [x] 9.1 Catálogo unificado por categoria (Armaduras, Escudos, Armas, Munição, Instrumentos, Anéis, Calçados, Cintos, Mantos & Capas, Varinhas & Cajados, Montarias, Focos, Poções, Pergaminhos, Aventura, Outros) — `loja.js: CATEGORIAS_LOJA/classificarItemLoja()`
-- [x] 9.2 Botão "📖 Abrir loja completa" (mostra todas as categorias de uma vez) tanto no Criador quanto no Modo de Jogo
-- [x] 9.3 Loja Básica (equipamento mundano do PHB) continua sendo o padrão na criação do personagem — nada mudou aqui além da navegação por categoria
-- [x] 9.4 Loja Especial (itens mágicos/raros) bloqueada por padrão; painel do Mestre libera por campanha inteira (checkbox na aba Fichas) e/ou por personagem (toggle no cartão de cada ficha)
-- [x] 9.5 Instrumentos musicais e mais montarias/acessórios adicionados a `itens.js` (categoria antes não existia no catálogo)
-
-### Pontos em aberto (Fase 9)
-- Comprar/vender em Modo de Jogo continua sem custo de ouro no botão "+ Adicionar" da Loja Básica — comportamento pré-existente (não mexi nisso), só reorganizei por categoria. Um "carrinho com débito de ouro" no Modo de Jogo é um follow-up natural.
-- A Loja Especial (Criador e Modo de Jogo) é só consulta — os itens mágicos continuam a só entrar na ficha via "📦 Enviar à ficha" do Mestre, nunca comprados diretamente. Decisão deliberada para não deixar personagens novos comprarem itens lendários com o ouro inicial.
-- Ver `docs/ROADMAP-FUTURO.md` para as fases seguintes já documentadas (NPCs, lojas geridas por NPC, monstros & loot, grid virtual, autenticação/campanha).
-
----
-
 ## 🧩 Formato padrão de qualquer pedido
 1. **Contexto:** "Continuar o D&D Toolkit."
 2. **Escopo exato:** classe + bloco de níveis, OU a tarefa da fase.
@@ -165,5 +151,3 @@ Spec completa em `docs/SPEC-EQUIPAMENTO.md`.
 - **UI (static/js):** `criador.js` (criação), `nivel.js` (subida de nível + escolha de multiclasse), `jogo.js` (modo de jogo), `app.js` (mestre), `jogador.js` (jogador), `firebase-rt.js` (tempo real).
 - **Adicionar um novo módulo de aventura:** edite só `fontes.js` — crie uma entrada em `FONTES_AVENTURA` com `nome` e `antecedentes` (mesmo formato de `ANTECEDENTES` em `dados5e.js`); o Criador já lista automaticamente.
 - **Adicionar uma dica/combo tático novo:** edite `ajudatatica.js` — acrescente uma entrada em `DICAS_CLASSE`/`DICAS_SUBCLASSE`/`COMBOS_CLASSE`, sem mexer em mais nada.
-- **Loja (Fase 9):** `loja.js` — catálogo unificado por categoria (`CATEGORIAS_LOJA`) e gate da Loja Especial (`lojaEspecialLiberada()`); usado por `criador.js` (passo 5) e `jogo.js` (Modo de Jogo). Liberar a Loja Especial: painel do Mestre, aba Fichas (checkbox de campanha + toggle por personagem).
-- **Fases seguintes já planeadas em detalhe:** ver [docs/ROADMAP-FUTURO.md](docs/ROADMAP-FUTURO.md) — autenticação/campanha, NPCs, lojas geridas por NPC, monstros & loot, grid virtual.

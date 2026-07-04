@@ -1373,14 +1373,6 @@ body.alto-contraste a { color: #ffd400; }
 .loja-preco { color: var(--text-dim); font-size: 0.72rem; white-space: nowrap; }
 .loja-cadeado { cursor: help; }
 
-/* Fase 9: Loja Básica/Especial por categoria */
-.loja-abas-cat { margin-top: 4px; }
-.aba-loja.bloqueada { opacity: 0.5; cursor: not-allowed; }
-.loja-cat-titulo { margin: 10px 0 4px; font-size: 0.78rem; color: var(--accent); text-transform: uppercase; letter-spacing: .4px; }
-.loja-cat-titulo:first-child { margin-top: 0; }
-.loja-especial-toggle { display: inline-flex; margin: 6px 0; font-size: 0.7rem; }
-#lojaEspecialWrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-
 .slots-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-bottom: 8px; }
 .slot-eq {
   display: flex; flex-direction: column; gap: 4px;

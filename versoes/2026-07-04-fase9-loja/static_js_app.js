@@ -68,9 +68,6 @@ function renderFichas() {
       <div class="sub">${escapeHtml(f.raca) || ''} ${escapeHtml(f.classe) || ''} - Nível ${f.nivel}</div>
       <div>HP: ${f.hpAtual} / ${f.hpMax} | CA: ${f.ca}</div>
       <div class="hp-bar"><div class="hp-bar-fill" style="width:${pct}%"></div></div>
-      <label class="check-chip loja-especial-toggle ${f.lojaEspecialLiberada ? 'on' : ''}" title="Libera a Loja Especial (itens mágicos) só para este personagem">
-        <input type="checkbox" data-loja-especial-ficha="${f.id}" ${f.lojaEspecialLiberada ? 'checked' : ''}> 🔓 Loja Especial
-      </label>
       <div class="ficha-card-acoes">
         <button class="btn-jogar" data-jogar="${f.id}">▶ Jogar</button>
         <button class="btn-editar" data-editar="${f.id}">✎ Editar</button>
@@ -81,38 +78,10 @@ function renderFichas() {
       Jogo.abrir(f, { aoAtualizar: () => { salvarFichas(); renderFichas(); } });
     });
     card.querySelector('[data-editar]').addEventListener('click', (e) => { e.stopPropagation(); abrirFicha(f.id); });
-    card.querySelector('[data-loja-especial-ficha]').addEventListener('click', e => e.stopPropagation());
-    card.querySelector('[data-loja-especial-ficha]').addEventListener('change', (e) => {
-      f.lojaEspecialLiberada = e.target.checked;
-      salvarFichas();
-    });
     listaFichas.appendChild(card);
   });
   montarEnvioMestre();
 }
-
-// ----- Fase 9: Loja Especial (itens mágicos) — liberação por campanha inteira -----
-let lojaEspecialCampanha = false;
-async function carregarLojaEspecial() {
-  try { const r = await (await fetch('/api/loja_especial')).json(); lojaEspecialCampanha = !!r.liberada; } catch (e) { lojaEspecialCampanha = false; }
-  window.LOJA_ESPECIAL_CAMPANHA = lojaEspecialCampanha;
-  atualizarToggleLojaEspecialCampanha();
-}
-function atualizarToggleLojaEspecialCampanha() {
-  const chk = document.getElementById('lojaEspecialCampanhaChk');
-  if (chk) chk.checked = lojaEspecialCampanha;
-}
-function montarToggleLojaEspecialCampanha() {
-  const chk = document.getElementById('lojaEspecialCampanhaChk');
-  if (!chk) return;
-  chk.addEventListener('change', () => {
-    lojaEspecialCampanha = chk.checked;
-    window.LOJA_ESPECIAL_CAMPANHA = lojaEspecialCampanha;
-    fetch('/api/loja_especial', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ liberada: lojaEspecialCampanha }) }).catch(() => {});
-  });
-}
-carregarLojaEspecial();
-montarToggleLojaEspecialCampanha();
 
 // ----- Mestre envia ouro/itens direto a uma ficha (loot, recompensa, mercador) -----
 let _envioMontado = false;
@@ -789,17 +758,16 @@ if ($enc('encAddMonstro')) {
 // =====================================================
 async function exportarBackup() {
   try {
-    const [fichasD, monstros, comb, notasD, enc, itensM, lojaEsp] = await Promise.all([
+    const [fichasD, monstros, comb, notasD, enc, itensM] = await Promise.all([
       fetch('/api/fichas').then(r => r.json()),
       fetch('/api/monstros_visiveis').then(r => r.json()),
       fetch('/api/combate').then(r => r.json()),
       fetch('/api/notas').then(r => r.json()),
       fetch('/api/encontros').then(r => r.json()),
       fetch('/api/itens_mestre').then(r => r.json()),
-      fetch('/api/loja_especial').then(r => r.json()),
     ]);
     const camp = window.CAMPANHA_ID || 'principal';
-    const dump = { _app: 'dnd-toolkit', _versao: 1, _campanha: camp, _data: new Date().toISOString(), fichas: fichasD, monstros_visiveis: monstros, combate: comb, notas: notasD, encontros: enc, itens_mestre: itensM, loja_especial_campanha: !!lojaEsp.liberada };
+    const dump = { _app: 'dnd-toolkit', _versao: 1, _campanha: camp, _data: new Date().toISOString(), fichas: fichasD, monstros_visiveis: monstros, combate: comb, notas: notasD, encontros: enc, itens_mestre: itensM };
     const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -820,7 +788,6 @@ async function importarBackup(file) {
     await put('/api/notas', d.notas || []);
     await put('/api/encontros', d.encontros || []);
     await put('/api/itens_mestre', d.itens_mestre || []);
-    await fetch('/api/loja_especial', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ liberada: !!d.loja_especial_campanha }) });
     alert('Backup importado! Recarregando a página…');
     location.reload();
   } catch (e) { alert('Falha ao importar: ' + e); }
@@ -1324,10 +1291,5 @@ if (window.RT && RT.ativo()) {
     }
     const sim = JSON.stringify(estado.itens_mestre || []);
     if (sim !== _lim) { _lim = sim; if (typeof window._syncItensMestre === 'function') window._syncItensMestre(estado.itens_mestre || []); }
-    if (!!estado.loja_especial_campanha !== lojaEspecialCampanha) {
-      lojaEspecialCampanha = !!estado.loja_especial_campanha;
-      window.LOJA_ESPECIAL_CAMPANHA = lojaEspecialCampanha;
-      atualizarToggleLojaEspecialCampanha();
-    }
   });
 }

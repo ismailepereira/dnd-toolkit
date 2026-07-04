@@ -354,12 +354,6 @@ async function atualizarItensMestre() {
 }
 atualizarItensMestre();
 
-// Fase 9: Loja Especial liberada para toda a campanha (por personagem é lido direto de f.lojaEspecialLiberada)
-async function atualizarLojaEspecialCampanha() {
-  try { const r = await (await fetch('/api/loja_especial')).json(); window.LOJA_ESPECIAL_CAMPANHA = !!r.liberada; } catch (e) { window.LOJA_ESPECIAL_CAMPANHA = window.LOJA_ESPECIAL_CAMPANHA || false; }
-}
-atualizarLojaEspecialCampanha();
-
 // =====================================================
 // TEMPO REAL (Firestore) - atualiza ficha/bestiário/combate na hora
 // =====================================================
@@ -377,7 +371,6 @@ if (window.RT && RT.ativo()) {
     if (sn !== _ln) { _ln = sn; renderHandouts(estado.notas || []); }
     const sim = JSON.stringify(estado.itens_mestre || []);
     if (sim !== _lim) { _lim = sim; window.ITENS_MESTRE = estado.itens_mestre || []; }
-    window.LOJA_ESPECIAL_CAMPANHA = !!estado.loja_especial_campanha;
   });
 }
 // polling de fallback (auto-suprimido quando o tempo real está entregando dados)

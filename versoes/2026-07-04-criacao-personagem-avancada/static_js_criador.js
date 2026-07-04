@@ -42,9 +42,6 @@ const Criador = (function () {
       ouro: 0,
       ouroRolado: false,          // trava: rola uma única vez por ficha
       anotacoes: '',
-      personalidade: { traco: '', ideal: '', ligacao: '', defeito: '' }, // do antecedente: lista OU texto livre
-      historia: '',               // história prévia do personagem (texto livre, contextualizada pelo antecedente)
-      itemMemoria: { nome: '', tipo: '', descricao: '' }, // objeto pessoal/herdado — só narrativo, não entra no acervo
     };
   }
 
@@ -61,7 +58,7 @@ const Criador = (function () {
     const set = new Set();
     (s.pericias || []).forEach(p => set.add(p));
     (s.periciasExtra || []).forEach(p => set.add(p));
-    const ant = (typeof antecedenteDados === 'function') ? antecedenteDados(s.antecedente) : ANTECEDENTES[s.antecedente];
+    const ant = ANTECEDENTES[s.antecedente];
     if (ant) ant.pericias.forEach(p => set.add(p));
     const r = RACAS_DETALHE[s.raca];
     if (r && r.periciaFixa) r.periciaFixa.forEach(p => set.add(p));
@@ -207,7 +204,7 @@ const Criador = (function () {
       <div class="pv-bloco"><h4>Perícias</h4><div class="pv-pericias">${periciasHtml}</div></div>
       ${c.tracos.length ? `<div class="pv-bloco"><h4>Traços Raciais</h4><ul>${c.tracos.map(t => `<li>${escHtml(t)}</li>`).join('')}</ul></div>` : ''}
       <div class="pv-bloco"><h4>Características de Classe (Nível ${s.nivel})</h4><ul>${caracteristicas}</ul></div>
-      ${(() => { const a = (typeof antecedenteDados === 'function') ? antecedenteDados(s.antecedente) : ANTECEDENTES[s.antecedente]; if (!a) return ''; return `<div class="pv-bloco"><h4>Antecedente — ${escHtml(s.antecedente)}</h4>
+      ${(() => { const a = ANTECEDENTES[s.antecedente]; if (!a) return ''; return `<div class="pv-bloco"><h4>Antecedente — ${escHtml(s.antecedente)}</h4>
         <div class="pv-linha"><strong>Característica:</strong> ${escHtml(a.caracteristica)}</div>
         ${a.ferramentas && a.ferramentas.length ? `<div class="pv-linha"><strong>Ferramentas:</strong> ${a.ferramentas.map(escHtml).join(', ')}</div>` : ''}
         ${a.idiomas ? `<div class="pv-linha"><strong>Idiomas extras:</strong> ${a.idiomas}</div>` : ''}
@@ -216,15 +213,6 @@ const Criador = (function () {
       ${conjHtml}
       ${armasHtml}
       <div class="pv-bloco"><h4>Equipamento</h4>${equipadoHtml ? `<div class="pv-linha"><strong>Equipado:</strong> ${equipadoHtml}</div>` : ''}<div class="pv-linha"><strong>Bolsa:</strong> ${itensHtml}</div><div class="pv-linha"><strong>Ouro:</strong> ${s.ouro} po</div></div>
-      ${(() => { const p = s.personalidade || {}; if (!p.traco && !p.ideal && !p.ligacao && !p.defeito) return ''; return `<div class="pv-bloco"><h4>Personalidade</h4>
-        ${p.traco ? `<div class="pv-linha"><strong>Traço:</strong> ${escHtml(p.traco)}</div>` : ''}
-        ${p.ideal ? `<div class="pv-linha"><strong>Ideal:</strong> ${escHtml(p.ideal)}</div>` : ''}
-        ${p.ligacao ? `<div class="pv-linha"><strong>Ligação:</strong> ${escHtml(p.ligacao)}</div>` : ''}
-        ${p.defeito ? `<div class="pv-linha"><strong>Defeito:</strong> ${escHtml(p.defeito)}</div>` : ''}</div>`; })()}
-      ${s.historia ? `<div class="pv-bloco"><h4>História Prévia</h4><div class="pv-linha">${escHtml(s.historia).replace(/\n/g, '<br>')}</div></div>` : ''}
-      ${(() => { const im = s.itemMemoria || {}; if (!im.nome) return ''; return `<div class="pv-bloco"><h4>🎁 Item de Memória</h4>
-        <div class="pv-linha"><strong>${escHtml(im.nome)}</strong>${im.tipo ? ` (${escHtml(im.tipo)})` : ''}</div>
-        ${im.descricao ? `<div class="pv-linha">${escHtml(im.descricao)}</div>` : ''}</div>`; })()}
       ${avisosHtml}
     `;
   }
@@ -249,67 +237,6 @@ const Criador = (function () {
         estado.escolhaAtributos[+sel.dataset.escolha] = sel.value;
         renderPreview();
       });
-    });
-  }
-
-  // ---------- Antecedente: explicação amigável do que ele concede ----------
-  function renderAntecedenteInfo() {
-    const wrap = $('cAntecedenteInfo');
-    if (!wrap) return;
-    const a = (typeof antecedenteDados === 'function') ? antecedenteDados(estado.antecedente) : ANTECEDENTES[estado.antecedente];
-    if (!a) { wrap.innerHTML = ''; return; }
-    const pericias = a.pericias && a.pericias.length ? a.pericias.join(', ') : '—';
-    const ferramentas = a.ferramentas && a.ferramentas.length ? a.ferramentas.join(', ') : 'nenhuma';
-    const idiomas = a.idiomas ? `${a.idiomas} à escolha` : 'nenhum extra';
-    wrap.innerHTML = `<h4>O que ${escHtml(estado.antecedente)} concede</h4>
-      <div class="pv-linha">🧠 <strong>Perícias:</strong> ${escHtml(pericias)}</div>
-      <div class="pv-linha">🛠️ <strong>Ferramentas:</strong> ${escHtml(ferramentas)}</div>
-      <div class="pv-linha">🗣️ <strong>Idiomas:</strong> ${escHtml(idiomas)}</div>
-      <div class="pv-linha">🎒 <strong>Equipamento:</strong> ${escHtml(a.equipamento || '—')}</div>
-      <div class="pv-linha">✨ <strong>Característica:</strong> ${escHtml(a.caracteristica || '—')}</div>`;
-  }
-
-  // ---------- Personalidade: traço/ideal/ligação/defeito — lista OU texto livre ----------
-  const PERSONALIDADE_CAMPOS = [
-    ['traco', 'Traço de Personalidade', 'tracosPersonalidade'],
-    ['ideal', 'Ideal', 'ideais'],
-    ['ligacao', 'Ligação', 'ligacoes'],
-    ['defeito', 'Defeito', 'defeitos'],
-  ];
-  function renderPersonalidade() {
-    const wrap = $('cPersonalidadeWrap');
-    if (!wrap) return;
-    const a = (typeof antecedenteDados === 'function') ? antecedenteDados(estado.antecedente) : ANTECEDENTES[estado.antecedente];
-    wrap.innerHTML = PERSONALIDADE_CAMPOS.map(([chave, rotulo, chaveLista]) => {
-      const opcoes = (a && a[chaveLista]) || [];
-      const valorAtual = estado.personalidade[chave] || '';
-      const daLista = opcoes.includes(valorAtual);
-      const selOps = `<option value="">— escolher da lista —</option>` +
-        opcoes.map(op => `<option value="${escHtml(op)}" ${daLista && valorAtual === op ? 'selected' : ''}>${escHtml(op)}</option>`).join('') +
-        `<option value="__manual__" ${!daLista && valorAtual ? 'selected' : ''}>✍️ Escrever à mão…</option>`;
-      return `<div class="personalidade-grupo">
-        <label>${rotulo}</label>
-        <select data-pers-select="${chave}">${selOps}</select>
-        <textarea data-pers-texto="${chave}" rows="2" placeholder="Escreva livremente..." ${daLista ? 'class="hidden"' : ''}>${escHtml(valorAtual)}</textarea>
-      </div>`;
-    }).join('');
-    PERSONALIDADE_CAMPOS.forEach(([chave]) => {
-      const sel = wrap.querySelector(`[data-pers-select="${chave}"]`);
-      const txt = wrap.querySelector(`[data-pers-texto="${chave}"]`);
-      sel.addEventListener('change', () => {
-        if (sel.value === '__manual__') {
-          txt.classList.remove('hidden');
-          txt.value = '';
-          estado.personalidade[chave] = '';
-          txt.focus();
-        } else {
-          txt.classList.add('hidden');
-          txt.value = sel.value;
-          estado.personalidade[chave] = sel.value;
-        }
-        renderPreview();
-      });
-      txt.addEventListener('input', () => { estado.personalidade[chave] = txt.value; renderPreview(); });
     });
   }
 
@@ -610,71 +537,37 @@ const Criador = (function () {
     }));
   }
 
-  // ----- Loja da criação (Fase 9: categorias unificadas + Loja Especial gated) -----
-  // Loja Básica = equipamento mundano do PHB (equipamento.js/itens.js) — é o
-  // que fica disponível por padrão na criação. Loja Especial = itens
-  // mágicos/raros; só aparece (em modo consulta, sem comprar) se o Mestre
-  // já tiver liberado para a campanha ou para esta ficha (ver loja.js).
-  let lojaCat = null;
-  let lojaMostrarTudo = false;
-  let lojaAbaAtiva = 'basica'; // 'basica' | 'especial'
+  // ----- Loja da criação (catálogo PHB, filtrada por proficiência) -----
+  const CATS_LOJA = [
+    ['arma', '⚔️ Armas'], ['armadura', '🛡️ Armaduras'], ['municao', '🏹 Munição'],
+    ['foco', '🔮 Focos'], ['aventura', '🎒 Aventura'], ['pocao', '🧪 Poções'],
+  ];
+  let lojaCat = 'arma';
   function renderLoja() {
     const wrap = $('cLojaWrap'); if (!wrap) return;
-    if (typeof itensLojaBasica !== 'function') { wrap.innerHTML = ''; return; }
-
-    const especialOk = (typeof lojaEspecialLiberada === 'function') && lojaEspecialLiberada(fichaOriginal);
-    if (lojaAbaAtiva === 'especial' && !especialOk) lojaAbaAtiva = 'basica';
-    const gruposBasicos = agruparPorCategoriaLoja(itensLojaBasica());
-    const gruposEspeciais = especialOk ? agruparPorCategoriaLoja(itensLojaEspecial()) : [];
-    const gruposAtivos = lojaAbaAtiva === 'especial' ? gruposEspeciais : gruposBasicos;
-    if (!lojaCat || !gruposAtivos.some(g => g.chave === lojaCat)) lojaCat = gruposAtivos[0] ? gruposAtivos[0].chave : null;
-
-    const abasPrincipais = `
-      <button type="button" class="btn-mini aba-loja${lojaAbaAtiva === 'basica' ? ' on' : ''}" data-loja-aba="basica">🛒 Loja Básica</button>
-      <button type="button" class="btn-mini aba-loja${lojaAbaAtiva === 'especial' ? ' on' : ''}${especialOk ? '' : ' bloqueada'}" data-loja-aba="especial"${especialOk ? '' : ' title="Bloqueada — peça ao Mestre para liberar a Loja Especial"'}>✨ Loja Especial${especialOk ? '' : ' 🔒'}</button>
-      <button type="button" class="btn-mini" id="btnLojaCompleta">${lojaMostrarTudo ? '📑 Ver por categoria' : '📖 Abrir loja completa'}</button>`;
-    const abasCategoria = gruposAtivos.map(g =>
-      `<button type="button" class="btn-mini aba-loja${lojaCat === g.chave ? ' on' : ''}" data-loja-cat="${g.chave}">${g.rotulo} <small>(${g.itens.length})</small></button>`).join('');
-
-    const linhaItem = i => {
-      const bloqueada = lojaAbaAtiva === 'basica' && (
-        (i.categoriaLoja === 'arma' && !podeUsarArma(estado.classe, i.nome)) ||
-        ((i.categoriaLoja === 'armadura' || i.categoriaLoja === 'escudo') && !podeUsarArmadura(estado.classe, i.nome, estado.subclasse)));
-      const semOuro = lojaAbaAtiva === 'basica' && i.precoPO > estado.ouro;
-      const precoTxt = lojaAbaAtiva === 'especial'
-        ? `${escHtml(i.raridade || '')}${i.sintonia ? ' · sintonia' : ''}`
-        : `${i.precoPO} po${i.pesoTexto ? ' · ' + escHtml(i.pesoTexto) : ''}`;
+    if (typeof CATALOGO === 'undefined') { wrap.innerHTML = ''; return; }
+    const abas = CATS_LOJA.map(([c, r]) =>
+      `<button type="button" class="btn-mini aba-loja${lojaCat === c ? ' on' : ''}" data-loja-cat="${c}">${r}</button>`).join('');
+    const itens = CATALOGO.filter(i => i.cat === lojaCat || (lojaCat === 'armadura' && i.cat === 'escudo'));
+    const linhas = itens.map(i => {
+      const bloqueada = (i.cat === 'arma' && !podeUsarArma(estado.classe, i.nome))
+        || ((i.cat === 'armadura' || i.cat === 'escudo') && !podeUsarArmadura(estado.classe, i.nome, estado.subclasse));
+      const semOuro = i.precoPO > estado.ouro;
       return `<div class="loja-item${bloqueada ? ' bloqueada' : ''}">
         <span class="loja-nome">${escHtml(i.nome)}</span>
-        <span class="loja-desc">${escHtml(i.descricao || '')}</span>
-        <span class="loja-preco">${precoTxt}</span>
-        ${lojaAbaAtiva === 'especial'
-          ? `<span class="loja-cadeado" title="Itens especiais são concedidos pelo Mestre (aba Fichas → Enviar à ficha), não comprados aqui">✨</span>`
-          : (bloqueada
-            ? `<span class="loja-cadeado" title="${escHtml(estado.classe)} não tem proficiência">🔒</span>`
-            : `<button type="button" class="btn-mini" data-comprar="${escHtml(i.nome)}"${semOuro ? ' disabled title="ouro insuficiente"' : ''}>Comprar</button>`)}
+        <span class="loja-desc">${escHtml(descItemCurta(i.nome))}</span>
+        <span class="loja-preco">${i.precoPO} po · ${i.pesoKg} kg</span>
+        ${bloqueada
+          ? `<span class="loja-cadeado" title="${escHtml(estado.classe)} não tem proficiência">🔒</span>`
+          : `<button type="button" class="btn-mini" data-comprar="${escHtml(i.nome)}"${semOuro ? ' disabled title="ouro insuficiente"' : ''}>Comprar</button>`}
       </div>`;
-    };
-    let corpo;
-    if (lojaMostrarTudo) {
-      corpo = gruposAtivos.map(g => `<h4 class="loja-cat-titulo">${g.rotulo}</h4>${g.itens.map(linhaItem).join('')}`).join('')
-        || '<span class="criador-hint">Nenhum item disponível.</span>';
-    } else {
-      const grupo = gruposAtivos.find(g => g.chave === lojaCat);
-      corpo = grupo ? grupo.itens.map(linhaItem).join('') : '<span class="criador-hint">Loja Especial vazia — peça ao Mestre para criar itens (aba Itens Mágicos).</span>';
-    }
-
+    }).join('');
     wrap.innerHTML = `<h3>🛒 Loja <span class="criador-hint-inline">(compre com o ouro rolado; devolver reembolsa 100% antes de salvar)</span></h3>
-      <div class="loja-abas">${abasPrincipais}</div>
-      ${!lojaMostrarTudo ? `<div class="loja-abas loja-abas-cat">${abasCategoria}</div>` : ''}
-      <div class="loja-lista">${corpo}</div>`;
-
-    wrap.querySelectorAll('[data-loja-aba]').forEach(b => b.addEventListener('click', () => {
-      if (b.dataset.lojaAba === 'especial' && !especialOk) return;
-      lojaAbaAtiva = b.dataset.lojaAba; lojaCat = null; renderLoja();
+      <div class="loja-abas">${abas}</div>
+      <div class="loja-lista">${linhas}</div>`;
+    wrap.querySelectorAll('[data-loja-cat]').forEach(b => b.addEventListener('click', () => {
+      lojaCat = b.dataset.lojaCat; renderLoja();
     }));
-    if ($('btnLojaCompleta')) $('btnLojaCompleta').addEventListener('click', () => { lojaMostrarTudo = !lojaMostrarTudo; renderLoja(); });
-    wrap.querySelectorAll('[data-loja-cat]').forEach(b => b.addEventListener('click', () => { lojaCat = b.dataset.lojaCat; renderLoja(); }));
     wrap.querySelectorAll('[data-comprar]').forEach(b => b.addEventListener('click', () => {
       const nome = b.dataset.comprar;
       const preco = precoEmPO(nome);
@@ -1503,17 +1396,6 @@ const Criador = (function () {
     s.antecedente = escolherAleatorio(Object.keys(ANTECEDENTES));
     s.nivel = estado ? estado.nivel : 1;
 
-    // Personalidade: sorteia da tabela sugerida do antecedente (história/item de memória ficam em branco p/ o jogador escrever)
-    const antAuto = (typeof antecedenteDados === 'function') ? antecedenteDados(s.antecedente) : ANTECEDENTES[s.antecedente];
-    if (antAuto) {
-      s.personalidade = {
-        traco: escolherAleatorio(antAuto.tracosPersonalidade || ['']),
-        ideal: escolherAleatorio(antAuto.ideais || ['']),
-        ligacao: escolherAleatorio(antAuto.ligacoes || ['']),
-        defeito: escolherAleatorio(antAuto.defeitos || ['']),
-      };
-    }
-
     // Atributos: melhor arranjo legal distribuído pela prioridade da classe
     const ordem = (typeof ATRIBUTOS_PRIORIDADE !== 'undefined' && ATRIBUTOS_PRIORIDADE[s.classe])
       || ['for', 'des', 'con', 'int', 'sab', 'car'];
@@ -1574,13 +1456,7 @@ const Criador = (function () {
     $('cAntecedente').value = estado.antecedente;
     $('cNivel').value = estado.nivel;
     $('cAnotacoes').value = estado.anotacoes;
-    $('cHistoria').value = estado.historia || '';
-    $('cItemMemNome').value = estado.itemMemoria.nome || '';
-    $('cItemMemTipo').value = estado.itemMemoria.tipo || '';
-    $('cItemMemDescricao').value = estado.itemMemoria.descricao || '';
     renderAtributosBase();
-    renderAntecedenteInfo();
-    renderPersonalidade();
   }
 
   // ---------- Construir ficha final (schema compatível) ----------
@@ -1607,18 +1483,10 @@ const Criador = (function () {
     const limpezaJogo = mudouBase
       ? { preparadas: [], concentrando: '', slotsUsados: {}, pactoUsados: 0, recursosUsados: {} }
       : {};
-    // Multiclasse (Fase 8B): o Criador não tem UI de multiclasse — preserva
-    // ficha.classes ao editar, contanto que classe/subclasse/nível primários
-    // não tenham mudado aqui (senão ficaria dessincronizado; nesse caso a
-    // ficha volta a ser tratada como mono-classe no novo estado).
-    const classesPreservadas = (fichaOriginal && fichaOriginal.classes && !mudouBase && fichaOriginal.nivel === s.nivel)
-      ? fichaOriginal.classes.map(c => ({ ...c }))
-      : undefined;
     return {
       ...limpezaJogo,
       nome: s.nome.trim() || 'Sem nome',
       classe: s.classe,
-      classes: classesPreservadas,
       raca: s.raca,
       nivel: s.nivel,
       antecedente: s.antecedente,
@@ -1643,9 +1511,6 @@ const Criador = (function () {
       inventario: equip + (s.ouro ? ` | ${s.ouro} po` : ''),
       magias: magiasTxt,
       anotacoes: s.anotacoes,
-      personalidade: { ...s.personalidade },
-      historia: s.historia,
-      itemMemoria: { ...s.itemMemoria },
       _criador: true,
     };
   }
@@ -1659,8 +1524,7 @@ const Criador = (function () {
       s.nome = f.nome || '';
       s.raca = f.raca && RACAS_DETALHE[f.raca] ? f.raca : 'Humano';
       s.classe = f.classe && CLASSE_NOME_PARA_CHAVE[f.classe] ? f.classe : 'Guerreiro';
-      const _antValido = typeof antecedenteDados === 'function' ? antecedenteDados(f.antecedente) : ANTECEDENTES[f.antecedente];
-      s.antecedente = f.antecedente && _antValido ? f.antecedente : 'Soldado';
+      s.antecedente = f.antecedente && ANTECEDENTES[f.antecedente] ? f.antecedente : 'Soldado';
       s.nivel = f.nivel || 1;
       if (f.atributos) s.base = { ...s.base, ...f.atributos };
       s.subclasse = f.subclasse || '';
@@ -1695,9 +1559,6 @@ const Criador = (function () {
       s.escudo = s.equipado.maoSecundaria === 'Escudo';
       s.anotacoes = f.anotacoes || '';
       s.pericias = (f.pericias || []).filter(p => (PERICIAS_CLASSE[s.classe]?.opcoes || []).includes(p));
-      s.personalidade = { traco: '', ideal: '', ligacao: '', defeito: '', ...(f.personalidade || {}) };
-      s.historia = f.historia || '';
-      s.itemMemoria = { nome: '', tipo: '', descricao: '', ...(f.itemMemoria || {}) };
     }
     estado = s;
   }
@@ -1744,33 +1605,17 @@ const Criador = (function () {
   function montarSelectsUmaVez() {
     if (montado) return;
     montado = true;
-    // Antecedente: agrupado por fonte (Livro do Jogador + módulos cadastrados em fontes.js)
-    if (typeof antecedentesDisponiveis === 'function') {
-      const grupos = {};
-      antecedentesDisponiveis().forEach(a => { (grupos[a.grupo] = grupos[a.grupo] || []).push(a.nome); });
-      $('cAntecedente').innerHTML = Object.keys(grupos).map(g =>
-        `<optgroup label="${g}">${grupos[g].map(a => `<option value="${a}">${a}</option>`).join('')}</optgroup>`).join('');
-    } else {
-      $('cAntecedente').innerHTML = Object.keys(ANTECEDENTES).map(a => `<option value="${a}">${a}</option>`).join('');
-    }
+    // Antecedente
+    $('cAntecedente').innerHTML = Object.keys(ANTECEDENTES).map(a => `<option value="${a}">${a}</option>`).join('');
     // Nível
     $('cNivel').innerHTML = Array.from({ length: 20 }, (_, i) => `<option value="${i + 1}">Nível ${i + 1}</option>`).join('');
 
     // Listeners
     $('cNome').addEventListener('input', () => { estado.nome = $('cNome').value; renderPreview(); });
-    $('cAntecedente').addEventListener('change', () => {
-      estado.antecedente = $('cAntecedente').value;
-      // trocar de antecedente descarta escolhas de personalidade da lista anterior (evita resíduo incoerente)
-      estado.personalidade = { traco: '', ideal: '', ligacao: '', defeito: '' };
-      renderAntecedenteInfo(); renderPersonalidade(); renderPreview();
-    });
+    $('cAntecedente').addEventListener('change', () => { estado.antecedente = $('cAntecedente').value; renderPreview(); });
     $('cNivel').addEventListener('change', () => { estado.nivel = Number($('cNivel').value); renderTudoDinamico(); });
     $('cEstilo').addEventListener('change', () => { estado.estilo = $('cEstilo').value; renderPreview(); });
     $('cAnotacoes').addEventListener('input', () => { estado.anotacoes = $('cAnotacoes').value; });
-    $('cHistoria').addEventListener('input', () => { estado.historia = $('cHistoria').value; renderPreview(); });
-    $('cItemMemNome').addEventListener('input', () => { estado.itemMemoria.nome = $('cItemMemNome').value; renderPreview(); });
-    $('cItemMemTipo').addEventListener('input', () => { estado.itemMemoria.tipo = $('cItemMemTipo').value; renderPreview(); });
-    $('cItemMemDescricao').addEventListener('input', () => { estado.itemMemoria.descricao = $('cItemMemDescricao').value; renderPreview(); });
 
     $('btnArranjoPadrao').addEventListener('click', () => {
       arranjarPorClasse(ARRANJO_PADRAO);

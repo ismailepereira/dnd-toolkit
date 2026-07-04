@@ -30,7 +30,6 @@
       <button class="tab-btn" data-tab="progressao">Progressão</button>
       <button class="tab-btn" data-tab="bestiario">Bestiário</button>
       <button class="tab-btn" data-tab="loja">Loja</button>
-      <button class="tab-btn" data-tab="itensMagicos">Itens Mágicos</button>
       <button class="tab-btn" data-tab="geradores">Geradores</button>
     </nav>
   </header>
@@ -50,10 +49,6 @@
         <input type="number" id="envioQtd" value="1" min="1" title="Quantidade" style="width:56px">
         <button id="envioBtn" class="btn-mini">Enviar</button>
         <span id="envioMsg" class="envio-msg"></span>
-      </div>
-      <div class="mestre-envio" id="lojaEspecialWrap">
-        <label class="check-chip" title="Libera a Loja Especial (itens mágicos) para TODA a campanha"><input type="checkbox" id="lojaEspecialCampanhaChk"> 🔓 Loja Especial liberada para toda a campanha</label>
-        <span class="criador-hint-inline">ou libere só para um personagem específico no cartão dele, abaixo</span>
       </div>
       <div id="listaFichas" class="card-grid"></div>
     </section>
@@ -174,17 +169,6 @@
       <div id="listaLoja" class="loja-grid"></div>
     </section>
 
-    <!-- ITENS MÁGICOS (ferramenta do Mestre: criação dentro das regras, à parte do acervo do jogador) -->
-    <section id="itensMagicos" class="tab-content">
-      <div class="panel-header">
-        <h2>🛠️ Criação de Itens Mágicos</h2>
-        <button id="imNovoItem" class="btn-primary">+ Novo Item</button>
-      </div>
-      <p class="aviso-mestre">Ferramenta só do Mestre: crie itens mágicos (ex.: "sombrero mágico") e o sistema sugere/limita bônus, propriedades, magias e cargas conforme a raridade — para nada sair das diretrizes do 5e. Estes itens ficam <b>separados</b> do acervo/loja do jogador; envie um para uma ficha na aba <b>Fichas → 📦 Enviar à ficha</b>.</p>
-      <div id="imFormWrap" class="im-form hidden"></div>
-      <div id="listaItensMestre" class="card-grid"></div>
-    </section>
-
     <!-- GERADORES -->
     <section id="geradores" class="tab-content">
       <h2>Geradores Rápidos</h2>
@@ -265,14 +249,9 @@
   <script src="{{ url_for('static', filename='js/itens.js') }}"></script>
   <script src="{{ url_for('static', filename='js/monstros.js') }}"></script>
   <script src="{{ url_for('static', filename='js/dados5e.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/fontes.js') }}"></script>
   <script src="{{ url_for('static', filename='js/equipamento.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/loja.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/itensmestre.js') }}"></script>
   <script src="{{ url_for('static', filename='js/compendio.js') }}"></script>
   <script src="{{ url_for('static', filename='js/regras.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/multiclasse.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/ajudatatica.js') }}"></script>
   <script src="{{ url_for('static', filename='js/criador.js') }}"></script>
   <script src="{{ url_for('static', filename='js/nivel.js') }}"></script>
   <script src="{{ url_for('static', filename='js/jogo.js') }}"></script>

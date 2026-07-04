@@ -19,12 +19,6 @@ const Jogo = (function () {
     return { total, ds, bonus, txt: `${ds.join('+')}${bonus ? (bonus > 0 ? '+' + bonus : bonus) : ''} = ${total}` };
   }
 
-  // ----- Fase 9: mini-loja categorizada no Modo de Jogo -----
-  let jgLojaAba = 'basica'; // 'basica' | 'especial'
-  let jgLojaCat = null;
-  let jgLojaMostrarTudo = false;
-  let jgLojaAberta = false; // <details> re-renderiza a cada ação; guarda se estava aberta
-
   // ----- rolagem com Vantagem/Desvantagem -----
   let modoRolagem = 'normal';
   function d20Modo() {
@@ -598,37 +592,13 @@ const Jogo = (function () {
         ${precoVenda > 0 ? `<button data-vender="${esc(i)}" title="Vender por ${precoVenda} po (metade)">💰</button>` : ''}
         <button data-rinv="${esc(i)}" title="Descartar">×</button></span>`;
     }).join('');
-    // Fase 9: mini-loja categorizada (Básica sempre livre; Especial só se liberada)
-    const lojaEspecialOk = (typeof lojaEspecialLiberada === 'function') && lojaEspecialLiberada(f);
-    if (jgLojaAba === 'especial' && !lojaEspecialOk) jgLojaAba = 'basica';
-    const gruposBasicosJg = (typeof itensLojaBasica === 'function') ? agruparPorCategoriaLoja(itensLojaBasica()) : [];
-    const gruposEspeciaisJg = lojaEspecialOk && typeof itensLojaEspecial === 'function' ? agruparPorCategoriaLoja(itensLojaEspecial()) : [];
-    const gruposAtivosJg = jgLojaAba === 'especial' ? gruposEspeciaisJg : gruposBasicosJg;
-    if (!jgLojaCat || !gruposAtivosJg.some(g => g.chave === jgLojaCat)) jgLojaCat = gruposAtivosJg[0] ? gruposAtivosJg[0].chave : null;
-    const linhaLojaJg = i => `<div class="loja-item">
-        <span class="loja-nome">${esc(i.nome)}</span>
-        <span class="loja-desc">${esc(i.descricao || '')}</span>
-        <span class="loja-preco">${jgLojaAba === 'especial' ? esc(i.raridade || '') : `${i.precoPO} po`}</span>
-        ${jgLojaAba === 'especial'
-          ? `<span class="loja-cadeado" title="Itens especiais são concedidos pelo Mestre">✨</span>`
-          : `<button type="button" class="btn-mini" data-lojaadd="${esc(i.nome)}">+ Adicionar</button>`}
-      </div>`;
-    let corpoLojaJg;
-    if (jgLojaMostrarTudo) {
-      corpoLojaJg = gruposAtivosJg.map(g => `<h4 class="loja-cat-titulo">${g.rotulo}</h4>${g.itens.map(linhaLojaJg).join('')}`).join('') || '<span class="criador-hint">Nenhum item disponível.</span>';
-    } else {
-      const grupoJg = gruposAtivosJg.find(g => g.chave === jgLojaCat);
-      corpoLojaJg = grupoJg ? grupoJg.itens.map(linhaLojaJg).join('') : '<span class="criador-hint">Loja Especial vazia — peça ao Mestre.</span>';
-    }
-    const lojaHtml = `<details class="jg-magia" id="jgLojaDetails"${jgLojaAberta ? ' open' : ''}><summary>🛒 Loja</summary><div class="jg-magia-corpo">
-      <div class="loja-abas">
-        <button type="button" class="btn-mini aba-loja${jgLojaAba === 'basica' ? ' on' : ''}" data-jglojaaba="basica">🛒 Básica</button>
-        <button type="button" class="btn-mini aba-loja${jgLojaAba === 'especial' ? ' on' : ''}${lojaEspecialOk ? '' : ' bloqueada'}" data-jglojaaba="especial"${lojaEspecialOk ? '' : ' title="Bloqueada — peça ao Mestre para liberar"'}>✨ Especial${lojaEspecialOk ? '' : ' 🔒'}</button>
-        <button type="button" class="btn-mini" id="jgBtnLojaCompleta">${jgLojaMostrarTudo ? '📑 Por categoria' : '📖 Loja completa'}</button>
-      </div>
-      ${!jgLojaMostrarTudo ? `<div class="loja-abas loja-abas-cat">${gruposAtivosJg.map(g => `<button type="button" class="btn-mini aba-loja${jgLojaCat === g.chave ? ' on' : ''}" data-jglojacat="${g.chave}">${g.rotulo} <small>(${g.itens.length})</small></button>`).join('')}</div>` : ''}
-      <div class="loja-lista">${corpoLojaJg}</div>
-    </div></details>`;
+    const optsItens = (() => {
+      const nomes = new Set();
+      let ops = '';
+      if (typeof CATALOGO !== 'undefined') CATALOGO.forEach(i => { if (!nomes.has(i.nome)) { nomes.add(i.nome); ops += `<option value="${esc(i.nome)}">${esc(i.nome)} (${i.precoPO} po)</option>`; } });
+      if (typeof ITENS_PADRAO !== 'undefined') ITENS_PADRAO.forEach(i => { if (!nomes.has(i.nome)) { nomes.add(i.nome); ops += `<option value="${esc(i.nome)}">${esc(i.nome)} (${esc(i.preco)})</option>`; } });
+      return ops;
+    })();
     const inventarioHtml = `<div class="jg-bloco"><h4>🎒 Bolsa & Equipamento</h4>
       <div class="slots-grid">
         ${slotJg('maoPrincipal', 'Mão principal', '🗡️', armasBolsa, eqJogo.maoPrincipal, '')}
@@ -640,7 +610,7 @@ const Jogo = (function () {
       <div class="peso-barra"><div style="width:${Math.min(100, capKg ? pesoTotal / capKg * 100 : 0)}%;background:${corPeso}"></div></div>
       <div class="pv-linha">⚖️ <b>${pesoTotal} kg</b> / ${capKg} kg${pesoTotal > capKg ? ' — <span class="pv-warn">MUITO sobrecarregado</span>' : (sobre ? ' — <span class="pv-warn">sobrecarregado (−3m desloc.)</span>' : '')}</div>
       <div class="chips">${itensChips || '<span class="criador-hint">Bolsa vazia.</span>'}</div>
-      ${lojaHtml}</div>`;
+      <div class="criador-add-item" style="margin-top:6px"><select id="jgItemSel">${optsItens}</select><button id="jgAddItem" class="btn-mini">+ Adicionar</button></div></div>`;
 
     // Sintonização (itens mágicos) — máx. 3
     let sintHtml = '';
@@ -799,9 +769,10 @@ const Jogo = (function () {
     };
     if ($('jgPDF')) $('jgPDF').onclick = () => exportarFichaPDF(ficha);
 
-    // inventário — Fase 9: mini-loja categorizada (só a Básica adiciona; Especial é consulta)
-    document.querySelectorAll('[data-lojaadd]').forEach(b => b.onclick = () => {
-      const v = b.dataset.lojaadd;
+    // inventário
+    if ($('jgAddItem')) $('jgAddItem').onclick = () => {
+      const v = $('jgItemSel').value;
+      if (!v) return;
       ficha.itens = ficha.itens || [];
       const it = (typeof itemCatalogo === 'function') ? itemCatalogo(v) : null;
       // packs de munição viram contador do slot
@@ -811,17 +782,8 @@ const Jogo = (function () {
       } else {
         ficha.itens.push(v);
       }
-      log(`Adicionou à bolsa: ${v}`);
-      salvar(); render();
-    });
-    document.querySelectorAll('[data-jglojaaba]').forEach(b => b.onclick = () => {
-      const aba = b.dataset.jglojaaba;
-      if (aba === 'especial' && !((typeof lojaEspecialLiberada === 'function') && lojaEspecialLiberada(ficha))) return;
-      jgLojaAba = aba; jgLojaCat = null; render();
-    });
-    document.querySelectorAll('[data-jglojacat]').forEach(b => b.onclick = () => { jgLojaCat = b.dataset.jglojacat; render(); });
-    if ($('jgBtnLojaCompleta')) $('jgBtnLojaCompleta').onclick = () => { jgLojaMostrarTudo = !jgLojaMostrarTudo; render(); };
-    if ($('jgLojaDetails')) $('jgLojaDetails').addEventListener('toggle', (ev) => { jgLojaAberta = ev.target.open; });
+      salvar();
+    };
     document.querySelectorAll('[data-rinv]').forEach(b => b.onclick = () => {
       const n = b.dataset.rinv;
       const i = (ficha.itens || []).indexOf(n);

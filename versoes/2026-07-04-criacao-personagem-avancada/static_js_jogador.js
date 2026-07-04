@@ -346,25 +346,11 @@ async function atualizarHandouts() {
 }
 atualizarHandouts();
 
-// Itens mágicos criados pelo Mestre (à parte do acervo) — precisam estar
-// disponíveis para a ficha reconhecer sintonização/efeito quando o Mestre
-// envia um desses itens a um personagem (ver itemMagico() em itens.js).
-async function atualizarItensMestre() {
-  try { window.ITENS_MESTRE = await (await fetch('/api/itens_mestre')).json(); } catch (e) { window.ITENS_MESTRE = window.ITENS_MESTRE || []; }
-}
-atualizarItensMestre();
-
-// Fase 9: Loja Especial liberada para toda a campanha (por personagem é lido direto de f.lojaEspecialLiberada)
-async function atualizarLojaEspecialCampanha() {
-  try { const r = await (await fetch('/api/loja_especial')).json(); window.LOJA_ESPECIAL_CAMPANHA = !!r.liberada; } catch (e) { window.LOJA_ESPECIAL_CAMPANHA = window.LOJA_ESPECIAL_CAMPANHA || false; }
-}
-atualizarLojaEspecialCampanha();
-
 // =====================================================
 // TEMPO REAL (Firestore) - atualiza ficha/bestiário/combate na hora
 // =====================================================
 if (window.RT && RT.ativo()) {
-  let _lf = '', _lv = '', _lc = '', _ln = '', _lim = '';
+  let _lf = '', _lv = '', _lc = '', _ln = '';
   RT.ouvir(estado => {
     ultimoRT = Date.now();
     const sf = JSON.stringify(estado.fichas || []);
@@ -375,9 +361,6 @@ if (window.RT && RT.ativo()) {
     if (sc !== _lc) { _lc = sc; renderCombateJog(estado.combate || {}); }
     const sn = JSON.stringify((estado.notas || []).filter(n => n.compartilhada));
     if (sn !== _ln) { _ln = sn; renderHandouts(estado.notas || []); }
-    const sim = JSON.stringify(estado.itens_mestre || []);
-    if (sim !== _lim) { _lim = sim; window.ITENS_MESTRE = estado.itens_mestre || []; }
-    window.LOJA_ESPECIAL_CAMPANHA = !!estado.loja_especial_campanha;
   });
 }
 // polling de fallback (auto-suprimido quando o tempo real está entregando dados)

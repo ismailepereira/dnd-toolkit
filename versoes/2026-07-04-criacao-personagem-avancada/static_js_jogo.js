@@ -19,12 +19,6 @@ const Jogo = (function () {
     return { total, ds, bonus, txt: `${ds.join('+')}${bonus ? (bonus > 0 ? '+' + bonus : bonus) : ''} = ${total}` };
   }
 
-  // ----- Fase 9: mini-loja categorizada no Modo de Jogo -----
-  let jgLojaAba = 'basica'; // 'basica' | 'especial'
-  let jgLojaCat = null;
-  let jgLojaMostrarTudo = false;
-  let jgLojaAberta = false; // <details> re-renderiza a cada ação; guarda se estava aberta
-
   // ----- rolagem com Vantagem/Desvantagem -----
   let modoRolagem = 'normal';
   function d20Modo() {
@@ -42,21 +36,13 @@ const Jogo = (function () {
     render();
   }
 
-  // ----- multiclasse: lista de classes do personagem (1 entrada = mono-classe) -----
-  function classesFicha() { return (typeof classesAtuais === 'function') ? classesAtuais(ficha) : [{ classe: ficha.classe, nivel: ficha.nivel, subclasse: ficha.subclasse || '' }]; }
-  function ehMulticlasse() { return classesFicha().length > 1; }
-
   // ----- dados derivados -----
   function chaveClasse() { return CLASSE_NOME_PARA_CHAVE[ficha.classe]; }
   function classeObj() { return CLASSES[chaveClasse()]; }
   function nivelObj() { const c = classeObj(); return c ? c.niveis.find(n => n.nivel === ficha.nivel) : null; }
-  // Bônus de proficiência é sempre pelo NÍVEL TOTAL do personagem (PB é uma função pura do nível — regra de multiclasse).
-  function pbAtual() { return (typeof PB === 'function') ? PB(ficha.nivel) : 2; }
+  function pbAtual() { const n = nivelObj(); return n ? n.bonusProf : 2; }
   function profPericia(p) { return (ficha.pericias || []).includes(p); }
-  function profSalva(nomePt) {
-    // salvaguardas de proficiência: só as da PRIMEIRA classe (regra 5e — multiclasse não soma salvaguardas extras)
-    return (classeObj() ? classeObj().salvaguardas : []).includes(nomePt);
-  }
+  function profSalva(nomePt) { return (classeObj() ? classeObj().salvaguardas : []).includes(nomePt); }
   function bonusPericia(p) { return m(ficha.atributos[PERICIAS[p]]) + (profPericia(p) ? pbAtual() : 0); }
   function bonusSalva(at) {
     const nomePt = ATRIBUTOS.find(a => a.chave === at).nome;
@@ -64,20 +50,9 @@ const Jogo = (function () {
   }
 
   // ----- grimório vs. magias preparadas (Mago e demais conjuradores que preparam) -----
-  // Multiclasse: considera preparador se QUALQUER classe do personagem preparar magias.
-  function ehPreparador() {
-    if (typeof PREPARA === 'undefined') return false;
-    return classesFicha().some(c => !!PREPARA[c.classe]);
-  }
-  // Limite de magias preparadas: soma a fórmula de cada classe que prepara
-  // (simplificação — na regra oficial cada classe prepara da SUA lista separada;
-  // aqui a ficha mantém uma lista única de preparadas, então somamos os limites).
+  function ehPreparador() { return typeof PREPARA !== 'undefined' && !!PREPARA[ficha.classe]; }
   function limitePreparadas() {
-    if (typeof magiasNoNivel !== 'function') return 0;
-    return classesFicha().reduce((soma, c) => {
-      if (!PREPARA[c.classe]) return soma;
-      return soma + magiasNoNivel(c.classe, c.nivel, ficha.atributos, c.subclasse);
-    }, 0);
+    return (typeof magiasNoNivel === 'function') ? magiasNoNivel(ficha.classe, ficha.nivel, ficha.atributos) : 0;
   }
   // magias de círculo que o personagem realmente pode lançar hoje
   function magiasCastaveis() { return ehPreparador() ? (ficha.preparadas || []) : (ficha.magias1 || []); }
@@ -101,22 +76,7 @@ const Jogo = (function () {
     salvar();
   }
 
-  // Slots de magia: mono-classe usa a tabela da própria classe; multiclasse usa
-  // a tabela combinada (multiclasse.js: slotsMulticlasse) + Pacto do Bruxo à parte.
   function slotsMax() {
-    if (ehMulticlasse()) {
-      const classes = classesFicha();
-      const resultado = {};
-      if (typeof slotsMulticlasse === 'function') {
-        const arr = slotsMulticlasse(classes);
-        if (arr && arr.some(s => s > 0)) resultado.normal = arr;
-      }
-      if (typeof pactoBruxoDaFicha === 'function') {
-        const pacto = pactoBruxoDaFicha(classes);
-        if (pacto) resultado.pacto = pacto;
-      }
-      return (resultado.normal || resultado.pacto) ? resultado : null;
-    }
     const n = nivelObj();
     if (!n) return null;
     if (n.pactoBruxo) return { pacto: n.pactoBruxo };
@@ -124,10 +84,8 @@ const Jogo = (function () {
     return null;
   }
 
-  // Recursos de classe: soma os recursos de CADA classe do personagem (Fúria
-  // do Bárbaro e Ki do Monge, por exemplo, são pools separadas por classe).
-  function recursosDeClasse(cl, nivel, cm) {
-    const r = [];
+  function recursosClasse() {
+    const r = [], cm = m(ficha.atributos.car), nivel = ficha.nivel, cl = ficha.classe;
     if (cl === 'Bárbaro') r.push({ nome: 'Fúria', max: nivel >= 17 ? 6 : nivel >= 12 ? 5 : nivel >= 6 ? 4 : nivel >= 3 ? 3 : 2, rec: 'longo' });
     if (cl === 'Monge' && nivel >= 2) r.push({ nome: 'Pontos de Ki', max: nivel, rec: 'curto' });
     if (cl === 'Guerreiro') { if (nivel >= 2) r.push({ nome: 'Surto de Ação', max: nivel >= 17 ? 2 : 1, rec: 'curto' }); r.push({ nome: 'Retomar o Fôlego', max: 1, rec: 'curto' }); }
@@ -137,12 +95,6 @@ const Jogo = (function () {
     if (cl === 'Feiticeiro' && nivel >= 2) r.push({ nome: 'Pontos de Feitiçaria', max: nivel, rec: 'longo' });
     if (cl === 'Paladino') { r.push({ nome: 'Imposição das Mãos (PV)', max: nivel * 5, rec: 'longo', pool: true }); if (nivel >= 3) r.push({ nome: 'Canalizar Divindade', max: 1, rec: 'curto' }); }
     return r;
-  }
-  function recursosClasse() {
-    const cm = m(ficha.atributos.car);
-    let out = [];
-    classesFicha().forEach(c => { out = out.concat(recursosDeClasse(c.classe, c.nivel, cm)); });
-    return out;
   }
 
   // ----- equipamento: slots mecânicos -----
@@ -156,10 +108,9 @@ const Jogo = (function () {
     if (!ficha.atributos || typeof ARMADURAS === 'undefined') return;
     const arm = ARMADURAS[ficha.armadura] || ARMADURAS['Sem armadura'];
     const dexMod = mod(ficha.atributos.des);
-    const classesCA = classesFicha().map(c => c.classe);
     let ca;
-    if (ficha.armadura === 'Sem armadura' && classesCA.includes('Bárbaro')) ca = 10 + dexMod + mod(ficha.atributos.con);
-    else if (ficha.armadura === 'Sem armadura' && classesCA.includes('Monge')) ca = 10 + dexMod + mod(ficha.atributos.sab);
+    if (ficha.armadura === 'Sem armadura' && ficha.classe === 'Bárbaro') ca = 10 + dexMod + mod(ficha.atributos.con);
+    else if (ficha.armadura === 'Sem armadura' && ficha.classe === 'Monge') ca = 10 + dexMod + mod(ficha.atributos.sab);
     else if (arm.tipo === 'leve') ca = arm.base + dexMod;
     else if (arm.tipo === 'media') ca = arm.base + Math.min(dexMod, 2);
     else ca = arm.base;
@@ -181,10 +132,6 @@ const Jogo = (function () {
     if (ficha.morteSucessos == null) ficha.morteSucessos = 0;
     if (ficha.morteFalhas == null) ficha.morteFalhas = 0;
     if (ficha.concentrando == null) ficha.concentrando = '';
-    if (!ficha.personalidade) ficha.personalidade = { traco: '', ideal: '', ligacao: '', defeito: '' };
-    if (ficha.historia == null) ficha.historia = '';
-    if (!ficha.itemMemoria) ficha.itemMemoria = { nome: '', tipo: '', descricao: '' };
-    if (!ficha.estadoTatico) ficha.estadoTatico = { emCombate: true, emFuria: false, inimigoAdjacente: false, aliadoAdjacenteAoAlvo: false, caido: false };
     // ----- bolsa + slots (migração de fichas legadas) -----
     ficha.itens = ficha.itens || [];
     if (!ficha.municao || !ficha.municao.nome) ficha.municao = ficha.municao || { nome: '', qtd: 0 };
@@ -206,8 +153,8 @@ const Jogo = (function () {
       if (v && !ficha.itens.includes(v)) ficha.equipado[k] = '';
     });
     sincronizarSlots();
-    // limpeza: se NENHUMA classe do personagem conjura, limpa dados de magia residuais
-    const _conj = typeof ehConjurador === 'function' && classesFicha().some(c => ehConjurador(c.classe, c.nivel, c.subclasse));
+    // limpeza: se a classe/subclasse não conjura, limpa dados de magia residuais
+    const _conj = typeof ehConjurador === 'function' && ehConjurador(ficha.classe, ficha.nivel, ficha.subclasse);
     if (!_conj) {
       ficha.truques = [];
       ficha.magias1 = [];
@@ -327,10 +274,10 @@ const Jogo = (function () {
   // ----- render -----
   function render() {
     garantirEstado();
-    const f = ficha, a = f.atributos, pb = pbAtual();
+    const f = ficha, a = f.atributos, pb = nivelObj() ? nivelObj().bonusProf : 2;
     const pctHp = f.hpMax > 0 ? Math.max(0, Math.min(100, (f.hpAtual / f.hpMax) * 100)) : 0;
     const corHp = pctHp > 50 ? '#3fb950' : pctHp > 25 ? '#d29922' : '#e94560';
-    const _ehConj = typeof ehConjurador === 'function' && classesFicha().some(c => ehConjurador(c.classe, c.nivel, c.subclasse));
+    const _ehConj = typeof ehConjurador === 'function' && ehConjurador(f.classe, f.nivel, f.subclasse);
 
     // atributos
     const attrHtml = ATRIBUTOS.map(at => `<div class="jg-attr"><span>${at.nome.slice(0, 3).toUpperCase()}</span><b>${a[at.chave]}</b><i>${fmt(m(a[at.chave]))}</i></div>`).join('');
@@ -420,57 +367,21 @@ const Jogo = (function () {
     }
 
     // características acumuladas até o nível atual (com descrição do que fazem)
-    // Multiclasse: cada classe filtra pelo SEU PRÓPRIO nível (não o total),
-    // que é a regra 5e — características vêm do nível na classe, só o bônus
-    // de proficiência e o nível de conjurador combinado usam o total.
+    const cls = classeObj();
     let caracHtml = '';
-    {
-      const linhasGerais = [];
-      if ((f.talentos || []).length) f.talentos.forEach(t => linhasGerais.push(`<div class="jg-magia-simples"><strong>Talento:</strong> ${esc(t)}</div>`));
-      const blocosClasse = classesFicha().map(cEntry => {
-        const cDef = CLASSES[CLASSE_NOME_PARA_CHAVE[cEntry.classe]];
-        if (!cDef) return '';
-        const linhas = [];
-        if (cEntry.subclasse) linhas.push(`<div class="jg-magia-simples"><strong>Especialização:</strong> ${esc(cEntry.subclasse)}</div>`);
-        cDef.niveis.filter(n => n.nivel <= cEntry.nivel).forEach(n => {
-          n.caracteristicas.forEach(ca => {
-            const d = (typeof detalheCaracteristica === 'function') ? detalheCaracteristica(ca) : null;
-            if (d) linhas.push(`<details class="jg-magia"><summary><span class="jg-nv-tag">N${n.nivel}</span> ${esc(ca)}</summary><div class="jg-magia-corpo"><p>${esc(d)}</p></div></details>`);
-            else linhas.push(`<div class="jg-magia-simples"><span class="jg-nv-tag">N${n.nivel}</span> ${esc(ca)}</div>`);
-          });
+    if (cls) {
+      const linhas = [];
+      cls.niveis.filter(n => n.nivel <= f.nivel).forEach(n => {
+        n.caracteristicas.forEach(ca => {
+          const d = (typeof detalheCaracteristica === 'function') ? detalheCaracteristica(ca) : null;
+          if (d) linhas.push(`<details class="jg-magia"><summary><span class="jg-nv-tag">N${n.nivel}</span> ${esc(ca)}</summary><div class="jg-magia-corpo"><p>${esc(d)}</p></div></details>`);
+          else linhas.push(`<div class="jg-magia-simples"><span class="jg-nv-tag">N${n.nivel}</span> ${esc(ca)}</div>`);
         });
-        const titulo = ehMulticlasse() ? `${esc(cEntry.classe)} (Nível ${cEntry.nivel})` : 'Características de Classe';
-        return `<div class="jg-bloco"><h4>${titulo}</h4>${linhas.join('')}</div>`;
-      }).join('');
-      caracHtml = (linhasGerais.length ? `<div class="jg-bloco"><h4>Talentos</h4>${linhasGerais.join('')}</div>` : '') + blocosClasse;
+      });
+      if (f.subclasse) linhas.unshift(`<div class="jg-magia-simples"><strong>Especialização:</strong> ${esc(f.subclasse)}</div>`);
+      if ((f.talentos || []).length) f.talentos.forEach(t => linhas.unshift(`<div class="jg-magia-simples"><strong>Talento:</strong> ${esc(t)}</div>`));
+      caracHtml = `<div class="jg-bloco"><h4>Características de Classe</h4>${linhas.join('')}</div>`;
     }
-
-    // história, personalidade e item de memória (narrativos; editáveis também em jogo)
-    const pers = f.personalidade || {};
-    const im = f.itemMemoria || {};
-    const historiaHtml = `<div class="jg-bloco"><h4>📖 História & Personalidade</h4>
-      <details class="jg-magia">
-        <summary>Traço · Ideal · Ligação · Defeito</summary>
-        <div class="jg-magia-corpo">
-          <label class="mini-label">Traço<textarea id="jgPersTraco" rows="2">${esc(pers.traco)}</textarea></label>
-          <label class="mini-label">Ideal<textarea id="jgPersIdeal" rows="2">${esc(pers.ideal)}</textarea></label>
-          <label class="mini-label">Ligação<textarea id="jgPersLigacao" rows="2">${esc(pers.ligacao)}</textarea></label>
-          <label class="mini-label">Defeito<textarea id="jgPersDefeito" rows="2">${esc(pers.defeito)}</textarea></label>
-        </div>
-      </details>
-      <details class="jg-magia">
-        <summary>História Prévia</summary>
-        <div class="jg-magia-corpo"><textarea id="jgHistoria" rows="4" style="width:100%">${esc(f.historia)}</textarea></div>
-      </details>
-      <details class="jg-magia">
-        <summary>🎁 Item de Memória${im.nome ? ' — ' + esc(im.nome) : ''}</summary>
-        <div class="jg-magia-corpo">
-          <label class="mini-label">Nome<input type="text" id="jgItemMemNome" value="${esc(im.nome)}"></label>
-          <label class="mini-label">Tipo<input type="text" id="jgItemMemTipo" value="${esc(im.tipo)}"></label>
-          <label class="mini-label">Significado<textarea id="jgItemMemDescricao" rows="2">${esc(im.descricao)}</textarea></label>
-        </div>
-      </details>
-    </div>`;
 
     // condições
     const condHtml = `<div class="jg-bloco"><h4>Condições</h4><div class="jg-cond-grid">` +
@@ -497,7 +408,7 @@ const Jogo = (function () {
       if (daSec && daSec.leve) {
         const forM = mod(f.atributos.for), desM = mod(f.atributos.des);
         const atrM = (daSec.distancia || (daSec.acuidade && desM > forM)) ? desM : forM;
-        const profSec = (typeof proficienteArmaFicha === 'function' && proficienteArmaFicha(f, eqJogo.maoSecundaria)) ? pb : 0;
+        const profSec = (typeof proficienteArma === 'function' && proficienteArma(f.classe, eqJogo.maoSecundaria)) ? pb : 0;
         const somaMod = f.estilo === 'Combate com Duas Armas';
         const danoSec = `${daSec.dano}${somaMod && atrM ? (atrM > 0 ? '+' + atrM : atrM) : ''} ${daSec.tipoDano}`;
         bonusDuasArmas = `<div class="pv-linha arma-equipada"><strong>⚔️ Ataque bônus — ${esc(eqJogo.maoSecundaria)}:</strong> ${atrM + profSec >= 0 ? '+' : ''}${atrM + profSec} · ${esc(danoSec)}
@@ -598,37 +509,13 @@ const Jogo = (function () {
         ${precoVenda > 0 ? `<button data-vender="${esc(i)}" title="Vender por ${precoVenda} po (metade)">💰</button>` : ''}
         <button data-rinv="${esc(i)}" title="Descartar">×</button></span>`;
     }).join('');
-    // Fase 9: mini-loja categorizada (Básica sempre livre; Especial só se liberada)
-    const lojaEspecialOk = (typeof lojaEspecialLiberada === 'function') && lojaEspecialLiberada(f);
-    if (jgLojaAba === 'especial' && !lojaEspecialOk) jgLojaAba = 'basica';
-    const gruposBasicosJg = (typeof itensLojaBasica === 'function') ? agruparPorCategoriaLoja(itensLojaBasica()) : [];
-    const gruposEspeciaisJg = lojaEspecialOk && typeof itensLojaEspecial === 'function' ? agruparPorCategoriaLoja(itensLojaEspecial()) : [];
-    const gruposAtivosJg = jgLojaAba === 'especial' ? gruposEspeciaisJg : gruposBasicosJg;
-    if (!jgLojaCat || !gruposAtivosJg.some(g => g.chave === jgLojaCat)) jgLojaCat = gruposAtivosJg[0] ? gruposAtivosJg[0].chave : null;
-    const linhaLojaJg = i => `<div class="loja-item">
-        <span class="loja-nome">${esc(i.nome)}</span>
-        <span class="loja-desc">${esc(i.descricao || '')}</span>
-        <span class="loja-preco">${jgLojaAba === 'especial' ? esc(i.raridade || '') : `${i.precoPO} po`}</span>
-        ${jgLojaAba === 'especial'
-          ? `<span class="loja-cadeado" title="Itens especiais são concedidos pelo Mestre">✨</span>`
-          : `<button type="button" class="btn-mini" data-lojaadd="${esc(i.nome)}">+ Adicionar</button>`}
-      </div>`;
-    let corpoLojaJg;
-    if (jgLojaMostrarTudo) {
-      corpoLojaJg = gruposAtivosJg.map(g => `<h4 class="loja-cat-titulo">${g.rotulo}</h4>${g.itens.map(linhaLojaJg).join('')}`).join('') || '<span class="criador-hint">Nenhum item disponível.</span>';
-    } else {
-      const grupoJg = gruposAtivosJg.find(g => g.chave === jgLojaCat);
-      corpoLojaJg = grupoJg ? grupoJg.itens.map(linhaLojaJg).join('') : '<span class="criador-hint">Loja Especial vazia — peça ao Mestre.</span>';
-    }
-    const lojaHtml = `<details class="jg-magia" id="jgLojaDetails"${jgLojaAberta ? ' open' : ''}><summary>🛒 Loja</summary><div class="jg-magia-corpo">
-      <div class="loja-abas">
-        <button type="button" class="btn-mini aba-loja${jgLojaAba === 'basica' ? ' on' : ''}" data-jglojaaba="basica">🛒 Básica</button>
-        <button type="button" class="btn-mini aba-loja${jgLojaAba === 'especial' ? ' on' : ''}${lojaEspecialOk ? '' : ' bloqueada'}" data-jglojaaba="especial"${lojaEspecialOk ? '' : ' title="Bloqueada — peça ao Mestre para liberar"'}>✨ Especial${lojaEspecialOk ? '' : ' 🔒'}</button>
-        <button type="button" class="btn-mini" id="jgBtnLojaCompleta">${jgLojaMostrarTudo ? '📑 Por categoria' : '📖 Loja completa'}</button>
-      </div>
-      ${!jgLojaMostrarTudo ? `<div class="loja-abas loja-abas-cat">${gruposAtivosJg.map(g => `<button type="button" class="btn-mini aba-loja${jgLojaCat === g.chave ? ' on' : ''}" data-jglojacat="${g.chave}">${g.rotulo} <small>(${g.itens.length})</small></button>`).join('')}</div>` : ''}
-      <div class="loja-lista">${corpoLojaJg}</div>
-    </div></details>`;
+    const optsItens = (() => {
+      const nomes = new Set();
+      let ops = '';
+      if (typeof CATALOGO !== 'undefined') CATALOGO.forEach(i => { if (!nomes.has(i.nome)) { nomes.add(i.nome); ops += `<option value="${esc(i.nome)}">${esc(i.nome)} (${i.precoPO} po)</option>`; } });
+      if (typeof ITENS_PADRAO !== 'undefined') ITENS_PADRAO.forEach(i => { if (!nomes.has(i.nome)) { nomes.add(i.nome); ops += `<option value="${esc(i.nome)}">${esc(i.nome)} (${esc(i.preco)})</option>`; } });
+      return ops;
+    })();
     const inventarioHtml = `<div class="jg-bloco"><h4>🎒 Bolsa & Equipamento</h4>
       <div class="slots-grid">
         ${slotJg('maoPrincipal', 'Mão principal', '🗡️', armasBolsa, eqJogo.maoPrincipal, '')}
@@ -640,7 +527,7 @@ const Jogo = (function () {
       <div class="peso-barra"><div style="width:${Math.min(100, capKg ? pesoTotal / capKg * 100 : 0)}%;background:${corPeso}"></div></div>
       <div class="pv-linha">⚖️ <b>${pesoTotal} kg</b> / ${capKg} kg${pesoTotal > capKg ? ' — <span class="pv-warn">MUITO sobrecarregado</span>' : (sobre ? ' — <span class="pv-warn">sobrecarregado (−3m desloc.)</span>' : '')}</div>
       <div class="chips">${itensChips || '<span class="criador-hint">Bolsa vazia.</span>'}</div>
-      ${lojaHtml}</div>`;
+      <div class="criador-add-item" style="margin-top:6px"><select id="jgItemSel">${optsItens}</select><button id="jgAddItem" class="btn-mini">+ Adicionar</button></div></div>`;
 
     // Sintonização (itens mágicos) — máx. 3
     let sintHtml = '';
@@ -662,66 +549,11 @@ const Jogo = (function () {
     }
     const avisosHtml = avisos.length ? `<div class="jg-bloco pv-avisos"><h4>⚠ Penalidades</h4>${avisos.map(a => `<div class="pv-linha">${esc(a.texto)}</div>`).join('')}</div>` : '';
 
-    // ---------- Fase 8A: painel "O teu turno" + dicas/combos + movimento/ataque ----------
-    const et = f.estadoTatico;
-    const rDesloc = RACAS_DETALHE[f.raca] || {};
-    const penDesloc = avisos.reduce((acc, a) => acc + (a.deslocamento || 0), 0);
-    const ctxTatico = {
-      classes: classesFicha(),
-      nivel: f.nivel,
-      recursos: recs.map(r => ({ ...r, restantes: r.max - (f.recursosUsados[r.nome] || 0) })),
-      conjurador: _ehConj,
-      magiasConhecidas: [...truquesF, ...magiasCastaveis()],
-      concentrando: f.concentrando,
-      estilo: f.estilo,
-      duasArmasDisponivel: !!bonusDuasArmas,
-      estadoTatico: et,
-      deslocamento: (rDesloc.deslocamento || 30) + penDesloc,
-    };
-    let turnoHtml = '';
-    if (et.emCombate && typeof opcoesTurno === 'function') {
-      const op = opcoesTurno(f, ctxTatico);
-      const dicas = (typeof dicasContextuais === 'function') ? dicasContextuais(f, ctxTatico) : [];
-      const combos = (typeof combosSugeridos === 'function') ? combosSugeridos(f, ctxTatico) : [];
-      const ajudaMov = (typeof ajudaMovimentoAtaque === 'function') ? ajudaMovimentoAtaque(f, ctxTatico) : null;
-      const colTurno = (titulo, itens) => `<div class="jg-turno-col"><h5>${titulo}</h5>${itens.length ? itens.map(o =>
-        `<div class="jg-turno-item${o.disponivel === false ? ' indisponivel' : ''}"><b>${esc(o.nome)}</b><small>${esc(o.desc)}</small></div>`).join('') : '<span class="criador-hint">—</span>'}</div>`;
-      turnoHtml = `<div class="jg-bloco jg-turno">
-        <h4>🎯 O teu turno</h4>
-        <div class="jg-turno-toggles">
-          <label class="check-chip ${et.emCombate ? 'on' : ''}"><input type="checkbox" id="jgEtCombate" ${et.emCombate ? 'checked' : ''}> ⚔️ Em combate</label>
-          <label class="check-chip ${et.emFuria ? 'on' : ''}"><input type="checkbox" id="jgEtFuria" ${et.emFuria ? 'checked' : ''}> 🔥 Em Fúria</label>
-          <label class="check-chip ${et.inimigoAdjacente ? 'on' : ''}"><input type="checkbox" id="jgEtInimigo" ${et.inimigoAdjacente ? 'checked' : ''}> 🎯 Inimigo adjacente a mim</label>
-          <label class="check-chip ${et.aliadoAdjacenteAoAlvo ? 'on' : ''}"><input type="checkbox" id="jgEtAliado" ${et.aliadoAdjacenteAoAlvo ? 'checked' : ''}> 🤝 Aliado adjacente ao alvo</label>
-          <label class="check-chip ${et.caido ? 'on' : ''}"><input type="checkbox" id="jgEtCaido" ${et.caido ? 'checked' : ''}> 🤕 Estou caído</label>
-        </div>
-        <div class="jg-turno-grid">
-          ${colTurno('Ação', op.acao)}
-          ${colTurno('Ação Bônus', op.bonus)}
-          ${colTurno('Movimento', op.movimento)}
-          ${colTurno('Reação', op.reacao)}
-          ${colTurno('Ação Livre', op.livre)}
-        </div>
-        ${dicas.length ? `<div class="jg-turno-dicas"><h5>💡 Dicas agora</h5>${dicas.map(d => `<div class="pv-linha">${esc(d)}</div>`).join('')}</div>` : ''}
-        ${combos.length ? `<div class="jg-turno-dicas"><h5>🔗 Combos sugeridos</h5>${combos.map(c => `<div class="pv-linha">${esc(c)}</div>`).join('')}</div>` : ''}
-        ${ajudaMov ? `<div class="jg-turno-dicas"><h5>📏 Alcance & Cobertura</h5>
-          <div class="pv-linha">Deslocamento: <b>${ajudaMov.deslocamento} m</b></div>
-          ${ajudaMov.armas.map(a => `<div class="pv-linha">${esc(a.texto)}</div>`).join('')}
-          <div class="pv-linha">${esc(ajudaMov.avisoOportunidade)}</div>
-          ${ajudaMov.cobertura.map(c => `<div class="pv-linha">${esc(c)}</div>`).join('')}
-        </div>` : ''}
-      </div>`;
-    } else {
-      turnoHtml = `<div class="jg-bloco jg-turno jg-turno-fechado">
-        <label class="check-chip"><input type="checkbox" id="jgEtCombate"> ⚔️ Ativar painel "O teu turno" (entrar em combate)</label>
-      </div>`;
-    }
-
     $('modalJogoBody').innerHTML = `
       <div class="jg-header">
         <div>
           <h2>${esc(f.nome)}</h2>
-          <div class="jg-sub">${esc(f.raca)} · ${ehMulticlasse() ? classesFicha().map(c => `${esc(c.classe)} ${c.nivel}`).join(' / ') + ` (total ${f.nivel})` : `${esc(f.classe)} nível ${f.nivel}`}${f.estilo ? ' · ' + esc(f.estilo) : ''}</div>
+          <div class="jg-sub">${esc(f.raca)} · ${esc(f.classe)} nível ${f.nivel}${f.estilo ? ' · ' + esc(f.estilo) : ''}</div>
         </div>
         <div class="jg-rest">
           <button id="jgSubirNivel" class="btn-primary${podeSubirPorXP(f) ? ' jg-pulsa' : ''}">⬆️ Subir de Nível${podeSubirPorXP(f) ? ' ✨' : ''}</button>
@@ -743,7 +575,6 @@ const Jogo = (function () {
         </div>
       </div>
 
-      ${turnoHtml}
       ${modoHtml}
       ${morteHtml}
       <div class="jg-attrs">${attrHtml}</div>
@@ -765,7 +596,7 @@ const Jogo = (function () {
           </div>
           ${condHtml}${logHtml}
         </div>
-        <div>${armasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
+        <div>${armasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}</div>
       </div>
     `;
 
@@ -799,9 +630,10 @@ const Jogo = (function () {
     };
     if ($('jgPDF')) $('jgPDF').onclick = () => exportarFichaPDF(ficha);
 
-    // inventário — Fase 9: mini-loja categorizada (só a Básica adiciona; Especial é consulta)
-    document.querySelectorAll('[data-lojaadd]').forEach(b => b.onclick = () => {
-      const v = b.dataset.lojaadd;
+    // inventário
+    if ($('jgAddItem')) $('jgAddItem').onclick = () => {
+      const v = $('jgItemSel').value;
+      if (!v) return;
       ficha.itens = ficha.itens || [];
       const it = (typeof itemCatalogo === 'function') ? itemCatalogo(v) : null;
       // packs de munição viram contador do slot
@@ -811,17 +643,8 @@ const Jogo = (function () {
       } else {
         ficha.itens.push(v);
       }
-      log(`Adicionou à bolsa: ${v}`);
-      salvar(); render();
-    });
-    document.querySelectorAll('[data-jglojaaba]').forEach(b => b.onclick = () => {
-      const aba = b.dataset.jglojaaba;
-      if (aba === 'especial' && !((typeof lojaEspecialLiberada === 'function') && lojaEspecialLiberada(ficha))) return;
-      jgLojaAba = aba; jgLojaCat = null; render();
-    });
-    document.querySelectorAll('[data-jglojacat]').forEach(b => b.onclick = () => { jgLojaCat = b.dataset.jglojacat; render(); });
-    if ($('jgBtnLojaCompleta')) $('jgBtnLojaCompleta').onclick = () => { jgLojaMostrarTudo = !jgLojaMostrarTudo; render(); };
-    if ($('jgLojaDetails')) $('jgLojaDetails').addEventListener('toggle', (ev) => { jgLojaAberta = ev.target.open; });
+      salvar();
+    };
     document.querySelectorAll('[data-rinv]').forEach(b => b.onclick = () => {
       const n = b.dataset.rinv;
       const i = (ficha.itens || []).indexOf(n);
@@ -931,24 +754,6 @@ const Jogo = (function () {
       if (r) { log(`${b.dataset.nome}: dano ${r.total} (${r.txt})`); render(); }
     });
     document.querySelectorAll('[data-preparar]').forEach(b => b.onclick = () => alternarPreparada(b.dataset.preparar));
-
-    // Fase 8A: toggles do painel "O teu turno" (estado tático manual — sem grid/posição)
-    // Recomputam o painel na hora (dicas/combos dependem destes estados).
-    if ($('jgEtCombate')) $('jgEtCombate').onchange = () => { ficha.estadoTatico.emCombate = $('jgEtCombate').checked; salvar(); render(); };
-    if ($('jgEtFuria')) $('jgEtFuria').onchange = () => { ficha.estadoTatico.emFuria = $('jgEtFuria').checked; salvar(); render(); };
-    if ($('jgEtInimigo')) $('jgEtInimigo').onchange = () => { ficha.estadoTatico.inimigoAdjacente = $('jgEtInimigo').checked; salvar(); render(); };
-    if ($('jgEtAliado')) $('jgEtAliado').onchange = () => { ficha.estadoTatico.aliadoAdjacenteAoAlvo = $('jgEtAliado').checked; salvar(); render(); };
-    if ($('jgEtCaido')) $('jgEtCaido').onchange = () => { ficha.estadoTatico.caido = $('jgEtCaido').checked; salvar(); render(); };
-
-    // história, personalidade e item de memória (edição livre, salva ao sair do campo)
-    if ($('jgPersTraco')) $('jgPersTraco').addEventListener('change', () => { ficha.personalidade.traco = $('jgPersTraco').value; salvar(); });
-    if ($('jgPersIdeal')) $('jgPersIdeal').addEventListener('change', () => { ficha.personalidade.ideal = $('jgPersIdeal').value; salvar(); });
-    if ($('jgPersLigacao')) $('jgPersLigacao').addEventListener('change', () => { ficha.personalidade.ligacao = $('jgPersLigacao').value; salvar(); });
-    if ($('jgPersDefeito')) $('jgPersDefeito').addEventListener('change', () => { ficha.personalidade.defeito = $('jgPersDefeito').value; salvar(); });
-    if ($('jgHistoria')) $('jgHistoria').addEventListener('change', () => { ficha.historia = $('jgHistoria').value; salvar(); });
-    if ($('jgItemMemNome')) $('jgItemMemNome').addEventListener('change', () => { ficha.itemMemoria.nome = $('jgItemMemNome').value; salvar(); });
-    if ($('jgItemMemTipo')) $('jgItemMemTipo').addEventListener('change', () => { ficha.itemMemoria.tipo = $('jgItemMemTipo').value; salvar(); });
-    if ($('jgItemMemDescricao')) $('jgItemMemDescricao').addEventListener('change', () => { ficha.itemMemoria.descricao = $('jgItemMemDescricao').value; salvar(); });
   }
 
   // ----- Exportar ficha em PDF (janela imprimível -> Salvar como PDF) -----
@@ -965,9 +770,7 @@ const Jogo = (function () {
     const salvas = ATTRS.map(([k]) => { const prof = cls && (cls.salvaguardas || []).includes(NOMES[k]); return `<li>${NOMES[k]}: <b>${fmtMod(mod(a[k] ?? 10) + (prof ? pb : 0))}</b>${prof ? ' (prof.)' : ''}</li>`; }).join('');
     const nd = cls ? cls.niveis.find(n => n.nivel === (f.nivel || 1)) : null;
     const feats = (nd && nd.caracteristicas.length) ? nd.caracteristicas.map(c => `<li>${e(c)}</li>`).join('') : '<li>—</li>';
-    const ant = (typeof antecedenteDados === 'function') ? antecedenteDados(f.antecedente) : ((typeof ANTECEDENTES !== 'undefined') ? ANTECEDENTES[f.antecedente] : null);
-    const pers = f.personalidade || {};
-    const im = f.itemMemoria || {};
+    const ant = (typeof ANTECEDENTES !== 'undefined') ? ANTECEDENTES[f.antecedente] : null;
     const truques = (f.truques || []).map(e).join(', ') || '—';
     const magias = (f.magias1 || []).map(e).join(', ') || '—';
     // equipado (slots) separado da bolsa; bolsa com contagem de repetidos
@@ -1016,19 +819,12 @@ const Jogo = (function () {
         <div><h3>Salvaguardas</h3><ul>${salvas}</ul>
           <h3>Características de Classe (Nível ${f.nivel})</h3><ul>${feats}</ul>
           ${ant ? `<h3>Antecedente — ${e(f.antecedente)}</h3><p><b>${e(ant.caracteristica)}</b></p>${ant.ferramentas && ant.ferramentas.length ? `<p>Ferramentas: ${ant.ferramentas.map(e).join(', ')}</p>` : ''}${ant.equipamento ? `<p>Equipamento: ${e(ant.equipamento)}</p>` : ''}` : ''}
-          ${(pers.traco || pers.ideal || pers.ligacao || pers.defeito) ? `<h3>Personalidade</h3>
-            ${pers.traco ? `<p><b>Traço:</b> ${e(pers.traco)}</p>` : ''}
-            ${pers.ideal ? `<p><b>Ideal:</b> ${e(pers.ideal)}</p>` : ''}
-            ${pers.ligacao ? `<p><b>Ligação:</b> ${e(pers.ligacao)}</p>` : ''}
-            ${pers.defeito ? `<p><b>Defeito:</b> ${e(pers.defeito)}</p>` : ''}` : ''}
         </div>
         <div><h3>Equipamento</h3><p>${itens}</p>${sint ? `<p><b>Sintonizado:</b> ${sint}</p>` : ''}
           <h3>Truques</h3><p>${truques}</p>
           <h3>Magias</h3><p>${magias}</p>
-          ${im.nome ? `<h3>🎁 Item de Memória</h3><p><b>${e(im.nome)}</b>${im.tipo ? ` (${e(im.tipo)})` : ''}${im.descricao ? `<br>${e(im.descricao)}` : ''}</p>` : ''}
         </div>
       </div>
-      ${f.historia ? `<div style="margin-top:14px"><h3>História Prévia</h3><p style="white-space:pre-wrap">${e(f.historia)}</p></div>` : ''}
       <p style="margin-top:20px;color:#999;font-size:11px;text-align:center;">Gerado pelo D&D Toolkit · Desenvolvido por ismailepereira</p>
       <script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>
       </body></html>`;

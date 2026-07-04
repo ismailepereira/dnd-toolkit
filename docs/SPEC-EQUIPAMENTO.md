@@ -1,4 +1,4 @@
-# SPEC — Revisão de criação por classe, ouro, equipamento, bolsa e slots
+﻿# SPEC — Revisão de criação por classe, ouro, equipamento, bolsa e slots
 
 > Prompt de execução acordado com o Ismaile em 03/07/2026.
 > Fonte de verdade para as fases A–F abaixo. Implementar na ordem; cada fase
@@ -42,7 +42,7 @@ anterior liberou — manobras, magias extras, escolhas — a ficha acumula e des
    Campeão → manobras zeradas; Mago Evocação→Ilusão → sem resíduo; trocar de
    classe inteira → nada da anterior sobra.
 
-## FASE B — Ouro inicial por rolagem oficial (PHB)
+## FASE B — Ouro inicial por rolagem oficial (PHB) ✅ (03/07/2026)
 
 1. Remover `OURO_INICIAL` (médias fixas) e o input manual livre de ouro do criador.
 2. Nova tabela `OURO_ROLAGEM` em `dados5e.js` (PHB cap. 5):
@@ -55,7 +55,7 @@ anterior liberou — manobras, magias extras, escolhas — a ficha acumula e des
    Fichas em edição que já têm ouro: não mostram o botão.
 4. Gerar Automático rola o ouro da classe respeitando a mesma trava.
 
-## FASE C — Kit inicial grátis por classe (só na criação)
+## FASE C — Kit inicial grátis por classe (só na criação) ✅ (03/07/2026)
 
 1. Nova estrutura `KIT_INICIAL` em `dados5e.js`, por classe, com escolhas do PHB
    simplificadas — cada linha é uma escolha do jogador (radio):
@@ -73,7 +73,7 @@ anterior liberou — manobras, magias extras, escolhas — a ficha acumula e des
 4. Itens que faltam no catálogo (foco arcano, grimório, vestes, símbolo sagrado,
    aljava + flechas, bolsa de componentes) → adicionar na Fase D.
 
-## FASE D — Loja da criação (catálogo PHB estruturado)
+## FASE D — Loja da criação (catálogo PHB estruturado) ✅ (03/07/2026)
 
 1. Reestruturar o catálogo (hoje `ITENS_PADRAO` em `itens.js` com descrição em
    texto solto) para campos mecânicos parseáveis, em `dados5e.js` ou arquivo novo
@@ -94,7 +94,7 @@ anterior liberou — manobras, magias extras, escolhas — a ficha acumula e des
 5. `criador.js` usa esse catálogo para peso e preço (remover tabelas duplicadas
    `precoEmPO`/`pesoDeItem` hardcoded se existirem).
 
-## FASE E — Bolsa + 5 slots mecânicos (criador e modo de jogo)
+## FASE E — Bolsa + 5 slots mecânicos (criador e modo de jogo) ✅ (03/07/2026)
 
 1. Novo formato na ficha:
    ```js
@@ -120,7 +120,7 @@ anterior liberou — manobras, magias extras, escolhas — a ficha acumula e des
 4. No modo de jogo, equipar/desequipar re-calcula CA/ataques na hora e salva
    (respeitando a fila de salvamento e o re-sync do listener RT já existente).
 
-## FASE F — Painel do Mestre: enviar ouro e itens
+## FASE F — Painel do Mestre: enviar ouro e itens ✅ (03/07/2026)
 
 1. Na vista do Mestre (`app.js`), fora da edição de ficha: controle "💰 Enviar
    para ficha" — escolhe personagem, envia ouro (+valor) e/ou item do catálogo

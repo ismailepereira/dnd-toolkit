@@ -1321,6 +1321,16 @@ body.alto-contraste a { color: #ffd400; }
 .status-botoes { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
 @media (max-width: 560px) { .status-grid { grid-template-columns: repeat(3, 1fr); } }
 
+/* Envio do Mestre (ouro/itens para uma ficha) */
+.mestre-envio {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  padding: 8px 12px; margin-bottom: 12px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+  font-size: 0.82rem;
+}
+.mestre-envio select, .mestre-envio input { padding: 4px 6px; }
+.envio-msg { color: #3fb950; font-size: 0.78rem; }
+
 /* Passo 5: kit inicial, loja e slots de equipamento */
 .kit-grupo { margin: 6px 0; }
 .kit-grupo > b { font-size: 0.82rem; }

@@ -80,6 +80,55 @@ function renderFichas() {
     card.querySelector('[data-editar]').addEventListener('click', (e) => { e.stopPropagation(); abrirFicha(f.id); });
     listaFichas.appendChild(card);
   });
+  montarEnvioMestre();
+}
+
+// ----- Mestre envia ouro/itens direto a uma ficha (loot, recompensa, mercador) -----
+let _envioMontado = false;
+function montarEnvioMestre() {
+  const wrap = document.getElementById('envioWrap');
+  if (!wrap) return;
+  const selF = document.getElementById('envioFicha');
+  const anterior = selF.value;
+  selF.innerHTML = fichas.map(f => `<option value="${escapeHtml(f.id)}">${escapeHtml(f.nome)}</option>`).join('');
+  if (anterior && fichas.some(f => f.id === anterior)) selF.value = anterior;
+  if (_envioMontado) return;
+  _envioMontado = true;
+  // catálogo: equipamento.js + itens (mágicos) da loja antiga
+  const selI = document.getElementById('envioItem');
+  const nomes = new Set();
+  let ops = '<option value="">— sem item —</option>';
+  if (typeof CATALOGO !== 'undefined') CATALOGO.forEach(i => { if (!nomes.has(i.nome)) { nomes.add(i.nome); ops += `<option value="${escapeHtml(i.nome)}">${escapeHtml(i.nome)}</option>`; } });
+  if (typeof ITENS_PADRAO !== 'undefined') ITENS_PADRAO.forEach(i => { if (!nomes.has(i.nome)) { nomes.add(i.nome); ops += `<option value="${escapeHtml(i.nome)}">${escapeHtml(i.nome)} ✨</option>`; } });
+  selI.innerHTML = ops;
+  document.getElementById('envioBtn').addEventListener('click', () => {
+    const f = fichas.find(x => x.id === selF.value);
+    if (!f) return;
+    const ouro = Number(document.getElementById('envioOuro').value) || 0;
+    const item = selI.value;
+    const qtd = Math.max(1, Number(document.getElementById('envioQtd').value) || 1);
+    if (!ouro && !item) return;
+    if (ouro) f.ouro = Math.max(0, (f.ouro || 0) + ouro);
+    if (item) {
+      f.itens = f.itens || [];
+      f.municao = (f.municao && f.municao.nome != null) ? f.municao : { nome: '', qtd: 0 };
+      const it = (typeof itemCatalogo === 'function') ? itemCatalogo(item) : null;
+      if (it && it.cat === 'municao' && (!f.municao.nome || f.municao.nome === it.municaoNome)) {
+        f.municao.nome = it.municaoNome;
+        f.municao.qtd += it.qtdPack * qtd;
+      } else {
+        for (let k = 0; k < qtd; k++) f.itens.push(item);
+      }
+    }
+    salvarFichas();
+    renderFichas();
+    const msg = document.getElementById('envioMsg');
+    if (msg) {
+      msg.textContent = `✓ ${[ouro ? `${ouro > 0 ? '+' : ''}${ouro} po` : '', item ? `${qtd}× ${item}` : ''].filter(Boolean).join(' e ')} → ${f.nome}`;
+      setTimeout(() => { msg.textContent = ''; }, 5000);
+    }
+    document.getElementById('envioOuro').value = '';
+  });
 }
 
 // Abre o Criador de Personagem (preview ao vivo + regras 5e)

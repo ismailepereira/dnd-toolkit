@@ -41,6 +41,15 @@
         <h2>Fichas de Personagem</h2>
         <button id="novaFicha" class="btn-primary">+ Nova Ficha</button>
       </div>
+      <div class="mestre-envio" id="envioWrap">
+        <b>📦 Enviar à ficha</b>
+        <select id="envioFicha" title="Personagem que recebe"></select>
+        <input type="number" id="envioOuro" placeholder="ouro (po)" title="Ouro a enviar (negativo cobra)" style="width:92px">
+        <select id="envioItem" title="Item do catálogo (opcional)"></select>
+        <input type="number" id="envioQtd" value="1" min="1" title="Quantidade" style="width:56px">
+        <button id="envioBtn" class="btn-mini">Enviar</button>
+        <span id="envioMsg" class="envio-msg"></span>
+      </div>
       <div id="listaFichas" class="card-grid"></div>
     </section>
 

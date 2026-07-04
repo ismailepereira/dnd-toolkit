@@ -97,6 +97,28 @@ const Jogo = (function () {
     return r;
   }
 
+  // ----- equipamento: slots mecânicos -----
+  // deriva os campos legados (armadura/escudo) dos slots e recalcula a CA
+  function sincronizarSlots() {
+    ficha.armadura = (ficha.equipado && ficha.equipado.armadura) || 'Sem armadura';
+    ficha.escudo = !!(ficha.equipado && ficha.equipado.maoSecundaria === 'Escudo');
+    recalcularCA();
+  }
+  function recalcularCA() {
+    if (!ficha.atributos || typeof ARMADURAS === 'undefined') return;
+    const arm = ARMADURAS[ficha.armadura] || ARMADURAS['Sem armadura'];
+    const dexMod = mod(ficha.atributos.des);
+    let ca;
+    if (ficha.armadura === 'Sem armadura' && ficha.classe === 'Bárbaro') ca = 10 + dexMod + mod(ficha.atributos.con);
+    else if (ficha.armadura === 'Sem armadura' && ficha.classe === 'Monge') ca = 10 + dexMod + mod(ficha.atributos.sab);
+    else if (arm.tipo === 'leve') ca = arm.base + dexMod;
+    else if (arm.tipo === 'media') ca = arm.base + Math.min(dexMod, 2);
+    else ca = arm.base;
+    if (ficha.escudo) ca += 2;
+    if (ficha.estilo === 'Defesa' && ficha.armadura !== 'Sem armadura') ca += 1;
+    ficha.ca = ca;
+  }
+
   // ----- estado de jogo na ficha -----
   function garantirEstado() {
     if (ficha.hpAtual == null) ficha.hpAtual = ficha.hpMax || 1;
@@ -110,6 +132,27 @@ const Jogo = (function () {
     if (ficha.morteSucessos == null) ficha.morteSucessos = 0;
     if (ficha.morteFalhas == null) ficha.morteFalhas = 0;
     if (ficha.concentrando == null) ficha.concentrando = '';
+    // ----- bolsa + slots (migração de fichas legadas) -----
+    ficha.itens = ficha.itens || [];
+    if (!ficha.municao || !ficha.municao.nome) ficha.municao = ficha.municao || { nome: '', qtd: 0 };
+    if (!ficha.equipado) {
+      const cat = n => (typeof itemCatalogo === 'function') ? itemCatalogo(n) : null;
+      const armLegada = (ficha.armadura && ficha.armadura !== 'Sem armadura') ? ficha.armadura : '';
+      if (armLegada && !ficha.itens.includes(armLegada)) ficha.itens.push(armLegada);
+      if (ficha.escudo && !ficha.itens.includes('Escudo')) ficha.itens.push('Escudo');
+      ficha.equipado = {
+        maoPrincipal: ficha.itens.find(n => cat(n) && cat(n).cat === 'arma') || '',
+        maoSecundaria: ficha.escudo ? 'Escudo' : '',
+        armadura: armLegada,
+        foco: ficha.itens.find(n => cat(n) && cat(n).cat === 'foco') || '',
+      };
+    }
+    // slots apontando p/ itens que não existem mais → esvazia
+    ['maoPrincipal', 'maoSecundaria', 'armadura', 'foco'].forEach(k => {
+      const v = ficha.equipado[k];
+      if (v && !ficha.itens.includes(v)) ficha.equipado[k] = '';
+    });
+    sincronizarSlots();
     // limpeza: se a classe/subclasse não conjura, limpa dados de magia residuais
     const _conj = typeof ehConjurador === 'function' && ehConjurador(ficha.classe, ficha.nivel, ficha.subclasse);
     if (!_conj) {
@@ -351,10 +394,21 @@ const Jogo = (function () {
 
     // ataques de arma, penalidades e bolsa de inventário
     const avisos = (typeof penalidadesEquipamento === 'function') ? penalidadesEquipamento(f) : [];
-    const armas = (f.itens || []).map(n => (typeof ataqueArma === 'function') ? ataqueArma(f, n, pb) : null).filter(Boolean);
-    const armasHtml = armas.length ? `<div class="jg-bloco"><h4>Ataques de Arma</h4>${armas.map(a => `<div class="pv-linha"><strong>${esc(a.nome)}:</strong> ${a.ataque >= 0 ? '+' : ''}${a.ataque} · ${esc(a.dano)}
-      <button class="btn-mini" data-atacararma="${a.ataque}" data-arma="${esc(a.nome)}">🎲 atacar</button>
-      ${/\d+d\d+/.test(a.dano) ? `<button class="btn-mini" data-rolararma="${esc(a.dano)}" data-arma="${esc(a.nome)}">🎲 dano</button>` : ''}${a.semProf ? ' <span class="pv-warn">⚠ sem prof.</span>' : ''}</div>`).join('')}</div>` : '';
+    const eqJogo = f.equipado || {};
+    const catJogo = n => (typeof itemCatalogo === 'function') ? itemCatalogo(n) : null;
+    const nomesArmas = [...new Set(f.itens || [])];
+    // arma equipada primeiro na lista
+    nomesArmas.sort((a, b) => (b === eqJogo.maoPrincipal ? 1 : 0) - (a === eqJogo.maoPrincipal ? 1 : 0));
+    const armas = nomesArmas.map(n => (typeof ataqueArma === 'function') ? ataqueArma(f, n, pb) : null).filter(Boolean);
+    const armasHtml = armas.length ? `<div class="jg-bloco"><h4>Ataques de Arma</h4>${armas.map(a => {
+      const it = catJogo(a.nome);
+      const equipada = a.nome === eqJogo.maoPrincipal || a.nome === eqJogo.maoSecundaria;
+      const usaMunicao = it && it.municaoTipo;
+      const municaoOk = !usaMunicao || (f.municao && f.municao.nome === it.municaoTipo && f.municao.qtd > 0);
+      return `<div class="pv-linha${equipada ? ' arma-equipada' : ''}"><strong>${equipada ? '✋ ' : ''}${esc(a.nome)}:</strong> ${a.ataque >= 0 ? '+' : ''}${a.ataque} · ${esc(a.dano)}
+      <button class="btn-mini" data-atacararma="${a.ataque}" data-arma="${esc(a.nome)}"${usaMunicao && !municaoOk ? ' disabled title="sem munição"' : ''}${usaMunicao ? ` data-municao="${esc(it.municaoTipo)}"` : ''}>🎲 atacar</button>
+      ${/\d+d\d+/.test(a.dano) ? `<button class="btn-mini" data-rolararma="${esc(a.dano)}" data-arma="${esc(a.nome)}">🎲 dano</button>` : ''}${a.semProf ? ' <span class="pv-warn">⚠ sem prof.</span>' : ''}${usaMunicao && !municaoOk ? ' <span class="pv-warn">sem munição</span>' : ''}</div>`;
+    }).join('')}</div>` : '';
 
     // perícias clicáveis
     const periciasHtml = `<details class="jg-bloco"><summary><strong>Perícias</strong> (clique para rolar)</summary><div class="jg-pericias-jogo">` +
@@ -390,11 +444,64 @@ const Jogo = (function () {
       <button class="jg-modo-btn ${modoRolagem === 'normal' ? 'on' : ''}" data-modo="normal">Normal</button>
       <button class="jg-modo-btn ${modoRolagem === 'vantagem' ? 'on' : ''}" data-modo="vantagem">Vantagem</button>
     </div>`;
-    const itensChips = (f.itens || []).map(i => `<span class="chip">${esc(i)} <button data-rinv="${esc(i)}">×</button></span>`).join('');
-    const optsItens = (typeof ITENS_PADRAO !== 'undefined') ? ITENS_PADRAO.map(i => `<option value="${esc(i.nome)}">${esc(i.nome)} (${esc(i.preco)})</option>`).join('') : '';
-    const inventarioHtml = `<div class="jg-bloco"><h4>Bolsa / Inventário</h4>
-      <div class="pv-linha"><strong>Armadura:</strong> ${esc(f.armadura || 'Sem armadura')}${f.escudo ? ' + Escudo' : ''}</div>
-      <div class="chips">${itensChips || '<span class="criador-hint">Sem itens.</span>'}</div>
+    // ----- slots de equipar + bolsa com peso -----
+    const contarItem = (n) => (f.itens || []).filter(x => x === n).length;
+    const armasBolsa = nomesArmas.filter(n => catJogo(n) && catJogo(n).cat === 'arma');
+    const armadurasBolsa = nomesArmas.filter(n => catJogo(n) && catJogo(n).cat === 'armadura');
+    const focosBolsa = nomesArmas.filter(n => catJogo(n) && catJogo(n).cat === 'foco');
+    const armaP = catJogo(eqJogo.maoPrincipal);
+    const duasMaosJg = armaP && armaP.maos === 2;
+    const opsSec = duasMaosJg ? [] : [
+      ...((f.itens || []).includes('Escudo') ? ['Escudo'] : []),
+      ...armasBolsa.filter(n => {
+        const it = catJogo(n);
+        if (!it || !(it.props || []).includes('leve')) return false;
+        return n !== eqJogo.maoPrincipal || contarItem(n) > 1;
+      }),
+    ];
+    const slotJg = (id, rotulo, icone, opcoes, valor, nota) => `
+      <label class="slot-eq"><span>${icone} ${rotulo}</span>
+        <select data-slot-jogo="${id}"><option value="">— vazio —</option>${[...new Set(opcoes)].map(o =>
+          `<option value="${esc(o)}"${valor === o ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>
+        ${nota || ''}</label>`;
+    const municaoJgHtml = (f.municao && f.municao.nome)
+      ? `<div class="slot-eq slot-municao"><span>🏹 Munição</span><b>${esc(f.municao.nome)} × ${f.municao.qtd}</b></div>` : '';
+    // peso total e capacidade
+    let pesoTotal = 0;
+    if (typeof pesoItemKg === 'function') {
+      (f.itens || []).forEach(n => { pesoTotal += pesoItemKg(n); });
+      if (f.municao && f.municao.nome && typeof CATALOGO !== 'undefined') {
+        const pk = CATALOGO.find(i => i.cat === 'municao' && i.municaoNome === f.municao.nome);
+        if (pk && pk.qtdPack) pesoTotal += (pk.pesoKg / pk.qtdPack) * f.municao.qtd;
+      }
+    }
+    pesoTotal = Math.round(pesoTotal * 10) / 10;
+    const capKg = (f.atributos ? f.atributos.for : 10) * 7.5;
+    const sobre = pesoTotal > (f.atributos ? f.atributos.for : 10) * 5;
+    const corPeso = pesoTotal > capKg ? '#e94560' : (sobre ? '#d29922' : '#3fb950');
+    const itensChips = [...new Set(f.itens || [])].map(i => {
+      const qt = contarItem(i);
+      const equipadoAqui = [eqJogo.maoPrincipal, eqJogo.maoSecundaria, eqJogo.armadura, eqJogo.foco].includes(i);
+      return `<span class="chip${equipadoAqui ? ' equipado' : ''}">${qt > 1 ? qt + '× ' : ''}${esc(i)}${equipadoAqui ? ' ✋' : ''} <button data-rinv="${esc(i)}">×</button></span>`;
+    }).join('');
+    const optsItens = (() => {
+      const nomes = new Set();
+      let ops = '';
+      if (typeof CATALOGO !== 'undefined') CATALOGO.forEach(i => { if (!nomes.has(i.nome)) { nomes.add(i.nome); ops += `<option value="${esc(i.nome)}">${esc(i.nome)} (${i.precoPO} po)</option>`; } });
+      if (typeof ITENS_PADRAO !== 'undefined') ITENS_PADRAO.forEach(i => { if (!nomes.has(i.nome)) { nomes.add(i.nome); ops += `<option value="${esc(i.nome)}">${esc(i.nome)} (${esc(i.preco)})</option>`; } });
+      return ops;
+    })();
+    const inventarioHtml = `<div class="jg-bloco"><h4>🎒 Bolsa & Equipamento</h4>
+      <div class="slots-grid">
+        ${slotJg('maoPrincipal', 'Mão principal', '🗡️', armasBolsa, eqJogo.maoPrincipal, '')}
+        ${slotJg('maoSecundaria', 'Mão secundária', '🛡️', opsSec, eqJogo.maoSecundaria, duasMaosJg ? '<span class="criador-hint-inline">arma de duas mãos</span>' : '')}
+        ${slotJg('armadura', 'Armadura', '🥋', armadurasBolsa, eqJogo.armadura, '')}
+        ${slotJg('foco', 'Foco / Símbolo', '🔮', focosBolsa, eqJogo.foco, '')}
+        ${municaoJgHtml}
+      </div>
+      <div class="peso-barra"><div style="width:${Math.min(100, capKg ? pesoTotal / capKg * 100 : 0)}%;background:${corPeso}"></div></div>
+      <div class="pv-linha">⚖️ <b>${pesoTotal} kg</b> / ${capKg} kg${pesoTotal > capKg ? ' — <span class="pv-warn">MUITO sobrecarregado</span>' : (sobre ? ' — <span class="pv-warn">sobrecarregado (−3m desloc.)</span>' : '')}</div>
+      <div class="chips">${itensChips || '<span class="criador-hint">Bolsa vazia.</span>'}</div>
       <div class="criador-add-item" style="margin-top:6px"><select id="jgItemSel">${optsItens}</select><button id="jgAddItem" class="btn-mini">+ Adicionar</button></div></div>`;
 
     // Sintonização (itens mágicos) — máx. 3
@@ -500,12 +607,38 @@ const Jogo = (function () {
     // inventário
     if ($('jgAddItem')) $('jgAddItem').onclick = () => {
       const v = $('jgItemSel').value;
+      if (!v) return;
       ficha.itens = ficha.itens || [];
-      if (v && !ficha.itens.includes(v)) ficha.itens.push(v);
+      const it = (typeof itemCatalogo === 'function') ? itemCatalogo(v) : null;
+      // packs de munição viram contador do slot
+      if (it && it.cat === 'municao' && (!ficha.municao.nome || ficha.municao.nome === it.municaoNome)) {
+        ficha.municao.nome = it.municaoNome;
+        ficha.municao.qtd += it.qtdPack;
+      } else {
+        ficha.itens.push(v);
+      }
       salvar();
     };
     document.querySelectorAll('[data-rinv]').forEach(b => b.onclick = () => {
-      ficha.itens = (ficha.itens || []).filter(x => x !== b.dataset.rinv);
+      const n = b.dataset.rinv;
+      const i = (ficha.itens || []).indexOf(n);
+      if (i >= 0) ficha.itens.splice(i, 1); // remove 1 unidade
+      ['maoPrincipal', 'maoSecundaria', 'armadura', 'foco'].forEach(k => {
+        if (ficha.equipado && ficha.equipado[k] === n && !ficha.itens.includes(n)) ficha.equipado[k] = '';
+      });
+      sincronizarSlots();
+      salvar();
+    });
+    // slots de equipar: mudar recalcula CA e salva na hora
+    document.querySelectorAll('[data-slot-jogo]').forEach(sel => sel.onchange = () => {
+      ficha.equipado = ficha.equipado || { maoPrincipal: '', maoSecundaria: '', armadura: '', foco: '' };
+      ficha.equipado[sel.dataset.slotJogo] = sel.value;
+      if (sel.dataset.slotJogo === 'maoPrincipal') {
+        const it = (typeof itemCatalogo === 'function') ? itemCatalogo(sel.value) : null;
+        if (it && it.maos === 2) ficha.equipado.maoSecundaria = '';
+      }
+      sincronizarSlots();
+      log(`Equipou: ${sel.value || 'nada'} (${sel.dataset.slotJogo === 'armadura' ? 'armadura' : sel.dataset.slotJogo === 'foco' ? 'foco' : 'mão'}) — CA ${ficha.ca}`);
       salvar();
     });
     // sintonização (máx. 3)
@@ -526,7 +659,16 @@ const Jogo = (function () {
       const r = rolar(b.dataset.rolararma);
       if (r) { log(`${b.dataset.arma}: dano ${r.total} (${r.txt})`); render(); }
     });
-    document.querySelectorAll('[data-atacararma]').forEach(b => b.onclick = () => rolarTeste(`Ataque ${b.dataset.arma}`, +b.dataset.atacararma));
+    document.querySelectorAll('[data-atacararma]').forEach(b => b.onclick = () => {
+      // arma de munição consome 1 disparo por ataque
+      if (b.dataset.municao) {
+        if (!ficha.municao || ficha.municao.nome !== b.dataset.municao || ficha.municao.qtd <= 0) return;
+        ficha.municao.qtd -= 1;
+        log(`Gastou 1 ${b.dataset.municao.replace(/s$/, '').toLowerCase()} (restam ${ficha.municao.qtd})`);
+      }
+      rolarTeste(`Ataque ${b.dataset.arma}`, +b.dataset.atacararma);
+      if (b.dataset.municao) salvar();
+    });
 
     // modo de rolagem (vantagem/desvantagem)
     document.querySelectorAll('[data-modo]').forEach(b => b.onclick = () => { modoRolagem = b.dataset.modo; render(); });

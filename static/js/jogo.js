@@ -773,7 +773,25 @@ const Jogo = (function () {
     const ant = (typeof ANTECEDENTES !== 'undefined') ? ANTECEDENTES[f.antecedente] : null;
     const truques = (f.truques || []).map(e).join(', ') || '—';
     const magias = (f.magias1 || []).map(e).join(', ') || '—';
-    const itens = [(f.armadura && f.armadura !== 'Sem armadura') ? f.armadura + (f.escudo ? ' + Escudo' : '') : '', ...(f.itens || [])].filter(Boolean).map(e).join(', ') || '—';
+    // equipado (slots) separado da bolsa; bolsa com contagem de repetidos
+    const eqPdf = f.equipado || {};
+    const equipadoTxt = [
+      eqPdf.maoPrincipal ? `Mão principal: ${eqPdf.maoPrincipal}` : '',
+      eqPdf.maoSecundaria ? `Mão secundária: ${eqPdf.maoSecundaria}` : '',
+      eqPdf.armadura ? `Armadura: ${eqPdf.armadura}` : '',
+      eqPdf.foco ? `Foco: ${eqPdf.foco}` : '',
+      (f.municao && f.municao.nome) ? `Munição: ${f.municao.nome} × ${f.municao.qtd}` : '',
+    ].filter(Boolean).map(e).join(' · ');
+    const equipadosSet = [eqPdf.maoPrincipal, eqPdf.maoSecundaria, eqPdf.armadura, eqPdf.foco];
+    const naBolsa = (f.itens || []).filter(n => {
+      const idx = equipadosSet.indexOf(n);
+      if (idx >= 0) { equipadosSet[idx] = null; return false; } // 1 unidade de cada equipado sai da bolsa
+      return true;
+    });
+    const cont = {};
+    naBolsa.forEach(n => { cont[n] = (cont[n] || 0) + 1; });
+    const itens = (equipadoTxt ? `<b>Equipado:</b> ${equipadoTxt}<br>` : '')
+      + (Object.keys(cont).map(n => `${cont[n] > 1 ? cont[n] + '× ' : ''}${e(n)}`).join(', ') || '—');
     const sint = (f.sintonizados || []).map(e).join(', ');
     const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Ficha — ${e(f.nome)}</title>
       <style>

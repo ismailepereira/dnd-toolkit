@@ -160,12 +160,24 @@ const Criador = (function () {
         ${s.magias1.length ? `<div class="pv-linha"><strong>1º Círculo:</strong> ${s.magias1.map(escHtml).join(', ')}</div>` : ''}
       </div>` : '';
 
-    const itensHtml = s.itens.length ? s.itens.map(escHtml).join(', ') : '—';
+    // bolsa com contagem (sem repetir nomes) + linha de equipado por slot
+    const contItens = {};
+    s.itens.forEach(n => { contItens[n] = (contItens[n] || 0) + 1; });
+    const itensHtml = Object.keys(contItens).length
+      ? Object.keys(contItens).map(n => `${contItens[n] > 1 ? contItens[n] + '× ' : ''}${escHtml(n)}`).join(', ') : '—';
+    const eqPrev = s.equipado || {};
+    const equipadoHtml = [
+      eqPrev.maoPrincipal ? `🗡️ ${escHtml(eqPrev.maoPrincipal)}` : '',
+      eqPrev.maoSecundaria ? `🛡️ ${escHtml(eqPrev.maoSecundaria)}` : '',
+      eqPrev.armadura ? `🥋 ${escHtml(eqPrev.armadura)}` : '',
+      eqPrev.foco ? `🔮 ${escHtml(eqPrev.foco)}` : '',
+      (s.municao && s.municao.nome) ? `🏹 ${escHtml(s.municao.nome)} × ${s.municao.qtd}` : '',
+    ].filter(Boolean).join(' · ');
 
     // armas (dano/acerto) e avisos de proficiência/sobrepeso
-    const fichaTmp = { classe: s.classe, armadura: s.armadura, escudo: s.escudo, atributos: c.attrs, itens: s.itens };
+    const fichaTmp = { classe: s.classe, armadura: s.armadura, escudo: s.escudo, atributos: c.attrs, itens: s.itens, equipado: s.equipado };
     const avisos = (typeof penalidadesEquipamento === 'function') ? penalidadesEquipamento(fichaTmp) : [];
-    const armas = s.itens.map(n => (typeof ataqueArma === 'function') ? ataqueArma(fichaTmp, n, c.pb) : null).filter(Boolean);
+    const armas = [...new Set(s.itens)].map(n => (typeof ataqueArma === 'function') ? ataqueArma(fichaTmp, n, c.pb) : null).filter(Boolean);
     const penDesloc = avisos.reduce((acc, a) => acc + (a.deslocamento || 0), 0);
     const armasHtml = armas.length ? `<div class="pv-bloco"><h4>Ataques de Arma</h4>${armas.map(a => `<div class="pv-linha"><strong>${escHtml(a.nome)}:</strong> ${a.ataque >= 0 ? '+' : ''}${a.ataque} p/ acertar · ${escHtml(a.dano)}${a.semProf ? ' <span class="pv-warn">⚠ sem proficiência</span>' : ''}</div>`).join('')}</div>` : '';
     const avisosHtml = avisos.length ? `<div class="pv-bloco pv-avisos"><h4>⚠ Penalidades</h4>${avisos.map(a => `<div class="pv-linha">${escHtml(a.texto)}</div>`).join('')}</div>` : '';
@@ -200,7 +212,7 @@ const Criador = (function () {
       ${s.estilo ? `<div class="pv-bloco"><h4>Estilo de Combate</h4><div class="pv-linha">${escHtml(s.estilo)}: ${escHtml(ESTILOS_LUTA[s.estilo] || '')}</div></div>` : ''}
       ${conjHtml}
       ${armasHtml}
-      <div class="pv-bloco"><h4>Equipamento</h4><div class="pv-linha"><strong>Armadura:</strong> ${escHtml(s.armadura)}${s.escudo ? ' + Escudo' : ''}</div><div class="pv-linha"><strong>Itens:</strong> ${itensHtml}</div><div class="pv-linha"><strong>Ouro:</strong> ${s.ouro} po</div></div>
+      <div class="pv-bloco"><h4>Equipamento</h4>${equipadoHtml ? `<div class="pv-linha"><strong>Equipado:</strong> ${equipadoHtml}</div>` : ''}<div class="pv-linha"><strong>Bolsa:</strong> ${itensHtml}</div><div class="pv-linha"><strong>Ouro:</strong> ${s.ouro} po</div></div>
       ${avisosHtml}
     `;
   }

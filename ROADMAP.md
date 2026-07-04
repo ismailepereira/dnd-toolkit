@@ -144,7 +144,7 @@ Spec completa em `docs/SPEC-EQUIPAMENTO.md`.
 - [x] 9.5 Instrumentos musicais e mais montarias/acessórios adicionados a `itens.js` (categoria antes não existia no catálogo)
 
 ### Pontos em aberto (Fase 9)
-- Comprar/vender em Modo de Jogo continua sem custo de ouro no botão "+ Adicionar" da Loja Básica — comportamento pré-existente (não mexi nisso), só reorganizei por categoria. Um "carrinho com débito de ouro" no Modo de Jogo é um follow-up natural.
+- ~~Comprar em Modo de Jogo sem custo de ouro~~ — resolvido na Fase 9b (04/07/2026): o botão da Loja Básica virou "Comprar", debita o ouro da ficha e desabilita quando o ouro não chega; munição em packs e arredondamento de centavos tratados.
 - A Loja Especial (Criador e Modo de Jogo) é só consulta — os itens mágicos continuam a só entrar na ficha via "📦 Enviar à ficha" do Mestre, nunca comprados diretamente. Decisão deliberada para não deixar personagens novos comprarem itens lendários com o ouro inicial.
 - Ver `docs/ROADMAP-FUTURO.md` para as fases seguintes já documentadas (NPCs, lojas geridas por NPC, monstros & loot, grid virtual, autenticação/campanha).
 

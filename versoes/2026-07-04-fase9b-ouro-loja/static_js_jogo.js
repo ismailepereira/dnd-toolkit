@@ -605,17 +605,14 @@ const Jogo = (function () {
     const gruposEspeciaisJg = lojaEspecialOk && typeof itensLojaEspecial === 'function' ? agruparPorCategoriaLoja(itensLojaEspecial()) : [];
     const gruposAtivosJg = jgLojaAba === 'especial' ? gruposEspeciaisJg : gruposBasicosJg;
     if (!jgLojaCat || !gruposAtivosJg.some(g => g.chave === jgLojaCat)) jgLojaCat = gruposAtivosJg[0] ? gruposAtivosJg[0].chave : null;
-    const linhaLojaJg = i => {
-      const semOuroJg = jgLojaAba === 'basica' && (i.precoPO || 0) > (f.ouro || 0);
-      return `<div class="loja-item">
+    const linhaLojaJg = i => `<div class="loja-item">
         <span class="loja-nome">${esc(i.nome)}</span>
         <span class="loja-desc">${esc(i.descricao || '')}</span>
         <span class="loja-preco">${jgLojaAba === 'especial' ? esc(i.raridade || '') : `${i.precoPO} po`}</span>
         ${jgLojaAba === 'especial'
           ? `<span class="loja-cadeado" title="Itens especiais são concedidos pelo Mestre">✨</span>`
-          : `<button type="button" class="btn-mini" data-lojaadd="${esc(i.nome)}"${semOuroJg ? ' disabled title="ouro insuficiente"' : ''}>Comprar</button>`}
+          : `<button type="button" class="btn-mini" data-lojaadd="${esc(i.nome)}">+ Adicionar</button>`}
       </div>`;
-    };
     let corpoLojaJg;
     if (jgLojaMostrarTudo) {
       corpoLojaJg = gruposAtivosJg.map(g => `<h4 class="loja-cat-titulo">${g.rotulo}</h4>${g.itens.map(linhaLojaJg).join('')}`).join('') || '<span class="criador-hint">Nenhum item disponível.</span>';
@@ -802,12 +799,9 @@ const Jogo = (function () {
     };
     if ($('jgPDF')) $('jgPDF').onclick = () => exportarFichaPDF(ficha);
 
-    // inventário — Fase 9: mini-loja categorizada (só a Básica vende; Especial é consulta)
-    // Fase 9b: comprar debita o ouro da ficha (venda por metade já existia nos chips da bolsa)
+    // inventário — Fase 9: mini-loja categorizada (só a Básica adiciona; Especial é consulta)
     document.querySelectorAll('[data-lojaadd]').forEach(b => b.onclick = () => {
       const v = b.dataset.lojaadd;
-      const preco = (typeof precoItemPO === 'function') ? precoItemPO(v) : 0;
-      if (preco > (ficha.ouro || 0)) { log(`Ouro insuficiente para ${v} (${preco} po).`); render(); return; }
       ficha.itens = ficha.itens || [];
       const it = (typeof itemCatalogo === 'function') ? itemCatalogo(v) : null;
       // packs de munição viram contador do slot
@@ -817,8 +811,7 @@ const Jogo = (function () {
       } else {
         ficha.itens.push(v);
       }
-      ficha.ouro = Math.round(((ficha.ouro || 0) - preco) * 100) / 100;
-      log(`💰 Comprou ${v} por ${preco} po (restam ${ficha.ouro} po)`);
+      log(`Adicionou à bolsa: ${v}`);
       salvar(); render();
     });
     document.querySelectorAll('[data-jglojaaba]').forEach(b => b.onclick = () => {

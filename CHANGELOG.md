@@ -157,3 +157,22 @@ jogador só GET).
 3. Remover a linha `<script src=".../loja.js">` de `mestre.html`/`jogador.html`.
 4. Fichas com `lojaEspecialLiberada: true` continuam válidas mesmo revertendo
    o código — o campo extra é simplesmente ignorado pelas versões antigas.
+
+## 2026-07-04 — Loja do Modo de Jogo debita ouro (Fase 9b)
+
+**Backup antes da alteração:** `versoes/2026-07-04-fase9b-ouro-loja/` (só `jogo.js`).
+
+**Resumo:** o botão "+ Adicionar" da Loja Básica no Modo de Jogo virou
+"Comprar": debita o preço do ouro da ficha, fica desabilitado quando o ouro
+não chega, e regista no histórico ("💰 Comprou X por Y po (restam Z po)").
+Fecha o ponto em aberto da Fase 9. Munição em packs continua a virar contador
+do slot; arredondamento a 2 casas (centavos de po) igual ao da venda.
+
+**Ficheiros alterados:** `static/js/jogo.js` (linha da loja + handler
+`data-lojaadd`), `ROADMAP.md` (ponto em aberto marcado como resolvido).
+
+**Verificação:** `node --check` + simulação da lógica de compra em Node
+(ouro insuficiente bloqueia, packs de munição, arredondamento 0.01 po).
+
+**Como reverter:** restaurar `versoes/2026-07-04-fase9b-ouro-loja/static_js_jogo.js`
+→ `static/js/jogo.js`, ou `git revert` do commit desta entrada.

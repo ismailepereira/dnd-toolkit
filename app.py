@@ -115,7 +115,7 @@ def carregar_estado():
     caminho = _data_file()
     if not os.path.exists(caminho):
         salvar_estado(ESTADO_PADRAO)
-    with open(caminho, 'r', encoding='utf-8') as f:
+    with open(caminho, 'r', encoding='utf-8-sig') as f:  # tolera BOM de editores Windows
         estado = json.load(f)
     for chave, valor in ESTADO_PADRAO.items():
         estado.setdefault(chave, valor)
@@ -178,13 +178,15 @@ def logout():
 @app.route('/mestre')
 @login_obrigatorio(papeis=['mestre'])
 def mestre():
-    return render_template('mestre.html', usuario=session['usuario'], campanha=campanha_atual())
+    return render_template('mestre.html', usuario=session['usuario'], campanha=campanha_atual(),
+                           use_local=(db is None))
 
 
 @app.route('/jogador')
 @login_obrigatorio(papeis=['mestre', 'jogador'])
 def jogador():
-    return render_template('jogador.html', usuario=session['usuario'], campanha=campanha_atual())
+    return render_template('jogador.html', usuario=session['usuario'], campanha=campanha_atual(),
+                           use_local=(db is None))
 
 
 @app.route('/campanha', methods=['POST'])

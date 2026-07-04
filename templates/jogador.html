@@ -91,10 +91,12 @@
   <script src="{{ url_for('static', filename='js/criador.js') }}"></script>
   <script src="{{ url_for('static', filename='js/nivel.js') }}"></script>
   <script src="{{ url_for('static', filename='js/jogo.js') }}"></script>
+  {% if not use_local %}
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script>window.CAMPANHA_ID = "{{ campanha }}";</script>
   <script src="{{ url_for('static', filename='js/firebase-rt.js') }}"></script>
+  {% endif %}
   <script src="{{ url_for('static', filename='js/jogador.js') }}"></script>
   <script src="{{ url_for('static', filename='js/a11y.js') }}"></script>
   <footer class="footer-attribuicao">

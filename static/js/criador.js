@@ -5,6 +5,7 @@
 const Criador = (function () {
   const $ = id => document.getElementById(id);
   let ctx = null; // { aoSalvar, aoExcluir, original }
+  let fichaOriginal = null; // ficha em edição (p/ detectar troca de classe/subclasse)
   let estado = null;
   let criandoNovo = true;        // ficha nova (aplica ouro inicial)
   let mostrarTodasEscolas = false; // Mago: ver magias de todas as escolas
@@ -461,6 +462,15 @@ const Criador = (function () {
     return a ? a.nome : k;
   }
 
+  // Limpeza central ao trocar subclasse/especialização: tudo que a escolha
+  // anterior liberou (magias de escola, truques de Cavaleiro/Trapaceiro Arcano,
+  // magias de domínio...) é removido — escolhas exclusivas nunca acumulam.
+  function limparEscolhasDeSubclasse() {
+    estado.truques = [];
+    estado.magias1 = [];
+    mostrarTodasEscolas = false;
+  }
+
   // Distribui um conjunto de 6 valores nos atributos, do melhor p/ o pior,
   // seguindo a prioridade da classe (quick build do PHB)
   function arranjarPorClasse(valores) {
@@ -538,7 +548,7 @@ const Criador = (function () {
       b.addEventListener('click', () => {
         estado.classe = b.dataset.galeriaClasse;
         estado.subclasse = '';
-        mostrarTodasEscolas = false;
+        limparEscolhasDeSubclasse();
         if (criandoNovo) {
           estado.ouro = (typeof OURO_INICIAL !== 'undefined' && OURO_INICIAL[estado.classe]) || 0;
           atualizarOuroDisp();
@@ -561,7 +571,7 @@ const Criador = (function () {
     wrap.querySelectorAll('[data-galeria-sub]').forEach(b => {
       b.addEventListener('click', () => {
         estado.subclasse = (estado.subclasse === b.dataset.galeriaSub) ? '' : b.dataset.galeriaSub;
-        mostrarTodasEscolas = false;
+        limparEscolhasDeSubclasse();
         renderTudoDinamico();
       });
     });
@@ -655,11 +665,11 @@ const Criador = (function () {
     wrap.innerHTML = fn ? fn(estado) : painelGenerico(estado);
     const sel = $('cEscolaMago');
     if (sel) sel.addEventListener('change', () => {
-      estado.subclasse = sel.value; mostrarTodasEscolas = false; renderTudoDinamico();
+      estado.subclasse = sel.value; limparEscolhasDeSubclasse(); renderTudoDinamico();
     });
     const selG = $('cSubclasseSel'); // seletor genérico de subclasse (não-Mago)
     if (selG) selG.addEventListener('change', () => {
-      estado.subclasse = selG.value; mostrarTodasEscolas = false; renderTudoDinamico();
+      estado.subclasse = selG.value; limparEscolhasDeSubclasse(); renderTudoDinamico();
     });
   }
 
@@ -1245,7 +1255,16 @@ const Criador = (function () {
       magiasLimpas.length ? '1º Círculo: ' + magiasLimpas.join(', ') : '',
       c.conj ? `CD ${c.conj.cd} · Ataque ${(c.conj.ataque >= 0 ? '+' : '') + c.conj.ataque}` : '',
     ].filter(Boolean).join('\n');
+    // trocou classe ou subclasse na edição → zera resíduos do Modo de Jogo
+    // (preparadas/concentração/slots gastos da escolha antiga sobreviveriam ao
+    // Object.assign do aoSalvar e desbalanceariam a ficha)
+    const mudouBase = fichaOriginal
+      && (fichaOriginal.classe !== s.classe || (fichaOriginal.subclasse || '') !== (s.subclasse || ''));
+    const limpezaJogo = mudouBase
+      ? { preparadas: [], concentrando: '', slotsUsados: {}, pactoUsados: 0, recursosUsados: {} }
+      : {};
     return {
+      ...limpezaJogo,
       nome: s.nome.trim() || 'Sem nome',
       classe: s.classe,
       raca: s.raca,
@@ -1285,6 +1304,9 @@ const Criador = (function () {
       s.nivel = f.nivel || 1;
       if (f.atributos) s.base = { ...s.base, ...f.atributos };
       s.subclasse = f.subclasse || '';
+      // subclasse órfã (não pertence à classe atual) → descarta
+      const _scDef = (typeof SUBCLASSES !== 'undefined') ? SUBCLASSES[s.classe] : null;
+      if (s.subclasse && (!_scDef || !_scDef.opcoes.some(o => o.nome === s.subclasse))) s.subclasse = '';
       const _conj = typeof ehConjurador === 'function' && ehConjurador(s.classe, s.nivel, s.subclasse);
       s.estilo = CLASSES_COM_ESTILO.includes(s.classe) ? (f.estilo || '') : '';
       s.truques = _conj ? (f.truques || []) : [];
@@ -1324,6 +1346,7 @@ const Criador = (function () {
   // ---------- Abrir ----------
   function abrir(ficha, opts) {
     ctx = opts || {};
+    fichaOriginal = ficha || null;
     montarSelectsUmaVez();
     carregarFicha(ficha);
     // ficha nova já nasce com o melhor arranjo legal p/ a classe (compra de pontos)

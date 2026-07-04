@@ -32,10 +32,15 @@ const Criador = (function () {
       subclasse: '',
       truques: [],
       magias1: [],
-      armadura: 'Cota de Malha',
-      escudo: true,
-      itens: [],
+      armadura: 'Sem armadura',   // derivado do slot (compat c/ cálculo de CA)
+      escudo: false,              // derivado do slot mão secundária
+      itens: [],                  // tudo que possui (bolsa + equipado)
+      equipado: { maoPrincipal: '', maoSecundaria: '', armadura: '', foco: '' },
+      municao: { nome: '', qtd: 0 },
+      kit: {},                    // índice da opção escolhida por grupo do kit
+      kitAplicado: [],            // o que veio de graça (sem reembolso)
       ouro: 0,
+      ouroRolado: false,          // trava: rola uma única vez por ficha
       anotacoes: '',
     };
   }
@@ -391,56 +396,249 @@ const Criador = (function () {
     });
   }
 
-  // preço de um item em peças de ouro (po)
-  function precoEmPO(nome) {
-    const it = (typeof ITENS_PADRAO !== 'undefined') ? ITENS_PADRAO.find(i => i.nome === nome) : null;
-    if (!it || !it.preco) return 0;
-    const m = String(it.preco).toLowerCase().replace(',', '.').match(/([\d.]+)\s*(po|gp|pp|sp|pc|cp|pe)?/);
-    if (!m) return 0;
-    const v = parseFloat(m[1]), u = m[2] || 'po';
-    if (u === 'pp' || u === 'sp') return v / 10;
-    if (u === 'pc' || u === 'cp') return v / 100;
-    if (u === 'pe') return v / 2;
-    return v;
-  }
+  // ========== PASSO 5: ouro (rolagem PHB), kit grátis, loja, bolsa e slots ==========
   const arred = n => Math.round(n * 100) / 100;
+  function precoEmPO(nome) { return (typeof precoItemPO === 'function') ? precoItemPO(nome) : 0; }
+  function pesoDeItem(nome) { return (typeof pesoItemKg === 'function') ? pesoItemKg(nome) : 0; }
+  const catDe = n => (typeof itemCatalogo === 'function') ? itemCatalogo(n) : null;
   function atualizarOuroDisp() {
     const d = $('cOuroDisp'); if (d) d.textContent = estado.ouro;
-    if ($('cOuro')) $('cOuro').value = estado.ouro;
+  }
+  const contar = (arr, n) => (arr || []).filter(x => x === n).length;
+
+  // deriva os campos legados (usados por calcular/CA) a partir dos slots
+  function sincronizarEquipado() {
+    estado.armadura = estado.equipado.armadura || 'Sem armadura';
+    estado.escudo = estado.equipado.maoSecundaria === 'Escudo';
   }
 
-  function renderItens() {
-    const wrap = $('cLojaWrap');
-    const opts = ITENS_PADRAO.map(i => `<option value="${escHtml(i.nome)}">${escHtml(i.nome)} — ${escHtml(i.preco)}</option>`).join('');
-    wrap.innerHTML = `
-      <div class="loja-ouro">💰 Ouro: <b id="cOuroDisp">${estado.ouro}</b> po</div>
-      <div class="criador-add-item">
-        <select id="cItemSelect">${opts}</select>
-        <button type="button" id="cAddItem" class="btn-mini">+ Comprar</button>
-      </div>
-      <div id="cItensChips" class="chips"></div>`;
-    $('cAddItem').addEventListener('click', () => {
-      const v = $('cItemSelect').value;
-      if (!v || estado.itens.includes(v)) return;
-      const preco = precoEmPO(v);
-      if (preco > estado.ouro) { alert(`Ouro insuficiente: ${v} custa ${preco} po e você tem ${estado.ouro} po.`); return; }
-      estado.ouro = arred(estado.ouro - preco);
-      estado.itens.push(v);
-      atualizarOuroDisp(); renderChipsItens(); renderPeso(); renderPreview();
-    });
-    renderChipsItens();
+  // aquisição central: packs de munição viram contador; o resto entra na bolsa
+  function adquirirItem(nome, origem) {
+    const it = catDe(nome);
+    if (it && it.cat === 'municao') {
+      if (!estado.municao.nome || estado.municao.nome === it.municaoNome) {
+        estado.municao.nome = it.municaoNome;
+        estado.municao.qtd += it.qtdPack;
+        if (origem === 'kit') estado.kitAplicado.push(`~municao:${it.municaoNome}:${it.qtdPack}`);
+        return;
+      }
+    }
+    estado.itens.push(nome);
+    if (origem === 'kit') estado.kitAplicado.push(nome);
   }
-  function renderChipsItens() {
-    $('cItensChips').innerHTML = estado.itens.map(i =>
-      `<span class="chip">${escHtml(i)} <button type="button" data-rem="${escHtml(i)}" title="Remover (devolve o ouro)">×</button></span>`).join('');
-    $('cItensChips').querySelectorAll('[data-rem]').forEach(b => {
-      b.addEventListener('click', () => {
-        const nome = b.dataset.rem;
-        estado.itens = estado.itens.filter(x => x !== nome);
-        estado.ouro = arred(estado.ouro + precoEmPO(nome)); // devolve o ouro na criação
-        atualizarOuroDisp(); renderChipsItens(); renderPeso(); renderPreview();
+  function removerUmItem(nome) {
+    const i = estado.itens.indexOf(nome);
+    if (i >= 0) estado.itens.splice(i, 1);
+    ['maoPrincipal', 'maoSecundaria', 'armadura', 'foco'].forEach(k => {
+      if (estado.equipado[k] === nome && !estado.itens.includes(nome)) estado.equipado[k] = '';
+    });
+  }
+
+  // ----- Kit inicial gratuito (só na criação) -----
+  function limparKit() {
+    (estado.kitAplicado || []).forEach(n => {
+      if (n.startsWith('~municao:')) {
+        const [, nomeM, qtd] = n.split(':');
+        if (estado.municao.nome === nomeM) {
+          estado.municao.qtd = Math.max(0, estado.municao.qtd - Number(qtd));
+          if (estado.municao.qtd === 0) estado.municao.nome = '';
+        }
+      } else removerUmItem(n);
+    });
+    estado.kitAplicado = [];
+  }
+  function aplicarKit() {
+    if (!criandoNovo) return;
+    limparKit();
+    const kit = (typeof KIT_INICIAL !== 'undefined') ? KIT_INICIAL[estado.classe] : null;
+    if (!kit) return;
+    (kit.fixos || []).forEach(n => adquirirItem(n, 'kit'));
+    (kit.escolhas || []).forEach((e, i) => {
+      const sel = estado.kit[i] != null ? estado.kit[i] : 0;
+      const op = e.opcoes[Math.min(sel, e.opcoes.length - 1)] || [];
+      op.forEach(n => {
+        if (typeof PACOTES !== 'undefined' && PACOTES[n]) PACOTES[n].forEach(x => adquirirItem(x, 'kit'));
+        else adquirirItem(n, 'kit');
       });
     });
+    autoEquipar();
+    sincronizarEquipado();
+  }
+  // preenche slots vazios com o melhor disponível na bolsa
+  function autoEquipar() {
+    const eq = estado.equipado;
+    if (!eq.armadura || !estado.itens.includes(eq.armadura))
+      eq.armadura = estado.itens.find(n => catDe(n) && catDe(n).cat === 'armadura') || '';
+    if (!eq.maoPrincipal || !estado.itens.includes(eq.maoPrincipal))
+      eq.maoPrincipal = estado.itens.find(n => catDe(n) && catDe(n).cat === 'arma' && catDe(n).alcance === 'cac')
+        || estado.itens.find(n => catDe(n) && catDe(n).cat === 'arma') || '';
+    const p = catDe(eq.maoPrincipal);
+    if (p && p.maos === 2) eq.maoSecundaria = '';
+    else if (!eq.maoSecundaria || (eq.maoSecundaria !== 'Escudo' && !estado.itens.includes(eq.maoSecundaria))) {
+      eq.maoSecundaria = estado.itens.includes('Escudo') ? 'Escudo'
+        : (estado.itens.find(n => n !== eq.maoPrincipal && catDe(n) && catDe(n).cat === 'arma'
+            && (catDe(n).props || []).includes('leve')) || '');
+    }
+    if (!eq.foco || !estado.itens.includes(eq.foco))
+      eq.foco = estado.itens.find(n => catDe(n) && catDe(n).cat === 'foco') || '';
+  }
+
+  // ----- Ouro por rolagem oficial (uma vez por ficha) -----
+  function renderOuro() {
+    const wrap = $('cOuroWrap'); if (!wrap) return;
+    const podeRolar = !estado.ouroRolado && typeof rolarOuroClasse === 'function';
+    wrap.innerHTML = `<h3>💰 Ouro</h3>
+      <div class="loja-ouro">Ouro: <b id="cOuroDisp">${estado.ouro}</b> po
+        ${podeRolar
+          ? `<button type="button" id="cRolarOuro" class="btn-mini">🎲 Rolar ouro inicial (${formulaOuro(estado.classe)})</button>`
+          : '<span class="criador-hint-inline">🔒 rolagem única feita — ouro extra só via Mestre ou jogo</span>'}
+        <span id="cOuroDados" class="criador-hint-inline"></span>
+      </div>`;
+    const b = $('cRolarOuro');
+    if (b) b.addEventListener('click', () => {
+      const r = rolarOuroClasse(estado.classe);
+      estado.ouro = arred(estado.ouro + r.total);
+      estado.ouroRolado = true;
+      renderPasso5(); renderPreview();
+      const d = $('cOuroDados');
+      if (d) d.textContent = `— saiu [${r.dados.join(', ')}]${r.mult > 1 ? ' × ' + r.mult : ''} = ${r.total} po`;
+    });
+  }
+
+  function renderKit() {
+    const wrap = $('cKitWrap'); if (!wrap) return;
+    const kit = criandoNovo && typeof KIT_INICIAL !== 'undefined' ? KIT_INICIAL[estado.classe] : null;
+    if (!kit) { wrap.innerHTML = ''; return; }
+    const fixos = (kit.fixos || []).length
+      ? `<div class="criador-hint">Incluído de graça: ${[...new Set(kit.fixos)].map(n => `${contar(kit.fixos, n) > 1 ? contar(kit.fixos, n) + '× ' : ''}${escHtml(n)}`).join(', ')}</div>` : '';
+    const grupos = kit.escolhas.map((e, i) => {
+      const sel = estado.kit[i] != null ? estado.kit[i] : 0;
+      const ops = e.opcoes.map((op, j) =>
+        `<label class="check-chip ${sel === j ? 'on' : ''}"><input type="radio" name="cKit${i}" data-kit-grupo="${i}" data-kit-op="${j}" ${sel === j ? 'checked' : ''}>${escHtml(op.join(' + '))}</label>`).join('');
+      return `<div class="kit-grupo"><b>${escHtml(e.rotulo)}:</b><div class="pericias-grid">${ops}</div></div>`;
+    }).join('');
+    wrap.innerHTML = `<h3>🎁 Kit inicial <span class="criador-hint-inline">(grátis, só na criação)</span></h3>${fixos}${grupos}`;
+    wrap.querySelectorAll('[data-kit-grupo]').forEach(r => r.addEventListener('change', () => {
+      estado.kit[Number(r.dataset.kitGrupo)] = Number(r.dataset.kitOp);
+      aplicarKit();
+      renderPasso5(); renderPreview();
+    }));
+  }
+
+  // ----- Loja da criação (catálogo PHB, filtrada por proficiência) -----
+  const CATS_LOJA = [
+    ['arma', '⚔️ Armas'], ['armadura', '🛡️ Armaduras'], ['municao', '🏹 Munição'],
+    ['foco', '🔮 Focos'], ['aventura', '🎒 Aventura'], ['pocao', '🧪 Poções'],
+  ];
+  let lojaCat = 'arma';
+  function renderLoja() {
+    const wrap = $('cLojaWrap'); if (!wrap) return;
+    if (typeof CATALOGO === 'undefined') { wrap.innerHTML = ''; return; }
+    const abas = CATS_LOJA.map(([c, r]) =>
+      `<button type="button" class="btn-mini aba-loja${lojaCat === c ? ' on' : ''}" data-loja-cat="${c}">${r}</button>`).join('');
+    const itens = CATALOGO.filter(i => i.cat === lojaCat || (lojaCat === 'armadura' && i.cat === 'escudo'));
+    const linhas = itens.map(i => {
+      const bloqueada = (i.cat === 'arma' && !podeUsarArma(estado.classe, i.nome))
+        || ((i.cat === 'armadura' || i.cat === 'escudo') && !podeUsarArmadura(estado.classe, i.nome, estado.subclasse));
+      const semOuro = i.precoPO > estado.ouro;
+      return `<div class="loja-item${bloqueada ? ' bloqueada' : ''}">
+        <span class="loja-nome">${escHtml(i.nome)}</span>
+        <span class="loja-desc">${escHtml(descItemCurta(i.nome))}</span>
+        <span class="loja-preco">${i.precoPO} po · ${i.pesoKg} kg</span>
+        ${bloqueada
+          ? `<span class="loja-cadeado" title="${escHtml(estado.classe)} não tem proficiência">🔒</span>`
+          : `<button type="button" class="btn-mini" data-comprar="${escHtml(i.nome)}"${semOuro ? ' disabled title="ouro insuficiente"' : ''}>Comprar</button>`}
+      </div>`;
+    }).join('');
+    wrap.innerHTML = `<h3>🛒 Loja <span class="criador-hint-inline">(compre com o ouro rolado; devolver reembolsa 100% antes de salvar)</span></h3>
+      <div class="loja-abas">${abas}</div>
+      <div class="loja-lista">${linhas}</div>`;
+    wrap.querySelectorAll('[data-loja-cat]').forEach(b => b.addEventListener('click', () => {
+      lojaCat = b.dataset.lojaCat; renderLoja();
+    }));
+    wrap.querySelectorAll('[data-comprar]').forEach(b => b.addEventListener('click', () => {
+      const nome = b.dataset.comprar;
+      const preco = precoEmPO(nome);
+      if (preco > estado.ouro) return;
+      estado.ouro = arred(estado.ouro - preco);
+      adquirirItem(nome, 'loja');
+      autoEquipar(); sincronizarEquipado();
+      renderPasso5(); renderPreview();
+    }));
+  }
+
+  // ----- Bolsa + slots de equipar -----
+  function renderEquipado() {
+    const wrap = $('cEquipadoWrap'); if (!wrap) return;
+    sincronizarEquipado();
+    const eq = estado.equipado;
+    const armas = estado.itens.filter(n => catDe(n) && catDe(n).cat === 'arma');
+    const armaduras = estado.itens.filter(n => catDe(n) && catDe(n).cat === 'armadura');
+    const focos = estado.itens.filter(n => catDe(n) && catDe(n).cat === 'foco');
+    const principal = catDe(eq.maoPrincipal);
+    const duasMaos = principal && principal.maos === 2;
+    const opsSecundaria = duasMaos ? [] : [
+      ...(estado.itens.includes('Escudo') ? ['Escudo'] : []),
+      ...[...new Set(armas)].filter(n => {
+        const it = catDe(n);
+        if (!it || !(it.props || []).includes('leve')) return false;
+        return n !== eq.maoPrincipal || contar(estado.itens, n) > 1;
+      }),
+    ];
+    const slotSel = (id, rotulo, icone, opcoes, valor, extra) => `
+      <label class="slot-eq"><span>${icone} ${rotulo}</span>
+        <select data-slot="${id}"><option value="">— vazio —</option>${[...new Set(opcoes)].map(o =>
+          `<option value="${escHtml(o)}"${valor === o ? ' selected' : ''}>${escHtml(o)}</option>`).join('')}</select>
+        ${extra || ''}</label>`;
+    const armaduraSemProf = eq.armadura && typeof podeUsarArmadura === 'function'
+      && !podeUsarArmadura(estado.classe, eq.armadura, estado.subclasse);
+    const armaSemProf = eq.maoPrincipal && typeof podeUsarArma === 'function'
+      && !podeUsarArma(estado.classe, eq.maoPrincipal);
+    const municaoHtml = estado.municao.nome
+      ? `<div class="slot-eq slot-municao"><span>🏹 Munição</span><b>${escHtml(estado.municao.nome)} × ${estado.municao.qtd}</b></div>` : '';
+    // bolsa: itens não equipados (contagem), kit marcado 🎁 (sem devolução), comprados com ×
+    const nomesUnicos = [...new Set(estado.itens)];
+    const chips = nomesUnicos.map(n => {
+      const total = contar(estado.itens, n);
+      const doKit = contar(estado.kitAplicado, n);
+      const devolvivel = total > doKit;
+      const equipadoAqui = [eq.maoPrincipal, eq.maoSecundaria, eq.armadura, eq.foco].includes(n);
+      return `<span class="chip${equipadoAqui ? ' equipado' : ''}">${total > 1 ? total + '× ' : ''}${escHtml(n)}${doKit ? ' 🎁' : ''}${equipadoAqui ? ' ✋' : ''}
+        ${devolvivel ? `<button type="button" data-rem="${escHtml(n)}" title="Devolver (reembolsa ${precoEmPO(n)} po)">×</button>` : ''}</span>`;
+    }).join('');
+    wrap.innerHTML = `<h3>🎒 Bolsa & Equipamento</h3>
+      <div class="slots-grid">
+        ${slotSel('maoPrincipal', 'Mão principal', '🗡️', armas, eq.maoPrincipal, armaSemProf ? '<span class="pv-warn">⚠ sem proficiência</span>' : '')}
+        ${slotSel('maoSecundaria', 'Mão secundária', '🛡️', opsSecundaria, eq.maoSecundaria, duasMaos ? '<span class="criador-hint-inline">arma de duas mãos</span>' : '')}
+        ${slotSel('armadura', 'Armadura', '🥋', armaduras, eq.armadura, armaduraSemProf ? '<span class="pv-warn">⚠ sem proficiência (desvantagem)</span>' : '')}
+        ${slotSel('foco', 'Foco / Símbolo', '🔮', focos, eq.foco, '')}
+        ${municaoHtml}
+      </div>
+      <div class="chips">${chips || '<span class="criador-hint">Bolsa vazia — use o kit e a loja acima.</span>'}</div>`;
+    wrap.querySelectorAll('[data-slot]').forEach(sel => sel.addEventListener('change', () => {
+      estado.equipado[sel.dataset.slot] = sel.value;
+      if (sel.dataset.slot === 'maoPrincipal') {
+        const p2 = catDe(sel.value);
+        if (p2 && p2.maos === 2) estado.equipado.maoSecundaria = '';
+      }
+      sincronizarEquipado();
+      renderEquipado(); renderPeso(); renderPreview();
+    }));
+    wrap.querySelectorAll('[data-rem]').forEach(b => b.addEventListener('click', () => {
+      const nome = b.dataset.rem;
+      removerUmItem(nome);
+      estado.ouro = arred(estado.ouro + precoEmPO(nome));
+      sincronizarEquipado();
+      renderPasso5(); renderPreview();
+    }));
+  }
+
+  function renderPasso5() {
+    renderOuro();
+    renderKit();
+    renderLoja();
+    renderEquipado();
+    renderPeso();
   }
 
   function renderTudoDinamico() {
@@ -452,7 +650,7 @@ const Criador = (function () {
     renderPericias();
     renderEstilo();
     renderMagias();
-    renderPeso();
+    renderPasso5();
     renderPreview();
   }
 
@@ -550,8 +748,12 @@ const Criador = (function () {
         estado.subclasse = '';
         limparEscolhasDeSubclasse();
         if (criandoNovo) {
-          estado.ouro = (typeof OURO_INICIAL !== 'undefined' && OURO_INICIAL[estado.classe]) || 0;
-          atualizarOuroDisp();
+          // ouro e kit são por classe: trocar de classe reinicia ambos (evita
+          // rolar como uma classe e ficar com o ouro/kit noutra)
+          estado.ouro = 0;
+          estado.ouroRolado = false;
+          estado.kit = {};
+          aplicarKit();
           // aplica automaticamente o melhor arranjo legal da nova classe
           arranjarPorClasse(typeof ARRANJO_OTIMO !== 'undefined' ? ARRANJO_OTIMO : ARRANJO_PADRAO);
           renderAtributosBase();
@@ -1145,9 +1347,13 @@ const Criador = (function () {
     const capacidade = forca * 7.5;            // capacidade de carga (kg) = Força × 7,5
     const limiteSobrecarga = forca * 5;        // > isso: sobrecarregado (regra opcional)
     const limiteMuito = forca * 10;            // > isso: muito sobrecarregado / não pode
-    let total = pesoDeItem(estado.armadura);
-    if (estado.escudo) total += pesoDeItem('Escudo');
+    let total = 0;
     (estado.itens || []).forEach(i => { total += pesoDeItem(i); });
+    // munição: peso proporcional ao pack do catálogo
+    if (estado.municao && estado.municao.nome && typeof CATALOGO !== 'undefined') {
+      const pack = CATALOGO.find(i => i.cat === 'municao' && i.municaoNome === estado.municao.nome);
+      if (pack && pack.qtdPack) total += (pack.pesoKg / pack.qtdPack) * estado.municao.qtd;
+    }
     total = Math.round(total * 10) / 10;
     let estadoCarga = 'Normal', cor = '#3fb950';
     if (total > limiteMuito) { estadoCarga = 'Muito sobrecarregado (não consegue se mover bem)'; cor = '#e94560'; }
@@ -1207,14 +1413,18 @@ const Criador = (function () {
     // Estilo
     if (CLASSES_COM_ESTILO.includes(s.classe)) s.estilo = escolherAleatorio(Object.keys(ESTILOS_LUTA));
 
-    // Equipamento
-    const eq = EQUIPAMENTO_CLASSE[s.classe] || { armadura: 'Sem armadura', armas: [] };
-    s.armadura = eq.armadura;
-    s.escudo = eq.armas.includes('Escudo');
-    s.itens = eq.armas.filter(a => a !== 'Escudo');
-    s.ouro = 10 + Math.floor(Math.random() * 40);
-
+    // Equipamento: kit da classe (escolhas aleatórias) + ouro rolado (trava)
     estado = s;
+    if (criandoNovo) {
+      const kitDef = (typeof KIT_INICIAL !== 'undefined') ? KIT_INICIAL[s.classe] : null;
+      s.kit = {};
+      if (kitDef) kitDef.escolhas.forEach((e, i) => { s.kit[i] = Math.floor(Math.random() * e.opcoes.length); });
+      aplicarKit();
+    }
+    if (typeof rolarOuroClasse === 'function') {
+      s.ouro = rolarOuroClasse(s.classe).total;
+      s.ouroRolado = true;
+    }
     preencherCampos();
 
     // Magias automáticas (só para conjuradores)
@@ -1233,9 +1443,6 @@ const Criador = (function () {
     $('cNome').value = estado.nome;
     $('cAntecedente').value = estado.antecedente;
     $('cNivel').value = estado.nivel;
-    $('cArmadura').value = estado.armadura;
-    $('cEscudo').checked = estado.escudo;
-    $('cOuro').value = estado.ouro;
     $('cAnotacoes').value = estado.anotacoes;
     renderAtributosBase();
   }
@@ -1249,7 +1456,8 @@ const Criador = (function () {
     const truquesLimpos = conj ? s.truques : [];
     const magiasLimpas = conj ? s.magias1 : [];
     const estiloLimpo = temEstilo ? s.estilo : '';
-    const equip = [s.armadura + (s.escudo ? ' + Escudo' : ''), ...s.itens].filter(Boolean).join(', ');
+    sincronizarEquipado();
+    const equip = [s.armadura !== 'Sem armadura' ? s.armadura + (s.escudo ? ' + Escudo' : '') : (s.escudo ? 'Escudo' : ''), ...s.itens.filter(n => n !== s.armadura && n !== 'Escudo')].filter(Boolean).join(', ');
     const magiasTxt = [
       truquesLimpos.length ? 'Truques: ' + truquesLimpos.join(', ') : '',
       magiasLimpas.length ? '1º Círculo: ' + magiasLimpas.join(', ') : '',
@@ -1283,7 +1491,11 @@ const Criador = (function () {
       armadura: s.armadura,
       escudo: s.escudo,
       itens: s.itens,
+      equipado: { ...s.equipado },
+      municao: { ...s.municao },
+      kitAplicado: [...(s.kitAplicado || [])],
       ouro: s.ouro,
+      ouroRolado: !!s.ouroRolado,
       inventario: equip + (s.ouro ? ` | ${s.ouro} po` : ''),
       magias: magiasTxt,
       anotacoes: s.anotacoes,
@@ -1311,15 +1523,30 @@ const Criador = (function () {
       s.estilo = CLASSES_COM_ESTILO.includes(s.classe) ? (f.estilo || '') : '';
       s.truques = _conj ? (f.truques || []) : [];
       s.magias1 = _conj ? (f.magias1 || []) : [];
-      s.armadura = f.armadura && ARRADURA_OK(f.armadura) ? f.armadura : 'Cota de Malha';
-      s.escudo = f.escudo != null ? f.escudo : false;
-      s.itens = f.itens || [];
+      s.itens = [...(f.itens || [])];
       s.ouro = f.ouro || 0;
+      // fichas antigas com ouro/nível já contam como "rolagem feita" (trava)
+      s.ouroRolado = f.ouroRolado != null ? !!f.ouroRolado : (s.ouro > 0 || s.nivel > 1);
+      s.municao = f.municao && f.municao.nome ? { ...f.municao } : { nome: '', qtd: 0 };
+      s.kitAplicado = [...(f.kitAplicado || [])];
+      if (f.equipado) {
+        s.equipado = { maoPrincipal: '', maoSecundaria: '', armadura: '', foco: '', ...f.equipado };
+      } else {
+        // migração dos campos legados (armadura/escudo soltos) p/ bolsa + slots
+        const armLegada = f.armadura && f.armadura !== 'Sem armadura' && ARRADURA_OK(f.armadura) ? f.armadura : '';
+        if (armLegada && !s.itens.includes(armLegada)) s.itens.push(armLegada);
+        if (f.escudo && !s.itens.includes('Escudo')) s.itens.push('Escudo');
+        s.equipado = {
+          maoPrincipal: s.itens.find(n => { const it = catDe(n); return it && it.cat === 'arma'; }) || '',
+          maoSecundaria: f.escudo ? 'Escudo' : '',
+          armadura: armLegada,
+          foco: s.itens.find(n => { const it = catDe(n); return it && it.cat === 'foco'; }) || '',
+        };
+      }
+      s.armadura = s.equipado.armadura || 'Sem armadura';
+      s.escudo = s.equipado.maoSecundaria === 'Escudo';
       s.anotacoes = f.anotacoes || '';
       s.pericias = (f.pericias || []).filter(p => (PERICIAS_CLASSE[s.classe]?.opcoes || []).includes(p));
-    } else {
-      // ficha nova: recebe o ouro inicial da classe para comprar equipamento
-      s.ouro = (typeof OURO_INICIAL !== 'undefined' && OURO_INICIAL[s.classe]) || 0;
     }
     estado = s;
   }
@@ -1349,11 +1576,13 @@ const Criador = (function () {
     fichaOriginal = ficha || null;
     montarSelectsUmaVez();
     carregarFicha(ficha);
-    // ficha nova já nasce com o melhor arranjo legal p/ a classe (compra de pontos)
-    if (criandoNovo && typeof ARRANJO_OTIMO !== 'undefined') arranjarPorClasse(ARRANJO_OTIMO);
+    // ficha nova já nasce com o melhor arranjo legal p/ a classe e o kit aplicado
+    if (criandoNovo) {
+      if (typeof ARRANJO_OTIMO !== 'undefined') arranjarPorClasse(ARRANJO_OTIMO);
+      aplicarKit();
+    }
     preencherCampos();
     renderTudoDinamico();
-    renderItens();
     $('criadorTitulo').textContent = ficha ? 'Editar Personagem' : 'Criar Personagem';
     $('cExcluir').style.display = (ficha && ctx.aoExcluir) ? 'inline-block' : 'none';
     irPasso(1);
@@ -1368,17 +1597,12 @@ const Criador = (function () {
     $('cAntecedente').innerHTML = Object.keys(ANTECEDENTES).map(a => `<option value="${a}">${a}</option>`).join('');
     // Nível
     $('cNivel').innerHTML = Array.from({ length: 20 }, (_, i) => `<option value="${i + 1}">Nível ${i + 1}</option>`).join('');
-    // Armadura
-    $('cArmadura').innerHTML = Object.keys(ARMADURAS).map(a => `<option value="${a}">${a}</option>`).join('');
 
     // Listeners
     $('cNome').addEventListener('input', () => { estado.nome = $('cNome').value; renderPreview(); });
     $('cAntecedente').addEventListener('change', () => { estado.antecedente = $('cAntecedente').value; renderPreview(); });
     $('cNivel').addEventListener('change', () => { estado.nivel = Number($('cNivel').value); renderTudoDinamico(); });
-    $('cArmadura').addEventListener('change', () => { estado.armadura = $('cArmadura').value; renderPeso(); renderPreview(); });
-    $('cEscudo').addEventListener('change', () => { estado.escudo = $('cEscudo').checked; renderPeso(); renderPreview(); });
     $('cEstilo').addEventListener('change', () => { estado.estilo = $('cEstilo').value; renderPreview(); });
-    $('cOuro').addEventListener('input', () => { estado.ouro = Number($('cOuro').value) || 0; const d = $('cOuroDisp'); if (d) d.textContent = estado.ouro; renderPreview(); });
     $('cAnotacoes').addEventListener('input', () => { estado.anotacoes = $('cAnotacoes').value; });
 
     $('btnArranjoPadrao').addEventListener('click', () => {

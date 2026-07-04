@@ -1321,6 +1321,37 @@ body.alto-contraste a { color: #ffd400; }
 .status-botoes { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
 @media (max-width: 560px) { .status-grid { grid-template-columns: repeat(3, 1fr); } }
 
+/* Passo 5: kit inicial, loja e slots de equipamento */
+.kit-grupo { margin: 6px 0; }
+.kit-grupo > b { font-size: 0.82rem; }
+
+.loja-abas { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.aba-loja.on { border-color: var(--accent); background: rgba(233,69,96,0.14); color: var(--text); }
+.loja-lista { display: flex; flex-direction: column; gap: 4px; max-height: 300px; overflow-y: auto; padding-right: 4px; }
+.loja-item {
+  display: grid; grid-template-columns: minmax(120px, 1.2fr) 2fr auto auto;
+  gap: 8px; align-items: center;
+  padding: 5px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card);
+  font-size: 0.78rem;
+}
+.loja-item.bloqueada { opacity: 0.45; }
+.loja-nome { font-weight: 600; }
+.loja-desc { color: var(--text-dim); font-size: 0.72rem; }
+.loja-preco { color: var(--text-dim); font-size: 0.72rem; white-space: nowrap; }
+.loja-cadeado { cursor: help; }
+
+.slots-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-bottom: 8px; }
+.slot-eq {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-card);
+  font-size: 0.76rem;
+}
+.slot-eq > span { color: var(--text-dim); font-weight: 600; }
+.slot-eq select { width: 100%; }
+.slot-municao b { font-size: 0.9rem; }
+.pv-warn { color: #d29922; font-size: 0.72rem; }
+.chip.equipado { border-color: var(--accent); }
+
 .criador-resumo-escolha { display: flex; flex-wrap: wrap; gap: 8px; }
 .resumo-chip {
   display: inline-flex; align-items: center; gap: 6px;

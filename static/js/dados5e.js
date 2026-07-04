@@ -290,29 +290,8 @@ const CLASSE_NOME_PARA_CHAVE = {
   'Paladino': 'paladino', 'Patrulheiro': 'patrulheiro', 'Feiticeiro': 'feiticeiro', 'Bruxo': 'bruxo',
 };
 
-// Equipamento inicial sugerido por classe (para o gerador automático)
-const EQUIPAMENTO_CLASSE = {
-  'Guerreiro':   { armadura: 'Cota de Malha', armas: ['Espada Longa', 'Escudo'], ouro: 0 },
-  'Bárbaro':     { armadura: 'Sem armadura', armas: ['Machado Grande', 'Machadinha'], ouro: 0 },
-  'Paladino':    { armadura: 'Cota de Malha', armas: ['Espada Longa', 'Escudo'], ouro: 0 },
-  'Patrulheiro': { armadura: 'Couro Batido', armas: ['Arco Longo', 'Espada Curta'], ouro: 0 },
-  'Mago':        { armadura: 'Sem armadura', armas: ['Bastão'], ouro: 0 },
-  'Feiticeiro':  { armadura: 'Sem armadura', armas: ['Besta Leve'], ouro: 0 },
-  'Bruxo':       { armadura: 'Armadura de Couro', armas: ['Espada Curta'], ouro: 0 },
-  'Clérigo':     { armadura: 'Camisão de Malha', armas: ['Maça', 'Escudo'], ouro: 0 },
-  'Druida':      { armadura: 'Armadura de Couro', armas: ['Bastão'], ouro: 0 },
-  'Bardo':       { armadura: 'Armadura de Couro', armas: ['Rapieira'], ouro: 0 },
-  'Monge':       { armadura: 'Sem armadura', armas: ['Bastão'], ouro: 0 },
-  'Ladino':      { armadura: 'Couro Batido', armas: ['Rapieira', 'Arco Curto'], ouro: 0 },
-};
-
-// Ouro inicial por classe (média da rolagem do PHB, em po) — para comprar equipamento na criação
-const OURO_INICIAL = {
-  'Bárbaro': 50, 'Bardo': 125, 'Clérigo': 125, 'Druida': 50, 'Guerreiro': 125,
-  'Monge': 12, 'Paladino': 125, 'Patrulheiro': 125, 'Ladino': 100,
-  'Feiticeiro': 75, 'Mago': 100, 'Bruxo': 100,
-};
-
+// (equipamento inicial e ouro por classe agora vivem em equipamento.js:
+//  KIT_INICIAL e OURO_ROLAGEM - rolagem oficial do PHB, unica por ficha)
 // =====================================================
 // RESUMOS PARA A GALERIA DE CRIAÇÃO (passo Classe / passo Raça)
 // simbolo: emoji grande no centro | resumo: o que a classe faz

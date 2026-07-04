@@ -789,7 +789,7 @@ if ($enc('encAddMonstro')) {
 // =====================================================
 async function exportarBackup() {
   try {
-    const [fichasD, monstros, comb, notasD, enc, itensM, lojaEsp, lojaEspItens] = await Promise.all([
+    const [fichasD, monstros, comb, notasD, enc, itensM, lojaEsp] = await Promise.all([
       fetch('/api/fichas').then(r => r.json()),
       fetch('/api/monstros_visiveis').then(r => r.json()),
       fetch('/api/combate').then(r => r.json()),
@@ -797,10 +797,9 @@ async function exportarBackup() {
       fetch('/api/encontros').then(r => r.json()),
       fetch('/api/itens_mestre').then(r => r.json()),
       fetch('/api/loja_especial').then(r => r.json()),
-      fetch('/api/loja_especial_itens').then(r => r.json()),
     ]);
     const camp = window.CAMPANHA_ID || 'principal';
-    const dump = { _app: 'dnd-toolkit', _versao: 1, _campanha: camp, _data: new Date().toISOString(), fichas: fichasD, monstros_visiveis: monstros, combate: comb, notas: notasD, encontros: enc, itens_mestre: itensM, loja_especial_campanha: !!lojaEsp.liberada, loja_especial_itens: lojaEspItens };
+    const dump = { _app: 'dnd-toolkit', _versao: 1, _campanha: camp, _data: new Date().toISOString(), fichas: fichasD, monstros_visiveis: monstros, combate: comb, notas: notasD, encontros: enc, itens_mestre: itensM, loja_especial_campanha: !!lojaEsp.liberada };
     const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -822,7 +821,6 @@ async function importarBackup(file) {
     await put('/api/encontros', d.encontros || []);
     await put('/api/itens_mestre', d.itens_mestre || []);
     await fetch('/api/loja_especial', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ liberada: !!d.loja_especial_campanha }) });
-    await put('/api/loja_especial_itens', d.loja_especial_itens || []);
     alert('Backup importado! Recarregando a página…');
     location.reload();
   } catch (e) { alert('Falha ao importar: ' + e); }
@@ -1310,7 +1308,7 @@ document.getElementById('rolarDado').addEventListener('click', () => {
 // TEMPO REAL (Firestore) - atualiza as telas quando o estado muda
 // =====================================================
 if (window.RT && RT.ativo()) {
-  let _lf = '', _lc = '', _lv = '', _ln = '', _lim = '', _lle = '';
+  let _lf = '', _lc = '', _lv = '', _ln = '', _lim = '';
   RT.ouvir(estado => {
     const sf = JSON.stringify(estado.fichas || []);
     if (sf !== _lf) { _lf = sf; fichas = estado.fichas || []; renderFichas(); }
@@ -1326,13 +1324,6 @@ if (window.RT && RT.ativo()) {
     }
     const sim = JSON.stringify(estado.itens_mestre || []);
     if (sim !== _lim) { _lim = sim; if (typeof window._syncItensMestre === 'function') window._syncItensMestre(estado.itens_mestre || []); }
-    const sle = JSON.stringify(estado.loja_especial_itens || []);
-    if (sle !== _lle) {
-      _lle = sle;
-      // não re-renderiza enquanto o Mestre edita um preço na curadoria (senão o input perde o foco)
-      const editandoPreco = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.curadoPreco != null;
-      if (!editandoPreco && typeof window._syncLojaEspecialItens === 'function') window._syncLojaEspecialItens(estado.loja_especial_itens || []);
-    }
     if (!!estado.loja_especial_campanha !== lojaEspecialCampanha) {
       lojaEspecialCampanha = !!estado.loja_especial_campanha;
       window.LOJA_ESPECIAL_CAMPANHA = lojaEspecialCampanha;

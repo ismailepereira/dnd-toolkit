@@ -176,3 +176,49 @@ do slot; arredondamento a 2 casas (centavos de po) igual ao da venda.
 
 **Como reverter:** restaurar `versoes/2026-07-04-fase9b-ouro-loja/static_js_jogo.js`
 → `static/js/jogo.js`, ou `git revert` do commit desta entrada.
+
+## 2026-07-04 — Validações de ficha + Loja Especial curada (Fase 9c)
+
+**Backup antes da alteração:** `versoes/2026-07-04-fase9c-validacoes-loja-curada/`.
+
+**Resumo:** o Criador passa a exigir ficha completa para avançar de passo ou
+salvar (nome, atributos raciais, subclasse quando o nível pede, contagem
+exata de perícias/estilo/truques/magias da classe, história prévia ≥150
+caracteres com contador ao vivo); salvar com item sem proficiência pede
+confirmação listando as penalidades. A Loja Especial deixou de mostrar todos
+os itens mágicos: agora é CURADA pelo Mestre — a aba "Itens Mágicos & Loja
+Especial" ganhou o acervo completo (PHB/DMG + criações do Mestre) com busca
+e botão "➕ à loja" (preço sugerido pela raridade, editável); só o que o
+Mestre adiciona aparece para os jogadores liberados, e a ficha ganha um botão
+"✨ Loja Especial" que abre a loja completa e vende pelo preço do Mestre.
+
+**Ficheiros alterados (backup em `versoes/2026-07-04-fase9c-validacoes-loja-curada/`):**
+- `app.py` — chave `loja_especial_itens` ([{nome, precoPO}]) + endpoints `GET/PUT /api/loja_especial_itens` (PUT só Mestre).
+- `static/js/loja.js` — `acervoItensMagicos()` (catálogo completo p/ o Mestre) e `itensLojaEspecial()` reescrita para resolver só a lista curada (entrada sem correspondente no acervo é ignorada).
+- `static/js/itensmestre.js` — gestão do estado curado (fila de gravação própria), `renderLojaCurada()` (preço editável inline + remover) e `renderAcervo()` (busca + "➕ à loja" com preço sugerido por raridade: Comum 75 / Incomum 300 / Raro 2.500 / Muito raro 25.000 / Lendário 75.000 po).
+- `static/js/app.js` — sync RT de `loja_especial_itens` (sem re-render enquanto o Mestre edita um preço, para não perder o foco do input); backup exporta/importa a lista curada.
+- `static/js/jogador.js` — carrega e sincroniza `window.LOJA_ESPECIAL_ITENS`.
+- `static/js/jogo.js` — Loja Especial vende (botão Comprar com o preço do Mestre via `data-lojapreco`, debita ouro); botão "✨ Loja Especial" no cabeçalho da ficha quando liberada (abre a loja completa e faz scroll até ela).
+- `static/js/criador.js` — `validarPasso()`/`mostrarValidacao()`/`primeiroPassoInvalido()`; navegação (Próximo, chips, Salvar) bloqueia passo incompleto; contador de caracteres da história; confirm de proficiência no Salvar; limites de magias com teto no nº de opções disponíveis (evita travar quando o compêndio tem menos magias que a regra pede); consulta da Especial mostra o preço do Mestre.
+- `templates/_criador.html` — div `#cValidacao` + contador `#cHistoriaCont` + rótulo "mínimo 150 caracteres".
+- `templates/mestre.html` — aba renomeada "Itens Mágicos & Loja Especial" com secções Loja Especial (curada), Acervo (com busca) e Minhas Criações.
+- `static/css/style.css` — `.criador-validacao`, `.loja-curada`, `.loja-acervo`, `.jg-loja-especial`.
+- `ROADMAP.md` — Fase 9c registada; ponto "Especial só consulta" marcado como evoluído.
+
+**Decisões de design / pontos em aberto:**
+- **Fichas antigas sem história não ficam presas na edição** (legado): o mínimo de 150 caracteres vale para fichas novas e para qualquer história começada; uma ficha antiga com história vazia pode ser editada sem preencher.
+- **Não proficiência avisa mas não bloqueia** — a regra 5e permite usar equipamento sem proficiência (com penalidade); o Salvar exige confirmação consciente em vez de proibir.
+- **Criador: Loja Especial continua consulta** — a compra inicial permanece só na loja básica; comprar item mágico é em jogo (Modo de Jogo), com o ouro ganho na campanha.
+- **Sem controlo de estoque na Loja Especial** — comprar não decrementa quantidade (o jogador não pode escrever na lista curada, que é só do Mestre); se quiseres exclusividade de um item, remove-o da loja depois da venda. Estoque real está planeado na Fase 12 (lojas por NPC).
+- **Limite de magias com teto nas opções disponíveis** — se o compêndio tiver menos magias da classe que a regra pede (ex.: círculos altos ainda em expansão na Fase 3.1), a validação exige só o que existe para escolher, nunca trava a criação.
+
+**Verificação:** `node --check` em todos os `.js`; harness Node confirmou a
+resolução da loja curada (entrada inválida ignorada, preço do Mestre
+propagado, acervo 26+1) e a matemática dos limites de validação; endpoints
+testados ponta-a-ponta com o cliente Flask em campanha isolada descartável
+(Mestre PUT ok, jogador só GET). Dados reais intactos.
+
+**Como reverter:** restaurar os ficheiros de
+`versoes/2026-07-04-fase9c-validacoes-loja-curada/` (nomes com `__` no lugar
+de `/`) ou `git revert` do commit desta entrada; a chave `loja_especial_itens`
+em `data/estado*.json`/Firestore é ignorada por versões antigas.

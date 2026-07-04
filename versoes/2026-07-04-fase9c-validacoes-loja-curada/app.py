@@ -35,7 +35,6 @@ ESTADO_PADRAO = {
     'encontros': [],   # encontros salvos do montador (lançáveis no combate)
     'itens_mestre': [],  # itens mágicos criados pelo Mestre (fora do acervo/loja do jogador)
     'loja_especial_campanha': False,  # Fase 9: libera a Loja Especial (itens mágicos) p/ toda a campanha
-    'loja_especial_itens': [],  # Fase 9c: itens CURADOS pelo Mestre na Loja Especial [{nome, precoPO}]
 }
 
 # ---------------------------------------------------------------
@@ -309,22 +308,6 @@ def api_get_loja_especial():
 def api_put_loja_especial():
     estado = carregar_estado()
     estado['loja_especial_campanha'] = bool((request.get_json(force=True) or {}).get('liberada'))
-    salvar_estado(estado)
-    return jsonify({'ok': True})
-
-
-@app.route('/api/loja_especial_itens', methods=['GET'])
-@login_obrigatorio()
-def api_get_loja_especial_itens():
-    # curadoria do Mestre: só o que ele adicionou aparece na Loja Especial do jogador
-    return jsonify(carregar_estado().get('loja_especial_itens', []))
-
-
-@app.route('/api/loja_especial_itens', methods=['PUT'])
-@login_obrigatorio(papeis=['mestre'])
-def api_put_loja_especial_itens():
-    estado = carregar_estado()
-    estado['loja_especial_itens'] = request.get_json(force=True) or []
     salvar_estado(estado)
     return jsonify({'ok': True})
 

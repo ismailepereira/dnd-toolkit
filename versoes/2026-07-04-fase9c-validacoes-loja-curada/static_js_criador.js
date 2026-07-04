@@ -642,7 +642,7 @@ const Criador = (function () {
         ((i.categoriaLoja === 'armadura' || i.categoriaLoja === 'escudo') && !podeUsarArmadura(estado.classe, i.nome, estado.subclasse)));
       const semOuro = lojaAbaAtiva === 'basica' && i.precoPO > estado.ouro;
       const precoTxt = lojaAbaAtiva === 'especial'
-        ? `${i.precoPO ? i.precoPO + ' po · ' : ''}${escHtml(i.raridade || '')}${i.sintonia ? ' · sintonia' : ''}`
+        ? `${escHtml(i.raridade || '')}${i.sintonia ? ' · sintonia' : ''}`
         : `${i.precoPO} po${i.pesoTexto ? ' · ' + escHtml(i.pesoTexto) : ''}`;
       return `<div class="loja-item${bloqueada ? ' bloqueada' : ''}">
         <span class="loja-nome">${escHtml(i.nome)}</span>
@@ -1578,7 +1578,6 @@ const Criador = (function () {
     $('cItemMemNome').value = estado.itemMemoria.nome || '';
     $('cItemMemTipo').value = estado.itemMemoria.tipo || '';
     $('cItemMemDescricao').value = estado.itemMemoria.descricao || '';
-    atualizarContadorHistoria();
     renderAtributosBase();
     renderAntecedenteInfo();
     renderPersonalidade();
@@ -1704,83 +1703,6 @@ const Criador = (function () {
   }
   function ARRADURA_OK(n) { return !!ARMADURAS[n]; }
 
-  // ---------- Validação de completude (Fase 9c) ----------
-  // Cada passo só deixa avançar quando está completo; Salvar valida tudo.
-  const HISTORIA_MIN = 150;
-  function validarPasso(p) {
-    const erros = [];
-    if (p === 1) {
-      const sc = (typeof SUBCLASSES !== 'undefined') ? SUBCLASSES[estado.classe] : null;
-      if (sc && estado.nivel >= sc.nivel && !estado.subclasse) {
-        erros.push(`Escolha a especialização de ${estado.classe} (disponível a partir do nível ${sc.nivel}).`);
-      }
-    }
-    if (p === 3) {
-      if (!estado.nome.trim()) erros.push('Dê um nome ao personagem.');
-      const r = RACAS_DETALHE[estado.raca] || {};
-      const ne = r.escolhaAtributos || 0;
-      const escolhidos = (estado.escolhaAtributos || []).filter(Boolean).length;
-      if (ne && escolhidos < ne) erros.push(`Escolha os ${ne} atributos de bônus racial (+1) — faltam ${ne - escolhidos}.`);
-      const tamHistoria = (estado.historia || '').trim().length;
-      // fichas antigas salvas sem história não ficam presas na edição (legado);
-      // fichas novas — e qualquer história começada — precisam do mínimo.
-      const exigeHistoria = criandoNovo || tamHistoria > 0;
-      if (exigeHistoria && tamHistoria < HISTORIA_MIN) {
-        erros.push(`História prévia precisa de pelo menos ${HISTORIA_MIN} caracteres (tem ${tamHistoria}).`);
-      }
-    }
-    if (p === 4) {
-      const def = PERICIAS_CLASSE[estado.classe] || { qtd: 0, opcoes: [] };
-      if (estado.pericias.length < def.qtd) erros.push(`Escolha ${def.qtd} perícias de ${estado.classe} — faltam ${def.qtd - estado.pericias.length}.`);
-      const r = RACAS_DETALHE[estado.raca] || {};
-      const ne = r.periciaExtra || 0;
-      if (ne && estado.periciasExtra.length < ne) erros.push(`Escolha ${ne} perícias raciais — faltam ${ne - estado.periciasExtra.length}.`);
-      const temEstilo = CLASSES_COM_ESTILO.includes(estado.classe)
-        && (estado.classe !== 'Patrulheiro' || estado.nivel >= 2)
-        && (estado.classe !== 'Paladino' || estado.nivel >= 2);
-      if (temEstilo && !estado.estilo) erros.push('Escolha um Estilo de Combate.');
-      const ehConj = (typeof ehConjurador === 'function') && ehConjurador(estado.classe, estado.nivel, estado.subclasse);
-      if (ehConj) {
-        const disp = magiasDisponiveis(estado.classe, estado.subclasse, estado.nivel);
-        // limites nunca acima do que existe para escolher (evita travar quando o compêndio tem menos magias que a regra pede)
-        const limTruques = Math.min(truquesNoNivel(estado.classe, estado.nivel, estado.subclasse), disp.truques.length);
-        const limBase = estado.classe === 'Mago'
-          ? (6 + (estado.nivel - 1) * 2)
-          : magiasNoNivel(estado.classe, estado.nivel, atributosFinais(estado), estado.subclasse);
-        const limMagias = Math.min(limBase, disp.circulos.length);
-        if (estado.truques.length < limTruques) erros.push(`Escolha ${limTruques} truques — faltam ${limTruques - estado.truques.length}.`);
-        if (estado.magias1.length < limMagias) erros.push(`Escolha ${limMagias} magias — faltam ${limMagias - estado.magias1.length}.`);
-      }
-    }
-    return erros;
-  }
-  function atualizarContadorHistoria() {
-    const el = $('cHistoriaCont');
-    if (!el) return;
-    const n = (estado.historia || '').trim().length;
-    const falta = HISTORIA_MIN - n;
-    el.innerHTML = falta > 0
-      ? `✍️ ${n}/${HISTORIA_MIN} caracteres — faltam <b>${falta}</b>`
-      : `✅ ${n} caracteres`;
-    el.style.color = falta > 0 ? '#d29922' : '#3fb950';
-  }
-  function mostrarValidacao(erros) {
-    const el = $('cValidacao');
-    if (!el) { if (erros.length) alert(erros.join('\n')); return; }
-    if (!erros.length) { el.classList.add('hidden'); el.innerHTML = ''; return; }
-    el.classList.remove('hidden');
-    el.innerHTML = `<b>⚠ Complete antes de continuar:</b><ul>${erros.map(e => `<li>${escHtml(e)}</li>`).join('')}</ul>`;
-  }
-  // valida todos os passos de `de` até `ate` (exclusivo); devolve o 1º passo com erro ou 0
-  function primeiroPassoInvalido(de, ate) {
-    for (let p = de; p < ate; p++) {
-      const erros = validarPasso(p);
-      if (erros.length) { mostrarValidacao(erros); return p; }
-    }
-    mostrarValidacao([]);
-    return 0;
-  }
-
   // ---------- Navegação por etapas ----------
   let passo = 1;
   const TOTAL_PASSOS = 5;
@@ -1814,7 +1736,6 @@ const Criador = (function () {
     renderTudoDinamico();
     $('criadorTitulo').textContent = ficha ? 'Editar Personagem' : 'Criar Personagem';
     $('cExcluir').style.display = (ficha && ctx.aoExcluir) ? 'inline-block' : 'none';
-    mostrarValidacao([]);
     irPasso(1);
     $('modalCriador').classList.remove('hidden');
   }
@@ -1846,11 +1767,7 @@ const Criador = (function () {
     $('cNivel').addEventListener('change', () => { estado.nivel = Number($('cNivel').value); renderTudoDinamico(); });
     $('cEstilo').addEventListener('change', () => { estado.estilo = $('cEstilo').value; renderPreview(); });
     $('cAnotacoes').addEventListener('input', () => { estado.anotacoes = $('cAnotacoes').value; });
-    $('cHistoria').addEventListener('input', () => {
-      estado.historia = $('cHistoria').value;
-      atualizarContadorHistoria();
-      renderPreview();
-    });
+    $('cHistoria').addEventListener('input', () => { estado.historia = $('cHistoria').value; renderPreview(); });
     $('cItemMemNome').addEventListener('input', () => { estado.itemMemoria.nome = $('cItemMemNome').value; renderPreview(); });
     $('cItemMemTipo').addEventListener('input', () => { estado.itemMemoria.tipo = $('cItemMemTipo').value; renderPreview(); });
     $('cItemMemDescricao').addEventListener('input', () => { estado.itemMemoria.descricao = $('cItemMemDescricao').value; renderPreview(); });
@@ -1867,14 +1784,6 @@ const Criador = (function () {
 
     $('cCancelar').addEventListener('click', () => $('modalCriador').classList.add('hidden'));
     $('cSalvar').addEventListener('click', () => {
-      // ficha só salva completa: valida TODOS os passos e volta ao primeiro incompleto
-      const invalido = primeiroPassoInvalido(1, TOTAL_PASSOS);
-      if (invalido) { irPasso(invalido); return; }
-      // itens sem proficiência não bloqueiam (regra 5e permite usar com penalidade), mas o jogador confirma ciente
-      sincronizarEquipado();
-      const fichaTmp = { classe: estado.classe, classes: undefined, armadura: estado.armadura, escudo: estado.escudo, atributos: atributosFinais(estado), itens: estado.itens, equipado: estado.equipado };
-      const avisos = (typeof penalidadesEquipamento === 'function') ? penalidadesEquipamento(fichaTmp) : [];
-      if (avisos.length && !confirm(`⚠ Avisos de proficiência/equipamento:\n\n${avisos.map(a => '• ' + a.texto).join('\n')}\n\nSalvar mesmo assim?`)) return;
       if (ctx.aoSalvar) ctx.aoSalvar(construirFicha());
       $('modalCriador').classList.add('hidden');
     });
@@ -1882,21 +1791,11 @@ const Criador = (function () {
       if (ctx.aoExcluir && confirm('Excluir este personagem?')) { ctx.aoExcluir(); $('modalCriador').classList.add('hidden'); }
     });
 
-    // navegação por etapas — avançar exige passo completo (voltar é livre)
-    $('cVoltar').addEventListener('click', () => { mostrarValidacao([]); irPasso(passo - 1); });
-    $('cProximo').addEventListener('click', () => {
-      const invalido = primeiroPassoInvalido(passo, passo + 1);
-      if (invalido) return;
-      irPasso(passo + 1);
-    });
+    // navegação por etapas
+    $('cVoltar').addEventListener('click', () => irPasso(passo - 1));
+    $('cProximo').addEventListener('click', () => irPasso(passo + 1));
     document.querySelectorAll('#modalCriador [data-passo-chip]').forEach(c => {
-      c.addEventListener('click', () => {
-        const alvo = Number(c.dataset.passoChip);
-        if (alvo <= passo) { mostrarValidacao([]); irPasso(alvo); return; }
-        const invalido = primeiroPassoInvalido(passo, alvo);
-        if (invalido) { irPasso(invalido); return; }
-        irPasso(alvo);
-      });
+      c.addEventListener('click', () => irPasso(Number(c.dataset.passoChip)));
     });
   }
 

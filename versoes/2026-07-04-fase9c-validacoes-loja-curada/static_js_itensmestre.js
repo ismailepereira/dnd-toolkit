@@ -38,15 +38,10 @@ const CATEGORIAS_ITEM_MAGICO = [
   let itensMestre = [];
   let editandoId = null;
   let rascunho = null;
-  // Fase 9c: curadoria da Loja Especial — [{nome, precoPO}], só o Mestre edita
-  let lojaEspecialItens = [];
-  let acervoFiltro = '';
 
   async function carregar() {
     try { itensMestre = await (await fetch('/api/itens_mestre')).json(); } catch (e) { itensMestre = []; }
-    try { lojaEspecialItens = await (await fetch('/api/loja_especial_itens')).json(); } catch (e) { lojaEspecialItens = []; }
     window.ITENS_MESTRE = itensMestre;
-    window.LOJA_ESPECIAL_ITENS = lojaEspecialItens;
     render();
     // a lista de fichas pode já ter montado o dropdown "Enviar à ficha" sem
     // estes itens (corrida entre os dois fetches iniciais) — atualiza agora.
@@ -60,23 +55,11 @@ const CATEGORIAS_ITEM_MAGICO = [
     _fila = _fila.then(() => fetch('/api/itens_mestre', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body })).catch(() => {});
     return _fila;
   }
-  let _filaLoja = Promise.resolve();
-  function salvarLojaEspecial() {
-    window.LOJA_ESPECIAL_ITENS = lojaEspecialItens;
-    const body = JSON.stringify(lojaEspecialItens);
-    _filaLoja = _filaLoja.then(() => fetch('/api/loja_especial_itens', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body })).catch(() => {});
-    return _filaLoja;
-  }
 
-  // Chamados pelo listener de tempo real do app.js quando o estado da campanha muda.
+  // Chamado pelo listener de tempo real do app.js quando o estado da campanha muda.
   window._syncItensMestre = function (lista) {
     itensMestre = lista || [];
     window.ITENS_MESTRE = itensMestre;
-    render();
-  };
-  window._syncLojaEspecialItens = function (lista) {
-    lojaEspecialItens = lista || [];
-    window.LOJA_ESPECIAL_ITENS = lojaEspecialItens;
     render();
   };
 
@@ -223,8 +206,6 @@ const CATEGORIAS_ITEM_MAGICO = [
 
   function render() {
     renderForm();
-    renderLojaCurada();
-    renderAcervo();
     const el = listaEl();
     if (!itensMestre.length) { el.innerHTML = '<p style="color:var(--text-dim)">Nenhum item mágico criado ainda.</p>'; return; }
     el.innerHTML = itensMestre.map(i => {
@@ -260,66 +241,6 @@ const CATEGORIAS_ITEM_MAGICO = [
       if (typeof renderFichas === 'function') renderFichas();
     }));
   }
-
-  // ----- Fase 9c: Loja Especial curada + acervo -----
-  // Sugestão de preço pela raridade (ponto médio do valor de referência do DMG)
-  const PRECO_SUGERIDO_RARIDADE = { 'Comum': 75, 'Incomum': 300, 'Raro': 2500, 'Muito raro': 25000, 'Lendário': 75000 };
-
-  function renderLojaCurada() {
-    const el = $('lojaEspecialCurada');
-    if (!el) return;
-    if (!lojaEspecialItens.length) {
-      el.innerHTML = '<p style="color:var(--text-dim)">Loja Especial vazia — os jogadores liberados verão uma loja sem itens. Adicione do acervo abaixo.</p>';
-      return;
-    }
-    const acervo = (typeof acervoItensMagicos === 'function') ? acervoItensMagicos() : [];
-    el.innerHTML = lojaEspecialItens.map((entrada, idx) => {
-      const base = acervo.find(i => i.nome === entrada.nome);
-      return `<div class="loja-item">
-        <span class="loja-nome">${escHtml(entrada.nome)}${base ? '' : ' <span class="pv-warn">⚠ fora do acervo</span>'}</span>
-        <span class="loja-desc">${escHtml(base ? base.descricao : '')}</span>
-        <span class="loja-preco"><input type="number" data-curado-preco="${idx}" value="${entrada.precoPO || 0}" min="0" style="width:84px"> po</span>
-        <button type="button" class="btn-mini" data-curado-rem="${idx}" title="Remover da loja">×</button>
-      </div>`;
-    }).join('');
-    el.querySelectorAll('[data-curado-preco]').forEach(inp => inp.addEventListener('change', () => {
-      lojaEspecialItens[Number(inp.dataset.curadoPreco)].precoPO = Math.max(0, Number(inp.value) || 0);
-      salvarLojaEspecial();
-    }));
-    el.querySelectorAll('[data-curado-rem]').forEach(b => b.addEventListener('click', () => {
-      lojaEspecialItens.splice(Number(b.dataset.curadoRem), 1);
-      salvarLojaEspecial();
-      render();
-    }));
-  }
-
-  function renderAcervo() {
-    const el = $('acervoItens');
-    if (!el || typeof acervoItensMagicos !== 'function') return;
-    const busca = acervoFiltro.trim().toLowerCase();
-    const nomesNaLoja = new Set(lojaEspecialItens.map(e => e.nome));
-    const itens = acervoItensMagicos().filter(i =>
-      !busca || i.nome.toLowerCase().includes(busca) || (i.descricao || '').toLowerCase().includes(busca));
-    el.innerHTML = itens.map(i => `<div class="loja-item${nomesNaLoja.has(i.nome) ? ' bloqueada' : ''}">
-        <span class="loja-nome">${i.origem === 'itens_mestre' ? '🛠️ ' : ''}${escHtml(i.nome)}</span>
-        <span class="loja-desc">${escHtml(i.descricao || '')}</span>
-        <span class="loja-preco">${escHtml(i.raridade || '')}${i.sintonia ? ' · sintonia' : ''}</span>
-        ${nomesNaLoja.has(i.nome)
-          ? '<span class="loja-cadeado" title="Já está na Loja Especial">✔</span>'
-          : `<button type="button" class="btn-mini" data-acervo-add="${escHtml(i.nome)}" data-acervo-raridade="${escHtml(i.raridade || '')}">➕ à loja</button>`}
-      </div>`).join('') || '<p style="color:var(--text-dim)">Nada encontrado.</p>';
-    el.querySelectorAll('[data-acervo-add]').forEach(b => b.addEventListener('click', () => {
-      const nome = b.dataset.acervoAdd;
-      if (lojaEspecialItens.some(e => e.nome === nome)) return;
-      const sugerido = PRECO_SUGERIDO_RARIDADE[b.dataset.acervoRaridade] || 100;
-      lojaEspecialItens.push({ nome, precoPO: sugerido });
-      salvarLojaEspecial();
-      render();
-    }));
-  }
-
-  const buscaAcervo = $('acervoBusca');
-  if (buscaAcervo) buscaAcervo.addEventListener('input', () => { acervoFiltro = buscaAcervo.value; renderAcervo(); });
 
   const btnNovo = $('imNovoItem');
   if (btnNovo) btnNovo.addEventListener('click', () => {

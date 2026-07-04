@@ -360,12 +360,6 @@ async function atualizarLojaEspecialCampanha() {
 }
 atualizarLojaEspecialCampanha();
 
-// Fase 9c: itens curados pelo Mestre na Loja Especial ([{nome, precoPO}])
-async function atualizarLojaEspecialItens() {
-  try { window.LOJA_ESPECIAL_ITENS = await (await fetch('/api/loja_especial_itens')).json(); } catch (e) { window.LOJA_ESPECIAL_ITENS = window.LOJA_ESPECIAL_ITENS || []; }
-}
-atualizarLojaEspecialItens();
-
 // =====================================================
 // TEMPO REAL (Firestore) - atualiza ficha/bestiário/combate na hora
 // =====================================================
@@ -384,7 +378,6 @@ if (window.RT && RT.ativo()) {
     const sim = JSON.stringify(estado.itens_mestre || []);
     if (sim !== _lim) { _lim = sim; window.ITENS_MESTRE = estado.itens_mestre || []; }
     window.LOJA_ESPECIAL_CAMPANHA = !!estado.loja_especial_campanha;
-    window.LOJA_ESPECIAL_ITENS = estado.loja_especial_itens || [];
   });
 }
 // polling de fallback (auto-suprimido quando o tempo real está entregando dados)

@@ -605,18 +605,15 @@ const Jogo = (function () {
     const gruposEspeciaisJg = lojaEspecialOk && typeof itensLojaEspecial === 'function' ? agruparPorCategoriaLoja(itensLojaEspecial()) : [];
     const gruposAtivosJg = jgLojaAba === 'especial' ? gruposEspeciaisJg : gruposBasicosJg;
     if (!jgLojaCat || !gruposAtivosJg.some(g => g.chave === jgLojaCat)) jgLojaCat = gruposAtivosJg[0] ? gruposAtivosJg[0].chave : null;
-    // Fase 9c: a Loja Especial agora é curada pelo Mestre (itens + preços) e VENDE de verdade
     const linhaLojaJg = i => {
-      const precoJg = i.precoPO || 0;
-      const semOuroJg = precoJg > (f.ouro || 0);
-      const rotuloPreco = jgLojaAba === 'especial'
-        ? `${precoJg} po · ${esc(i.raridade || '')}${i.sintonia ? ' · sintonia' : ''}`
-        : `${precoJg} po`;
+      const semOuroJg = jgLojaAba === 'basica' && (i.precoPO || 0) > (f.ouro || 0);
       return `<div class="loja-item">
         <span class="loja-nome">${esc(i.nome)}</span>
         <span class="loja-desc">${esc(i.descricao || '')}</span>
-        <span class="loja-preco">${rotuloPreco}</span>
-        <button type="button" class="btn-mini" data-lojaadd="${esc(i.nome)}" data-lojapreco="${precoJg}"${semOuroJg ? ' disabled title="ouro insuficiente"' : ''}>Comprar</button>
+        <span class="loja-preco">${jgLojaAba === 'especial' ? esc(i.raridade || '') : `${i.precoPO} po`}</span>
+        ${jgLojaAba === 'especial'
+          ? `<span class="loja-cadeado" title="Itens especiais são concedidos pelo Mestre">✨</span>`
+          : `<button type="button" class="btn-mini" data-lojaadd="${esc(i.nome)}"${semOuroJg ? ' disabled title="ouro insuficiente"' : ''}>Comprar</button>`}
       </div>`;
     };
     let corpoLojaJg;
@@ -734,7 +731,6 @@ const Jogo = (function () {
           <button id="jgDescCurto" class="btn-secondary">☕ Descanso Curto</button>
           <button id="jgDescLongo" class="btn-secondary">🌙 Descanso Longo</button>
           <button id="jgPDF" class="btn-secondary">🖨️ Ficha PDF</button>
-          ${lojaEspecialOk ? '<button id="jgLojaEspecialBtn" class="btn-primary jg-loja-especial">✨ Loja Especial</button>' : ''}
         </div>
       </div>
 
@@ -806,11 +802,11 @@ const Jogo = (function () {
     };
     if ($('jgPDF')) $('jgPDF').onclick = () => exportarFichaPDF(ficha);
 
-    // inventário — Fase 9b/9c: comprar debita o ouro da ficha; Loja Especial usa o
-    // preço definido pelo Mestre na curadoria (data-lojapreco), Básica usa o catálogo.
+    // inventário — Fase 9: mini-loja categorizada (só a Básica vende; Especial é consulta)
+    // Fase 9b: comprar debita o ouro da ficha (venda por metade já existia nos chips da bolsa)
     document.querySelectorAll('[data-lojaadd]').forEach(b => b.onclick = () => {
       const v = b.dataset.lojaadd;
-      const preco = b.dataset.lojapreco != null ? Number(b.dataset.lojapreco) : ((typeof precoItemPO === 'function') ? precoItemPO(v) : 0);
+      const preco = (typeof precoItemPO === 'function') ? precoItemPO(v) : 0;
       if (preco > (ficha.ouro || 0)) { log(`Ouro insuficiente para ${v} (${preco} po).`); render(); return; }
       ficha.itens = ficha.itens || [];
       const it = (typeof itemCatalogo === 'function') ? itemCatalogo(v) : null;
@@ -833,13 +829,6 @@ const Jogo = (function () {
     document.querySelectorAll('[data-jglojacat]').forEach(b => b.onclick = () => { jgLojaCat = b.dataset.jglojacat; render(); });
     if ($('jgBtnLojaCompleta')) $('jgBtnLojaCompleta').onclick = () => { jgLojaMostrarTudo = !jgLojaMostrarTudo; render(); };
     if ($('jgLojaDetails')) $('jgLojaDetails').addEventListener('toggle', (ev) => { jgLojaAberta = ev.target.open; });
-    // Fase 9c: botão de destaque na ficha — abre a Loja Especial completa
-    if ($('jgLojaEspecialBtn')) $('jgLojaEspecialBtn').onclick = () => {
-      jgLojaAba = 'especial'; jgLojaMostrarTudo = true; jgLojaAberta = true;
-      render();
-      const det = $('jgLojaDetails');
-      if (det) det.scrollIntoView({ behavior: 'smooth' });
-    };
     document.querySelectorAll('[data-rinv]').forEach(b => b.onclick = () => {
       const n = b.dataset.rinv;
       const i = (ficha.itens || []).indexOf(n);

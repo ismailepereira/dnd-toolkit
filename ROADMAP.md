@@ -145,8 +145,15 @@ Spec completa em `docs/SPEC-EQUIPAMENTO.md`.
 
 ### Pontos em aberto (Fase 9)
 - ~~Comprar em Modo de Jogo sem custo de ouro~~ — resolvido na Fase 9b (04/07/2026): o botão da Loja Básica virou "Comprar", debita o ouro da ficha e desabilita quando o ouro não chega; munição em packs e arredondamento de centavos tratados.
-- A Loja Especial (Criador e Modo de Jogo) é só consulta — os itens mágicos continuam a só entrar na ficha via "📦 Enviar à ficha" do Mestre, nunca comprados diretamente. Decisão deliberada para não deixar personagens novos comprarem itens lendários com o ouro inicial.
+- ~~Loja Especial só consulta~~ — evoluiu na Fase 9c (04/07/2026): agora é CURADA pelo Mestre (acervo + preços) e vende de verdade no Modo de Jogo; no Criador continua consulta (compra inicial = só loja básica).
 - Ver `docs/ROADMAP-FUTURO.md` para as fases seguintes já documentadas (NPCs, lojas geridas por NPC, monstros & loot, grid virtual, autenticação/campanha).
+
+## ✅ FASE 9c — Validações de ficha + Loja Especial curada (entregue 04/07/2026)
+- [x] 9c.1 Criador não avança/salva com passo incompleto: nome, atributos raciais, subclasse (quando o nível pede), perícias/estilo/truques/magias na contagem exata da classe — erros listados num painel amarelo, chip de passo também valida
+- [x] 9c.2 História prévia mínima de 150 caracteres (contador ao vivo; fichas antigas sem história não ficam presas na edição — legado)
+- [x] 9c.3 Itens sem proficiência: aviso já existia no preview/slots; agora o Salvar pede confirmação explícita listando as penalidades
+- [x] 9c.4 Loja Especial CURADA: aba "Itens Mágicos & Loja Especial" do Mestre ganhou o acervo completo (PHB/DMG + criações) com busca e botão "➕ à loja" (preço sugerido pela raridade, editável) — só o que o Mestre adiciona aparece para os jogadores
+- [x] 9c.5 Botão "✨ Loja Especial" no cabeçalho da ficha (Modo de Jogo) quando o personagem/campanha está liberado — abre a loja completa; comprar debita o ouro pelo preço definido pelo Mestre
 
 ---
 

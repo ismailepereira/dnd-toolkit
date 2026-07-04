@@ -94,10 +94,8 @@ function itensLojaBasica() {
   return lista;
 }
 
-// Acervo completo de itens mágicos (ITENS_MAGICOS do PHB/DMG + itens criados
-// pelo Mestre) — usado pelo painel do Mestre para escolher o que entra na
-// Loja Especial. NÃO é o que o jogador vê.
-function acervoItensMagicos() {
+// Catálogo especial: mágico/raro — só para quem tiver a Loja Especial liberada.
+function itensLojaEspecial() {
   const lista = [];
   if (typeof ITENS_MAGICOS !== 'undefined') {
     ITENS_MAGICOS.forEach(i => lista.push({
@@ -106,27 +104,13 @@ function acervoItensMagicos() {
     }));
   }
   (window.ITENS_MESTRE || []).forEach(i => {
-    if (typeof ITENS_MAGICOS !== 'undefined' && ITENS_MAGICOS.some(m => m.nome === i.nome)) return; // evita duplicar por nome
+    if (ITENS_MAGICOS && ITENS_MAGICOS.some(m => m.nome === i.nome)) return; // evita duplicar por nome
     lista.push({
       nome: i.nome, categoriaLoja: classificarItemLoja(i), raridade: i.raridade, sintonia: i.sintonia,
       descricao: i.efeito, pesoTexto: i.peso, origem: 'itens_mestre',
     });
   });
   return lista;
-}
-
-// Loja Especial vista pelo JOGADOR: só os itens que o Mestre CUROU
-// (window.LOJA_ESPECIAL_ITENS = [{nome, precoPO}], vindo de /api/loja_especial_itens),
-// resolvidos contra o acervo para ganhar raridade/efeito/categoria.
-function itensLojaEspecial() {
-  const curados = window.LOJA_ESPECIAL_ITENS || [];
-  if (!curados.length) return [];
-  const acervo = acervoItensMagicos();
-  return curados.map(entrada => {
-    const base = acervo.find(i => i.nome === entrada.nome);
-    if (!base) return null; // item removido do acervo depois de curado — some da loja
-    return { ...base, precoPO: entrada.precoPO || 0 };
-  }).filter(Boolean);
 }
 
 // A Loja Especial está liberada para esta ficha? (por campanha inteira OU por personagem)

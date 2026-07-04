@@ -1319,7 +1319,23 @@ body.alto-contraste a { color: #ffd400; }
 .status-attr.secundario span { color: #d4a72c; font-weight: 600; }
 .status-attr.secundario input { border-color: #d4a72c; }
 .status-botoes { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-@media (max-width: 560px) { .status-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 560px) {
+  .status-grid { grid-template-columns: repeat(3, 1fr); }
+  .galeria-minis { grid-template-columns: repeat(3, 1fr); }
+  .galeria-simbolo { width: 84px; height: 84px; font-size: 3.2rem; }
+  .sub-lista { grid-template-columns: 1fr; }
+  .slots-grid { grid-template-columns: 1fr 1fr; }
+  .loja-item {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "nome btn" "desc btn" "preco btn";
+  }
+  .loja-nome { grid-area: nome; }
+  .loja-desc { grid-area: desc; }
+  .loja-preco { grid-area: preco; }
+  .loja-item .btn-mini, .loja-cadeado { grid-area: btn; align-self: center; }
+  .mestre-envio { font-size: 0.76rem; }
+  .mestre-envio select { max-width: 140px; }
+}
 
 /* Envio do Mestre (ouro/itens para uma ficha) */
 .mestre-envio {

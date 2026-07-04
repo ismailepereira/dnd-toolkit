@@ -400,6 +400,23 @@ const Jogo = (function () {
     // arma equipada primeiro na lista
     nomesArmas.sort((a, b) => (b === eqJogo.maoPrincipal ? 1 : 0) - (a === eqJogo.maoPrincipal ? 1 : 0));
     const armas = nomesArmas.map(n => (typeof ataqueArma === 'function') ? ataqueArma(f, n, pb) : null).filter(Boolean);
+    // duas armas: arma LEVE na mão secundária dá ataque bônus (dano sem o mod,
+    // a menos que tenha o estilo Combate com Duas Armas)
+    let bonusDuasArmas = '';
+    if (eqJogo.maoSecundaria && eqJogo.maoSecundaria !== 'Escudo' && typeof dadosArma === 'function') {
+      const daSec = dadosArma(eqJogo.maoSecundaria);
+      if (daSec && daSec.leve) {
+        const forM = mod(f.atributos.for), desM = mod(f.atributos.des);
+        const atrM = (daSec.distancia || (daSec.acuidade && desM > forM)) ? desM : forM;
+        const profSec = (typeof proficienteArma === 'function' && proficienteArma(f.classe, eqJogo.maoSecundaria)) ? pb : 0;
+        const somaMod = f.estilo === 'Combate com Duas Armas';
+        const danoSec = `${daSec.dano}${somaMod && atrM ? (atrM > 0 ? '+' + atrM : atrM) : ''} ${daSec.tipoDano}`;
+        bonusDuasArmas = `<div class="pv-linha arma-equipada"><strong>⚔️ Ataque bônus — ${esc(eqJogo.maoSecundaria)}:</strong> ${atrM + profSec >= 0 ? '+' : ''}${atrM + profSec} · ${esc(danoSec)}
+          <button class="btn-mini" data-atacararma="${atrM + profSec}" data-arma="${esc(eqJogo.maoSecundaria)} (bônus)">🎲 atacar</button>
+          <button class="btn-mini" data-rolararma="${esc(danoSec)}" data-arma="${esc(eqJogo.maoSecundaria)} (bônus)">🎲 dano</button>
+          <span class="criador-hint-inline">${somaMod ? 'estilo Duas Armas: soma o mod no dano' : 'ação bônus · sem mod no dano'}</span></div>`;
+      }
+    }
     const armasHtml = armas.length ? `<div class="jg-bloco"><h4>Ataques de Arma</h4>${armas.map(a => {
       const it = catJogo(a.nome);
       const equipada = a.nome === eqJogo.maoPrincipal || a.nome === eqJogo.maoSecundaria;
@@ -408,7 +425,7 @@ const Jogo = (function () {
       return `<div class="pv-linha${equipada ? ' arma-equipada' : ''}"><strong>${equipada ? '✋ ' : ''}${esc(a.nome)}:</strong> ${a.ataque >= 0 ? '+' : ''}${a.ataque} · ${esc(a.dano)}
       <button class="btn-mini" data-atacararma="${a.ataque}" data-arma="${esc(a.nome)}"${usaMunicao && !municaoOk ? ' disabled title="sem munição"' : ''}${usaMunicao ? ` data-municao="${esc(it.municaoTipo)}"` : ''}>🎲 atacar</button>
       ${/\d+d\d+/.test(a.dano) ? `<button class="btn-mini" data-rolararma="${esc(a.dano)}" data-arma="${esc(a.nome)}">🎲 dano</button>` : ''}${a.semProf ? ' <span class="pv-warn">⚠ sem prof.</span>' : ''}${usaMunicao && !municaoOk ? ' <span class="pv-warn">sem munição</span>' : ''}</div>`;
-    }).join('')}</div>` : '';
+    }).join('')}${bonusDuasArmas}</div>` : '';
 
     // perícias clicáveis
     const periciasHtml = `<details class="jg-bloco"><summary><strong>Perícias</strong> (clique para rolar)</summary><div class="jg-pericias-jogo">` +
@@ -482,7 +499,15 @@ const Jogo = (function () {
     const itensChips = [...new Set(f.itens || [])].map(i => {
       const qt = contarItem(i);
       const equipadoAqui = [eqJogo.maoPrincipal, eqJogo.maoSecundaria, eqJogo.armadura, eqJogo.foco].includes(i);
-      return `<span class="chip${equipadoAqui ? ' equipado' : ''}">${qt > 1 ? qt + '× ' : ''}${esc(i)}${equipadoAqui ? ' ✋' : ''} <button data-rinv="${esc(i)}">×</button></span>`;
+      const it = catJogo(i);
+      // poções de cura têm a fórmula no próprio nome, ex.: "Poção de Cura (2d4+2)"
+      const curaPocao = it && it.cat === 'pocao' ? (i.match(/\((\d+d\d+(?:\+\d+)?)[^)]*\)/) || [])[1] : null;
+      const podeBeber = curaPocao && /cura|bálsamo/i.test(i);
+      const precoVenda = (typeof precoItemPO === 'function') ? Math.floor(precoItemPO(i) / 2 * 100) / 100 : 0;
+      return `<span class="chip${equipadoAqui ? ' equipado' : ''}">${qt > 1 ? qt + '× ' : ''}${esc(i)}${equipadoAqui ? ' ✋' : ''}
+        ${podeBeber ? `<button data-beber="${esc(i)}" data-cura="${esc(curaPocao)}" title="Beber (cura ${curaPocao})">🧪</button>` : ''}
+        ${precoVenda > 0 ? `<button data-vender="${esc(i)}" title="Vender por ${precoVenda} po (metade)">💰</button>` : ''}
+        <button data-rinv="${esc(i)}" title="Descartar">×</button></span>`;
     }).join('');
     const optsItens = (() => {
       const nomes = new Set();
@@ -580,8 +605,9 @@ const Jogo = (function () {
 
   function wire() {
     const val = () => Math.max(1, Number($('jgValor').value) || 1);
-    $('jgDano').onclick = () => { aplicarDano(val()); log(`Sofreu ${val()} de dano`); };
-    $('jgCura').onclick = () => { curar(val()); log(`Curou ${val()} PV`); };
+    // capturar o valor UMA vez: aplicarDano/curar re-renderizam e resetam o input
+    $('jgDano').onclick = () => { const v = val(); log(`Sofreu ${v} de dano`); aplicarDano(v); };
+    $('jgCura').onclick = () => { const v = val(); log(`Curou ${v} PV`); curar(v); };
     $('jgTemp').onclick = () => setTemp(val());
     $('jgDadoVida').onclick = gastarDadoVida;
     $('jgDescCurto').onclick = () => { descansoCurto(); log('Descanso curto'); };
@@ -627,6 +653,30 @@ const Jogo = (function () {
         if (ficha.equipado && ficha.equipado[k] === n && !ficha.itens.includes(n)) ficha.equipado[k] = '';
       });
       sincronizarSlots();
+      salvar();
+    });
+    // beber poção: rola a cura, aplica e consome 1 unidade
+    document.querySelectorAll('[data-beber]').forEach(b => b.onclick = () => {
+      const r = rolar(b.dataset.cura);
+      if (!r) return;
+      const i = (ficha.itens || []).indexOf(b.dataset.beber);
+      if (i >= 0) ficha.itens.splice(i, 1);
+      log(`🧪 Bebeu ${b.dataset.beber}: curou ${r.total} PV (${r.txt})`);
+      curar(r.total); // curar() já salva e re-renderiza
+    });
+    // vender item: metade do preço do catálogo, remove 1 unidade
+    document.querySelectorAll('[data-vender]').forEach(b => b.onclick = () => {
+      const n = b.dataset.vender;
+      const valor = Math.floor(precoItemPO(n) / 2 * 100) / 100;
+      const i = (ficha.itens || []).indexOf(n);
+      if (i < 0) return;
+      ficha.itens.splice(i, 1);
+      ['maoPrincipal', 'maoSecundaria', 'armadura', 'foco'].forEach(k => {
+        if (ficha.equipado && ficha.equipado[k] === n && !ficha.itens.includes(n)) ficha.equipado[k] = '';
+      });
+      ficha.ouro = Math.round(((ficha.ouro || 0) + valor) * 100) / 100;
+      sincronizarSlots();
+      log(`💰 Vendeu ${n} por ${valor} po`);
       salvar();
     });
     // slots de equipar: mudar recalcula CA e salva na hora

@@ -87,8 +87,22 @@ function penalidadesEquipamento(ficha) {
 }
 
 // ---------- DANO DE ARMA ----------
-// Extrai dano/propriedades de um item de arma do catálogo
+// Extrai dano/propriedades: catálogo estruturado (equipamento.js) primeiro,
+// com fallback para a descrição solta da loja antiga (itens mágicos etc.)
 function dadosArma(nome) {
+  const it = (typeof itemCatalogo === 'function') ? itemCatalogo(nome) : null;
+  if (it && it.cat === 'arma') {
+    const props = it.props || [];
+    const vers = (props.find(p => p.startsWith('versátil')) || '').match(/(\d+d\d+)/);
+    return {
+      dano: it.dano || '1d4', tipoDano: it.tipoDano || '',
+      acuidade: props.includes('acuidade'),
+      distancia: it.alcance === 'dist',
+      leve: props.includes('leve'),
+      versatil: vers ? vers[1] : null,
+      maos: it.maos || 1,
+    };
+  }
   const item = (typeof ITENS_PADRAO !== 'undefined') ? ITENS_PADRAO.find(i => i.nome === nome) : null;
   if (!item || item.categoria !== 'Arma') return null;
   const d = item.descricao || '';
@@ -96,10 +110,12 @@ function dadosArma(nome) {
   const tipoDano = (d.match(/(corte|perfurante|concuss[aã]o)/i) || [])[1] || '';
   const acuidade = /acuidade/i.test(d);
   const distancia = /muni[cç][aã]o|arremesso|alcance \(/i.test(d) || /Arco|Besta|Funda/i.test(nome);
-  return { dano, tipoDano, acuidade, distancia };
+  const versatil = (d.match(/vers[aá]til\s*\(?(\d+d\d+)/i) || [])[1] || null;
+  return { dano, tipoDano, acuidade, distancia, leve: /\bleve\b/i.test(d), versatil, maos: /duas m[aã]os/i.test(d) ? 2 : 1 };
 }
 
 // Ataque de arma calculado para um personagem
+// Arma versátil empunhada na mão principal com a secundária LIVRE usa o dado maior
 function ataqueArma(ficha, nome, pb) {
   const da = dadosArma(nome);
   if (!da) return null;
@@ -108,7 +124,14 @@ function ataqueArma(ficha, nome, pb) {
   const atrMod = usaDes ? desMod : forMod;
   const prof = proficienteArma(ficha.classe, nome) ? pb : 0;
   const ataque = atrMod + prof;
-  return { nome, dano: `${da.dano}${atrMod >= 0 ? '+' : ''}${atrMod} ${da.tipoDano}`, ataque, semProf: prof === 0 };
+  let dado = da.dano;
+  let notaVersatil = '';
+  const eq = ficha.equipado;
+  if (da.versatil && eq && eq.maoPrincipal === nome && !eq.maoSecundaria) {
+    dado = da.versatil;
+    notaVersatil = ' (2 mãos)';
+  }
+  return { nome, dano: `${dado}${atrMod >= 0 ? '+' : ''}${atrMod} ${da.tipoDano}${notaVersatil}`, ataque, semProf: prof === 0 };
 }
 
 // =====================================================

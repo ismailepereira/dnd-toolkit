@@ -87,6 +87,21 @@ Cada bloco entrega: características base (com mecânica) + características de 
 
 ---
 
+## 🎒 FASE 6 — Criação guiada & Equipamento 5e (entregue 03–04/07/2026)
+Spec completa em `docs/SPEC-EQUIPAMENTO.md`.
+- [x] 6.1 Criador em 5 passos com galerias: Classe (símbolo, papel, melhores raças, subclasses selecionáveis, status recomendados com edição/rolagem) e Raça (ASI, traços, ⭐ recomendadas)
+- [x] 6.2 Ficha nova nasce com o melhor arranjo legal (compra de pontos 15/15/14/10/8/8 pela prioridade da classe)
+- [x] 6.3 Troca de subclasse limpa tudo que a anterior liberou (magias/truques/preparadas/slots) — sem acúmulo
+- [x] 6.4 Ouro por rolagem oficial do PHB (única por ficha, trava; extra só via Mestre)
+- [x] 6.5 Kit inicial grátis por classe (escolhas do PHB em radios, só na criação) + `equipamento.js` (catálogo PHB estruturado: armas/armaduras/focos/munição/poções)
+- [x] 6.6 Loja da criação com abas, filtro de proficiência (cadeado) e devolução 100%
+- [x] 6.7 Bolsa + 5 slots mecânicos (criador E modo de jogo): CA recalcula ao equipar, arma versátil usa dado maior com mão livre, ataque bônus de duas armas leves, munição consome por ataque, peso FOR×7,5 kg
+- [x] 6.8 Usar poção da bolsa (rola cura e consome) e vender item por metade do preço no Modo de Jogo
+- [x] 6.9 Painel do Mestre: enviar ouro/itens a qualquer ficha (loot/recompensa)
+- [ ] 6.10 Mercadores/lojas específicas do Mestre (evolução futura — reusa o mecanismo de envio)
+
+---
+
 ## 🧩 Formato padrão de qualquer pedido
 1. **Contexto:** "Continuar o D&D Toolkit."
 2. **Escopo exato:** classe + bloco de níveis, OU a tarefa da fase.

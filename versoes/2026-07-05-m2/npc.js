@@ -152,44 +152,6 @@ const NPC_TIPOS = [
     if (typeof window._npcsAtualizados === 'function') window._npcsAtualizados(npcs);
   }
 
-  window.npcCriarDeMonstro = function (monstro) {
-    if (!modal) return;
-    editandoId = null;
-    $('nNome').value = monstro.nome;
-    $('nTipo').value = 'inimigo';
-    $('nLocal').value = '';
-    $('nDescricao').value = `${monstro.tipo} (ND ${monstro.cr})`;
-    $('nNotasPrivadas').value = '';
-    $('nVisivel').checked = true;
-    $('nTemStat').checked = true;
-    
-    const caNum = parseInt(monstro.ca) || 10;
-    $('nCa').value = caNum;
-    
-    const hpNum = parseInt(monstro.hp) || 10;
-    $('nPv').value = hpNum;
-    
-    ['for', 'des', 'con', 'int', 'sab', 'car'].forEach(k => {
-      $('nAttr_' + k).value = monstro.atributos ? (monstro.atributos[k.toUpperCase()] || 10) : 10;
-    });
-    
-    const acoes = [];
-    if (monstro.acoes) {
-      monstro.acoes.forEach(a => acoes.push(a));
-    }
-    if (monstro.conjuracao) {
-      monstro.conjuracao.forEach(c => acoes.push('Conjuração: ' + c));
-    }
-    $('nAcoes').value = acoes.join('\n');
-    
-    atualizarStatWrap();
-    $('npcModalTitulo').textContent = 'Promover Monstro a NPC';
-    modal.classList.remove('hidden');
-    
-    const tabNpcs = document.querySelector('[data-tab="npcs"]');
-    if (tabNpcs) tabNpcs.click();
-  };
-
   // ---------- Modal de edição (só o Mestre tem o #modalNpc) ----------
   const modal = $('modalNpc');
   function abrirModal(id) {
@@ -313,24 +275,6 @@ const NPC_TIPOS = [
             render();
           }
         });
-      });
-    }
-    const btnNovoAleatorio = $('novoNpcAleatorio');
-    if (btnNovoAleatorio) {
-      btnNovoAleatorio.addEventListener('click', () => {
-        const crInput = prompt('Digite o ND (CR) para filtrar (ex: 1, 2, 1/2) ou deixe em branco para qualquer ND:');
-        if (crInput === null) return;
-        let pool = typeof MONSTROS !== 'undefined' ? MONSTROS : [];
-        if (crInput.trim()) {
-          const filterCr = crInput.trim();
-          pool = pool.filter(m => String(m.cr) === filterCr);
-        }
-        if (!pool.length) {
-          alert('Nenhuma criatura encontrada no Bestiário com o ND especificado.');
-          return;
-        }
-        const sorteado = pool[Math.floor(Math.random() * pool.length)];
-        window.npcCriarDeMonstro(sorteado);
       });
     }
     $('nTemStat').addEventListener('change', atualizarStatWrap);

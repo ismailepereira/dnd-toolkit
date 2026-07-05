@@ -4,21 +4,6 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
-## 2026-07-05 — Criaturas do bestiário como NPCs persistentes (Passo M2)
-
-**Backup antes da alteração:** `versoes/2026-07-05-m2/`
-(cópia de todos os ficheiros tocados).
-
-**Resumo:** O Mestre agora pode promover monstros do Bestiário a NPCs persistentes da campanha. Foi adicionado um botão "⭐ Promover a NPC" no cartão de cada monstro no Bestiário, preenchendo o modal de criação simples com a CA, PV, atributos, ações e magias do monstro. Também foi adicionado o botão "🎲 NPC Aleatório (Bestiário)" na aba de NPCs que sorteia um monstro baseado em um ND (CR) e o promove automaticamente.
-
-**Ficheiros alterados:**
-- `static/js/app.js` — botão "⭐ Promover a NPC" no template do Bestiário e escutador de eventos.
-- `static/js/npc.js` — função global `window.npcCriarDeMonstro` para pré-preenchimento do modal simples e escutador do botão "🎲 NPC Aleatório (Bestiário)".
-- `templates/mestre.html` — inclusão do botão "🎲 NPC Aleatório (Bestiário)" na aba de NPCs.
-- `docs/ROADMAP-FUTURO.md` — marca o passo M2 como concluído.
-
----
-
 ## 2026-07-05 — NPC com Ficha Completa (Passo M1)
 
 **Backup antes da alteração:** `versoes/2026-07-05-m1/`

@@ -87,7 +87,7 @@ read-only do Mestre) e entra no combate com os ataques da ficha (o motor
 pular a trava de ouro/kit se o Mestre quiser), `app.js` (combate lê
 `fichaCompleta` como lê ficha de PJ).
 
-### M2. Criaturas do bestiário como NPCs persistentes ✅
+### M2. Criaturas do bestiário como NPCs persistentes
 **Objetivo:** "promover" uma criatura do bestiário a NPC da campanha (com
 nome próprio, ciente/senciente ou não) — ex.: um Goblin vira "Grik, o
 Batedor", persiste entre sessões e entra em combate contra o grupo.

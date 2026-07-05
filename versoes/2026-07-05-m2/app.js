@@ -1099,13 +1099,10 @@ function renderMonstros() {
         <h3>${escapeHtml(m.nome)}</h3>
         <span class="cr-badge">ND ${m.cr} (${m.pe} PE)</span>
       </div>
-      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
-        <label class="visibilidade-toggle" style="margin-bottom: 0;">
-          <input type="checkbox" data-visivel="${escapeHtml(m.nome)}" ${visivel ? 'checked' : ''}>
-          Visível para jogadores
-        </label>
-        <button class="btn-mini btn-primary" data-promover-npc="${escapeHtml(m.nome)}" style="margin-left: auto;">⭐ Promover a NPC</button>
-      </div>
+      <label class="visibilidade-toggle">
+        <input type="checkbox" data-visivel="${escapeHtml(m.nome)}" ${visivel ? 'checked' : ''}>
+        Visível para jogadores
+      </label>
       <div class="monstro-sub">${escapeHtml(m.tipo)}</div>
       <span class="cat-badge">${escapeHtml(m.categoria)}</span>
       <div class="monstro-stats">
@@ -1123,11 +1120,6 @@ function renderMonstros() {
       ${m.reacoes ? `<div class="monstro-secao"><strong>Reações</strong><ul>${m.reacoes.map(r => `<li>${escapeHtml(r)}</li>`).join('')}</ul></div>` : ''}
       ${m.conjuracao ? `<div class="monstro-secao"><strong>Conjuração</strong><ul>${m.conjuracao.map(c => `<li>${escapeHtml(c)}</li>`).join('')}</ul></div>` : ''}
     `;
-    card.querySelector('[data-promover-npc]').addEventListener('click', () => {
-      if (typeof window.npcCriarDeMonstro === 'function') {
-        window.npcCriarDeMonstro(m);
-      }
-    });
     listaMonstros.appendChild(card);
   });
 

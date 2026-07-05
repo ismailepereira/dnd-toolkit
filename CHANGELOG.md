@@ -4,6 +4,21 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-05 — Miniaturas de classes, atributos e armas (Miniaturas)
+
+**Backup antes da alteração:** `versoes/2026-07-05-miniaturas/`
+(cópia de todos os ficheiros tocados).
+
+**Resumo:** Adicionados ícones/miniaturas visuais (emojis correspondentes) para as habilidades/atributos (Força 💪, Destreza 🏃‍♂️, Constituição ✊, Inteligência 🧠, Sabedoria 👁️, Carisma 🗣️), para todas as classes do PHB (Guerreiro ⚔️, Mago 🔮, etc.) e para as armas (Adaga 🗡️, Besta 🏹, Espada ⚔️, etc.) no Criador de Personagens, no seletor de classes e no painel do Modo de Jogo.
+
+**Ficheiros alterados:**
+- `static/js/regras.js` — mapeamento de ícones e funções auxiliares `getClasseIcone`, `getAttrIcone` e `getArmaIcone`.
+- `static/js/classes.js` — exibição do ícone da classe nas opções do `<select>`.
+- `static/js/jogo.js` — inclusão de miniaturas de atributos nos blocos de habilidades, de armas nos blocos de ataques, e de classes nos subcabeçalhos de Modo de Jogo.
+- `static/js/criador.js` — inclusão de miniaturas nos blocos de atributos (base e recomendados) e na visualização prévia de classes e armas do criador.
+
+---
+
 ## 2026-07-05 — Criaturas do bestiário como NPCs persistentes (Passo M2)
 
 **Backup antes da alteração:** `versoes/2026-07-05-m2/`

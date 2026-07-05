@@ -23,23 +23,24 @@ SECRET_KEY=<string longa e aleatória>   # NUNCA use o valor padrão em produç�
 
 `senha_confere()` detecta o prefixo do hash automaticamente; senhas em texto puro continuam funcionando para a mesa local.
 
-## Regras do Firestore
+## Regras do Firestore (Fase 10.8 — por campanha)
 
-O cliente faz **somente leitura** em tempo real; quem escreve é o backend (Admin SDK). Regras recomendadas (cobrem multi-campanha via wildcard):
+O cliente faz **somente leitura** em tempo real; quem escreve é o backend (Admin SDK). Desde a Fase 10.8 a leitura deixou de ser pública: o cliente troca a sessão Flask por um **token personalizado do Firebase Auth** (`/api/firebase_token`) e as regras só deixam ler a campanha de que o utilizador é **membro ou mestre**.
 
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /campanha/{doc} {
-      allow read: if true;     // leitura pública (a mesa toda acompanha em tempo real)
-      allow write: if false;   // escrita só pelo backend (Admin SDK ignora as regras)
-    }
-  }
-}
-```
+As regras completas (com comentários) estão versionadas em **`firestore.rules`** na raiz do repositório.
 
-⚠️ **Notas privadas / handouts:** a leitura pública expõe, via Firestore, **todas** as notas ao navegador do jogador — o filtro de "compartilhada" é feito no cliente e no endpoint REST, mas não esconde do `onSnapshot`. Não guarde segredos reais do enredo em notas se isso for um problema. Solução futura: **Login do Firebase** + regras por usuário (ver ROADMAP 5.4).
+### Como ativar (uma vez, no Console do Firebase)
+1. **Deploy do código primeiro** (Render) — o código novo funciona com as regras antigas (degradação suave); o contrário derrubaria o tempo real.
+2. Console do Firebase → **Authentication → Começar** (ativa o produto; não precisa habilitar nenhum provedor — os tokens vêm do backend).
+3. Console → **Firestore Database → Regras** → colar o conteúdo de `firestore.rules` → **Publicar**.
+4. Testar: entrar como jogador registado e confirmar no console do navegador que não há erro `[RT] onSnapshot` (se houver `permission-denied`, o passo 2 ou o deploy ficou em falta).
+
+### O que as regras garantem
+- `campanha/<id>`: leitura só para o mestre da campanha, membros registados (via `campanhas_meta`) e o mestre fixo legado; **escrita sempre negada** (só o Admin SDK escreve).
+- `usuarios` e `campanhas_meta`: **inacessíveis ao cliente** (contêm hashes de senha e a lista de membros); o `get()`/`exists()` usado pelas regras roda no servidor de regras e não expõe os documentos.
+- Qualquer outra coleção: negada por padrão.
+
+⚠️ **Notas privadas / handouts:** membros da campanha ainda recebem o documento INTEIRO dela via `onSnapshot` (incluindo notas não compartilhadas) — o filtro de "compartilhada" é do cliente/REST. As regras da 10.8 fecham o acesso a estranhos, mas não escondem segredos de enredo dos próprios jogadores da mesa; para isso seria preciso separar notas num documento à parte (evolução futura).
 
 ## Multi-campanha
 

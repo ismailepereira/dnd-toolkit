@@ -166,7 +166,7 @@ Plano completo em `docs/ROADMAP-FUTURO.md` (Fase 10); esta v1 cobre os passos 1�
 - [x] 10.5 Fichas com dono (`donoUid`): só o dono (ou Mestre) joga/edita; fichas antigas sem dono ficam livres (legado)
 - [x] 10.6 Morte/permanência: 3 falhas → ficha vira memorial 🪦 read-only; jogador volta com personagem novo; Mestre tem "✨ Reviver"
 - [x] 10.7 Aba "Membros" do Mestre: código de convite + remover jogador (acesso revogado na hora)
-- [ ] 10.8 Regras de segurança do Firestore por campanha (passo 7 do plano — revisão dedicada antes de produção; RT ainda lê o doc inteiro)
+- [x] 10.8 Regras de segurança do Firestore por campanha (código entregue 04/07/2026): `firestore.rules` versionado, tokens personalizados via `/api/firebase_token`, RT autentica antes de escutar com degradação suave. **Falta só publicar no Console** (Authentication → Começar + colar as regras) DEPOIS do deploy — passos no `SEGURANCA.md`
 
 ---
 

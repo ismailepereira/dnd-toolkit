@@ -551,33 +551,6 @@ def api_put_loja_especial_itens():
     return jsonify({'ok': True})
 
 
-# ----- FASE 10.8: token do Firebase Auth para o tempo real seguro -----
-# O cliente (firebase-rt.js) troca a sessão Flask por um token personalizado
-# do Firebase Auth; as Regras do Firestore (firestore.rules) validam a
-# membresia por campanha. Sem Firestore ativo (modo local), avisa e o cliente
-# simplesmente não usa tempo real (o polling de fallback continua).
-@app.route('/api/firebase_token')
-@login_obrigatorio()
-def api_firebase_token():
-    if db is None:
-        return jsonify({'disponivel': False})
-    try:
-        from firebase_admin import auth as fb_auth
-        uid = session.get('uid') or f"legacy:{session.get('usuario', '')}"
-        claims = {}
-        if uid.startswith('legacy:'):
-            claims['legado'] = True
-            if session.get('papelGlobal') == 'mestre':
-                claims['legadoMestre'] = True
-        token = fb_auth.create_custom_token(uid, claims or None)
-        if isinstance(token, bytes):
-            token = token.decode('utf-8')
-        return jsonify({'disponivel': True, 'token': token})
-    except Exception as e:  # pragma: no cover — ex.: service account sem permissão de assinar
-        print('[Firebase] Falha ao emitir token de Auth:', e)
-        return jsonify({'disponivel': False, 'erro': 'token indisponível'})
-
-
 # ----- FASE 10: informações da campanha ativa (aba Membros do Mestre) -----
 @app.route('/api/campanha_info', methods=['GET'])
 @login_obrigatorio()

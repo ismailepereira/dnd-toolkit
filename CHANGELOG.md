@@ -293,3 +293,47 @@ sempre com hash). Dados de teste apagados; `data/estado.json` real intacto.
 `git revert`; apagar `templates/registro.html`/`campanhas.html` e os ficheiros
 locais `data/usuarios.json`/`data/campanhas_meta.json` se existirem. Fichas
 com `donoUid`/`status` continuam válidas em versões antigas (campos ignorados).
+
+## 2026-07-04 — Regras do Firestore por campanha (Fase 10.8)
+
+**Backup antes da alteração:** `versoes/2026-07-04-fase10-8-regras-firestore/`.
+
+**Resumo:** o tempo real deixa de depender de leitura pública. O Flask emite
+tokens personalizados do Firebase Auth (`/api/firebase_token`, com o uid da
+sessão e claims `legado`/`legadoMestre`), o cliente autentica-se antes do
+`onSnapshot`, e as novas regras (`firestore.rules`, versionado na raiz) só
+deixam ler `campanha/<id>` a quem é mestre/membro dela — `usuarios` e
+`campanhas_meta` ficam totalmente inacessíveis ao cliente (contêm hashes de
+senha). Escrita continua 100% pelo backend (Admin SDK).
+
+**Ficheiros novos:** `firestore.rules` (regras comentadas, prontas a publicar).
+
+**Ficheiros alterados (backup em `versoes/2026-07-04-fase10-8-regras-firestore/`):**
+- `app.py` — endpoint `/api/firebase_token` (login obrigatório; `disponivel:false`
+  em modo local; claims de legado para as contas fixas).
+- `static/js/firebase-rt.js` — autentica com `signInWithCustomToken` antes de
+  escutar (promessa única por página); se o Auth falhar, tenta escutar na
+  mesma (degradação suave durante a transição de regras).
+- `templates/mestre.html`, `templates/jogador.html` — script `firebase-auth-compat`.
+- `SEGURANCA.md` — secção de regras reescrita: modelo por campanha + passos de
+  ativação no Console (ordem: deploy do código PRIMEIRO, regras depois).
+
+**Decisões / pontos em aberto:**
+- **Ativação é manual no Console** (só o Ismaile pode): Authentication →
+  Começar, depois Firestore → Regras → colar `firestore.rules` → Publicar.
+  Até lá, tudo continua a funcionar como antes (regras antigas + código novo).
+- **Membros da mesa continuam a ver o documento inteiro da campanha** via RT
+  (incluindo notas não compartilhadas) — as regras fecham o acesso a
+  estranhos, não aos próprios jogadores; separar notas num doc à parte fica
+  como evolução futura (nota no SEGURANCA.md).
+- A emissão real do token exige o Firestore/Admin SDK ativos — em modo local
+  o endpoint devolve `disponivel:false` e o cliente segue sem RT (polling).
+
+**Verificação:** `node --check` no firebase-rt.js; contrato do endpoint testado
+no cliente Flask (sem login → bloqueado; modo local → `disponivel:false`).
+A validação das regras em si só é possível no projeto Firebase real (fica
+para o passo de publicação no Console).
+
+**Como reverter:** restaurar `versoes/2026-07-04-fase10-8-regras-firestore/`
+(ou `git revert`); no Console, repor as regras antigas de leitura pública
+(estão no histórico do próprio Console e no git em `SEGURANCA.md` antigo).

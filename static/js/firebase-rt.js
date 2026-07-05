@@ -2,6 +2,13 @@
 // FIREBASE - sincronização em TEMPO REAL (somente leitura no cliente)
 // O backend (Flask + Admin SDK) é quem escreve; aqui só escutamos.
 // Config web (não é segredo).
+//
+// Fase 10.8: antes de escutar, o cliente troca a sessão Flask por um token
+// personalizado do Firebase Auth (/api/firebase_token) — as Regras do
+// Firestore (firestore.rules) só deixam ler a campanha de que o utilizador
+// é membro/mestre. Se o Auth falhar (ex.: regras antigas ainda públicas,
+// produto Auth por ativar), tenta escutar na mesma — degradação suave para
+// não quebrar o tempo real durante a transição de regras.
 // =====================================================
 (function () {
   const firebaseConfig = {
@@ -26,22 +33,46 @@
     console.warn('[RT] Falha ao iniciar Firebase:', e);
   }
 
+  // Autentica UMA vez por página (promessa partilhada por todos os ouvir()).
+  let _authPromessa = null;
+  function autenticar() {
+    if (!ok) return Promise.resolve(false);
+    if (typeof firebase.auth !== 'function') {
+      console.warn('[RT] firebase-auth-compat não carregado — a escutar sem login.');
+      return Promise.resolve(false);
+    }
+    if (!_authPromessa) {
+      _authPromessa = fetch('/api/firebase_token')
+        .then(r => r.json())
+        .then(d => {
+          if (!d.disponivel || !d.token) { console.warn('[RT] Token de Auth indisponível — a escutar sem login.'); return false; }
+          return firebase.auth().signInWithCustomToken(d.token).then(() => true);
+        })
+        .catch(e => {
+          console.warn('[RT] Auth falhou — a escutar sem login:', (e && (e.code || e.message)) || e);
+          return false;
+        });
+    }
+    return _authPromessa;
+  }
+
   window.RT = {
     ativo: () => ok,
     // Escuta o documento da campanha; chama cb(estado) a cada mudança.
     ouvir(cb) {
       if (!ok) return false;
-      try {
-        const docId = (window.CAMPANHA_ID || 'principal');
-        fsdb.collection('campanha').doc(docId).onSnapshot(
-          snap => { if (snap.exists) cb(snap.data() || {}); },
-          err => console.warn('[RT] onSnapshot erro (verifique as Regras do Firestore):', err.code || err)
-        );
-        return true;
-      } catch (e) {
-        console.warn('[RT] Não foi possível escutar:', e);
-        return false;
-      }
+      autenticar().then(() => {
+        try {
+          const docId = (window.CAMPANHA_ID || 'principal');
+          fsdb.collection('campanha').doc(docId).onSnapshot(
+            snap => { if (snap.exists) cb(snap.data() || {}); },
+            err => console.warn('[RT] onSnapshot erro (verifique as Regras do Firestore / firestore.rules):', err.code || err)
+          );
+        } catch (e) {
+          console.warn('[RT] Não foi possível escutar:', e);
+        }
+      });
+      return true;
     },
   };
 })();

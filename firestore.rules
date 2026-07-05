@@ -1,0 +1,62 @@
+rules_version = '2';
+
+// =====================================================
+// REGRAS DO FIRESTORE — D&D Toolkit (Fase 10.8)
+// -----------------------------------------------------
+// Publicar no Console do Firebase: Firestore Database → Regras → colar → Publicar.
+// ANTES de publicar, faça o deploy do código (app.py + firebase-rt.js) e ative
+// o produto Authentication no Console (Authentication → Começar; nenhum
+// provedor precisa ser habilitado — usamos tokens personalizados do backend).
+// Ordem importa: código primeiro, regras depois — o código novo funciona com
+// as regras antigas (degradação suave), mas as regras novas SEM o código novo
+// derrubariam o tempo real dos jogadores.
+//
+// Modelo: o cliente só LÊ (onSnapshot) o documento da própria campanha; toda
+// escrita passa pelo backend Flask (Admin SDK, que ignora estas regras).
+// A identidade vem de um token personalizado emitido pelo Flask
+// (/api/firebase_token) com o uid da sessão e claims:
+//   legado: true        → conta fixa antiga (env)
+//   legadoMestre: true  → mestre fixo antigo (acesso a todas as campanhas)
+// =====================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function temMeta(cid) {
+      return exists(/databases/$(database)/documents/campanhas_meta/$(cid));
+    }
+    function meta(cid) {
+      return get(/databases/$(database)/documents/campanhas_meta/$(cid)).data;
+    }
+
+    // Dados da campanha (fichas, combate, notas, encontros, lojas...)
+    match /campanha/{cid} {
+      allow read: if request.auth != null && (
+        // mestre fixo antigo: acesso a qualquer mesa (comportamento de sempre)
+        request.auth.token.legadoMestre == true
+        // campanhas legadas (sem metadados, ex.: 'principal'): só contas fixas
+        || (!temMeta(cid) && request.auth.token.legado == true)
+        // campanhas novas: mestre ou membro registado
+        || (temMeta(cid) && (
+              meta(cid).mestreUid == request.auth.uid
+              || request.auth.uid in meta(cid).membros
+           ))
+      );
+      allow write: if false;  // escrita SÓ pelo backend (Admin SDK)
+    }
+
+    // Metadados de campanha e contas: nunca legíveis pelo cliente
+    // (usuarios contém hashes de senha; o get()/exists() das regras acima
+    //  roda no servidor de regras e NÃO expõe estes documentos ao cliente)
+    match /campanhas_meta/{cid} {
+      allow read, write: if false;
+    }
+    match /usuarios/{uid} {
+      allow read, write: if false;
+    }
+
+    // Qualquer outra coleção: negado por padrão
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

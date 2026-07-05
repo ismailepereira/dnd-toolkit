@@ -1373,20 +1373,6 @@ body.alto-contraste a { color: #ffd400; }
 .loja-preco { color: var(--text-dim); font-size: 0.72rem; white-space: nowrap; }
 .loja-cadeado { cursor: help; }
 
-/* ===== Fase 11: NPCs da campanha ===== */
-.npc-card { border-left: 3px solid var(--border); }
-.npc-card.npc-lojista { border-left-color: #e3b341; }
-.npc-card.npc-aliado { border-left-color: #3fb950; }
-.npc-card.npc-inimigo { border-left-color: var(--accent); }
-.npc-card.npc-neutro { border-left-color: var(--text-dim); }
-.npc-desc { font-size: 0.82rem; color: var(--text-dim); margin: 4px 0; }
-.npc-notas-privadas {
-  font-size: 0.76rem; color: #d29922; border: 1px dashed #d29922; border-radius: 6px;
-  padding: 4px 8px; margin: 6px 0;
-}
-.npc-visivel { display: inline-flex; margin: 6px 0; font-size: 0.72rem; }
-.npc-attrs { margin: 8px 0; }
-
 /* ===== Fase 10.9: assinatura (trial + confirmação manual) ===== */
 .assinatura-status { border-radius: 10px; padding: 12px; margin: 12px 0; font-size: 0.95rem; border: 1px solid var(--border); }
 .assinatura-status.trial { border-color: #e3b341; color: #e3b341; background: rgba(227,179,65,0.08); }

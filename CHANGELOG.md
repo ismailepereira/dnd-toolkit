@@ -386,3 +386,59 @@ removida do armazém local.
 **Como reverter:** restaurar `versoes/2026-07-04-fase10-9-assinatura/` (ou
 `git revert`) e apagar os 2 templates novos; contas já registadas continuam a
 funcionar (os campos extra são ignorados por versões antigas).
+
+## 2026-07-05 — NPCs da campanha (Fase 11)
+
+**Backup antes da alteração:** `versoes/2026-07-05-fase11-npcs/`.
+
+**Resumo:** NPCs (lojistas, aliados, inimigos, neutros) agora têm ficha
+própria que PERSISTE entre combates e sessões — diferente do bestiário
+(estático) e dos avulsos do rastreador (efémeros). O Mestre gere tudo na nova
+aba "NPCs" (CRUD com modal: descrição pública, notas privadas 🔒, stat block
+opcional); os jogadores ganham a aba "NPCs Conhecidos" (só os visíveis, em
+tempo real); e NPCs com stat block entram no combate pelo botão "+ NPC".
+
+**Ficheiros novos:** `static/js/npc.js` — módulo partilhado Mestre/Jogador
+(CRUD, cartões, filtro de visibilidade replicado no RT, hook
+`window._npcsAtualizados` para o rastreador).
+
+**Ficheiros alterados (backup em `versoes/2026-07-05-fase11-npcs/`):**
+- `app.py` — chave `npcs` no estado + `GET/PUT /api/npcs` (GET: jogador só
+  recebe `visivelParaJogadores` e sem `notasPrivadas` — filtro no servidor,
+  mesmo padrão de /api/notas; PUT só Mestre).
+- `templates/mestre.html` — aba "NPCs" (a antiga "Notas / NPCs" virou só
+  "Notas"), modal de edição (tipo/local/descrição/notas privadas/visível/
+  stat block com CA/PV/6 atributos/ações uma-por-linha) e "+ NPC" na barra
+  do Combate.
+- `templates/jogador.html` — aba "NPCs Conhecidos" (read-only).
+- `static/js/app.js` — combate: `popularNpcCombate()` + handler "+ NPC"
+  (inimigo entra do lado dos monstros; lojista/aliado/neutro como 🤝 aliado;
+  ações parseadas pelo MESMO `parseAcoes` do bestiário); `bonusSalva()` e
+  a rolagem de iniciativa reconhecem combatentes `npcId` (atributos do stat
+  block); RT sincroniza `npcs`; backup exporta/importa `npcs`.
+- `static/js/jogador.js` — RT sincroniza `npcs` (via `window._syncNpcs`).
+- `static/css/style.css` — `.npc-card` (cor da borda por tipo), `.npc-desc`,
+  `.npc-notas-privadas`, `.npc-visivel`, `.npc-attrs`.
+
+**Decisões / pontos em aberto:**
+- **Notas privadas nunca saem do servidor** para jogadores no REST; no tempo
+  real (que entrega o doc inteiro da campanha a membros) o filtro é replicado
+  no cliente — mesma limitação já documentada para as notas do Mestre
+  (SEGURANCA.md): protege da UI, não de quem inspecionar o socket. Segredos
+  críticos: usar as notas privadas com a mesma cautela das notas de campanha.
+- **PV do NPC no combate é uma CÓPIA** (como monstros): dano no rastreador
+  não altera o `pvAtual` persistente do NPC — o Mestre atualiza a ficha do
+  NPC se quiser registar ferimentos duradouros (sincronizar automaticamente
+  fica para quando houver necessidade real em mesa).
+- **Retrato/imagem** (11.6) fora de escopo até haver hospedagem de imagens.
+- `lojaId` do plano fica para a Fase 12 (lojas geridas por NPC).
+
+**Verificação:** `node --check` em todos os `.js`; endpoints testados no
+cliente Flask em campanha isolada (4 cenários: vazio, Mestre lê tudo,
+jogador só visíveis SEM notas privadas, PUT bloqueado); harness Node provou
+que `parseAcoes` entende o formato de ações do NPC e que o filtro RT do lado
+do jogador não vaza segredos para o HTML.
+
+**Como reverter:** restaurar `versoes/2026-07-05-fase11-npcs/` (ou
+`git revert`) e apagar `static/js/npc.js`; a chave `npcs` no estado é
+ignorada por versões antigas.

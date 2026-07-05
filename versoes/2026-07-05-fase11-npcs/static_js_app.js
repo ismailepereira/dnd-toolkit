@@ -376,10 +376,6 @@ function bonusSalva(c, attr) {
   if ((c.tipo === 'monstro' || c.tipo === 'aliado') && c.monstroNome) {
     const m = MONSTROS.find(x => x.nome === c.monstroNome); if (m) return mod(m.atributos[attr]);
   }
-  if (c.npcId) {
-    const n = (window.NPCS_CAMPANHA || []).find(x => x.id === c.npcId);
-    if (n && n.statBlock && n.statBlock.atributos) return mod(n.statBlock.atributos[attr] || 10);
-  }
   return 0;
 }
 function renderAreaDano() {
@@ -598,41 +594,6 @@ const qtdComb = () => Math.max(1, Number(document.getElementById('combMonstroQtd
 document.getElementById('addMonstro').addEventListener('click', () => addMonstro(combMonstroSel.value, qtdComb()));
 const btnAliado = document.getElementById('addAliado');
 if (btnAliado) btnAliado.addEventListener('click', () => addMonstro(combMonstroSel.value, qtdComb(), 'aliado'));
-
-// ----- Fase 11: NPCs da campanha no rastreador (persistem fora do combate) -----
-function popularNpcCombate(npcs) {
-  const sel = document.getElementById('combNpcSel');
-  if (!sel) return;
-  const anterior = sel.value;
-  const combativos = (npcs || []).filter(n => n.statBlock);
-  sel.innerHTML = combativos.length
-    ? combativos.map(n => `<option value="${escapeHtml(n.id)}">${escapeHtml(n.nome)}${n.tipo === 'inimigo' ? ' ⚔️' : ''}</option>`).join('')
-    : '<option value="">— sem NPCs de combate —</option>';
-  if (anterior && combativos.some(n => n.id === anterior)) sel.value = anterior;
-}
-// npc.js chama isto a cada mudança; cobre também a carga inicial
-window._npcsAtualizados = popularNpcCombate;
-popularNpcCombate(window.NPCS_CAMPANHA || []);
-
-const btnNpcComb = document.getElementById('addNpcComb');
-if (btnNpcComb) btnNpcComb.addEventListener('click', () => {
-  const sel = document.getElementById('combNpcSel');
-  const npc = (window.NPCS_CAMPANHA || []).find(n => n.id === sel.value);
-  if (!npc || !npc.statBlock) return;
-  const sb = npc.statBlock;
-  const acoes = parseAcoes({ acoes: sb.acoes || [] });
-  // inimigo entra do lado dos monstros; lojista/aliado/neutro entram como aliados
-  const lado = npc.tipo === 'inimigo' ? 'monstro' : 'aliado';
-  combate.combatentes.push({
-    id: uid(), tipo: lado, npcId: npc.id,
-    nome: (lado === 'aliado' ? '🤝 ' : '') + npc.nome,
-    iniciativa: dado(20) + mod((sb.atributos || {}).des || 10),
-    hpAtual: sb.pvAtual ?? sb.pvMax, hpMax: sb.pvMax, ca: sb.ca || 10,
-    condicoes: [], acoes,
-  });
-  logCombate(`${npc.nome} (NPC${lado === 'aliado' ? ' aliado' : ' inimigo'}) entrou no combate`);
-  ordenarCombate();
-});
 const btnArea = document.getElementById('btnAreaDano');
 if (btnArea) btnArea.addEventListener('click', () => {
   const wrap = document.getElementById('areaDanoPanel');
@@ -650,7 +611,6 @@ document.getElementById('rolarIniciativa').addEventListener('click', () => {
     let bonus = 0;
     if (c.tipo === 'pc' && c.fichaId) { const f = fichas.find(x => x.id === c.fichaId); bonus = f ? (f.iniciativa || 0) : 0; }
     else if (c.monstroNome) { const m = MONSTROS.find(x => x.nome === c.monstroNome); bonus = m ? mod(m.atributos.des) : 0; }
-    else if (c.npcId) { const n = (window.NPCS_CAMPANHA || []).find(x => x.id === c.npcId); bonus = (n && n.statBlock && n.statBlock.atributos) ? mod(n.statBlock.atributos.des || 10) : 0; }
     c.iniciativa = dado(20) + bonus;
   });
   logCombate('Iniciativa rolada para todos');
@@ -857,7 +817,7 @@ if ($enc('encAddMonstro')) {
 // =====================================================
 async function exportarBackup() {
   try {
-    const [fichasD, monstros, comb, notasD, enc, itensM, lojaEsp, lojaEspItens, npcsD] = await Promise.all([
+    const [fichasD, monstros, comb, notasD, enc, itensM, lojaEsp, lojaEspItens] = await Promise.all([
       fetch('/api/fichas').then(r => r.json()),
       fetch('/api/monstros_visiveis').then(r => r.json()),
       fetch('/api/combate').then(r => r.json()),
@@ -866,10 +826,9 @@ async function exportarBackup() {
       fetch('/api/itens_mestre').then(r => r.json()),
       fetch('/api/loja_especial').then(r => r.json()),
       fetch('/api/loja_especial_itens').then(r => r.json()),
-      fetch('/api/npcs').then(r => r.json()),
     ]);
     const camp = window.CAMPANHA_ID || 'principal';
-    const dump = { _app: 'dnd-toolkit', _versao: 1, _campanha: camp, _data: new Date().toISOString(), fichas: fichasD, monstros_visiveis: monstros, combate: comb, notas: notasD, encontros: enc, itens_mestre: itensM, loja_especial_campanha: !!lojaEsp.liberada, loja_especial_itens: lojaEspItens, npcs: npcsD };
+    const dump = { _app: 'dnd-toolkit', _versao: 1, _campanha: camp, _data: new Date().toISOString(), fichas: fichasD, monstros_visiveis: monstros, combate: comb, notas: notasD, encontros: enc, itens_mestre: itensM, loja_especial_campanha: !!lojaEsp.liberada, loja_especial_itens: lojaEspItens };
     const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -892,7 +851,6 @@ async function importarBackup(file) {
     await put('/api/itens_mestre', d.itens_mestre || []);
     await fetch('/api/loja_especial', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ liberada: !!d.loja_especial_campanha }) });
     await put('/api/loja_especial_itens', d.loja_especial_itens || []);
-    await put('/api/npcs', d.npcs || []);
     alert('Backup importado! Recarregando a página…');
     location.reload();
   } catch (e) { alert('Falha ao importar: ' + e); }
@@ -1380,7 +1338,7 @@ document.getElementById('rolarDado').addEventListener('click', () => {
 // TEMPO REAL (Firestore) - atualiza as telas quando o estado muda
 // =====================================================
 if (window.RT && RT.ativo()) {
-  let _lf = '', _lc = '', _lv = '', _ln = '', _lim = '', _lle = '', _lnp = '';
+  let _lf = '', _lc = '', _lv = '', _ln = '', _lim = '', _lle = '';
   RT.ouvir(estado => {
     const sf = JSON.stringify(estado.fichas || []);
     if (sf !== _lf) { _lf = sf; fichas = estado.fichas || []; renderFichas(); }
@@ -1396,8 +1354,6 @@ if (window.RT && RT.ativo()) {
     }
     const sim = JSON.stringify(estado.itens_mestre || []);
     if (sim !== _lim) { _lim = sim; if (typeof window._syncItensMestre === 'function') window._syncItensMestre(estado.itens_mestre || []); }
-    const snp = JSON.stringify(estado.npcs || []);
-    if (snp !== _lnp) { _lnp = snp; if (typeof window._syncNpcs === 'function') window._syncNpcs(estado.npcs || []); }
     const sle = JSON.stringify(estado.loja_especial_itens || []);
     if (sle !== _lle) {
       _lle = sle;

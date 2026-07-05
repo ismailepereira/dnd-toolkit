@@ -39,7 +39,6 @@ ESTADO_PADRAO = {
     'itens_mestre': [],  # itens mágicos criados pelo Mestre (fora do acervo/loja do jogador)
     'loja_especial_campanha': False,  # Fase 9: libera a Loja Especial (itens mágicos) p/ toda a campanha
     'loja_especial_itens': [],  # Fase 9c: itens CURADOS pelo Mestre na Loja Especial [{nome, precoPO}]
-    'npcs': [],  # Fase 11: NPCs persistentes da campanha (lojista/aliado/inimigo/neutro)
 }
 
 # ---------------------------------------------------------------
@@ -734,28 +733,6 @@ def api_get_loja_especial_itens():
 def api_put_loja_especial_itens():
     estado = carregar_estado()
     estado['loja_especial_itens'] = request.get_json(force=True) or []
-    salvar_estado(estado)
-    return jsonify({'ok': True})
-
-
-# ----- FASE 11: NPCs persistentes da campanha -----
-@app.route('/api/npcs', methods=['GET'])
-@login_obrigatorio()
-def api_get_npcs():
-    npcs = carregar_estado().get('npcs', [])
-    # jogador só recebe os visíveis, e nunca as notas privadas do Mestre
-    # (mesmo padrão de /api/notas: o filtro é no servidor, não no cliente)
-    if session.get('papel') != 'mestre':
-        npcs = [{k: v for k, v in n.items() if k != 'notasPrivadas'}
-                for n in npcs if n.get('visivelParaJogadores')]
-    return jsonify(npcs)
-
-
-@app.route('/api/npcs', methods=['PUT'])
-@login_obrigatorio(papeis=['mestre'])
-def api_put_npcs():
-    estado = carregar_estado()
-    estado['npcs'] = request.get_json(force=True) or []
     salvar_estado(estado)
     return jsonify({'ok': True})
 

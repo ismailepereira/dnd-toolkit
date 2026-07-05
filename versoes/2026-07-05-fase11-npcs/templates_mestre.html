@@ -26,8 +26,7 @@
       <button class="tab-btn active" data-tab="fichas">Fichas</button>
       <button class="tab-btn" data-tab="combate">Combate</button>
       <button class="tab-btn" data-tab="encontros">Encontros</button>
-      <button class="tab-btn" data-tab="npcs">NPCs</button>
-      <button class="tab-btn" data-tab="notas">Notas</button>
+      <button class="tab-btn" data-tab="notas">Notas / NPCs</button>
       <button class="tab-btn" data-tab="progressao">Progressão</button>
       <button class="tab-btn" data-tab="bestiario">Bestiário</button>
       <button class="tab-btn" data-tab="loja">Loja</button>
@@ -70,10 +69,6 @@
           <input type="number" id="combMonstroQtd" value="1" min="1" title="Quantidade">
           <button id="addMonstro" class="btn-secondary">+ Monstro</button>
           <button id="addAliado" class="btn-secondary" title="Adiciona a criatura selecionada como aliado (companheiro/invocação)">+ Aliado</button>
-        </span>
-        <span class="add-monstro">
-          <select id="combNpcSel" title="NPC da campanha (só os com bloco de combate)"></select>
-          <button id="addNpcComb" class="btn-secondary" title="Adiciona o NPC ao combate (inimigo entra contra o grupo; os demais como aliados)">+ NPC</button>
         </span>
         <button id="addCombatente" class="btn-secondary">+ Avulso</button>
         <button id="rolarIniciativa" class="btn-secondary">🎲 Rolar Iniciativa</button>
@@ -121,20 +116,10 @@
       </div>
     </section>
 
-    <!-- NPCs (Fase 11: persistem entre combates — lojistas, aliados, inimigos) -->
-    <section id="npcs" class="tab-content">
-      <div class="panel-header">
-        <h2>🧑‍🌾 NPCs da Campanha</h2>
-        <button id="novoNpc" class="btn-primary">+ Novo NPC</button>
-      </div>
-      <p class="aviso-mestre">NPCs persistem entre sessões (diferente dos avulsos do combate). Marque 👁️ para os jogadores os verem na aba "NPCs" deles — as notas privadas 🔒 nunca são enviadas. NPCs com bloco de combate podem entrar no rastreador pelo botão <b>+ NPC</b> da aba Combate.</p>
-      <div id="listaNpcs" class="card-grid"></div>
-    </section>
-
     <!-- NOTAS -->
     <section id="notas" class="tab-content">
       <div class="panel-header">
-        <h2>Notas de Campanha</h2>
+        <h2>Notas de Campanha / NPCs</h2>
         <button id="novaNota" class="btn-primary">+ Nova Nota</button>
       </div>
       <div class="notas-layout">
@@ -262,47 +247,6 @@
   {% include "_jogo.html" %}
   {% include "_nivel.html" %}
 
-  <!-- Modal NPC (Fase 11) -->
-  <div id="modalNpc" class="modal hidden">
-    <div class="modal-content">
-      <h2 id="npcModalTitulo">Novo NPC</h2>
-      <div class="form-grid">
-        <label class="full">Nome <input type="text" id="nNome" placeholder="ex.: Grimlock, o Ferreiro"></label>
-        <label>Tipo <select id="nTipo"></select></label>
-        <label>Localização <input type="text" id="nLocal" placeholder="ex.: Phandalin — Ferraria"></label>
-      </div>
-      <label class="full">Descrição <span class="criador-hint-inline">(os jogadores veem, se o NPC estiver visível)</span>
-        <textarea id="nDescricao" rows="2" placeholder="aparência, jeito, papel na história..."></textarea>
-      </label>
-      <label class="full">🔒 Notas privadas do Mestre <span class="criador-hint-inline">(NUNCA enviadas aos jogadores)</span>
-        <textarea id="nNotasPrivadas" rows="2" placeholder="segredos, motivações ocultas, ganchos..."></textarea>
-      </label>
-      <label class="check-chip"><input type="checkbox" id="nVisivel"> 👁️ Visível para os jogadores</label>
-      <label class="check-chip"><input type="checkbox" id="nTemStat"> ⚔️ Pode entrar em combate (bloco de stats)</label>
-      <div id="nStatWrap" class="hidden">
-        <div class="form-grid">
-          <label>CA <input type="number" id="nCa" value="11" min="1" max="30"></label>
-          <label>PV máx <input type="number" id="nPv" value="8" min="1"></label>
-        </div>
-        <div class="atributos-grid npc-attrs">
-          <label class="mini-label">FOR <input type="number" id="nAttr_for" value="10" min="1" max="30"></label>
-          <label class="mini-label">DES <input type="number" id="nAttr_des" value="10" min="1" max="30"></label>
-          <label class="mini-label">CON <input type="number" id="nAttr_con" value="10" min="1" max="30"></label>
-          <label class="mini-label">INT <input type="number" id="nAttr_int" value="10" min="1" max="30"></label>
-          <label class="mini-label">SAB <input type="number" id="nAttr_sab" value="10" min="1" max="30"></label>
-          <label class="mini-label">CAR <input type="number" id="nAttr_car" value="10" min="1" max="30"></label>
-        </div>
-        <label class="full">Ações <span class="criador-hint-inline">(uma por linha, no formato do bestiário: "Martelo: +2 para acertar, Dano: 4 (1d4+1) concussão")</span>
-          <textarea id="nAcoes" rows="3" placeholder="Martelo: +2 para acertar, Dano: 4 (1d4+1) concussão"></textarea>
-        </label>
-      </div>
-      <div class="modal-actions">
-        <button type="button" id="npcCancelar" class="btn-secondary">Cancelar</button>
-        <button type="button" id="npcSalvar" class="btn-primary">Salvar NPC</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Modal Item da Loja -->
   <div id="modalItem" class="modal hidden">
     <div class="modal-content">
@@ -342,7 +286,6 @@
   <script src="{{ url_for('static', filename='js/fontes.js') }}"></script>
   <script src="{{ url_for('static', filename='js/equipamento.js') }}"></script>
   <script src="{{ url_for('static', filename='js/loja.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/npc.js') }}"></script>
   <script src="{{ url_for('static', filename='js/itensmestre.js') }}"></script>
   <script src="{{ url_for('static', filename='js/compendio.js') }}"></script>
   <script src="{{ url_for('static', filename='js/regras.js') }}"></script>

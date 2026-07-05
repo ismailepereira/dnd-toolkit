@@ -165,6 +165,8 @@ session['campanhaAtiva'] = 'camp_abc123'   # substitui session['campanha'] (stri
 
 ## Fase 11 — NPCs (lojistas, aliados, inimigos)
 
+> **✅ v1 entregue em 05/07/2026** (passos 1–5; retrato/imagem fica pendente — ver `CHANGELOG.md`).
+
 ### Objetivo
 Dar aos NPCs uma ficha própria — hoje só existem "monstros" (bestiário
 estático) e "aliados avulsos" (criados ad-hoc no rastreador de combate,

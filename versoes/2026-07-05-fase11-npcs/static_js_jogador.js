@@ -379,7 +379,7 @@ atualizarLojaEspecialItens();
 // TEMPO REAL (Firestore) - atualiza ficha/bestiário/combate na hora
 // =====================================================
 if (window.RT && RT.ativo()) {
-  let _lf = '', _lv = '', _lc = '', _ln = '', _lim = '', _lnp = '';
+  let _lf = '', _lv = '', _lc = '', _ln = '', _lim = '';
   RT.ouvir(estado => {
     ultimoRT = Date.now();
     const sf = JSON.stringify(estado.fichas || []);
@@ -394,8 +394,6 @@ if (window.RT && RT.ativo()) {
     if (sim !== _lim) { _lim = sim; window.ITENS_MESTRE = estado.itens_mestre || []; }
     window.LOJA_ESPECIAL_CAMPANHA = !!estado.loja_especial_campanha;
     window.LOJA_ESPECIAL_ITENS = estado.loja_especial_itens || [];
-    const snp = JSON.stringify(estado.npcs || []);
-    if (snp !== _lnp) { _lnp = snp; if (typeof window._syncNpcs === 'function') window._syncNpcs(estado.npcs || []); }
   });
 }
 // polling de fallback (auto-suprimido quando o tempo real está entregando dados)

@@ -171,6 +171,17 @@ Plano completo em `docs/ROADMAP-FUTURO.md` (Fase 10); esta v1 cobre os passos 1�
 
 ---
 
+## 🧑‍🌾 FASE 11 — NPCs da campanha (entregue 05/07/2026)
+Plano em `docs/ROADMAP-FUTURO.md` (Fase 11); base para as Fases 12 (lojas por NPC) e 13 (loot).
+- [x] 11.1 NPCs persistentes no estado da campanha (`npcs[]`): nome, tipo (lojista/aliado/inimigo/neutro), descrição, localização, notas privadas 🔒 e stat block opcional (CA/PV/atributos/ações)
+- [x] 11.2 API `GET/PUT /api/npcs` — jogador só recebe os visíveis e NUNCA as notas privadas (filtro no servidor, mesmo padrão de /api/notas); PUT só Mestre
+- [x] 11.3 Aba "NPCs" no Mestre: CRUD completo com modal, toggle 👁️ visível no cartão, cor por tipo
+- [x] 11.4 Aba "NPCs Conhecidos" no jogador (read-only, tempo real com o mesmo filtro replicado no cliente)
+- [x] 11.5 "+ NPC" no rastreador de combate: NPC com stat block entra como aliado (🤝) ou inimigo (lado dos monstros), com ações parseadas pelo MESMO parseAcoes do bestiário, salvas por atributo e iniciativa por DES
+- [ ] 11.6 Retrato/imagem do NPC (fora de escopo até decidir hospedagem de imagens)
+
+---
+
 ## 🧩 Formato padrão de qualquer pedido
 1. **Contexto:** "Continuar o D&D Toolkit."
 2. **Escopo exato:** classe + bloco de níveis, OU a tarefa da fase.

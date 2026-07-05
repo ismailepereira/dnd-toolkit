@@ -23,7 +23,6 @@
       <button class="tab-btn active" data-tab="fichas">Minha Ficha</button>
       <button class="tab-btn" data-tab="combate">Combate</button>
       <button class="tab-btn" data-tab="handouts">Handouts</button>
-      <button class="tab-btn" data-tab="npcs">NPCs</button>
       <button class="tab-btn" data-tab="bestiario">Bestiário</button>
       <button class="tab-btn" data-tab="progressao">Progressão</button>
     </nav>
@@ -51,13 +50,6 @@
       <div class="panel-header"><h2>Handouts do Mestre</h2></div>
       <p class="aviso-mestre">Documentos e pistas que o Mestre compartilha aparecem aqui em tempo real.</p>
       <div id="listaHandouts" class="handouts-grid"></div>
-    </section>
-
-    <!-- NPCs CONHECIDOS (Fase 11: só os que o Mestre tornou visíveis) -->
-    <section id="npcs" class="tab-content">
-      <div class="panel-header"><h2>🧑‍🌾 NPCs Conhecidos</h2></div>
-      <p class="aviso-mestre">Personagens que o grupo já conheceu aparecem aqui quando o Mestre os apresenta.</p>
-      <div id="listaNpcsJog" class="card-grid"></div>
     </section>
 
     <!-- BESTIÁRIO -->
@@ -99,7 +91,6 @@
   <script src="{{ url_for('static', filename='js/fontes.js') }}"></script>
   <script src="{{ url_for('static', filename='js/equipamento.js') }}"></script>
   <script src="{{ url_for('static', filename='js/loja.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/npc.js') }}"></script>
   <script src="{{ url_for('static', filename='js/compendio.js') }}"></script>
   <script src="{{ url_for('static', filename='js/regras.js') }}"></script>
   <script src="{{ url_for('static', filename='js/multiclasse.js') }}"></script>

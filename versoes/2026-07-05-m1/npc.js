@@ -70,26 +70,19 @@ const NPC_TIPOS = [
   // ---------- Cartões ----------
   function cardNpc(n) {
     const sb = n.statBlock;
-    const fc = n.fichaCompleta;
-    const pct = sb && sb.pvMax > 0 ? Math.max(0, Math.min(100, (sb.pvAtual / sb.pvMax) * 100)) : 
-                (fc && fc.hpMax > 0 ? Math.max(0, Math.min(100, ((fc.hpAtual ?? fc.hpMax) / fc.hpMax) * 100)) : 0);
-    const hpTxt = sb ? `PV ${sb.pvAtual}/${sb.pvMax}` : (fc ? `PV ${fc.hpAtual ?? fc.hpMax}/${fc.hpMax}` : '');
-    const caTxt = sb ? `CA ${sb.ca}` : (fc ? `CA ${fc.ca}` : '');
-    const blocoHp = (sb || fc) ? `<div>${caTxt} · ${hpTxt}</div>
-      <div class="hp-bar"><div class="hp-bar-fill" style="width:${pct}%"></div></div>` : '';
-
+    const pct = sb && sb.pvMax > 0 ? Math.max(0, Math.min(100, (sb.pvAtual / sb.pvMax) * 100)) : 0;
     return `<div class="ficha-card npc-card npc-${esc(n.tipo)}">
       <h3>${esc(n.nome) || 'Sem nome'}</h3>
-      <div class="sub">${rotuloTipo(n.tipo)}${n.localizacao ? ' · 📍 ' + esc(n.localizacao) : ''}${fc ? ' · 📜 Ficha Completa' : ''}</div>
+      <div class="sub">${rotuloTipo(n.tipo)}${n.localizacao ? ' · 📍 ' + esc(n.localizacao) : ''}</div>
       ${n.descricao ? `<div class="npc-desc">${esc(n.descricao)}</div>` : ''}
-      ${blocoHp}
+      ${sb ? `<div>CA ${sb.ca} · PV ${sb.pvAtual}/${sb.pvMax}</div>
+        <div class="hp-bar"><div class="hp-bar-fill" style="width:${pct}%"></div></div>` : ''}
       ${ehMestre && n.notasPrivadas ? `<div class="npc-notas-privadas">🔒 ${esc(n.notasPrivadas)}</div>` : ''}
       ${ehMestre ? `
         <label class="check-chip npc-visivel ${n.visivelParaJogadores ? 'on' : ''}">
           <input type="checkbox" data-npc-visivel="${esc(n.id)}" ${n.visivelParaJogadores ? 'checked' : ''}> 👁️ Visível p/ jogadores
         </label>
         <div class="ficha-card-acoes">
-          ${fc ? `<button class="btn-primary" data-npc-ver-ficha="${esc(n.id)}">▶ Ver ficha</button>` : ''}
           <button class="btn-editar" data-npc-editar="${esc(n.id)}">✎ Editar</button>
           <button class="btn-danger" data-npc-excluir="${esc(n.id)}">Excluir</button>
         </div>` : ''}
@@ -104,38 +97,7 @@ const NPC_TIPOS = [
       el.innerHTML = npcs.map(cardNpc).join('');
     }
     if (ehMestre) {
-      el.querySelectorAll('[data-npc-editar]').forEach(b => b.addEventListener('click', () => {
-        const n = npcs.find(x => x.id === b.dataset.npcEditar);
-        if (n && n.fichaCompleta) {
-          Criador.abrir(n.fichaCompleta, {
-            modoNpc: true,
-            aoSalvar(novaFicha) {
-              n.fichaCompleta = novaFicha;
-              n.nome = novaFicha.nome;
-              n.descricao = `${novaFicha.raca} ${novaFicha.classe} Nível ${novaFicha.nivel}`;
-              salvar();
-              render();
-            }
-          });
-        } else {
-          abrirModal(b.dataset.npcEditar);
-        }
-      }));
-      el.querySelectorAll('[data-npc-ver-ficha]').forEach(b => b.addEventListener('click', () => {
-        const n = npcs.find(x => x.id === b.dataset.npcVerFicha);
-        if (!n || !n.fichaCompleta) return;
-        if (typeof Jogo !== 'undefined') {
-          Jogo.abrir(n.fichaCompleta, {
-            aoAtualizar(novaFicha) {
-              n.fichaCompleta = novaFicha;
-              n.nome = novaFicha.nome;
-              n.descricao = `${novaFicha.raca} ${novaFicha.classe} Nível ${novaFicha.nivel}`;
-              salvar();
-              render();
-            }
-          });
-        }
-      }));
+      el.querySelectorAll('[data-npc-editar]').forEach(b => b.addEventListener('click', () => abrirModal(b.dataset.npcEditar)));
       el.querySelectorAll('[data-npc-excluir]').forEach(b => b.addEventListener('click', () => {
         const n = npcs.find(x => x.id === b.dataset.npcExcluir);
         if (!n || !confirm(`Excluir o NPC "${n.nome}"?`)) return;
@@ -253,30 +215,6 @@ const NPC_TIPOS = [
   if (ehMestre && modal) {
     const btnNovo = $('novoNpc');
     if (btnNovo) btnNovo.addEventListener('click', () => abrirModal(null));
-    const btnNovoCompleto = $('novoNpcCompleto');
-    if (btnNovoCompleto) {
-      btnNovoCompleto.addEventListener('click', () => {
-        Criador.abrir(null, {
-          modoNpc: true,
-          aoSalvar(ficha) {
-            const novo = {
-              id: uidNpc(),
-              nome: ficha.nome,
-              tipo: 'neutro',
-              localizacao: '',
-              descricao: `${ficha.raca} ${ficha.classe} Nível ${ficha.nivel}`,
-              notasPrivadas: '',
-              visivelParaJogadores: true,
-              statBlock: null,
-              fichaCompleta: ficha
-            };
-            npcs.push(novo);
-            salvar();
-            render();
-          }
-        });
-      });
-    }
     $('nTemStat').addEventListener('change', atualizarStatWrap);
     $('npcCancelar').addEventListener('click', () => { limparRascunhoNpc(); modal.classList.add('hidden'); });
     $('npcSalvar').addEventListener('click', salvarModal);

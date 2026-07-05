@@ -72,7 +72,7 @@ fica pronto.
 
 ## 🟡 P2 — Ferramentas do Mestre
 
-### M1. NPC com ficha completa (igual a personagem) ✅
+### M1. NPC com ficha completa (igual a personagem)
 **Objetivo:** além do stat block simples (Fase 11), criar NPC pelo **Criador
 completo** — raça, classe, antecedente, personalidade (traços/ideais/
 ligações/defeitos), história, equipamento. Basicamente uma ficha de personagem

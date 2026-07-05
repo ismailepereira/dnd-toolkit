@@ -641,7 +641,7 @@ const Criador = (function () {
       const bloqueada = lojaAbaAtiva === 'basica' && (
         (i.categoriaLoja === 'arma' && !podeUsarArma(estado.classe, i.nome)) ||
         ((i.categoriaLoja === 'armadura' || i.categoriaLoja === 'escudo') && !podeUsarArmadura(estado.classe, i.nome, estado.subclasse)));
-      const semOuro = !(ctx && ctx.modoNpc) && lojaAbaAtiva === 'basica' && i.precoPO > estado.ouro;
+      const semOuro = lojaAbaAtiva === 'basica' && i.precoPO > estado.ouro;
       const precoTxt = lojaAbaAtiva === 'especial'
         ? `${i.precoPO ? i.precoPO + ' po · ' : ''}${escHtml(i.raridade || '')}${i.sintonia ? ' · sintonia' : ''}`
         : `${i.precoPO} po${i.pesoTexto ? ' · ' + escHtml(i.pesoTexto) : ''}`;
@@ -679,8 +679,8 @@ const Criador = (function () {
     wrap.querySelectorAll('[data-comprar]').forEach(b => b.addEventListener('click', () => {
       const nome = b.dataset.comprar;
       const preco = precoEmPO(nome);
-      if (!(ctx && ctx.modoNpc) && preco > estado.ouro) return;
-      if (!(ctx && ctx.modoNpc)) estado.ouro = arred(estado.ouro - preco);
+      if (preco > estado.ouro) return;
+      estado.ouro = arred(estado.ouro - preco);
       adquirirItem(nome, 'loja');
       autoEquipar(); sincronizarEquipado();
       renderPasso5(); renderPreview();
@@ -734,8 +734,7 @@ const Criador = (function () {
         ${slotSel('foco', 'Foco / Símbolo', '🔮', focos, eq.foco, '')}
         ${municaoHtml}
       </div>
-      <div class="bolsa-grid">${chips}</div>`;
-
+      <div class="chips">${chips || '<span class="criador-hint">Bolsa vazia — use o kit e a loja acima.</span>'}</div>`;
     wrap.querySelectorAll('[data-slot]').forEach(sel => sel.addEventListener('change', () => {
       estado.equipado[sel.dataset.slot] = sel.value;
       if (sel.dataset.slot === 'maoPrincipal') {
@@ -748,11 +747,12 @@ const Criador = (function () {
     wrap.querySelectorAll('[data-rem]').forEach(b => b.addEventListener('click', () => {
       const nome = b.dataset.rem;
       removerUmItem(nome);
-      if (!(ctx && ctx.modoNpc)) estado.ouro = arred(estado.ouro + precoEmPO(nome));
+      estado.ouro = arred(estado.ouro + precoEmPO(nome));
       sincronizarEquipado();
       renderPasso5(); renderPreview();
     }));
   }
+
   function renderPasso5() {
     renderOuro();
     renderKit();

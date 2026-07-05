@@ -616,7 +616,7 @@ function popularNpcCombate(npcs) {
   const sel = document.getElementById('combNpcSel');
   if (!sel) return;
   const anterior = sel.value;
-  const combativos = (npcs || []).filter(n => n.statBlock || n.fichaCompleta);
+  const combativos = (npcs || []).filter(n => n.statBlock);
   sel.innerHTML = combativos.length
     ? combativos.map(n => `<option value="${escapeHtml(n.id)}">${escapeHtml(n.nome)}${n.tipo === 'inimigo' ? ' ⚔️' : ''}</option>`).join('')
     : '<option value="">— sem NPCs de combate —</option>';
@@ -630,29 +630,16 @@ const btnNpcComb = document.getElementById('addNpcComb');
 if (btnNpcComb) btnNpcComb.addEventListener('click', () => {
   const sel = document.getElementById('combNpcSel');
   const npc = (window.NPCS_CAMPANHA || []).find(n => n.id === sel.value);
-  if (!npc || (!npc.statBlock && !npc.fichaCompleta)) return;
+  if (!npc || !npc.statBlock) return;
+  const sb = npc.statBlock;
+  const acoes = parseAcoes({ acoes: sb.acoes || [] });
+  // inimigo entra do lado dos monstros; lojista/aliado/neutro entram como aliados
   const lado = npc.tipo === 'inimigo' ? 'monstro' : 'aliado';
-  let ca = 10, hpMax = 10, hpAtual = 10, desMod = 0, acoes = [];
-  if (npc.fichaCompleta) {
-    const f = npc.fichaCompleta;
-    ca = f.ca || 10;
-    hpMax = f.hpMax || 10;
-    hpAtual = f.hpAtual ?? hpMax;
-    desMod = mod((f.atributos || {}).des || 10);
-    acoes = acoesDoPC(f);
-  } else {
-    const sb = npc.statBlock;
-    ca = sb.ca || 10;
-    hpMax = sb.pvMax || 10;
-    hpAtual = sb.pvAtual ?? hpMax;
-    desMod = mod((sb.atributos || {}).des || 10);
-    acoes = parseAcoes({ acoes: sb.acoes || [] });
-  }
   combate.combatentes.push({
     id: uid(), tipo: lado, npcId: npc.id,
     nome: (lado === 'aliado' ? '🤝 ' : '') + npc.nome,
-    iniciativa: dado(20) + desMod,
-    hpAtual, hpMax, ca,
+    iniciativa: dado(20) + mod((sb.atributos || {}).des || 10),
+    hpAtual: sb.pvAtual ?? sb.pvMax, hpMax: sb.pvMax, ca: sb.ca || 10,
     condicoes: [], acoes,
   });
   logCombate(`${npc.nome} (NPC${lado === 'aliado' ? ' aliado' : ' inimigo'}) entrou no combate`);
@@ -675,13 +662,7 @@ document.getElementById('rolarIniciativa').addEventListener('click', () => {
     let bonus = 0;
     if (c.tipo === 'pc' && c.fichaId) { const f = fichas.find(x => x.id === c.fichaId); bonus = f ? (f.iniciativa || 0) : 0; }
     else if (c.monstroNome) { const m = MONSTROS.find(x => x.nome === c.monstroNome); bonus = m ? mod(m.atributos.des) : 0; }
-    else if (c.npcId) {
-      const n = (window.NPCS_CAMPANHA || []).find(x => x.id === c.npcId);
-      if (n) {
-        const attrs = n.fichaCompleta ? n.fichaCompleta.atributos : (n.statBlock ? n.statBlock.atributos : null);
-        bonus = attrs ? mod(attrs.des || 10) : 0;
-      }
-    }
+    else if (c.npcId) { const n = (window.NPCS_CAMPANHA || []).find(x => x.id === c.npcId); bonus = (n && n.statBlock && n.statBlock.atributos) ? mod(n.statBlock.atributos.des || 10) : 0; }
     c.iniciativa = dado(20) + bonus;
   });
   logCombate('Iniciativa rolada para todos');

@@ -4,26 +4,10 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
-## 2026-07-05 — NPC com Ficha Completa (Passo M1)
-
-**Backup antes da alteração:** `versoes/2026-07-05-m1/`
-(cópia de todos os ficheiros tocados).
-
-**Resumo:** O Mestre agora pode criar e editar NPCs usando o Criador de Personagens completo (raça, classe, perícias, magias e equipamentos). No Criador, compras e remoções de itens não deduzem/acrescentam ouro (trava desativada para NPCs). O cartão do NPC na tela do Mestre exibe informações detalhadas ("Ficha Completa") e possui botões para "Editar" via Criador e "Ver ficha" (Modo de Jogo) permitindo ao Mestre jogar com a ficha do NPC. No combate, esses NPCs entram com PV, CA, iniciativa e todas as suas ações (ataques de arma e truques) gerados dinamicamente com base nas regras de PJs.
-
-**Ficheiros alterados:**
-- `static/js/criador.js` — suporte a `modoNpc` que ignora custos e limites de ouro na compra e devolução de equipamentos.
-- `static/js/npc.js` — botão "+ NPC Completo" e cartões atualizados com identificação de ficha completa, botões de ação e hooks correspondentes.
-- `templates/mestre.html` — layout de botões na aba de NPCs.
-- `static/js/app.js` — integração no combate, gerando ações de combatente dinâmicas e cálculo de iniciativa baseados na ficha completa.
-
----
-
 ## 2026-07-05 — Rolagem com alvo, dano real, defesas e dado físico (Fase C1)
 
 **Backup antes da alteração:** `versoes/2026-07-05-c1/`
 (cópia de todos os ficheiros tocados).
-
 
 **Resumo:** O jogador agora pode selecionar um alvo ativo do combate na própria ficha (Modo de Jogo); rolagens de ataque e dano são validadas e aplicadas diretamente ao alvo através da nova API central `/api/combate/acao` (comparação com CA, aplicação de resistências, vulnerabilidades e imunidades); as defesas funcionam em fluxo reverso (o jogador indica o CD/ataque do inimigo, rola e aplica o dano resultante a si mesmo); e todas as rolagens ganham a opção "Dado Físico" que solicita a inserção manual do resultado dos dados.
 

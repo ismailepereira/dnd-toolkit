@@ -182,6 +182,26 @@ Plano em `docs/ROADMAP-FUTURO.md` (Fase 11); base para as Fases 12 (lojas por NP
 
 ---
 
+## 🎯 PRÓXIMAS ATUALIZAÇÕES — backlog priorizado (05/07/2026)
+Detalhe completo (objetivo/estrutura/ficheiros/passos) em `docs/ROADMAP-FUTURO.md → Backlog Priorizado`.
+1. 🔴 **B1** — Bug: F5 perde a ficha em criação → rascunho persistente (localStorage + "continuar de onde parou")
+2. 🔴 **B2** — XP e ouro só via Mestre (esconder +XP/+ouro do jogador; envio do Mestre ganha campo XP)
+3. 🟠 **C1** — Rolagem com alvo: ataque compara com CA e aplica dano real; defesas contra CD; opção de dado físico
+4. 🟡 **M1** — NPC com ficha COMPLETA (raça/classe/antecedente/personalidade/história via Criador)
+5. 🟡 **M2** — Promover criatura do bestiário a NPC persistente (com opção aleatória)
+6. 🟡 **M3** — Gerador de ambientes urbanos (casa/taverna/estábulo/multidão → ocupantes; ~90% normal, raros com monstros)
+7. 🟡 **Fase 13** — Monstros & Loot (tabelas de tesouro por ND)
+8. 🟡 **M4** — Banco de NPCs partilhado entre utilizadores (guardar no meu banco / trazer p/ campanha)
+9. 🟢 **K1** — Aviso de combate em tempo real p/ jogadores (banner + som + salto p/ aba Combate)
+10. 🟢 **Fase 12** — Lojas geridas por NPC (inventário/preços próprios)
+11. 🟢 **K2** — Árvore narrativa da campanha (mapa mental de decisões, só o Mestre)
+12. 🔵 **U1** — Loja com visual interativo (cartões, ícones, feedback de compra)
+13. 🔵 **U2** — Integração com IA (gerar história/ficha/NPC — endpoint no servidor, quota por assinatura)
+14. 🔵 **Fase 14** — Grid Virtual / mapa de combate
+15. 📦 **CT1** — Campanha pronta: Mina Perdida de Phandelver (explicitamente para depois)
+
+---
+
 ## 🧩 Formato padrão de qualquer pedido
 1. **Contexto:** "Continuar o D&D Toolkit."
 2. **Escopo exato:** classe + bloco de níveis, OU a tarefa da fase.

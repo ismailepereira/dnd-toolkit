@@ -1,20 +1,209 @@
 # 🗺️ Roadmap Futuro — Fases 10+
 
-> Documento de planeamento apenas — **nada aqui foi implementado**. É o guia
-> detalhado para quando formos construir cada uma destas fases. Cada secção
-> tem: objetivo, estrutura de dados sugerida, ficheiros afetados e passos de
-> implementação. Sequência recomendada abaixo (a Fase 10 é estrutural e
-> deveria vir primeiro, mesmo tendo sido pedida por último na conversa,
-> porque as fases seguintes — NPCs, monstros, encontros — já nascem
-> "por campanha", e a Fase 10 é o que dá um dono e um limite a cada campanha).
+> Guia de planeamento das próximas fases. As Fases 10 e 11 já foram entregues
+> (notas ✅ nas secções); o resto é plano detalhado: objetivo, estrutura de
+> dados, ficheiros afetados e passos. **A ordem de trabalho é a do
+> [Backlog Priorizado](#-backlog-priorizado--atualização-de-05072026)** logo
+> abaixo, que integra as fases antigas (12–14) com os pedidos novos.
 
 ## Índice
-- [Fase 10 — Autenticação e Sistema de Campanha](#fase-10--autenticação-e-sistema-de-campanha)
-- [Fase 11 — NPCs (lojistas, aliados, inimigos)](#fase-11--npcs-lojistas-aliados-inimigos)
+- [🎯 Backlog Priorizado (05/07/2026)](#-backlog-priorizado--atualização-de-05072026) ← **começar por aqui**
+- [Fase 10 — Autenticação e Sistema de Campanha](#fase-10--autenticação-e-sistema-de-campanha) ✅
+- [Fase 11 — NPCs (lojistas, aliados, inimigos)](#fase-11--npcs-lojistas-aliados-inimigos) ✅
 - [Fase 12 — Lojas geridas por NPC](#fase-12--lojas-geridas-por-npc)
 - [Fase 13 — Monstros & Sistema de Loot](#fase-13--monstros--sistema-de-loot)
 - [Fase 14 — Grid Virtual / Mapa de Combate](#fase-14--grid-virtual--mapa-de-combate)
 - [Como estas fases se encaixam](#como-estas-fases-se-encaixam)
+
+---
+
+# 🎯 Backlog Priorizado — atualização de 05/07/2026
+
+Pedidos novos do Ismaile organizados por prioridade, integrados com as fases
+já planeadas (12–14). Regra: **bugs e integridade primeiro, mesa de jogo
+depois, ferramentas do Mestre a seguir, visual e IA por último**.
+
+## 🔴 P0 — Bugs e integridade (fazer primeiro)
+
+### B1. Bug: atualizar a página perde tudo (rascunho persistente)
+**Problema:** a meio da criação de uma ficha (ou NPC, ou item do Mestre), um
+F5/refresh descarta tudo e volta ao início — o estado vive só em memória.
+**Solução:** autosave do rascunho em `localStorage` (por campanha + contexto),
+gravado a cada alteração; ao reabrir o Criador, oferecer "📝 Continuar de onde
+parou?" (restaura) ou "Começar do zero" (descarta). Limpar o rascunho ao
+salvar/cancelar explicitamente.
+**Ficheiros:** `criador.js` (principal — serializar `estado` + passo atual),
+`npc.js` e `itensmestre.js` (mesmo padrão nos modais).
+**Passos:** 1) chave `dnd_rascunho_<campanha>_<contexto>`; 2) autosave
+debounced no `renderPreview`/inputs; 3) prompt de restauro em `abrir()`;
+4) limpar em salvar/excluir/cancelar.
+
+### B2. Integridade: XP e ouro só via Mestre
+**Problema:** o jogador consegue somar XP e ouro à própria ficha no Modo de
+Jogo — quebra o controlo do Mestre sobre a progressão.
+**Solução:** esconder os controlos "+ Ganhar XP" e "+/− ouro" do Modo de Jogo
+quando `!window.EH_MESTRE`; ouro do jogador só muda por compra/venda na loja
+(já debitam/creditam certo) e por envio do Mestre; XP só pelo Mestre — o
+painel "📦 Enviar à ficha" ganha um campo de XP (além de ouro/item), com
+opção "enviar a todos" para recompensa de grupo.
+**Ficheiros:** `jogo.js` (gating por EH_MESTRE), `app.js` (campo XP no envio),
+`templates/mestre.html`.
+
+## 🟠 P1 — Combate na mesa (a seguir aos bugs)
+
+### C1. Rolagem com alvo, dano real, defesas e dado físico
+**Objetivo:** o jogador escolhe um alvo do combate na própria ficha; o ataque
+compara automaticamente com a CA do alvo (acertou/errou) e o dano rolado é
+aplicado de verdade ao alvo (com resist/vuln/imune); as defesas funcionam ao
+contrário (o Mestre indica a CD/ataque do inimigo, o jogador rola a salva/CA
+e o resultado aplica-se); e TODAS as rolagens ganham a opção "🎲 usei dado
+físico" com campo para digitar o resultado real da mesa.
+**Estrutura:** o jogador já recebe `estado.combate` em tempo real; falta um
+canal jogador→combate (hoje só o Mestre escreve no combate). Opções: (a) API
+`POST /api/combate/acao` validada no servidor (preferível), ou (b) permitir
+PUT de combate a jogadores (mais simples, menos seguro). Decidir na hora.
+**Ficheiros:** `jogo.js` (seletor de alvo + fluxo de ataque/dano/salva +
+input de dado físico), `app.py` (endpoint de ação), `app.js`/`jogador.js`
+(render do combate).
+**Ligação:** é meio caminho para a Fase 14 (grid) — o conceito de "alvo"
+fica pronto.
+
+## 🟡 P2 — Ferramentas do Mestre
+
+### M1. NPC com ficha completa (igual a personagem)
+**Objetivo:** além do stat block simples (Fase 11), criar NPC pelo **Criador
+completo** — raça, classe, antecedente, personalidade (traços/ideais/
+ligações/defeitos), história, equipamento. Basicamente uma ficha de personagem
+marcada como NPC.
+**Abordagem:** `Criador.abrir(null, { modoNpc: true, aoSalvar: ... })` — a
+ficha gerada vai para `npcs[]` com `fichaCompleta: {...}` em vez de
+`statBlock` manual; o cartão do NPC ganha botão "▶ Ver ficha" (Modo de Jogo
+read-only do Mestre) e entra no combate com os ataques da ficha (o motor
+`ataqueArma`/truques já existe).
+**Ficheiros:** `npc.js` (botão "+ NPC completo", card), `criador.js` (flag
+`modoNpc` — pula validação de história? NÃO: NPC completo também merece; mas
+pular a trava de ouro/kit se o Mestre quiser), `app.js` (combate lê
+`fichaCompleta` como lê ficha de PJ).
+
+### M2. Criaturas do bestiário como NPCs persistentes
+**Objetivo:** "promover" uma criatura do bestiário a NPC da campanha (com
+nome próprio, ciente/senciente ou não) — ex.: um Goblin vira "Grik, o
+Batedor", persiste entre sessões e entra em combate contra o grupo.
+**Abordagem:** botão "⭐ Promover a NPC" no cartão do monstro (aba Bestiário)
+→ pré-preenche o modal de NPC com o stat block da criatura (CA/PV/atributos/
+ações já convertidos); opção "criatura aleatória" (sorteia do bestiário
+filtrado por ND).
+**Ficheiros:** `app.js` (botão no bestiário), `npc.js` (preencher modal a
+partir de um monstro), `monstros.js` (nenhuma mudança — só leitura).
+
+### M3. Gerador de ambientes urbanos (ocupação de locais)
+**Objetivo:** acervo de ambientes (🏠 casa, 🏚️ casa grande, 🍺 taverna, 🐴
+estábulo, 🏛️ mansão, 👥 multidão, ⛪ templo, 🏪 mercado...) que gera quem/o
+que está lá dentro: nº de pessoas e perfil (família, aristocratas, ladrões,
+comerciantes...) — e, nas variações raras, encontros (monstros no porão,
+enxame de ratos...). Regra da dita: **~90% dos resultados são normais** (a
+cidade é uma cidade); os 10% restantes puxam das tabelas de encontro.
+**Abordagem:** novo `static/js/ambientes.js` com tabelas curadas por ambiente
+(`{ tipo, dados: '2d4', perfis: [{peso, texto}], raros: [{peso, texto,
+monstros?: [...] }] }`); card novo na aba **Geradores** ("🏘️ Ocupar
+Ambiente"): escolhe ambiente → gera ocupantes → botão "lançar encontro no
+combate" quando sair monstro (reusa `addMonstro`).
+**Ficheiros:** `ambientes.js` (novo), `app.js` (card no Geradores),
+`templates/mestre.html`.
+
+### M4. Banco de NPCs partilhado entre utilizadores
+**Objetivo:** cada utilizador (jogador ou mestre) pode criar NPCs num banco
+PESSOAL (fora da campanha) e partilhá-los; o Mestre pode copiar NPCs do banco
+de qualquer membro para a campanha ativa ("salvar para mim").
+**Estrutura:** coleção `bancos_npc/<uid>` = lista de NPCs pessoais (mesmo
+shape da Fase 11); API `GET/PUT /api/banco_npc` (o próprio) + `GET
+/api/banco_npc/<uid>` (Mestre da campanha vê o banco dos membros);
+botões "💾 Guardar no meu banco" / "📥 Trazer para a campanha".
+**Ficheiros:** `app.py`, `npc.js`, `templates/*`.
+**Dependência:** contas da Fase 10 (✅ pronto).
+
+### (Fase 13 já planeada) Monstros & Loot — encaixa aqui no P2
+Tabelas de tesouro/drops por ND ao derrotar monstros — ver secção detalhada
+[Fase 13](#fase-13--monstros--sistema-de-loot). Combina com M3 (os encontros
+raros dos ambientes dão loot).
+
+## 🟢 P3 — Campanha viva
+
+### K1. Campanhas aprimoradas + aviso de combate
+**Objetivo:** dentro da campanha ativa, quando o Mestre inicia um combate,
+todos os jogadores recebem um aviso imediato ("⚔️ COMBATE INICIADO — rolem
+iniciativa!") — banner destacado + som opcional; e a tela do jogador salta
+para a aba Combate. Estado "em combate" visível na campanha.
+**Abordagem:** flag `combate.ativo` no estado (o Mestre liga ao adicionar
+combatentes/rolar iniciativa, desliga em "Limpar"); os listeners RT do
+jogador detetam a transição false→true e disparam o aviso.
+**Ficheiros:** `app.js` (setar flag), `jogador.js` (banner/som/troca de aba),
+`style.css`.
+
+### K2. Mapa mental de decisões da campanha (árvore narrativa)
+**Objetivo:** o Mestre desenha a história como nós ligados ("se o grupo
+aceitar a missão → nó A; se recusar → nó B"), marca onde o grupo está, e
+navega pelos ramos durante a sessão. Ferramenta de planeamento narrativo
+dentro da campanha.
+**Estrutura:** `historia: { nos: [{id, titulo, texto, x, y}], ligacoes:
+[{de, para, rotulo}], noAtual }` no estado da campanha; editor visual
+simples (SVG/HTML absoluto — SEM lib externa, coerente com o projeto):
+criar nó, arrastar, ligar, marcar atual. Só o Mestre vê (segredos!).
+**Ficheiros:** novo `static/js/historia.js`, aba "História" no
+`templates/mestre.html`, `app.py` (chave nova + endpoints), `style.css`.
+**Nota:** é a maior peça do P3 — pode ser dividida (v1: nós e ligações em
+lista/indentação, sem canvas visual; v2: canvas arrastável).
+
+### (Fase 12 já planeada) Lojas geridas por NPC — encaixa aqui no P3
+Inventário e preços próprios por lojista — ver secção detalhada
+[Fase 12](#fase-12--lojas-geridas-por-npc). Depende de M1/M2 darem vida aos
+lojistas; reusa `loja.js` da Fase 9.
+
+## 🔵 P4 — Visual e IA
+
+### U1. Loja com visual interativo (reforma de UI)
+**Objetivo:** a loja (criação + Modo de Jogo) deixa de ser lista de linhas e
+vira uma grelha visual: cartões com ícone grande por categoria, hover com
+detalhe, feedback de compra (animação do ouro a descer), filtros mais
+gráficos. Sem lib externa — CSS + emoji/SVG.
+**Ficheiros:** `style.css` (principal), `criador.js`/`jogo.js` (markup das
+linhas → cartões), `loja.js` (sem mudança de dados).
+
+### U2. Integração com IA (gerar fichas, histórias e NPCs)
+**Objetivo:** botões "✨ Gerar com IA": história prévia do personagem (a
+partir de raça/classe/antecedente/personalidade já escolhidos), NPC completo
+(perfil + stat block), ganchos de aventura, descrições de ambiente.
+**Abordagem:** endpoint Flask `POST /api/ia/gerar` (a chave da API fica no
+servidor, NUNCA no cliente) chamando a API da Anthropic (Claude); limitar por
+assinatura ativa (Fase 10.9) e por quota diária para controlar custo.
+**Decisões em aberto (do Ismaile):** orçamento mensal de API; se o custo
+entra no preço da assinatura ou é recurso premium; modelo (Haiku chega para
+histórias curtas e é barato).
+**Ficheiros:** `app.py` (endpoint + quota), `criador.js` (botão na história),
+`npc.js` (botão no NPC), `.env` (`ANTHROPIC_API_KEY`).
+
+### (Fase 14 já planeada) Grid Virtual — fecha o P4
+Mapa de combate com posições, alcance, áreas e linha de visão — ver secção
+detalhada [Fase 14](#fase-14--grid-virtual--mapa-de-combate). C1 (alvos)
+já prepara metade do terreno.
+
+## 📦 Conteúdo (depois das ferramentas)
+
+### CT1. Campanha pronta: Mina Perdida de Phandelver
+Montar a campanha completa baseada no módulo (NPCs com ficha, lojas de
+Phandalin, encontros por capítulo, ambientes, árvore de decisões) usando
+todas as ferramentas acima — **explicitamente para DEPOIS** (palavras do
+Ismaile: "não agora"). O antecedente "Herdeiro de Phandalin" (Fase 7) já
+existe como semente.
+
+## Ordem de trabalho sugerida (resumo de 1 linha cada)
+1. **B1** rascunho persistente (bug do F5)
+2. **B2** XP/ouro só via Mestre
+3. **C1** alvo + dano real + dado físico
+4. **M1** NPC com ficha completa → **M2** criatura→NPC → **M3** ambientes → **Fase 13** loot → **M4** banco de NPCs
+5. **K1** aviso de combate → **Fase 12** lojas por NPC → **K2** árvore narrativa
+6. **U1** loja visual → **U2** IA → **Fase 14** grid
+7. **CT1** Phandelver
 
 ---
 

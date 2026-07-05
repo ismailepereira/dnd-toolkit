@@ -10,17 +10,13 @@
   <div class="login-wrap">
     <div class="login-box">
       <h1>🐉 Criar Conta</h1>
-      <p class="login-sub">Crie sua conta e ganhe <b>{{ trial_dias }} dias grátis</b>. Depois, a assinatura custa <b>{{ preco }}</b> (pagamento por Pix, confirmação manual). Para entrar numa mesa, você vai precisar do código de convite do Mestre.</p>
+      <p class="login-sub">Crie sua conta de jogador. Para entrar numa mesa, você vai precisar do código de convite do Mestre.</p>
       {% if erro %}<div class="login-erro">{{ erro }}</div>{% endif %}
       <form method="POST">
         <label>Usuário <input type="text" name="usuario" autocomplete="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_.\-]{3,24}" title="3–24 caracteres: letras, números, ponto, hífen ou underline"></label>
-        <label>Nome completo <input type="text" name="nomeCompleto" autocomplete="name" required minlength="5" maxlength="80"></label>
         <label>Nome de exibição <input type="text" name="nome" maxlength="32" placeholder="como aparece na mesa (opcional)"></label>
-        <label>E-mail <input type="email" name="email" autocomplete="email" required maxlength="120"></label>
-        <label>CPF <input type="text" name="cpf" inputmode="numeric" required minlength="11" maxlength="14" placeholder="000.000.000-00" title="Usado só para identificar a assinatura — não é partilhado"></label>
-        <label>WhatsApp <input type="tel" name="whatsapp" inputmode="numeric" maxlength="15" placeholder="(opcional) p/ contato sobre o pagamento"></label>
         <label>Senha <input type="password" name="senha" autocomplete="new-password" required minlength="6"></label>
-        <button type="submit" class="btn-primary">Criar conta ({{ trial_dias }} dias grátis)</button>
+        <button type="submit" class="btn-primary">Criar conta</button>
       </form>
       <p class="login-sub" style="margin-top:14px">Já tem conta? <a href="/login">Entrar</a></p>
     </div>

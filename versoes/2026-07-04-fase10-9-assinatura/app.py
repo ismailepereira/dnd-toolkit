@@ -182,91 +182,6 @@ def gerar_codigo_convite(nome):
     return f"{base}-{secrets.token_hex(2).upper()}"
 
 
-# ---------------------------------------------------------------
-# FASE 10.9 — ASSINATURA (manual): 3 dias grátis no registo; depois o
-# acesso bloqueia até o admin (mestre legado) confirmar o pagamento no
-# painel /admin/assinaturas. Sem gateway: o utilizador paga por Pix e
-# envia o comprovante pelo contato configurado; a confirmação é manual.
-# ---------------------------------------------------------------
-TRIAL_DIAS = int(os.environ.get('TRIAL_DIAS', '3'))
-ASSINATURA_PRECO = os.environ.get('ASSINATURA_PRECO', 'R$ 5,00/mês')
-PIX_CHAVE = os.environ.get('PIX_CHAVE', '(chave Pix por configurar — env PIX_CHAVE)')
-CONTATO_PAGAMENTO = os.environ.get('CONTATO_PAGAMENTO', '(contato por configurar — env CONTATO_PAGAMENTO)')
-
-
-def carregar_usuario_reg(uid):
-    """Um único utilizador (leitura barata por request, sem stream da coleção toda)."""
-    if not uid or uid.startswith('legacy:'):
-        return None
-    if db is not None:
-        snap = db.collection(COLECAO_USUARIOS).document(uid).get()
-        return snap.to_dict() if snap.exists else None
-    return carregar_usuarios_reg().get(uid)
-
-
-def validar_cpf(cpf):
-    """Valida os dígitos verificadores do CPF (rejeita sequências repetidas)."""
-    cpf = re.sub(r'\D', '', cpf or '')
-    if len(cpf) != 11 or cpf == cpf[0] * 11:
-        return None
-    for i in (9, 10):
-        soma = sum(int(cpf[j]) * ((i + 1) - j) for j in range(i))
-        dv = (soma * 10) % 11 % 10
-        if dv != int(cpf[i]):
-            return None
-    return cpf
-
-
-def assinatura_valida(u):
-    """True se o utilizador registado pode usar a app (trial ou pagamento em dia)."""
-    if not u or u.get('bloqueado'):
-        return False
-    agora = datetime.now(timezone.utc)
-    for campo in ('pagaAte', 'trialAte'):
-        v = u.get(campo)
-        if v:
-            try:
-                if datetime.fromisoformat(v) > agora:
-                    return True
-            except ValueError:
-                pass
-    return False
-
-
-def status_assinatura(u):
-    if u.get('bloqueado'):
-        return 'bloqueada'
-    agora = datetime.now(timezone.utc)
-    def _futuro(campo):
-        v = u.get(campo)
-        try:
-            return bool(v) and datetime.fromisoformat(v) > agora
-        except ValueError:
-            return False
-    if _futuro('pagaAte'):
-        return 'ativa'
-    if _futuro('trialAte'):
-        return 'trial'
-    if u.get('pagamentoInfo'):
-        return 'aguardando'
-    return 'expirada'
-
-
-def _mais_dias(base_iso, dias):
-    """agora (ou a data futura existente, o que for maior) + N dias, em ISO."""
-    agora = datetime.now(timezone.utc)
-    base = agora
-    if base_iso:
-        try:
-            existente = datetime.fromisoformat(base_iso)
-            if existente > agora:
-                base = existente
-        except ValueError:
-            pass
-    from datetime import timedelta
-    return (base + timedelta(days=dias)).isoformat()
-
-
 def _data_file():
     c = campanha_atual()
     nome = 'estado.json' if c == 'principal' else f'estado_{c}.json'
@@ -313,7 +228,7 @@ def salvar_estado(estado):
         json.dump(estado, f, ensure_ascii=False, indent=2)
 
 
-def login_obrigatorio(papeis=None, exigir_assinatura=True):
+def login_obrigatorio(papeis=None):
     def decorador(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
@@ -321,15 +236,6 @@ def login_obrigatorio(papeis=None, exigir_assinatura=True):
                 return redirect(url_for('login'))
             if papeis and session.get('papel') not in papeis:
                 return redirect(url_for('index'))
-            # Fase 10.9: contas registadas precisam de trial/assinatura em dia
-            # (contas legadas de env não passam por aqui — uid 'legacy:*')
-            uid = session.get('uid', '')
-            if exigir_assinatura and uid and not uid.startswith('legacy:'):
-                u = carregar_usuario_reg(uid)
-                if not assinatura_valida(u):
-                    if request.path.startswith('/api/'):
-                        return jsonify({'erro': 'assinatura', 'detalhe': 'trial/assinatura expirada'}), 402
-                    return redirect(url_for('pagina_assinatura'))
             return fn(*args, **kwargs)
         return wrapper
     return decorador
@@ -385,45 +291,20 @@ def registro():
         usuario = request.form.get('usuario', '').strip()
         senha = request.form.get('senha', '')
         nome = request.form.get('nome', '').strip() or usuario
-        nome_completo = request.form.get('nomeCompleto', '').strip()
-        email = request.form.get('email', '').strip().lower()
-        cpf = validar_cpf(request.form.get('cpf', ''))
-        whatsapp = re.sub(r'\D', '', request.form.get('whatsapp', ''))
-        todos = carregar_usuarios_reg()
         if not re.fullmatch(r'[A-Za-z0-9_.-]{3,24}', usuario):
             erro = 'Usuário inválido: 3–24 caracteres, só letras/números/._-'
         elif len(senha) < 6:
             erro = 'A senha precisa de pelo menos 6 caracteres.'
-        elif not nome_completo or len(nome_completo) < 5:
-            erro = 'Informe seu nome completo.'
-        elif not re.fullmatch(r'[^@\s]+@[^@\s]+\.[^@\s]+', email):
-            erro = 'E-mail inválido.'
-        elif not cpf:
-            erro = 'CPF inválido — confira os dígitos.'
         elif usuario in USUARIOS or buscar_usuario_reg(usuario)[0]:
             erro = 'Esse usuário já existe.'
-        elif any(u.get('email') == email for u in todos.values()):
-            erro = 'Já existe uma conta com esse e-mail.'
-        elif any(u.get('cpf') == cpf for u in todos.values()):
-            erro = 'Já existe uma conta com esse CPF.'
         else:
             uid = 'u_' + uuid.uuid4().hex[:12]
             salvar_usuario_reg(uid, {
                 'usuario': usuario,
                 'nomeExibicao': nome,
-                'nomeCompleto': nome_completo,
-                'email': email,
-                'cpf': cpf,
-                'whatsapp': whatsapp,
                 'senhaHash': generate_password_hash(senha),
                 'papelGlobal': 'jogador',
                 'criadoEm': _agora(),
-                # Fase 10.9: acesso grátis de TRIAL_DIAS; depois bloqueia até
-                # o admin confirmar o pagamento manualmente
-                'trialAte': _mais_dias(None, TRIAL_DIAS),
-                'pagaAte': None,
-                'bloqueado': False,
-                'pagamentoInfo': None,
             })
             session.clear()
             session['usuario'] = usuario
@@ -432,74 +313,7 @@ def registro():
             session['papelGlobal'] = 'jogador'
             session['papel'] = 'jogador'
             return redirect(url_for('pagina_campanhas'))
-    return render_template('registro.html', erro=erro, trial_dias=TRIAL_DIAS, preco=ASSINATURA_PRECO)
-
-
-# ----- FASE 10.9: página de assinatura (trial expirado / pagamento manual) -----
-@app.route('/assinatura', methods=['GET', 'POST'])
-@login_obrigatorio(exigir_assinatura=False)
-def pagina_assinatura():
-    uid = session.get('uid', '')
-    if uid.startswith('legacy:'):
-        return redirect(url_for('index'))  # contas fixas não têm assinatura
-    u = carregar_usuario_reg(uid)
-    if not u:
-        session.clear()
-        return redirect(url_for('login'))
-    msg = None
-    if request.method == 'POST':
-        # "Já paguei": guarda a informação para o admin conferir manualmente
-        texto = request.form.get('info', '').strip()[:400]
-        u['pagamentoInfo'] = {'texto': texto or '(sem detalhes)', 'em': _agora()}
-        salvar_usuario_reg(uid, u)
-        msg = 'Pagamento informado! O acesso libera assim que a confirmação manual for feita.'
-    return render_template('assinatura.html',
-                           usuario=session.get('nomeExibicao') or session.get('usuario'),
-                           status=status_assinatura(u), trial_ate=u.get('trialAte'),
-                           paga_ate=u.get('pagaAte'), pagamento_info=u.get('pagamentoInfo'),
-                           preco=ASSINATURA_PRECO, pix=PIX_CHAVE, contato=CONTATO_PAGAMENTO,
-                           trial_dias=TRIAL_DIAS, msg=msg)
-
-
-# ----- FASE 10.9: painel de administração de assinaturas (SÓ o mestre legado) -----
-@app.route('/admin/assinaturas', methods=['GET', 'POST'])
-@login_obrigatorio(exigir_assinatura=False)
-def admin_assinaturas():
-    if not eh_legado_mestre(session.get('uid', '')):
-        return redirect(url_for('index'))
-    msg = None
-    if request.method == 'POST':
-        alvo = request.form.get('uid', '')
-        acao = request.form.get('acao', '')
-        u = carregar_usuario_reg(alvo)
-        if u:
-            if acao == 'aprovar30':
-                u['pagaAte'] = _mais_dias(u.get('pagaAte'), 30)
-                u['pagamentoInfo'] = None
-                u['bloqueado'] = False
-                msg = f"✅ {u.get('usuario')}: +30 dias (até {u['pagaAte'][:10]})."
-            elif acao == 'trial3':
-                u['trialAte'] = _mais_dias(u.get('trialAte'), TRIAL_DIAS)
-                u['bloqueado'] = False
-                msg = f"🎁 {u.get('usuario')}: +{TRIAL_DIAS} dias de teste."
-            elif acao == 'bloquear':
-                u['bloqueado'] = True
-                msg = f"⛔ {u.get('usuario')} bloqueado."
-            elif acao == 'desbloquear':
-                u['bloqueado'] = False
-                msg = f"🔓 {u.get('usuario')} desbloqueado."
-            salvar_usuario_reg(alvo, u)
-    usuarios = []
-    for uid_u, u in sorted(carregar_usuarios_reg().items(), key=lambda kv: kv[1].get('criadoEm', ''), reverse=True):
-        usuarios.append({
-            'uid': uid_u, 'usuario': u.get('usuario'), 'nome': u.get('nomeCompleto') or u.get('nomeExibicao'),
-            'email': u.get('email', ''), 'cpf': u.get('cpf', ''), 'whatsapp': u.get('whatsapp', ''),
-            'criadoEm': (u.get('criadoEm') or '')[:10], 'status': status_assinatura(u),
-            'trialAte': (u.get('trialAte') or '')[:10], 'pagaAte': (u.get('pagaAte') or '')[:10],
-            'pagamentoInfo': u.get('pagamentoInfo'),
-        })
-    return render_template('admin_assinaturas.html', usuarios=usuarios, msg=msg,
-                           preco=ASSINATURA_PRECO, trial_dias=TRIAL_DIAS)
+    return render_template('registro.html', erro=erro)
 
 
 # ----- Minhas Campanhas (contas registadas; o mestre legado também pode usar) -----

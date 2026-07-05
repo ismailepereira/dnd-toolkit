@@ -337,3 +337,52 @@ para o passo de publicação no Console).
 **Como reverter:** restaurar `versoes/2026-07-04-fase10-8-regras-firestore/`
 (ou `git revert`); no Console, repor as regras antigas de leitura pública
 (estão no histórico do próprio Console e no git em `SEGURANCA.md` antigo).
+
+## 2026-07-05 — Assinatura manual: trial de 3 dias + painel admin (Fase 10.9)
+
+**Backup antes da alteração:** `versoes/2026-07-04-fase10-9-assinatura/`.
+
+**Resumo:** o registo passa a pedir nome completo, e-mail, CPF (validado com
+dígitos verificadores; único — impede multi-trial) e WhatsApp opcional. Toda
+conta nova ganha **3 dias grátis** (`TRIAL_DIAS`); expirou, o acesso bloqueia:
+páginas redirecionam para `/assinatura` (instruções de Pix + botão "Já paguei
+— avisar") e a API responde 402. A confirmação é **100% manual** no painel
+`/admin/assinaturas` (só o mestre legado): +30 dias, +trial, bloquear/
+desbloquear, com o aviso de pagamento do utilizador visível. Contas legadas
+(env) são isentas de assinatura.
+
+**Ficheiros novos:** `templates/assinatura.html`, `templates/admin_assinaturas.html`.
+
+**Ficheiros alterados (backup em `versoes/2026-07-04-fase10-9-assinatura/`):**
+- `app.py` — `validar_cpf()` (checksum), `assinatura_valida()`/`status_assinatura()`,
+  `carregar_usuario_reg()` (leitura de 1 doc por request, sem stream da coleção),
+  `login_obrigatorio(exigir_assinatura=...)`, registo estendido com unicidade de
+  e-mail/CPF, rotas `/assinatura` e `/admin/assinaturas`; envs `TRIAL_DIAS`,
+  `ASSINATURA_PRECO`, `PIX_CHAVE`, `CONTATO_PAGAMENTO`.
+- `templates/registro.html` — campos novos + aviso do trial/preço.
+- `templates/campanhas.html` — link "🔑 Admin de assinaturas" (só mestre legado).
+- `static/css/style.css` — `.assinatura-*`, `.admin-tabela*`.
+- `.env.example` — as 4 envs novas.
+- `SEGURANCA.md` — secção LGPD (CPF: finalidade, exclusão a pedido, como remover o campo).
+
+**Decisões / pontos em aberto:**
+- **CPF (LGPD)**: guardado para impedir multi-trial; regras do Firestore negam
+  leitura do cliente e o painel é só do mestre legado, mas a responsabilidade
+  legal é do operador — instruções para remover o campo no SEGURANCA.md.
+- **Sem upload de comprovante**: o utilizador envia o comprovante pelo contato
+  configurado (`CONTATO_PAGAMENTO`) e regista um aviso textual; guardar
+  ficheiros exigiria Firebase Storage (evolução futura).
+- **Sem renovação automática/gateway**: por desenho (confirmação manual para
+  testes); integração Pix automática fica para depois.
+- Configurar no Render: `PIX_CHAVE` e `CONTATO_PAGAMENTO` reais.
+
+**Verificação:** 10 cenários no cliente Flask (trial, expiração bloqueia
+páginas/API, CPF/e-mail inválidos e duplicados, informar pagamento, painel
+restrito, +30 dias reabre, bloquear/desbloquear, legados isentos) + fluxo
+completo verificado AO VIVO no preview (registo → Minhas Campanhas →
+/assinatura → login admin → aprovar +30 dias). Conta de teste do preview
+removida do armazém local.
+
+**Como reverter:** restaurar `versoes/2026-07-04-fase10-9-assinatura/` (ou
+`git revert`) e apagar os 2 templates novos; contas já registadas continuam a
+funcionar (os campos extra são ignorados por versões antigas).

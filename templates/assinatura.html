@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assinatura - Mestre's Toolkit</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-box campanhas-box">
+      <h1>💳 Assinatura</h1>
+      <p class="login-sub">Olá, {{ usuario }}! <a href="{{ url_for('logout') }}">Sair</a></p>
+      {% if msg %}<div class="assinatura-ok">{{ msg }}</div>{% endif %}
+
+      {% if status == 'trial' %}
+        <div class="assinatura-status trial">🎁 Período de teste ativo até <b>{{ trial_ate[:10] }}</b>.</div>
+        <p class="login-sub"><a href="{{ url_for('pagina_campanhas') }}">→ Ir para as minhas campanhas</a></p>
+      {% elif status == 'ativa' %}
+        <div class="assinatura-status ativa">✅ Assinatura ativa até <b>{{ paga_ate[:10] }}</b>.</div>
+        <p class="login-sub"><a href="{{ url_for('pagina_campanhas') }}">→ Ir para as minhas campanhas</a></p>
+      {% elif status == 'aguardando' %}
+        <div class="assinatura-status aguardando">⏳ Pagamento informado em {{ pagamento_info.em[:10] }} — aguardando confirmação manual. Você recebe o acesso assim que for conferido.</div>
+      {% elif status == 'bloqueada' %}
+        <div class="assinatura-status expirada">⛔ Conta bloqueada. Fale com o administrador: {{ contato }}</div>
+      {% else %}
+        <div class="assinatura-status expirada">😴 Seu período de teste ({{ trial_dias }} dias) terminou.</div>
+      {% endif %}
+
+      {% if status in ('expirada', 'aguardando', 'trial') %}
+      <h3 class="campanhas-h3">Como assinar ({{ preco }})</h3>
+      <ol class="assinatura-passos">
+        <li>Faça um Pix de <b>{{ preco }}</b> para a chave: <code class="convite-codigo">{{ pix }}</code></li>
+        <li>Envie o comprovante para: <b>{{ contato }}</b></li>
+        <li>Preencha abaixo para avisar que pagou — a confirmação é manual e libera o acesso por 30 dias.</li>
+      </ol>
+      <form method="POST" class="campanha-form-linha assinatura-form">
+        <input type="text" name="info" maxlength="400" placeholder="ID da transação Pix / observação (opcional)">
+        <button type="submit" class="btn-primary">Já paguei — avisar</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  <footer class="footer-attribuicao">
+    Desenvolvido por <a href="https://ismailepereira.github.io/" target="_blank" rel="noopener">ismailepereira</a>
+  </footer>
+</body>
+</html>

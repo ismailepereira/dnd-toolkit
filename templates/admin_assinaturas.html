@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · Assinaturas - Mestre's Toolkit</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-row">
+      <h1>🔑 Admin · Assinaturas</h1>
+      <div class="user-info">
+        <span>{{ preco }} · teste grátis de {{ trial_dias }} dias</span>
+        <a href="{{ url_for('mestre') }}" class="btn-secondary">← Voltar ao Mestre</a>
+        <a href="{{ url_for('logout') }}" class="btn-danger">Sair</a>
+      </div>
+    </div>
+  </header>
+  <main>
+    {% if msg %}<div class="assinatura-ok" style="margin-bottom:12px">{{ msg }}</div>{% endif %}
+    <p class="aviso-mestre">Confira o comprovante do Pix (banco/WhatsApp) e use <b>+30 dias</b> para liberar. Contas com "⏳ aguardando" informaram pagamento pela página de assinatura. Só você (mestre legado) vê esta página.</p>
+    {% if not usuarios %}
+    <p style="color:var(--text-dim)">Nenhuma conta registada ainda.</p>
+    {% else %}
+    <div class="admin-tabela-wrap">
+      <table class="admin-tabela">
+        <thead><tr>
+          <th>Usuário</th><th>Nome</th><th>Contato</th><th>CPF</th><th>Criada</th>
+          <th>Status</th><th>Teste até</th><th>Paga até</th><th>Aviso de pagamento</th><th>Ações</th>
+        </tr></thead>
+        <tbody>
+        {% for u in usuarios %}
+          <tr class="status-{{ u.status }}">
+            <td><b>{{ u.usuario }}</b></td>
+            <td>{{ u.nome }}</td>
+            <td>{{ u.email }}{% if u.whatsapp %}<br><small>📱 {{ u.whatsapp }}</small>{% endif %}</td>
+            <td>{{ u.cpf }}</td>
+            <td>{{ u.criadoEm }}</td>
+            <td>{% if u.status == 'ativa' %}✅ ativa{% elif u.status == 'trial' %}🎁 teste{% elif u.status == 'aguardando' %}⏳ aguardando{% elif u.status == 'bloqueada' %}⛔ bloqueada{% else %}😴 expirada{% endif %}</td>
+            <td>{{ u.trialAte or '—' }}</td>
+            <td>{{ u.pagaAte or '—' }}</td>
+            <td>{% if u.pagamentoInfo %}<small>{{ u.pagamentoInfo.em[:10] }}: {{ u.pagamentoInfo.texto }}</small>{% else %}—{% endif %}</td>
+            <td class="admin-acoes">
+              <form method="POST"><input type="hidden" name="uid" value="{{ u.uid }}"><input type="hidden" name="acao" value="aprovar30"><button class="btn-mini" title="Confirma o pagamento e libera 30 dias">💰 +30 dias</button></form>
+              <form method="POST"><input type="hidden" name="uid" value="{{ u.uid }}"><input type="hidden" name="acao" value="trial3"><button class="btn-mini" title="Estende o período de teste">🎁 +{{ trial_dias }}d teste</button></form>
+              {% if u.status == 'bloqueada' %}
+              <form method="POST"><input type="hidden" name="uid" value="{{ u.uid }}"><input type="hidden" name="acao" value="desbloquear"><button class="btn-mini">🔓 desbloquear</button></form>
+              {% else %}
+              <form method="POST"><input type="hidden" name="uid" value="{{ u.uid }}"><input type="hidden" name="acao" value="bloquear"><button class="btn-mini" title="Bloqueia o acesso imediatamente">⛔ bloquear</button></form>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </main>
+  <footer class="footer-attribuicao">
+    Desenvolvido por <a href="https://ismailepereira.github.io/" target="_blank" rel="noopener">ismailepereira</a>
+  </footer>
+</body>
+</html>

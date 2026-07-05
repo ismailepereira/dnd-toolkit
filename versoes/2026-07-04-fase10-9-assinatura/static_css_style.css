@@ -1373,25 +1373,6 @@ body.alto-contraste a { color: #ffd400; }
 .loja-preco { color: var(--text-dim); font-size: 0.72rem; white-space: nowrap; }
 .loja-cadeado { cursor: help; }
 
-/* ===== Fase 10.9: assinatura (trial + confirmação manual) ===== */
-.assinatura-status { border-radius: 10px; padding: 12px; margin: 12px 0; font-size: 0.95rem; border: 1px solid var(--border); }
-.assinatura-status.trial { border-color: #e3b341; color: #e3b341; background: rgba(227,179,65,0.08); }
-.assinatura-status.ativa { border-color: #3fb950; color: #3fb950; background: rgba(63,185,80,0.08); }
-.assinatura-status.aguardando { border-color: #58a6ff; color: #58a6ff; background: rgba(88,166,255,0.08); }
-.assinatura-status.expirada { border-color: var(--accent); color: var(--accent); background: rgba(233,69,96,0.08); }
-.assinatura-ok { border: 1px solid #3fb950; color: #3fb950; border-radius: 8px; padding: 8px 12px; margin: 10px 0; font-size: 0.88rem; }
-.assinatura-passos { text-align: left; font-size: 0.9rem; padding-left: 20px; }
-.assinatura-passos li { margin: 6px 0; }
-.assinatura-form { margin-top: 8px; }
-.admin-tabela-wrap { overflow-x: auto; }
-.admin-tabela { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-.admin-tabela th, .admin-tabela td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; vertical-align: top; }
-.admin-tabela th { background: var(--bg-card); text-transform: uppercase; font-size: 0.68rem; letter-spacing: .4px; color: var(--text-dim); }
-.admin-tabela tr.status-aguardando { background: rgba(88,166,255,0.06); }
-.admin-tabela tr.status-expirada { background: rgba(233,69,96,0.05); }
-.admin-acoes { white-space: nowrap; }
-.admin-acoes form { display: inline-block; margin: 1px; }
-
 /* ===== Fase 10: autenticação, campanhas, morte/permanência ===== */
 .campanhas-box { max-width: 520px; }
 .campanhas-lista { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }

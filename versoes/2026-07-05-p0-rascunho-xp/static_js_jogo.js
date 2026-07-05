@@ -800,18 +800,14 @@ const Jogo = (function () {
         <div>${salvasHtml}${periciasHtml}${slotsHtml}${recHtml}
           <div class="jg-bloco"><h4>Ouro</h4>
             <div class="jg-ouro"><b>${f.ouro} po</b>
-              ${window.EH_MESTRE ? `
               <input type="number" id="jgOuroVal" value="10" style="width:64px">
-              <button id="jgOuroMais" class="btn-mini">+</button><button id="jgOuroMenos" class="btn-mini">−</button>`
-              : '<span class="criador-hint-inline">ganhe ouro do Mestre ou vendendo itens; gaste na 🛒 Loja</span>'}
+              <button id="jgOuroMais" class="btn-mini">+</button><button id="jgOuroMenos" class="btn-mini">−</button>
             </div>
           </div>
           <div class="jg-bloco"><h4>Experiência</h4>
             <div class="jg-ouro"><b>${(f.xp || 0).toLocaleString('pt-BR')} XP</b>
-              ${window.EH_MESTRE ? `
               <input type="number" id="jgXpVal" value="100" style="width:72px">
-              <button id="jgXpMais" class="btn-mini">+ Ganhar</button>`
-              : '<span class="criador-hint-inline">o Mestre concede o XP</span>'}
+              <button id="jgXpMais" class="btn-mini">+ Ganhar</button>
             </div>
             <div class="pv-linha">${xpProxNivel(f.nivel || 1) == null ? 'Nível máximo (20).' : `Próximo nível: <b>${xpProxNivel(f.nivel).toLocaleString('pt-BR')}</b> XP${podeSubirPorXP(f) ? ' — <span class="jg-subir-ok">pode subir! ✨</span>' : ''}`}</div>
           </div>
@@ -838,11 +834,9 @@ const Jogo = (function () {
       Nivel.abrir(ficha, { aoSalvar: () => { log(`Subiu para o nível ${ficha.nivel}!`); salvar(); } });
     };
 
-    // Fase B2: +/− ouro e +XP são controlos SÓ do Mestre (o jogador ganha
-    // ouro/XP por envio do Mestre e gasta/ganha ouro pela loja/venda)
     const ov = () => Math.max(0, Number($('jgOuroVal').value) || 0);
-    if ($('jgOuroMais')) $('jgOuroMais').onclick = () => { ficha.ouro += ov(); salvar(); };
-    if ($('jgOuroMenos')) $('jgOuroMenos').onclick = () => { ficha.ouro = Math.max(0, ficha.ouro - ov()); salvar(); };
+    $('jgOuroMais').onclick = () => { ficha.ouro += ov(); salvar(); };
+    $('jgOuroMenos').onclick = () => { ficha.ouro = Math.max(0, ficha.ouro - ov()); salvar(); };
 
     if ($('jgXpMais')) $('jgXpMais').onclick = () => {
       const v = Math.max(0, Number($('jgXpVal').value) || 0);

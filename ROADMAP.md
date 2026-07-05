@@ -184,8 +184,8 @@ Plano em `docs/ROADMAP-FUTURO.md` (Fase 11); base para as Fases 12 (lojas por NP
 
 ## 🎯 PRÓXIMAS ATUALIZAÇÕES — backlog priorizado (05/07/2026)
 Detalhe completo (objetivo/estrutura/ficheiros/passos) em `docs/ROADMAP-FUTURO.md → Backlog Priorizado`.
-1. 🔴 **B1** — Bug: F5 perde a ficha em criação → rascunho persistente (localStorage + "continuar de onde parou")
-2. 🔴 **B2** — XP e ouro só via Mestre (esconder +XP/+ouro do jogador; envio do Mestre ganha campo XP)
+1. ✅ **B1** — ~~Bug: F5 perde a ficha em criação~~ (entregue 05/07/2026: rascunho automático no Criador/NPC/Item Mágico + "continuar de onde parou")
+2. ✅ **B2** — ~~XP e ouro só via Mestre~~ (entregue 05/07/2026: jogador sem +XP/+ouro; envio do Mestre com campo XP e "👥 todos")
 3. 🟠 **C1** — Rolagem com alvo: ataque compara com CA e aplica dano real; defesas contra CD; opção de dado físico
 4. 🟡 **M1** — NPC com ficha COMPLETA (raça/classe/antecedente/personalidade/história via Criador)
 5. 🟡 **M2** — Promover criatura do bestiário a NPC persistente (com opção aleatória)

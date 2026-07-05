@@ -442,3 +442,43 @@ do jogador não vaza segredos para o HTML.
 **Como reverter:** restaurar `versoes/2026-07-05-fase11-npcs/` (ou
 `git revert`) e apagar `static/js/npc.js`; a chave `npcs` no estado é
 ignorada por versões antigas.
+
+## 2026-07-05 — P0: rascunho persistente + XP/ouro só via Mestre (B1/B2)
+
+**Backup antes da alteração:** `versoes/2026-07-05-p0-rascunho-xp/`.
+
+### B1 — Bug: atualizar a página perdia tudo
+O estado da criação vivia só em memória. Agora:
+- **Criador** (`criador.js`): cada alteração grava um rascunho no
+  `localStorage` (debounce 300ms; chave por campanha), incluindo o passo
+  atual. Ao reabrir NO MESMO contexto (ficha nova ↔ nova, ou a mesma ficha),
+  pergunta "📝 Continuar de onde parou?" — aceitar restaura estado+passo
+  (com merge no shape atual, p/ rascunhos de versões antigas); recusar
+  descarta. Salvar/Excluir limpam o rascunho; Cancelar MANTÉM (proteção
+  contra fecho acidental).
+- **Modal de NPC** (`npc.js`) e **Item Mágico** (`itensmestre.js`): snapshot
+  no `beforeunload` (se o modal/form estiver aberto) + oferta de restauro ao
+  recarregar; limpo ao salvar/cancelar.
+
+### B2 — Integridade: XP e ouro só via Mestre
+- Modo de Jogo (`jogo.js`): os controlos "+/− ouro" e "+ Ganhar XP" agora só
+  aparecem quando `window.EH_MESTRE` — o jogador vê o valor e a dica ("ganhe
+  ouro do Mestre ou vendendo itens; gaste na Loja" / "o Mestre concede o
+  XP"). Compra/venda na loja continuam a mexer no ouro normalmente.
+- Painel "📦 Enviar à ficha" (`app.js` + `mestre.html`): ganhou campo **XP**
+  e o toggle **"👥 todos"** — ouro/XP vão à mesa inteira (fichas mortas são
+  puladas); itens continuam indo só ao personagem selecionado.
+
+**Decisões:** Cancelar mantém o rascunho de propósito (o objetivo do B1 é
+proteger contra perda acidental); "Ver como Jogador" do mestre legado mantém
+os controlos (EH_MESTRE=true) — é ferramenta de mestre, não brecha.
+
+**Verificação:** `node --check` em tudo; harness Node com localStorage
+simulado cobriu o ciclo completo do rascunho (autosave → restauro pós-F5 com
+nome preservado → recusa descarta) e o gating do B2 (render do Modo de Jogo
+com EH_MESTRE false/true: jogador sem controlos e com dicas, mestre com
+tudo).
+
+**Como reverter:** restaurar `versoes/2026-07-05-p0-rascunho-xp/` ou
+`git revert`; rascunhos órfãos no localStorage são inofensivos (chaves
+`dnd_rascunho_*`).

@@ -174,51 +174,16 @@ const NPC_TIPOS = [
       npcs.push(novo);
     }
     salvar(); render();
-    limparRascunhoNpc(); // Fase B1: salvou de verdade
     modal.classList.add('hidden');
-  }
-
-  // ----- Fase B1: rascunho do NPC em edição sobrevive a F5 -----
-  const CHAVE_RASCUNHO_NPC = () => `dnd_rascunho_npc_${window.CAMPANHA_ID || 'local'}`;
-  const CAMPOS_NPC = ['nNome', 'nLocal', 'nDescricao', 'nNotasPrivadas', 'nCa', 'nPv', 'nAcoes',
-    'nAttr_for', 'nAttr_des', 'nAttr_con', 'nAttr_int', 'nAttr_sab', 'nAttr_car'];
-  function limparRascunhoNpc() { try { localStorage.removeItem(CHAVE_RASCUNHO_NPC()); } catch (e) {} }
-  function restaurarRascunhoNpc() {
-    if (!ehMestre || !modal) return;
-    let r = null;
-    try { r = JSON.parse(localStorage.getItem(CHAVE_RASCUNHO_NPC()) || 'null'); } catch (e) {}
-    if (!r || !r.campos) return;
-    if (confirm(`📝 Há um NPC não salvo${r.campos.nNome ? ` ("${r.campos.nNome}")` : ''}. Continuar de onde parou?`)) {
-      abrirModal(r.editandoId && npcs.some(n => n.id === r.editandoId) ? r.editandoId : null);
-      CAMPOS_NPC.forEach(id => { if ($(id) && r.campos[id] != null) $(id).value = r.campos[id]; });
-      $('nTipo').value = r.campos.nTipo || 'neutro';
-      $('nVisivel').checked = !!r.campos.nVisivel;
-      $('nTemStat').checked = !!r.campos.nTemStat;
-      atualizarStatWrap();
-    }
-    limparRascunhoNpc(); // usado ou descartado — não pergunta duas vezes
-  }
-  if (ehMestre && modal) {
-    window.addEventListener('beforeunload', () => {
-      if (modal.classList.contains('hidden')) return;
-      try {
-        const campos = {};
-        CAMPOS_NPC.forEach(id => { if ($(id)) campos[id] = $(id).value; });
-        campos.nTipo = $('nTipo').value;
-        campos.nVisivel = $('nVisivel').checked;
-        campos.nTemStat = $('nTemStat').checked;
-        localStorage.setItem(CHAVE_RASCUNHO_NPC(), JSON.stringify({ editandoId, campos }));
-      } catch (e) {}
-    });
   }
 
   if (ehMestre && modal) {
     const btnNovo = $('novoNpc');
     if (btnNovo) btnNovo.addEventListener('click', () => abrirModal(null));
     $('nTemStat').addEventListener('change', atualizarStatWrap);
-    $('npcCancelar').addEventListener('click', () => { limparRascunhoNpc(); modal.classList.add('hidden'); });
+    $('npcCancelar').addEventListener('click', () => modal.classList.add('hidden'));
     $('npcSalvar').addEventListener('click', salvarModal);
   }
 
-  carregar().then(() => restaurarRascunhoNpc());
+  carregar();
 })();

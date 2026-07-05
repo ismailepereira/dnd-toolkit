@@ -51,7 +51,6 @@ const CATEGORIAS_ITEM_MAGICO = [
     // a lista de fichas pode já ter montado o dropdown "Enviar à ficha" sem
     // estes itens (corrida entre os dois fetches iniciais) — atualiza agora.
     if (typeof renderFichas === 'function') renderFichas();
-    restaurarRascunhoIM(); // Fase B1
   }
 
   let _fila = Promise.resolve();
@@ -185,7 +184,7 @@ const CATEGORIAS_ITEM_MAGICO = [
       renderForm();
     }));
     $('imAddMagia').addEventListener('click', () => { rascunho.magias.push({ nome: '', vezes: 1 }); renderForm(); });
-    $('imCancelar').addEventListener('click', () => { rascunho = null; editandoId = null; limparRascunhoIM(); renderForm(); });
+    $('imCancelar').addEventListener('click', () => { rascunho = null; editandoId = null; renderForm(); });
     $('imSalvar').addEventListener('click', salvarItem);
   }
 
@@ -218,7 +217,6 @@ const CATEGORIAS_ITEM_MAGICO = [
     salvar();
     rascunho = null;
     editandoId = null;
-    limparRascunhoIM();
     render();
     if (typeof renderFichas === 'function') renderFichas(); // atualiza o dropdown "Enviar à ficha"
   }
@@ -318,27 +316,6 @@ const CATEGORIAS_ITEM_MAGICO = [
       salvarLojaEspecial();
       render();
     }));
-  }
-
-  // ----- Fase B1: rascunho do item em criação sobrevive a F5 -----
-  const CHAVE_RASCUNHO_IM = () => `dnd_rascunho_itemmagico_${window.CAMPANHA_ID || 'local'}`;
-  window.addEventListener('beforeunload', () => {
-    try {
-      if (rascunho) localStorage.setItem(CHAVE_RASCUNHO_IM(), JSON.stringify({ rascunho, editandoId }));
-    } catch (e) {}
-  });
-  function limparRascunhoIM() { try { localStorage.removeItem(CHAVE_RASCUNHO_IM()); } catch (e) {} }
-  function restaurarRascunhoIM() {
-    let r = null;
-    try { r = JSON.parse(localStorage.getItem(CHAVE_RASCUNHO_IM()) || 'null'); } catch (e) {}
-    if (!r || !r.rascunho) return;
-    if (confirm(`📝 Há um item mágico não salvo${r.rascunho.nome ? ` ("${r.rascunho.nome}")` : ''}. Continuar de onde parou?`)) {
-      rascunho = r.rascunho;
-      editandoId = r.editandoId || null;
-      renderForm();
-      $('imFormWrap').scrollIntoView({ behavior: 'smooth' });
-    }
-    limparRascunhoIM(); // usado ou descartado — não pergunta duas vezes
   }
 
   const buscaAcervo = $('acervoBusca');

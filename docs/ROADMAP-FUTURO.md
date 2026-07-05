@@ -25,6 +25,8 @@ depois, ferramentas do Mestre a seguir, visual e IA por último**.
 
 ## 🔴 P0 — Bugs e integridade (fazer primeiro)
 
+> **✅ P0 entregue em 05/07/2026** (B1 + B2 — ver `CHANGELOG.md`).
+
 ### B1. Bug: atualizar a página perde tudo (rascunho persistente)
 **Problema:** a meio da criação de uma ficha (ou NPC, ou item do Mestre), um
 F5/refresh descarta tudo e volta ao início — o estado vive só em memória.

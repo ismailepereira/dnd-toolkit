@@ -167,23 +167,14 @@ function montarEnvioMestre() {
   if (_envioMontado) return;
   _envioMontado = true;
   document.getElementById('envioBtn').addEventListener('click', () => {
-    const selecionada = fichas.find(x => x.id === selF.value);
+    const f = fichas.find(x => x.id === selF.value);
+    if (!f) return;
     const ouro = Number(document.getElementById('envioOuro').value) || 0;
-    const xp = Math.max(0, Number((document.getElementById('envioXp') || {}).value) || 0);
     const item = selI.value;
     const qtd = Math.max(1, Number(document.getElementById('envioQtd').value) || 1);
-    const todos = !!(document.getElementById('envioTodos') || {}).checked;
-    if (!ouro && !item && !xp) return;
-    // Fase B2: "👥 todos" distribui ouro/XP à mesa inteira (recompensa de
-    // grupo); itens vão sempre só ao personagem selecionado
-    const destinatarios = todos ? fichas.filter(f => f.status !== 'morto') : (selecionada ? [selecionada] : []);
-    if (!destinatarios.length) return;
-    destinatarios.forEach(f => {
-      if (ouro) f.ouro = Math.max(0, (f.ouro || 0) + ouro);
-      if (xp) f.xp = (f.xp || 0) + xp;
-    });
-    if (item && selecionada) {
-      const f = selecionada;
+    if (!ouro && !item) return;
+    if (ouro) f.ouro = Math.max(0, (f.ouro || 0) + ouro);
+    if (item) {
       f.itens = f.itens || [];
       f.municao = (f.municao && f.municao.nome != null) ? f.municao : { nome: '', qtd: 0 };
       const it = (typeof itemCatalogo === 'function') ? itemCatalogo(item) : null;
@@ -198,12 +189,10 @@ function montarEnvioMestre() {
     renderFichas();
     const msg = document.getElementById('envioMsg');
     if (msg) {
-      const partes = [ouro ? `${ouro > 0 ? '+' : ''}${ouro} po` : '', xp ? `+${xp} XP` : '', (item && selecionada) ? `${qtd}× ${item}` : ''].filter(Boolean).join(' e ');
-      msg.textContent = `✓ ${partes} → ${todos ? `${destinatarios.length} personagens` : (selecionada ? selecionada.nome : '')}`;
+      msg.textContent = `✓ ${[ouro ? `${ouro > 0 ? '+' : ''}${ouro} po` : '', item ? `${qtd}× ${item}` : ''].filter(Boolean).join(' e ')} → ${f.nome}`;
       setTimeout(() => { msg.textContent = ''; }, 5000);
     }
     document.getElementById('envioOuro').value = '';
-    if (document.getElementById('envioXp')) document.getElementById('envioXp').value = '';
   });
 }
 

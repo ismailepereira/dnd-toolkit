@@ -133,7 +133,6 @@ const Criador = (function () {
 
   // ---------- Preview ao vivo ----------
   function renderPreview() {
-    salvarRascunho(); // Fase B1: todo caminho de alteração passa por aqui
     const s = estado;
     const c = calcular(s);
     const linhasAttr = ATRIBUTOS.map(a => {
@@ -1705,36 +1704,6 @@ const Criador = (function () {
   }
   function ARRADURA_OK(n) { return !!ARMADURAS[n]; }
 
-  // ---------- Fase B1: rascunho persistente (sobrevive a F5/refresh) ----------
-  // O estado da criação vive só em memória; um refresh descartava tudo.
-  // Agora cada alteração grava um rascunho no localStorage (debounced) e,
-  // ao reabrir o Criador NO MESMO contexto (ficha nova ↔ ficha nova, ou a
-  // mesma ficha em edição), oferecemos "continuar de onde parou".
-  function chaveRascunho() {
-    return `dnd_rascunho_criador_${window.CAMPANHA_ID || 'local'}`;
-  }
-  let _rascunhoTimer = null;
-  function salvarRascunho() {
-    if (!estado) return;
-    clearTimeout(_rascunhoTimer);
-    _rascunhoTimer = setTimeout(() => {
-      try {
-        localStorage.setItem(chaveRascunho(), JSON.stringify({
-          fichaId: fichaOriginal ? (fichaOriginal.id || null) : null,
-          criandoNovo, passo, estado, quando: Date.now(),
-        }));
-      } catch (e) { /* localStorage cheio/indisponível: segue sem rascunho */ }
-    }, 300);
-  }
-  function lerRascunho() {
-    try { return JSON.parse(localStorage.getItem(chaveRascunho()) || 'null'); } catch (e) { return null; }
-  }
-  function limparRascunho() {
-    clearTimeout(_rascunhoTimer);
-    _rascunhoTimer = null;
-    try { localStorage.removeItem(chaveRascunho()); } catch (e) {}
-  }
-
   // ---------- Validação de completude (Fase 9c) ----------
   // Cada passo só deixa avançar quando está completo; Salvar valida tudo.
   const HISTORIA_MIN = 150;
@@ -1828,7 +1797,6 @@ const Criador = (function () {
     $('cVoltar').style.display = passo > 1 ? 'inline-block' : 'none';
     $('cProximo').style.display = passo < TOTAL_PASSOS ? 'inline-block' : 'none';
     $('cSalvar').style.display = passo === TOTAL_PASSOS ? 'inline-block' : 'none';
-    salvarRascunho(); // Fase B1: guarda também o passo atual
   }
 
   // ---------- Abrir ----------
@@ -1842,27 +1810,12 @@ const Criador = (function () {
       if (typeof ARRANJO_OTIMO !== 'undefined') arranjarPorClasse(ARRANJO_OTIMO);
       aplicarKit();
     }
-    // Fase B1: rascunho não salvo DO MESMO contexto? oferece continuar
-    let passoInicial = 1;
-    const r = lerRascunho();
-    const mesmoContexto = r && r.estado
-      && ((ficha && r.fichaId === ficha.id) || (!ficha && !r.fichaId));
-    if (mesmoContexto) {
-      if (confirm(`📝 Há um rascunho não salvo${r.estado.nome ? ` de "${r.estado.nome}"` : ''} nesta mesa. Continuar de onde parou?\n\n(Cancelar começa do zero e descarta o rascunho.)`)) {
-        // merge com o shape atual: rascunhos de versões antigas ganham os campos novos
-        estado = { ...estadoVazio(), ...r.estado };
-        criandoNovo = !!r.criandoNovo;
-        passoInicial = Math.max(1, Math.min(TOTAL_PASSOS, r.passo || 1));
-      } else {
-        limparRascunho();
-      }
-    }
     preencherCampos();
     renderTudoDinamico();
     $('criadorTitulo').textContent = ficha ? 'Editar Personagem' : 'Criar Personagem';
     $('cExcluir').style.display = (ficha && ctx.aoExcluir) ? 'inline-block' : 'none';
     mostrarValidacao([]);
-    irPasso(passoInicial);
+    irPasso(1);
     $('modalCriador').classList.remove('hidden');
   }
 
@@ -1923,11 +1876,10 @@ const Criador = (function () {
       const avisos = (typeof penalidadesEquipamento === 'function') ? penalidadesEquipamento(fichaTmp) : [];
       if (avisos.length && !confirm(`⚠ Avisos de proficiência/equipamento:\n\n${avisos.map(a => '• ' + a.texto).join('\n')}\n\nSalvar mesmo assim?`)) return;
       if (ctx.aoSalvar) ctx.aoSalvar(construirFicha());
-      limparRascunho(); // Fase B1: salvou de verdade — rascunho cumpriu o papel
       $('modalCriador').classList.add('hidden');
     });
     $('cExcluir').addEventListener('click', () => {
-      if (ctx.aoExcluir && confirm('Excluir este personagem?')) { ctx.aoExcluir(); limparRascunho(); $('modalCriador').classList.add('hidden'); }
+      if (ctx.aoExcluir && confirm('Excluir este personagem?')) { ctx.aoExcluir(); $('modalCriador').classList.add('hidden'); }
     });
 
     // navegação por etapas — avançar exige passo completo (voltar é livre)

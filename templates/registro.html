@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Criar Conta - Mestre's Toolkit</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-box">
+      <h1>🐉 Criar Conta</h1>
+      <p class="login-sub">Crie sua conta de jogador. Para entrar numa mesa, você vai precisar do código de convite do Mestre.</p>
+      {% if erro %}<div class="login-erro">{{ erro }}</div>{% endif %}
+      <form method="POST">
+        <label>Usuário <input type="text" name="usuario" autocomplete="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_.\-]{3,24}" title="3–24 caracteres: letras, números, ponto, hífen ou underline"></label>
+        <label>Nome de exibição <input type="text" name="nome" maxlength="32" placeholder="como aparece na mesa (opcional)"></label>
+        <label>Senha <input type="password" name="senha" autocomplete="new-password" required minlength="6"></label>
+        <button type="submit" class="btn-primary">Criar conta</button>
+      </form>
+      <p class="login-sub" style="margin-top:14px">Já tem conta? <a href="/login">Entrar</a></p>
+    </div>
+  </div>
+  <footer class="footer-attribuicao">
+    Desenvolvido por <a href="https://ismailepereira.github.io/" target="_blank" rel="noopener">ismailepereira</a>
+  </footer>
+</body>
+</html>

@@ -222,3 +222,74 @@ testados ponta-a-ponta com o cliente Flask em campanha isolada descartável
 `versoes/2026-07-04-fase9c-validacoes-loja-curada/` (nomes com `__` no lugar
 de `/`) ou `git revert` do commit desta entrada; a chave `loja_especial_itens`
 em `data/estado*.json`/Firestore é ignorada por versões antigas.
+
+## 2026-07-04 — Autenticação e Sistema de Campanha, v1 (Fase 10)
+
+**Backup antes da alteração:** `versoes/2026-07-04-fase10-auth-campanha/`.
+
+**Resumo:** contas individuais com auto-registo (usuário/senha com hash) e
+campanhas como entidade própria: qualquer utilizador registado pode criar uma
+campanha (vira o Mestre dela, com código de convite) ou entrar numa mesa com o
+código partilhado pelo Mestre. O personagem vive na campanha ativa; fichas
+novas ganham dono (`donoUid`) e só o dono (ou o Mestre) joga/edita. Regra de
+permanência: 3 falhas nos testes de morte selam a ficha como memorial
+(read-only, 🪦) — o jogador volta criando personagem novo; o Mestre tem botão
+"Reviver" para exceções (ressurreição em jogo). **As contas fixas antigas
+(Ismaile/jogador) continuam a funcionar exatamente como antes** (legado), e a
+campanha `principal` segue intocada.
+
+**Ficheiros novos:** `templates/registro.html` (criar conta),
+`templates/campanhas.html` (Minhas Campanhas: lista, entrar por código, criar).
+
+**Ficheiros alterados (backup em `versoes/2026-07-04-fase10-auth-campanha/`):**
+- `app.py` — armazém de utilizadores (`usuarios`) e campanhas (`campanhas_meta`)
+  no Firestore com fallback local `data/usuarios.json`/`data/campanhas_meta.json`;
+  rotas `/registro`, `/campanhas`, `/campanha/nova|entrar|ativa`,
+  `/api/campanha_info`, `/api/campanha_remover_membro`; login tenta contas
+  fixas primeiro (legado) e depois as registadas; `papel_na_campanha()` deriva
+  mestre/jogador da campanha ativa; `/campanha` (form livre do cabeçalho)
+  agora valida membresia para contas registadas (fecha escalada de privilégio).
+- `templates/login.html` — link "Criar conta de jogador".
+- `templates/mestre.html` — aba "Membros" (código de convite + remover jogador);
+  expõe `window.MEU_UID`/`window.EH_MESTRE`.
+- `templates/jogador.html` — link "🗺️ Campanhas"; "Voltar ao Mestre" por papel
+  (não mais hardcoded ao usuário Ismaile); expõe `MEU_UID`/`EH_MESTRE`.
+- `static/js/app.js` — aba Membros; cartão de ficha morta (🪦 Memorial, editar
+  desabilitado); fichas novas ganham `donoUid`/`status`.
+- `static/js/jogador.js` — ficha com dono só jogável/editável pelo dono
+  (fichas antigas sem dono ficam livres — legado); cartão de morto = memorial.
+- `static/js/jogo.js` — `testeMorte()` com 3 falhas grava `status='morto'` +
+  `morteEm` e a ficha abre como memorial read-only (história, ligação e item
+  de memória em destaque); botão "✨ Reviver" só para o Mestre.
+- `static/css/style.css` — `.campanha-*`, `.ficha-morta`, `.jg-memorial`,
+  `.convite-codigo`.
+- `.gitignore` — `data/usuarios.json`, `data/campanhas_meta.json`,
+  `data/estado_*.json` (contêm hashes de senha/estado local — nunca versionar).
+
+**Decisões de design / pontos em aberto:**
+- **Auto-registo com convite** (escolha do Ismaile): registo aberto, mas entrar
+  numa mesa exige o código de convite do Mestre.
+- **Qualquer conta registada pode criar campanha** e vira Mestre só dela — o
+  mestre legado (Ismaile) continua mestre em TODAS as campanhas.
+- **Fichas antigas sem `donoUid` ficam livres** (qualquer jogador da mesa joga)
+  — migração silenciosa, mesmo princípio das fases anteriores.
+- **Regras do Firestore** ainda são as antigas — a v1 valida tudo no servidor
+  Flask, mas o acesso RT (firebase-rt.js) lê o documento inteiro da campanha;
+  revisão de segurança dedicada continua pendente (ver SEGURANCA.md e Fase 10
+  passo 7 no ROADMAP-FUTURO).
+- **Contas geridas só por ficheiro/coleção** — sem recuperação de senha nem
+  e-mail (v1); Firebase Auth fica como evolução futura.
+- **Legado partilhado**: quem entra com a conta fixa `jogador` partilha o mesmo
+  "dono" (uid `legacy:jogador`) — comportamento igual ao de hoje.
+
+**Verificação:** `node --check` em todos os `.js` + harness de carga completo;
+backend com 17 cenários no cliente Flask (registo/duplicado/inválido, fluxo
+Minhas Campanhas, convite certo/errado/case-insensitive, código oculto para
+jogador, remoção de membro revoga acesso, escalada de privilégio pelo form
+`/campanha` bloqueada para contas registadas, logins legados intactos, senhas
+sempre com hash). Dados de teste apagados; `data/estado.json` real intacto.
+
+**Como reverter:** restaurar `versoes/2026-07-04-fase10-auth-campanha/` ou
+`git revert`; apagar `templates/registro.html`/`campanhas.html` e os ficheiros
+locais `data/usuarios.json`/`data/campanhas_meta.json` se existirem. Fichas
+com `donoUid`/`status` continuam válidas em versões antigas (campos ignorados).

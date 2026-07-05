@@ -11,6 +11,9 @@
 
 # ─── Estado local (gerado em runtime) ───
 data/estado.json
+data/estado_*.json
+data/usuarios.json
+data/campanhas_meta.json
 
 # ─── Firebase (chave de serviço — NUNCA versionar) ───
 firebase-key.json

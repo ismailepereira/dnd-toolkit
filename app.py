@@ -1,11 +1,14 @@
 import json
 import os
 import re
+import secrets
+import uuid
+from datetime import datetime, timezone
 from functools import wraps
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 load_dotenv()
 
@@ -89,6 +92,96 @@ def campanha_atual():
     return c or 'principal'
 
 
+# ---------------------------------------------------------------
+# FASE 10 — contas registadas (auto-registo) e campanhas com membros
+# Persistência: Firestore (coleções 'usuarios' e 'campanhas_meta') com
+# fallback local em data/usuarios.json e data/campanhas_meta.json.
+# As contas fixas de env (Ismaile/jogador) continuam a funcionar (legado):
+# o mestre legado é mestre em QUALQUER campanha.
+# ---------------------------------------------------------------
+USUARIOS_FILE = os.path.join(BASE_DIR, 'data', 'usuarios.json')
+CAMPMETA_FILE = os.path.join(BASE_DIR, 'data', 'campanhas_meta.json')
+COLECAO_USUARIOS = 'usuarios'
+COLECAO_CAMPANHAS_META = 'campanhas_meta'
+
+
+def _agora():
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _carregar_docs(colecao, caminho):
+    """dict id -> dados, do Firestore ou do ficheiro local."""
+    if db is not None:
+        return {snap.id: (snap.to_dict() or {}) for snap in db.collection(colecao).stream()}
+    if not os.path.exists(caminho):
+        return {}
+    with open(caminho, 'r', encoding='utf-8-sig') as f:
+        return json.load(f)
+
+
+def _salvar_doc(colecao, caminho, doc_id, dados):
+    if db is not None:
+        db.collection(colecao).document(doc_id).set(dados)
+        return
+    todos = _carregar_docs(colecao, caminho)
+    todos[doc_id] = dados
+    os.makedirs(os.path.dirname(caminho), exist_ok=True)
+    with open(caminho, 'w', encoding='utf-8') as f:
+        json.dump(todos, f, ensure_ascii=False, indent=2)
+
+
+def carregar_usuarios_reg():
+    return _carregar_docs(COLECAO_USUARIOS, USUARIOS_FILE)
+
+
+def salvar_usuario_reg(uid, dados):
+    _salvar_doc(COLECAO_USUARIOS, USUARIOS_FILE, uid, dados)
+
+
+def buscar_usuario_reg(nome):
+    nome = (nome or '').strip().lower()
+    for uid, u in carregar_usuarios_reg().items():
+        if str(u.get('usuario', '')).lower() == nome:
+            return uid, u
+    return None, None
+
+
+def carregar_campanhas_meta():
+    return _carregar_docs(COLECAO_CAMPANHAS_META, CAMPMETA_FILE)
+
+
+def salvar_campanha_meta(camp_id, meta):
+    _salvar_doc(COLECAO_CAMPANHAS_META, CAMPMETA_FILE, camp_id, meta)
+
+
+def eh_legado_mestre(uid):
+    return isinstance(uid, str) and uid.startswith('legacy:') and session.get('papelGlobal') == 'mestre'
+
+
+def papel_na_campanha(uid, camp_id):
+    """'mestre' | 'jogador' | None. Mestre legado manda em qualquer campanha;
+    campanhas sem metadados (ex.: 'principal') são legadas: só contas fixas entram."""
+    if eh_legado_mestre(uid):
+        return 'mestre'
+    metas = carregar_campanhas_meta()
+    meta = metas.get(camp_id)
+    if not meta:
+        # campanha legada (sem meta): contas fixas mantêm o papel global antigo
+        if isinstance(uid, str) and uid.startswith('legacy:'):
+            return session.get('papelGlobal')
+        return None
+    if meta.get('mestreUid') == uid:
+        return 'mestre'
+    if uid in (meta.get('membros') or {}):
+        return 'jogador'
+    return None
+
+
+def gerar_codigo_convite(nome):
+    base = re.sub(r'[^A-Za-z]', '', nome or '')[:6].upper() or 'MESA'
+    return f"{base}-{secrets.token_hex(2).upper()}"
+
+
 def _data_file():
     c = campanha_atual()
     nome = 'estado.json' if c == 'principal' else f'estado_{c}.json'
@@ -152,6 +245,13 @@ def login_obrigatorio(papeis=None):
 def index():
     if 'usuario' not in session:
         return redirect(url_for('login'))
+    # contas registadas precisam de uma campanha ativa válida (senão: Minhas Campanhas)
+    uid = session.get('uid', '')
+    if uid and not uid.startswith('legacy:'):
+        papel = papel_na_campanha(uid, campanha_atual())
+        if not papel:
+            return redirect(url_for('pagina_campanhas'))
+        session['papel'] = papel
     if session.get('papel') == 'mestre':
         return redirect(url_for('mestre'))
     return redirect(url_for('jogador'))
@@ -165,11 +265,124 @@ def login():
         senha = request.form.get('senha', '')
         dados = USUARIOS.get(usuario)
         if dados and senha_confere(dados['senha'], senha):
+            # contas fixas (legado): comportamento idêntico ao de sempre
             session['usuario'] = usuario
             session['papel'] = dados['papel']
+            session['papelGlobal'] = dados['papel']
+            session['uid'] = f'legacy:{usuario}'
             return redirect(url_for('index'))
+        uid, u = buscar_usuario_reg(usuario)
+        if u and senha_confere(u.get('senhaHash', ''), senha):
+            session['usuario'] = u.get('usuario')
+            session['nomeExibicao'] = u.get('nomeExibicao') or u.get('usuario')
+            session['uid'] = uid
+            session['papelGlobal'] = u.get('papelGlobal', 'jogador')
+            session['papel'] = 'jogador'
+            session.pop('campanha', None)  # escolhe a campanha ativa na tela seguinte
+            return redirect(url_for('pagina_campanhas'))
         erro = 'Usuário ou senha inválidos.'
     return render_template('login.html', erro=erro)
+
+
+@app.route('/registro', methods=['GET', 'POST'])
+def registro():
+    erro = None
+    if request.method == 'POST':
+        usuario = request.form.get('usuario', '').strip()
+        senha = request.form.get('senha', '')
+        nome = request.form.get('nome', '').strip() or usuario
+        if not re.fullmatch(r'[A-Za-z0-9_.-]{3,24}', usuario):
+            erro = 'Usuário inválido: 3–24 caracteres, só letras/números/._-'
+        elif len(senha) < 6:
+            erro = 'A senha precisa de pelo menos 6 caracteres.'
+        elif usuario in USUARIOS or buscar_usuario_reg(usuario)[0]:
+            erro = 'Esse usuário já existe.'
+        else:
+            uid = 'u_' + uuid.uuid4().hex[:12]
+            salvar_usuario_reg(uid, {
+                'usuario': usuario,
+                'nomeExibicao': nome,
+                'senhaHash': generate_password_hash(senha),
+                'papelGlobal': 'jogador',
+                'criadoEm': _agora(),
+            })
+            session.clear()
+            session['usuario'] = usuario
+            session['nomeExibicao'] = nome
+            session['uid'] = uid
+            session['papelGlobal'] = 'jogador'
+            session['papel'] = 'jogador'
+            return redirect(url_for('pagina_campanhas'))
+    return render_template('registro.html', erro=erro)
+
+
+# ----- Minhas Campanhas (contas registadas; o mestre legado também pode usar) -----
+@app.route('/campanhas')
+@login_obrigatorio()
+def pagina_campanhas():
+    uid = session.get('uid', '')
+    metas = carregar_campanhas_meta()
+    minhas = []
+    for cid, m in metas.items():
+        papel = 'mestre' if (m.get('mestreUid') == uid or eh_legado_mestre(uid)) else ('jogador' if uid in (m.get('membros') or {}) else None)
+        if papel:
+            minhas.append({'id': cid, 'nome': m.get('nome', cid), 'papel': papel,
+                           'codigo': m.get('codigoConvite') if papel == 'mestre' else None,
+                           'ativa': cid == campanha_atual()})
+    minhas.sort(key=lambda c: c['nome'].lower())
+    return render_template('campanhas.html', campanhas=minhas, erro=request.args.get('erro'),
+                           usuario=session.get('nomeExibicao') or session.get('usuario'),
+                           legado_mestre=eh_legado_mestre(uid))
+
+
+@app.route('/campanha/nova', methods=['POST'])
+@login_obrigatorio()
+def campanha_nova():
+    uid = session.get('uid', '')
+    nome = request.form.get('nome', '').strip()[:48]
+    if not nome:
+        return redirect(url_for('pagina_campanhas', erro='Dê um nome à campanha.'))
+    cid = 'camp_' + uuid.uuid4().hex[:10]
+    salvar_campanha_meta(cid, {
+        'nome': nome,
+        'mestreUid': uid,
+        'membros': {},
+        'codigoConvite': gerar_codigo_convite(nome),
+        'ativa': True,
+        'criadaEm': _agora(),
+    })
+    session['campanha'] = cid
+    session['papel'] = 'mestre'
+    return redirect(url_for('index'))
+
+
+@app.route('/campanha/entrar', methods=['POST'])
+@login_obrigatorio()
+def campanha_entrar():
+    uid = session.get('uid', '')
+    codigo = request.form.get('codigo', '').strip().upper()
+    for cid, m in carregar_campanhas_meta().items():
+        if str(m.get('codigoConvite', '')).upper() == codigo and codigo:
+            if m.get('mestreUid') != uid and uid not in (m.get('membros') or {}):
+                m.setdefault('membros', {})[uid] = 'jogador'
+                salvar_campanha_meta(cid, m)
+            session['campanha'] = cid
+            session['papel'] = papel_na_campanha(uid, cid) or 'jogador'
+            return redirect(url_for('index'))
+    return redirect(url_for('pagina_campanhas', erro='Código de convite não encontrado.'))
+
+
+@app.route('/campanha/ativa', methods=['POST'])
+@login_obrigatorio()
+def campanha_ativa():
+    uid = session.get('uid', '')
+    cid = re.sub(r'[^a-zA-Z0-9_-]', '', request.form.get('id', ''))
+    papel = papel_na_campanha(uid, cid)
+    if not papel:
+        return redirect(url_for('pagina_campanhas', erro='Você não é membro dessa campanha.'))
+    session['campanha'] = cid
+    session['papel'] = papel
+    return redirect(url_for('index'))
 
 
 @app.route('/logout')
@@ -182,22 +395,31 @@ def logout():
 @login_obrigatorio(papeis=['mestre'])
 def mestre():
     return render_template('mestre.html', usuario=session['usuario'], campanha=campanha_atual(),
-                           use_local=(db is None))
+                           use_local=(db is None), uid=session.get('uid', ''))
 
 
 @app.route('/jogador')
 @login_obrigatorio(papeis=['mestre', 'jogador'])
 def jogador():
     return render_template('jogador.html', usuario=session['usuario'], campanha=campanha_atual(),
-                           use_local=(db is None))
+                           use_local=(db is None), uid=session.get('uid', ''),
+                           eh_mestre=(session.get('papel') == 'mestre'))
 
 
 @app.route('/campanha', methods=['POST'])
 @login_obrigatorio(papeis=['mestre'])
 def trocar_campanha():
-    c = re.sub(r'[^a-zA-Z0-9_-]', '', request.form.get('campanha', '').strip())
-    session['campanha'] = c or 'principal'
-    return redirect(url_for('mestre'))
+    c = re.sub(r'[^a-zA-Z0-9_-]', '', request.form.get('campanha', '').strip()) or 'principal'
+    uid = session.get('uid', '')
+    # contas registadas só trocam para campanhas de que são membros/mestre
+    # (o formulário livre do cabeçalho é um recurso legado do mestre fixo)
+    if uid and not uid.startswith('legacy:'):
+        papel = papel_na_campanha(uid, c)
+        if not papel:
+            return redirect(url_for('pagina_campanhas', erro='Você não é membro dessa campanha.'))
+        session['papel'] = papel
+    session['campanha'] = c
+    return redirect(url_for('index'))
 
 
 # ===== API =====
@@ -326,6 +548,44 @@ def api_put_loja_especial_itens():
     estado = carregar_estado()
     estado['loja_especial_itens'] = request.get_json(force=True) or []
     salvar_estado(estado)
+    return jsonify({'ok': True})
+
+
+# ----- FASE 10: informações da campanha ativa (aba Membros do Mestre) -----
+@app.route('/api/campanha_info', methods=['GET'])
+@login_obrigatorio()
+def api_campanha_info():
+    cid = campanha_atual()
+    meta = carregar_campanhas_meta().get(cid)
+    if not meta:
+        return jsonify({'id': cid, 'nome': cid, 'legado': True, 'membros': []})
+    usuarios = carregar_usuarios_reg()
+    eh_mestre = session.get('papel') == 'mestre'
+    membros = []
+    for muid, mpapel in (meta.get('membros') or {}).items():
+        u = usuarios.get(muid, {})
+        membros.append({'uid': muid, 'nome': u.get('nomeExibicao') or u.get('usuario') or muid, 'papel': mpapel})
+    mestre_u = usuarios.get(meta.get('mestreUid'), {})
+    return jsonify({
+        'id': cid, 'nome': meta.get('nome', cid), 'legado': False,
+        'mestre': mestre_u.get('nomeExibicao') or mestre_u.get('usuario') or meta.get('mestreUid'),
+        'codigoConvite': meta.get('codigoConvite') if eh_mestre else None,
+        'membros': membros,
+    })
+
+
+@app.route('/api/campanha_remover_membro', methods=['POST'])
+@login_obrigatorio(papeis=['mestre'])
+def api_campanha_remover_membro():
+    cid = campanha_atual()
+    metas = carregar_campanhas_meta()
+    meta = metas.get(cid)
+    if not meta:
+        return jsonify({'ok': False, 'erro': 'campanha legada não tem membros geridos'}), 400
+    alvo = (request.get_json(force=True) or {}).get('uid', '')
+    if alvo in (meta.get('membros') or {}):
+        del meta['membros'][alvo]
+        salvar_campanha_meta(cid, meta)
     return jsonify({'ok': True})
 
 

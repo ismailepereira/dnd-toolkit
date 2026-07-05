@@ -61,20 +61,19 @@ function renderFichas() {
   }
   fichas.forEach(f => {
     const pct = f.hpMax > 0 ? Math.max(0, Math.min(100, (f.hpAtual / f.hpMax) * 100)) : 0;
-    const morto = f.status === 'morto';
     const card = document.createElement('div');
-    card.className = 'ficha-card' + (morto ? ' ficha-morta' : '');
+    card.className = 'ficha-card';
     card.innerHTML = `
-      <h3>${morto ? '🪦 ' : ''}${escapeHtml(f.nome) || 'Sem nome'}</h3>
-      <div class="sub">${escapeHtml(f.raca) || ''} ${escapeHtml(f.classe) || ''} - Nível ${f.nivel}${morto ? ' · falecido' : ''}</div>
+      <h3>${escapeHtml(f.nome) || 'Sem nome'}</h3>
+      <div class="sub">${escapeHtml(f.raca) || ''} ${escapeHtml(f.classe) || ''} - Nível ${f.nivel}</div>
       <div>HP: ${f.hpAtual} / ${f.hpMax} | CA: ${f.ca}</div>
       <div class="hp-bar"><div class="hp-bar-fill" style="width:${pct}%"></div></div>
       <label class="check-chip loja-especial-toggle ${f.lojaEspecialLiberada ? 'on' : ''}" title="Libera a Loja Especial (itens mágicos) só para este personagem">
         <input type="checkbox" data-loja-especial-ficha="${f.id}" ${f.lojaEspecialLiberada ? 'checked' : ''}> 🔓 Loja Especial
       </label>
       <div class="ficha-card-acoes">
-        <button class="btn-jogar" data-jogar="${f.id}">${morto ? '🪦 Memorial' : '▶ Jogar'}</button>
-        <button class="btn-editar" data-editar="${f.id}"${morto ? ' disabled title="Ficha falecida — reviva no memorial para editar"' : ''}>✎ Editar</button>
+        <button class="btn-jogar" data-jogar="${f.id}">▶ Jogar</button>
+        <button class="btn-editar" data-editar="${f.id}">✎ Editar</button>
       </div>
     `;
     card.querySelector('[data-jogar]').addEventListener('click', (e) => {
@@ -91,33 +90,6 @@ function renderFichas() {
   });
   montarEnvioMestre();
 }
-
-// ----- Fase 10: aba Membros (quem participa da campanha ativa) -----
-async function carregarMembros() {
-  const el = document.getElementById('membrosInfo');
-  if (!el) return;
-  let info;
-  try { info = await (await fetch('/api/campanha_info')).json(); } catch (e) { el.innerHTML = '<p style="color:var(--text-dim)">Não foi possível carregar.</p>'; return; }
-  if (info.legado) {
-    el.innerHTML = `<div class="jg-bloco"><h4>Campanha "${escapeHtml(info.nome)}" (legada)</h4>
-      <p>Esta campanha foi criada antes do sistema de contas — não tem lista de membros. Os logins fixos (Mestre/jogador) continuam a funcionar nela.</p>
-      <p class="criador-hint">Para usar convites e membros, crie uma campanha nova em <a href="/campanhas">🗺️ Minhas Campanhas</a> e importe um 💾 Backup desta, se quiser migrar os dados.</p></div>`;
-    return;
-  }
-  const linhas = (info.membros || []).map(m => `<div class="jg-rec"><span>🎲 ${escapeHtml(m.nome)}</span>
-    <button class="btn-mini" data-remover-membro="${escapeHtml(m.uid)}" title="Remover da campanha">×</button></div>`).join('');
-  el.innerHTML = `<div class="jg-bloco"><h4>${escapeHtml(info.nome)}</h4>
-      <p>🎩 Mestre: <b>${escapeHtml(info.mestre || '')}</b></p>
-      ${info.codigoConvite ? `<p>🎟️ Código de convite: <code class="convite-codigo">${escapeHtml(info.codigoConvite)}</code> <span class="criador-hint-inline">partilhe com os jogadores — eles entram em "Minhas Campanhas → Entrar com código"</span></p>` : ''}
-      ${linhas || '<p class="criador-hint">Nenhum jogador entrou ainda.</p>'}
-    </div>`;
-  el.querySelectorAll('[data-remover-membro]').forEach(b => b.addEventListener('click', async () => {
-    if (!confirm('Remover este jogador da campanha? As fichas dele permanecem na mesa.')) return;
-    await fetch('/api/campanha_remover_membro', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: b.dataset.removerMembro }) }).catch(() => {});
-    carregarMembros();
-  }));
-}
-carregarMembros();
 
 // ----- Fase 9: Loja Especial (itens mágicos) — liberação por campanha inteira -----
 let lojaEspecialCampanha = false;
@@ -202,7 +174,7 @@ function abrirFicha(id) {
   Criador.abrir(f, {
     aoSalvar(novo) {
       if (f) Object.assign(f, novo);
-      else fichas.push({ id: uid(), donoUid: window.MEU_UID || null, status: 'vivo', ...novo });
+      else fichas.push({ id: uid(), ...novo });
       salvarFichas();
       renderFichas();
     },

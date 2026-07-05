@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minhas Campanhas - Mestre's Toolkit</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-box campanhas-box">
+      <h1>🗺️ Minhas Campanhas</h1>
+      <p class="login-sub">Olá, {{ usuario }}! Escolha a mesa onde vai jogar. <a href="{{ url_for('logout') }}">Sair</a></p>
+      {% if erro %}<div class="login-erro">{{ erro }}</div>{% endif %}
+
+      {% if campanhas %}
+      <div class="campanhas-lista">
+        {% for c in campanhas %}
+        <form action="{{ url_for('campanha_ativa') }}" method="post" class="campanha-card{% if c.ativa %} ativa{% endif %}">
+          <input type="hidden" name="id" value="{{ c.id }}">
+          <div class="campanha-card-info">
+            <b>{{ c.nome }}</b>
+            <small>{{ '🎩 Você mestra' if c.papel == 'mestre' else '🎲 Jogador' }}{% if c.codigo %} · convite: <code>{{ c.codigo }}</code>{% endif %}</small>
+          </div>
+          <button type="submit" class="btn-primary">{{ 'Continuar' if c.ativa else 'Entrar' }}</button>
+        </form>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="login-sub">Você ainda não participa de nenhuma campanha.</p>
+      {% endif %}
+
+      <h3 class="campanhas-h3">🎟️ Entrar numa mesa</h3>
+      <form action="{{ url_for('campanha_entrar') }}" method="post" class="campanha-form-linha">
+        <input type="text" name="codigo" placeholder="código de convite (ex.: STRAHD-7F2A)" required>
+        <button type="submit" class="btn-secondary">Entrar com código</button>
+      </form>
+
+      <h3 class="campanhas-h3">✨ Criar uma campanha nova</h3>
+      <p class="login-sub">Você será o Mestre dela e recebe um código de convite para os jogadores.</p>
+      <form action="{{ url_for('campanha_nova') }}" method="post" class="campanha-form-linha">
+        <input type="text" name="nome" placeholder="nome da campanha" maxlength="48" required>
+        <button type="submit" class="btn-primary">Criar campanha</button>
+      </form>
+    </div>
+  </div>
+  <footer class="footer-attribuicao">
+    Desenvolvido por <a href="https://ismailepereira.github.io/" target="_blank" rel="noopener">ismailepereira</a>
+  </footer>
+</body>
+</html>

@@ -157,6 +157,19 @@ Spec completa em `docs/SPEC-EQUIPAMENTO.md`.
 
 ---
 
+## 🔐 FASE 10 — Autenticação e Sistema de Campanha, v1 (entregue 04/07/2026)
+Plano completo em `docs/ROADMAP-FUTURO.md` (Fase 10); esta v1 cobre os passos 1–6.
+- [x] 10.1 Auto-registo de jogadores (`/registro`, usuário+senha com hash) — contas fixas antigas continuam a funcionar (legado)
+- [x] 10.2 Campanhas com dono, membros e código de convite (`campanhas_meta` no Firestore / `data/campanhas_meta.json` local)
+- [x] 10.3 Tela "Minhas Campanhas": entrar por código, criar campanha (vira Mestre dela), trocar de mesa
+- [x] 10.4 Papel derivado da campanha ativa; form livre de troca do cabeçalho valida membresia p/ contas registadas
+- [x] 10.5 Fichas com dono (`donoUid`): só o dono (ou Mestre) joga/edita; fichas antigas sem dono ficam livres (legado)
+- [x] 10.6 Morte/permanência: 3 falhas → ficha vira memorial 🪦 read-only; jogador volta com personagem novo; Mestre tem "✨ Reviver"
+- [x] 10.7 Aba "Membros" do Mestre: código de convite + remover jogador (acesso revogado na hora)
+- [ ] 10.8 Regras de segurança do Firestore por campanha (passo 7 do plano — revisão dedicada antes de produção; RT ainda lê o doc inteiro)
+
+---
+
 ## 🧩 Formato padrão de qualquer pedido
 1. **Contexto:** "Continuar o D&D Toolkit."
 2. **Escopo exato:** classe + bloco de níveis, OU a tarefa da fase.

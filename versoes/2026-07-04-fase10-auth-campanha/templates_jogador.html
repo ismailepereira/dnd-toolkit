@@ -12,10 +12,9 @@
       <h1>🎲 Área do Jogador</h1>
       <div class="user-info">
         <span>{{ usuario }}</span>
-        {% if eh_mestre %}
+        {% if usuario == 'Ismaile' %}
         <a href="{{ url_for('mestre') }}" class="btn-secondary">Voltar ao Mestre</a>
         {% endif %}
-        <a href="{{ url_for('pagina_campanhas') }}" class="btn-secondary" title="Trocar de mesa">🗺️ Campanhas</a>
         <a href="{{ url_for('logout') }}" class="btn-danger">Sair</a>
       </div>
     </div>
@@ -83,7 +82,6 @@
   {% include "_jogo.html" %}
   {% include "_nivel.html" %}
 
-  <script>window.MEU_UID = "{{ uid }}"; window.EH_MESTRE = {{ 'true' if eh_mestre else 'false' }};</script>
   <script src="{{ url_for('static', filename='js/classes.js') }}"></script>
   <script src="{{ url_for('static', filename='js/itens.js') }}"></script>
   <script src="{{ url_for('static', filename='js/monstros.js') }}"></script>

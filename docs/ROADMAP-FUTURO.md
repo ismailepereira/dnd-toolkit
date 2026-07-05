@@ -20,6 +20,10 @@
 
 ## Fase 10 — Autenticação e Sistema de Campanha
 
+> **✅ v1 entregue em 04/07/2026** (passos 1–6 abaixo; ver `CHANGELOG.md`).
+> Fica pendente o passo 7 (regras de segurança do Firestore por campanha) e,
+> como evolução futura, recuperação de senha / Firebase Auth.
+
 ### Objetivo
 Sair do modelo atual (dois utilizadores fixos, `Ismaile`/`jogador`, definidos em
 variáveis de ambiente) para contas individuais por jogador, ligadas a

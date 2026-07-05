@@ -31,7 +31,6 @@
       <button class="tab-btn" data-tab="bestiario">Bestiário</button>
       <button class="tab-btn" data-tab="loja">Loja</button>
       <button class="tab-btn" data-tab="itensMagicos">Itens Mágicos</button>
-      <button class="tab-btn" data-tab="membros">Membros</button>
       <button class="tab-btn" data-tab="geradores">Geradores</button>
     </nav>
   </header>
@@ -195,13 +194,6 @@
       <div id="listaItensMestre" class="card-grid"></div>
     </section>
 
-    <!-- MEMBROS (Fase 10: quem participa da campanha ativa) -->
-    <section id="membros" class="tab-content">
-      <div class="panel-header"><h2>👥 Membros da Campanha</h2></div>
-      <p class="aviso-mestre">Jogadores registados entram na campanha com o código de convite. Campanhas antigas (criadas antes do sistema de contas) aparecem como "legadas" — os logins fixos continuam a funcionar nelas.</p>
-      <div id="membrosInfo"></div>
-    </section>
-
     <!-- GERADORES -->
     <section id="geradores" class="tab-content">
       <h2>Geradores Rápidos</h2>
@@ -278,7 +270,6 @@
     </div>
   </div>
 
-  <script>window.MEU_UID = "{{ uid }}"; window.EH_MESTRE = true;</script>
   <script src="{{ url_for('static', filename='js/classes.js') }}"></script>
   <script src="{{ url_for('static', filename='js/itens.js') }}"></script>
   <script src="{{ url_for('static', filename='js/monstros.js') }}"></script>

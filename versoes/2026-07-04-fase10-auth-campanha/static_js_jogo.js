@@ -96,18 +96,8 @@ const Jogo = (function () {
     else if (r === 1) { ficha.morteFalhas = (ficha.morteFalhas || 0) + 2; log('🎲 Teste de Morte: 1 natural — DUAS falhas!'); }
     else if (r >= 10) { ficha.morteSucessos = (ficha.morteSucessos || 0) + 1; log(`🎲 Teste de Morte: ${r} — sucesso.`); }
     else { ficha.morteFalhas = (ficha.morteFalhas || 0) + 1; log(`🎲 Teste de Morte: ${r} — falha.`); }
-    if ((ficha.morteFalhas || 0) >= 3) {
-      // Fase 10 — permanência: personagem morto fica selado (memorial); só o
-      // Mestre pode reviver (exceção, ex.: ressurreição em jogo). O jogador
-      // volta à mesa criando um personagem novo.
-      ficha.status = 'morto';
-      ficha.morteEm = new Date().toISOString();
-      log('💀 O personagem MORREU. A ficha vira um memorial — crie um novo personagem para continuar.');
-      salvar();
-      render();
-      return;
-    }
-    if ((ficha.morteSucessos || 0) >= 3) { ficha.morteSucessos = 3; log('✅ Estabilizado (inconsciente).'); }
+    if ((ficha.morteFalhas || 0) >= 3) log('💀 O personagem MORREU.');
+    else if ((ficha.morteSucessos || 0) >= 3) { ficha.morteSucessos = 3; log('✅ Estabilizado (inconsciente).'); }
     salvar();
   }
 
@@ -334,40 +324,9 @@ const Jogo = (function () {
   function xpProxNivel(nivel) { return nivel >= 20 ? null : XP_NIVEL[nivel]; } // XP p/ alcançar nivel+1
   function podeSubirPorXP(f) { const alvo = xpProxNivel(f.nivel || 1); return alvo != null && (f.xp || 0) >= alvo; }
 
-  // ----- Fase 10: memorial de personagem morto (read-only; Mestre pode reviver) -----
-  function renderMemorial() {
-    const f = ficha;
-    const quando = f.morteEm ? new Date(f.morteEm).toLocaleDateString('pt-BR') : '';
-    const pers = f.personalidade || {};
-    $('modalJogoBody').innerHTML = `
-      <div class="jg-header"><div>
-        <h2>🪦 ${esc(f.nome)}</h2>
-        <div class="jg-sub">${esc(f.raca)} · ${esc(f.classe)} nível ${f.nivel}${f.antecedente ? ' · ' + esc(f.antecedente) : ''}</div>
-      </div></div>
-      <div class="jg-memorial">
-        <p><b>Caiu em combate${quando ? ` em ${quando}` : ''}.</b></p>
-        <p>Esta ficha agora é um memorial — não pode ser jogada nem editada. Para voltar à mesa, crie um personagem novo.</p>
-        ${f.historia ? `<div class="jg-bloco"><h4>História</h4><p style="white-space:pre-wrap">${esc(f.historia)}</p></div>` : ''}
-        ${pers.ligacao ? `<div class="jg-bloco"><h4>Ligação que deixou</h4><p>${esc(pers.ligacao)}</p></div>` : ''}
-        ${(f.itemMemoria && f.itemMemoria.nome) ? `<div class="jg-bloco"><h4>🎁 Item de Memória</h4><p><b>${esc(f.itemMemoria.nome)}</b>${f.itemMemoria.descricao ? ' — ' + esc(f.itemMemoria.descricao) : ''}</p></div>` : ''}
-        ${window.EH_MESTRE ? `<button id="jgReviver" class="btn-primary">✨ Reviver (decisão do Mestre)</button>` : ''}
-      </div>`;
-    if ($('jgReviver')) $('jgReviver').onclick = () => {
-      if (!confirm(`Reviver ${ficha.nome}? Use só para ressurreição em jogo (Revivificar, Reviver Mortos...).`)) return;
-      ficha.status = 'vivo';
-      ficha.morteEm = null;
-      ficha.hpAtual = 1;
-      ficha.morteSucessos = 0;
-      ficha.morteFalhas = 0;
-      salvar();
-      render();
-    };
-  }
-
   // ----- render -----
   function render() {
     garantirEstado();
-    if (ficha.status === 'morto') { renderMemorial(); return; }
     const f = ficha, a = f.atributos, pb = pbAtual();
     const pctHp = f.hpMax > 0 ? Math.max(0, Math.min(100, (f.hpAtual / f.hpMax) * 100)) : 0;
     const corHp = pctHp > 50 ? '#3fb950' : pctHp > 25 ? '#d29922' : '#e94560';

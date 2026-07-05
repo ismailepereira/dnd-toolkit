@@ -67,30 +67,21 @@ function renderFichas() {
   ordenadas.forEach(f => {
     const pct = f.hpMax > 0 ? Math.max(0, Math.min(100, (f.hpAtual / f.hpMax) * 100)) : 0;
     const ehMinha = f.id === minhaId;
-    const morto = f.status === 'morto';
-    // Fase 10: ficha com dono só é jogável/editável pelo dono (ou pelo Mestre);
-    // fichas antigas sem donoUid ficam livres (legado / mesa aberta)
-    const souDono = !f.donoUid || !window.MEU_UID || f.donoUid === window.MEU_UID || window.EH_MESTRE;
     const card = document.createElement('div');
-    card.className = 'ficha-card' + (ehMinha ? ' minha' : '') + (morto ? ' ficha-morta' : '');
+    card.className = 'ficha-card' + (ehMinha ? ' minha' : '');
     card.innerHTML = `
       <button class="ficha-estrela" data-estrela="${f.id}" title="${ehMinha ? 'Esta é a minha ficha' : 'Marcar como minha ficha'}">${ehMinha ? '⭐' : '☆'}</button>
-      <h3>${morto ? '🪦 ' : ''}${escapeHtml(f.nome) || 'Sem nome'}</h3>
-      <div class="sub">${escapeHtml(f.raca) || ''} ${escapeHtml(f.classe) || ''} - Nível ${f.nivel}${morto ? ' · falecido' : ''}${!souDono ? ' · de outro jogador' : ''}</div>
+      <h3>${escapeHtml(f.nome) || 'Sem nome'}</h3>
+      <div class="sub">${escapeHtml(f.raca) || ''} ${escapeHtml(f.classe) || ''} - Nível ${f.nivel}</div>
       <div>HP: ${f.hpAtual} / ${f.hpMax} | CA: ${f.ca}</div>
       <div class="hp-bar"><div class="hp-bar-fill" style="width:${pct}%"></div></div>
       <div class="ficha-card-acoes">
-        ${morto
-          ? `<button class="btn-jogar" data-jogar="${f.id}">🪦 Memorial</button>`
-          : (souDono ? `<button class="btn-jogar" data-jogar="${f.id}">▶ Jogar</button>
-                        <button class="btn-editar" data-editar="${f.id}">✎ Editar</button>`
-                     : '<span class="criador-hint">👁️ só o dono joga esta ficha</span>')}
+        <button class="btn-jogar" data-jogar="${f.id}">▶ Jogar</button>
+        <button class="btn-editar" data-editar="${f.id}">✎ Editar</button>
       </div>
     `;
-    const bJogar = card.querySelector('[data-jogar]');
-    if (bJogar) bJogar.addEventListener('click', (e) => { e.stopPropagation(); jogarFicha(f); });
-    const bEditar = card.querySelector('[data-editar]');
-    if (bEditar) bEditar.addEventListener('click', (e) => { e.stopPropagation(); abrirFicha(f.id); });
+    card.querySelector('[data-jogar]').addEventListener('click', (e) => { e.stopPropagation(); jogarFicha(f); });
+    card.querySelector('[data-editar]').addEventListener('click', (e) => { e.stopPropagation(); abrirFicha(f.id); });
     card.querySelector('[data-estrela]').addEventListener('click', (e) => {
       e.stopPropagation();
       setMinhaFicha(ehMinha ? null : f.id);
@@ -106,7 +97,7 @@ function abrirFicha(id) {
   Criador.abrir(f, {
     aoSalvar(novo) {
       if (f) Object.assign(f, novo);
-      else fichas.push({ id: uid(), donoUid: window.MEU_UID || null, status: 'vivo', ...novo });
+      else fichas.push({ id: uid(), ...novo });
       salvarFichas();
       renderFichas();
     },

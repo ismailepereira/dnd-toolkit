@@ -4,23 +4,6 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
-## 2026-07-05 — Rolagem com alvo, dano real, defesas e dado físico (Fase C1)
-
-**Backup antes da alteração:** `versoes/2026-07-05-c1/`
-(cópia de todos os ficheiros tocados).
-
-**Resumo:** O jogador agora pode selecionar um alvo ativo do combate na própria ficha (Modo de Jogo); rolagens de ataque e dano são validadas e aplicadas diretamente ao alvo através da nova API central `/api/combate/acao` (comparação com CA, aplicação de resistências, vulnerabilidades e imunidades); as defesas funcionam em fluxo reverso (o jogador indica o CD/ataque do inimigo, rola e aplica o dano resultante a si mesmo); e todas as rolagens ganham a opção "Dado Físico" que solicita a inserção manual do resultado dos dados.
-
-**Ficheiros alterados (backup em `versoes/2026-07-05-c1/`):**
-- `app.py` — nova rota `POST /api/combate/acao` para processar ataques (comparando contra CA) e dano real (com aplicação de imunidades/resistências/vulnerabilidades e persistência de HP de PJs).
-- `static/js/jogo.js` — inclusão da variável de estado `jgDadoFisico` e `jgAlvoId`; interface estendida com seletor de alvo, caixa de seleção para Dado Físico (que intercepta rolagens de d20 e dano por prompts numéricos) e o bloco de Defesas contra Inimigo (cálculo de salvaguarda/CA vs ataque/CD com aplicação de dano local e log centralizado).
-- `static/js/jogador.js` — expõe o estado de combate ativo na variável global `window.COMBATE_ATUAL`.
-- `static/js/app.js` — expõe o estado de combate ativo na variável global `window.COMBATE_ATUAL` no painel do Mestre.
-- `docs/ROADMAP-FUTURO.md` — marca o passo C1 como concluído.
-
-**Como reverter:**
-1. Restaurar os ficheiros de backup em `versoes/2026-07-05-c1/` para suas localizações originais.
-
 ## 2026-07-04 — Criação de personagem avançada (Fase 7)
 
 **Backup antes da alteração:** `versoes/2026-07-04-criacao-personagem-avancada/`

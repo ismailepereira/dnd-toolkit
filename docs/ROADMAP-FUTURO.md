@@ -53,7 +53,7 @@ opção "enviar a todos" para recompensa de grupo.
 
 ## 🟠 P1 — Combate na mesa (a seguir aos bugs)
 
-### C1. Rolagem com alvo, dano real, defesas e dado físico
+### C1. Rolagem com alvo, dano real, defesas e dado físico ✅
 **Objetivo:** o jogador escolhe um alvo do combate na própria ficha; o ataque
 compara automaticamente com a CA do alvo (acertou/errou) e o dano rolado é
 aplicado de verdade ao alvo (com resist/vuln/imune); as defesas funcionam ao

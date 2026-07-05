@@ -297,7 +297,6 @@ function statusMonstro(pct, hpAtual) {
 }
 
 function renderCombateJog(combate) {
-  window.COMBATE_ATUAL = combate;
   if (!combate || !combate.combatentes || !combate.combatentes.length) {
     turnoInfoJog.textContent = 'Nenhum combate em andamento.';
     listaCombateJog.innerHTML = '';

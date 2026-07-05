@@ -494,7 +494,6 @@ function atacar(atacante, acao, vezes = 1) {
 function statusPct(c) { return c.hpMax > 0 ? (c.hpAtual / c.hpMax) * 100 : 0; }
 
 function renderCombate() {
-  window.COMBATE_ATUAL = combate;
   if (!listaCombate) return;
   // log
   combateLog.innerHTML = (combate.log || []).map(l => `<li>${escapeHtml(l)}</li>`).join('');

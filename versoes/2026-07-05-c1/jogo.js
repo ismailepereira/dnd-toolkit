@@ -5,8 +5,6 @@
 const Jogo = (function () {
   const $ = id => document.getElementById(id);
   let ficha = null, ctx = null;
-  let jgDadoFisico = false;
-  let jgAlvoId = '';
 
   function esc(s) { return s == null ? '' : String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
   const m = v => Math.floor((v - 10) / 2);
@@ -17,22 +15,6 @@ const Jogo = (function () {
     if (!mt) return null;
     const n = mt[1] ? +mt[1] : 1, faces = +mt[2], bonus = mt[3] ? parseInt(mt[3].replace(/\s/g, '')) : 0;
     let total = bonus; const ds = [];
-    if (jgDadoFisico) {
-      const resp = prompt(`Fórmula: ${formula}. Digite os valores rolados no(s) ${n}d${faces} separados por vírgula (ou o total sem bônus):`);
-      const partes = (resp || '').split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
-      let soma = 0;
-      if (partes.length > 0) {
-        partes.forEach(p => {
-          ds.push(p);
-          soma += p;
-        });
-      } else {
-        ds.push(0);
-        soma = 0;
-      }
-      total = soma + bonus;
-      return { total, ds, bonus, txt: `físico[${ds.join('+')}]${bonus ? (bonus > 0 ? '+' + bonus : bonus) : ''} = ${total}` };
-    }
     for (let i = 0; i < n; i++) { const r = 1 + Math.floor(Math.random() * faces); ds.push(r); total += r; }
     return { total, ds, bonus, txt: `${ds.join('+')}${bonus ? (bonus > 0 ? '+' + bonus : bonus) : ''} = ${total}` };
   }
@@ -46,20 +28,6 @@ const Jogo = (function () {
   // ----- rolagem com Vantagem/Desvantagem -----
   let modoRolagem = 'normal';
   function d20Modo() {
-    if (jgDadoFisico) {
-      if (modoRolagem === 'normal') {
-        const val = parseInt(prompt("Digite o valor do d20 físico:") || "10");
-        const a = isNaN(val) ? 10 : val;
-        return { v: a, txt: `d20(físico)=${a}` };
-      } else {
-        const valA = parseInt(prompt(`Digite o 1º d20 físico para ${modoRolagem}:`) || "10");
-        const valB = parseInt(prompt(`Digite o 2º d20 físico para ${modoRolagem}:`) || "10");
-        const a = isNaN(valA) ? 10 : valA;
-        const b = isNaN(valB) ? 10 : valB;
-        const v = modoRolagem === 'vantagem' ? Math.max(a, b) : Math.min(a, b);
-        return { v, txt: `d20 físico ${a}/${b}→${v} (${modoRolagem === 'vantagem' ? 'vant.' : 'desv.'})`, nat: v };
-      }
-    }
     const a = 1 + Math.floor(Math.random() * 20);
     if (modoRolagem === 'normal') return { v: a, txt: `d20=${a}` };
     const b = 1 + Math.floor(Math.random() * 20);
@@ -70,20 +38,7 @@ const Jogo = (function () {
     const r = d20Modo();
     const total = r.v + bonus;
     const critMsg = r.v === 20 ? ' (20 natural!)' : r.v === 1 ? ' (1 natural)' : '';
-    const txtLog = `${nome}: ${total} (${r.txt}${bonus ? (bonus >= 0 ? '+' : '') + bonus : ''})${critMsg}`;
-    log(txtLog);
-    
-    if (window.COMBATE_ATUAL && window.COMBATE_ATUAL.combatentes && window.COMBATE_ATUAL.combatentes.length > 0) {
-      fetch('/api/combate/acao', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          acao: 'defesa_log',
-          msg: `${ficha.nome} rolou ${txtLog}`
-        })
-      }).catch(() => {});
-    }
-    
+    log(`${nome}: ${total} (${r.txt}${bonus ? (bonus >= 0 ? '+' : '') + bonus : ''})${critMsg}`);
     render();
   }
 
@@ -616,37 +571,6 @@ const Jogo = (function () {
         return `<button class="jg-skill ${profSalva(a.nome) ? 'prof' : ''}" data-salva="${a.chave}" data-snome="${esc(a.nome)}" data-bonus="${b}">${a.nome.slice(0, 3)} <b>${b >= 0 ? '+' : ''}${b}</b></button>`;
       }).join('') + `</div></div>`;
 
-    // Painel de Defesas contra CD/Ataque inimigo
-    const DANOS_TIPOS = ['ácido', 'concussão', 'frio', 'fogo', 'força', 'relâmpago', 'necrótico', 'perfurante', 'veneno', 'psíquico', 'radiante', 'corte', 'trovão'];
-    const defesasContraInimigoHtml = `
-      <div class="jg-bloco">
-        <h4>💥 Defesa contra Inimigo</h4>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-          <label class="mini-label">CD / Ataque<input type="number" id="jgDefCD" value="15" style="width:100%"></label>
-          <label class="mini-label">Tipo Defesa
-            <select id="jgDefTipo" style="width:100%">
-              <option value="ca">CA (Ataque Inimigo)</option>
-              ${ATRIBUTOS.map(a => `<option value="${a.chave}">Salva ${a.nome}</option>`).join('')}
-            </select>
-          </label>
-        </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-          <label class="mini-label">Dano Inimigo<input type="number" id="jgDefDano" value="10" style="width:100%"></label>
-          <label class="mini-label">Tipo de Dano
-            <select id="jgDefDanoTipo" style="width:100%">
-              <option value="">— nenhum —</option>
-              ${DANOS_TIPOS.map(t => `<option value="${t}">${t}</option>`).join('')}
-            </select>
-          </label>
-        </div>
-        <div style="margin-bottom: 8px;">
-          <label><input type="checkbox" id="jgDefMetade" checked> ½ dano se passar (Magia/Área)</label>
-        </div>
-        <button id="jgDefBtn" class="btn-primary" style="width:100%">🎲 Rolar / Aplicar Defesa</button>
-      </div>
-    `;
-
-
     // concentração (só aparece para conjuradores)
     const magiasConc = _ehConj ? [...magiasCastaveis()] : [];
     const concHtml = _ehConj ? `<div class="jg-bloco"><h4>Concentração</h4>
@@ -661,43 +585,12 @@ const Jogo = (function () {
       <button id="jgTesteMorte" class="btn-primary">🎲 Rolar Teste de Morte</button>
       ${f.morteFalhas >= 3 ? '<div class="pv-warn">💀 Morto.</div>' : f.morteSucessos >= 3 ? '<div class="criador-hint">Estável (inconsciente).</div>' : ''}</div>` : '';
 
-    // Dado físico checkbox
-    const dadoFisicoHtml = `
-      <div class="jg-modo" style="margin-top: 6px;">
-        <label class="check-chip ${jgDadoFisico ? 'on' : ''}" title="Digita os resultados das rolagens em vez de rolar digitalmente">
-          <input type="checkbox" id="jgDadoFisico" ${jgDadoFisico ? 'checked' : ''}> 🎲 Dado Físico (Digitar valor)
-        </label>
-      </div>
-    `;
-
-    // Seletor de alvo
-    let alvoHtml = '';
-    if (window.COMBATE_ATUAL && window.COMBATE_ATUAL.combatentes && window.COMBATE_ATUAL.combatentes.length > 0) {
-      const opsAlvo = window.COMBATE_ATUAL.combatentes
-        .filter(c => c.fichaId !== ficha.id)
-        .map(c => `<option value="${c.id}" ${jgAlvoId === c.id ? 'selected' : ''}>${esc(c.nome)} (CA ${c.ca})</option>`)
-        .join('');
-      alvoHtml = `
-        <div class="jg-modo" style="margin-top: 6px;">
-          <label>🎯 Mirar em: 
-            <select id="jgAlvo" style="background:var(--bg-card); color:var(--text); border:1px solid var(--border); border-radius:6px; padding:4px;">
-              <option value="">— Sem Alvo —</option>
-              ${opsAlvo}
-            </select>
-          </label>
-        </div>
-      `;
-    }
-
     // controle de vantagem/desvantagem
     const modoHtml = `<div class="jg-modo">Rolagem:
       <button class="jg-modo-btn ${modoRolagem === 'desvantagem' ? 'on' : ''}" data-modo="desvantagem">Desvantagem</button>
       <button class="jg-modo-btn ${modoRolagem === 'normal' ? 'on' : ''}" data-modo="normal">Normal</button>
       <button class="jg-modo-btn ${modoRolagem === 'vantagem' ? 'on' : ''}" data-modo="vantagem">Vantagem</button>
-    </div>
-    ${dadoFisicoHtml}
-    ${alvoHtml}
-    `;
+    </div>`;
     // ----- slots de equipar + bolsa com peso -----
     const contarItem = (n) => (f.itens || []).filter(x => x === n).length;
     const armasBolsa = nomesArmas.filter(n => catJogo(n) && catJogo(n).cat === 'arma');
@@ -904,7 +797,7 @@ const Jogo = (function () {
       <div class="jg-attrs">${attrHtml}</div>
 
       <div class="jg-cols">
-        <div>${salvasHtml}${defesasContraInimigoHtml}${periciasHtml}${slotsHtml}${recHtml}
+        <div>${salvasHtml}${periciasHtml}${slotsHtml}${recHtml}
           <div class="jg-bloco"><h4>Ouro</h4>
             <div class="jg-ouro"><b>${f.ouro} po</b>
               ${window.EH_MESTRE ? `
@@ -1054,93 +947,19 @@ const Jogo = (function () {
       }
       salvar();
     });
-    document.querySelectorAll('[data-rolararma]').forEach(b => b.onclick = async () => {
-      const armaNome = b.dataset.arma;
-      const formula = b.dataset.rolararma;
-      const matchDmg = formula.match(/^([^a-zA-Z]+)?\s*([a-zA-Zçãéíóôú]+)?/i);
-      const dadosForm = matchDmg ? matchDmg[1].trim() : formula;
-      const dmgTipo = matchDmg ? matchDmg[2] : null;
-      
-      const r = rolar(dadosForm);
-      if (!r) return;
-      
-      if (jgAlvoId) {
-        try {
-          const res = await fetch('/api/combate/acao', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              acao: 'dano',
-              alvoId: jgAlvoId,
-              tipoDano: dmgTipo,
-              bruto: r.total,
-              nomeAcao: armaNome,
-              dadoFisico: jgDadoFisico
-            })
-          });
-          const resData = await res.json();
-          if (resData.ok) {
-            const lblMult = resData.mult === 0 ? ' (IMUNE)' : resData.mult === 0.5 ? ' (resistência)' : resData.mult === 2 ? ' (VULNERÁVEL)' : '';
-            log(`Dano ${armaNome}: causou ${resData.danoReal} ${dmgTipo || ''}${lblMult} ao alvo.`);
-          } else {
-            log(`Erro no dano: ${resData.erro || 'desconhecido'}`);
-          }
-        } catch (err) {
-          log(`Erro de rede ao aplicar dano.`);
-        }
-      } else {
-        log(`${armaNome}: dano ${r.total} (${r.txt})`);
-      }
-      render();
+    document.querySelectorAll('[data-rolararma]').forEach(b => b.onclick = () => {
+      const r = rolar(b.dataset.rolararma);
+      if (r) { log(`${b.dataset.arma}: dano ${r.total} (${r.txt})`); render(); }
     });
-    
-    document.querySelectorAll('[data-atacararma]').forEach(b => b.onclick = async () => {
-      const armaNome = b.dataset.arma;
-      const bonus = +b.dataset.atacararma;
-      
+    document.querySelectorAll('[data-atacararma]').forEach(b => b.onclick = () => {
+      // arma de munição consome 1 disparo por ataque
       if (b.dataset.municao) {
         if (!ficha.municao || ficha.municao.nome !== b.dataset.municao || ficha.municao.qtd <= 0) return;
         ficha.municao.qtd -= 1;
         log(`Gastou 1 ${b.dataset.municao.replace(/s$/, '').toLowerCase()} (restam ${ficha.municao.qtd})`);
-        salvar();
       }
-      
-      const r = d20Modo();
-      const total = r.v + bonus;
-      const isCrit = r.v === 20;
-      const isMiss = r.v === 1;
-      
-      if (jgAlvoId) {
-        try {
-          const res = await fetch('/api/combate/acao', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              acao: 'ataque',
-              alvoId: jgAlvoId,
-              totalAtaque: total,
-              d20: r.v,
-              critico: isCrit,
-              erroAuto: isMiss,
-              nomeAcao: armaNome,
-              dadoFisico: jgDadoFisico
-            })
-          });
-          const resData = await res.json();
-          if (resData.ok) {
-            const resMsg = resData.acertou ? (resData.critico ? '🔥 ACERTO CRÍTICO!' : '🎯 ACERTOU!') : '❌ ERROU';
-            log(`Ataque ${armaNome}: ${resMsg} (${total} vs CA ${resData.ca})`);
-          } else {
-            log(`Erro no ataque: ${resData.erro || 'desconhecido'}`);
-          }
-        } catch (err) {
-          log(`Erro de rede no ataque.`);
-        }
-      } else {
-        const critMsg = isCrit ? ' (20 natural!)' : isMiss ? ' (1 natural)' : '';
-        log(`Ataque ${armaNome}: ${total} (${r.txt}${bonus ? (bonus >= 0 ? '+' : '') + bonus : ''})${critMsg}`);
-      }
-      render();
+      rolarTeste(`Ataque ${b.dataset.arma}`, +b.dataset.atacararma);
+      if (b.dataset.municao) salvar();
     });
 
     // modo de rolagem (vantagem/desvantagem)
@@ -1172,44 +991,9 @@ const Jogo = (function () {
       else ficha.condicoes = ficha.condicoes.filter(x => x !== nome);
       salvar();
     });
-    document.querySelectorAll('[data-rolarmagia]').forEach(b => b.onclick = async () => {
-      const magiaNome = b.dataset.nome;
-      const formula = b.dataset.rolarmagia;
-      const matchDmg = formula.match(/^([^a-zA-Z]+)?\s*([a-zA-Zçãéíóôú]+)?/i);
-      const dadosForm = matchDmg ? matchDmg[1].trim() : formula;
-      const dmgTipo = matchDmg ? matchDmg[2] : null;
-      
-      const r = rolar(dadosForm);
-      if (!r) return;
-      
-      if (jgAlvoId) {
-        try {
-          const res = await fetch('/api/combate/acao', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              acao: 'dano',
-              alvoId: jgAlvoId,
-              tipoDano: dmgTipo,
-              bruto: r.total,
-              nomeAcao: magiaNome,
-              dadoFisico: jgDadoFisico
-            })
-          });
-          const resData = await res.json();
-          if (resData.ok) {
-            const lblMult = resData.mult === 0 ? ' (IMUNE)' : resData.mult === 0.5 ? ' (resistência)' : resData.mult === 2 ? ' (VULNERÁVEL)' : '';
-            log(`Dano da magia ${magiaNome}: causou ${resData.danoReal} ${dmgTipo || ''}${lblMult} ao alvo.`);
-          } else {
-            log(`Erro no dano: ${resData.erro || 'desconhecido'}`);
-          }
-        } catch (err) {
-          log(`Erro de rede ao aplicar dano.`);
-        }
-      } else {
-        log(`${magiaNome}: dano ${r.total} (${r.txt})`);
-      }
-      render();
+    document.querySelectorAll('[data-rolarmagia]').forEach(b => b.onclick = () => {
+      const r = rolar(b.dataset.rolarmagia);
+      if (r) { log(`${b.dataset.nome}: dano ${r.total} (${r.txt})`); render(); }
     });
     document.querySelectorAll('[data-preparar]').forEach(b => b.onclick = () => alternarPreparada(b.dataset.preparar));
 
@@ -1230,82 +1014,6 @@ const Jogo = (function () {
     if ($('jgItemMemNome')) $('jgItemMemNome').addEventListener('change', () => { ficha.itemMemoria.nome = $('jgItemMemNome').value; salvar(); });
     if ($('jgItemMemTipo')) $('jgItemMemTipo').addEventListener('change', () => { ficha.itemMemoria.tipo = $('jgItemMemTipo').value; salvar(); });
     if ($('jgItemMemDescricao')) $('jgItemMemDescricao').addEventListener('change', () => { ficha.itemMemoria.descricao = $('jgItemMemDescricao').value; salvar(); });
-
-    if ($('jgDadoFisico')) $('jgDadoFisico').onchange = () => { jgDadoFisico = $('jgDadoFisico').checked; render(); };
-    if ($('jgAlvo')) $('jgAlvo').onchange = () => { jgAlvoId = $('jgAlvo').value; };
-    
-    if ($('jgDefBtn')) $('jgDefBtn').onclick = () => {
-      const cd = Number($('jgDefCD').value) || 0;
-      const defTipo = $('jgDefTipo').value;
-      const dano = Number($('jgDefDano').value) || 0;
-      const danoTipo = $('jgDefDanoTipo').value;
-      const metade = $('jgDefMetade').checked;
-      
-      let passou = false;
-      let roloTxt = '';
-      let totalRolo = 0;
-      
-      if (defTipo === 'ca') {
-        totalRolo = ficha.ca;
-        passou = totalRolo > cd;
-        roloTxt = `CA ${totalRolo} vs Ataque ${cd}`;
-      } else {
-        const r = d20Modo();
-        const b = bonusSalva(defTipo);
-        totalRolo = r.v + b;
-        passou = totalRolo >= cd;
-        const nomeAttr = ATRIBUTOS.find(a => a.chave === defTipo).nome;
-        roloTxt = `Salva de ${nomeAttr}: ${totalRolo} (${r.txt}${b ? (b >= 0 ? '+' : '') + b : ''}) vs CD ${cd}`;
-      }
-      
-      let danoSofrido = dano;
-      if (passou) {
-        danoSofrido = metade ? Math.floor(dano / 2) : 0;
-      }
-      
-      if (danoSofrido > 0) {
-        let mult = 1.0;
-        const tipo = (danoTipo || '').trim().toLowerCase();
-        if (tipo) {
-          if ((ficha.imune || []).map(x => x.toLowerCase()).includes(tipo)) mult = 0.0;
-          else if ((ficha.resist || []).map(x => x.toLowerCase()).includes(tipo)) mult = 0.5;
-          else if ((ficha.vuln || []).map(x => x.toLowerCase()).includes(tipo)) mult = 2.0;
-        }
-        const realDmg = Math.floor(danoSofrido * mult);
-        const lblMult = mult === 0 ? ' (IMUNE)' : mult === 0.5 ? ' (resistência)' : mult === 2 ? ' (VULNERÁVEL)' : '';
-        
-        let abs = Math.min(ficha.pvTemp || 0, realDmg);
-        ficha.pvTemp = (ficha.pvTemp || 0) - abs;
-        const liquido = realDmg - abs;
-        ficha.hpAtual = Math.max(0, (ficha.hpAtual || 0) - liquido);
-        checarConcentracao(realDmg);
-        
-        const resMsg = passou ? 'Passou' : 'Falhou';
-        const logMsg = `${ficha.nome} -> Defesa (${roloTxt}): ${resMsg}. Sofreu ${realDmg} de dano ${danoTipo}${lblMult}. PV ${ficha.hpAtual}/${ficha.hpMax}`;
-        log(logMsg);
-        
-        if (window.COMBATE_ATUAL) {
-          fetch('/api/combate/acao', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ acao: 'defesa_log', msg: logMsg })
-          }).catch(() => {});
-        }
-      } else {
-        const resMsg = passou ? 'Passou' : 'Falhou';
-        const logMsg = `${ficha.nome} -> Defesa (${roloTxt}): ${resMsg}. Evitou todo o dano.`;
-        log(logMsg);
-        
-        if (window.COMBATE_ATUAL) {
-          fetch('/api/combate/acao', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ acao: 'defesa_log', msg: logMsg })
-          }).catch(() => {});
-        }
-      }
-      salvar();
-    };
   }
 
   // ----- Exportar ficha em PDF (janela imprimível -> Salvar como PDF) -----

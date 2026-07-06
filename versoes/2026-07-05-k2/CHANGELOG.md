@@ -4,29 +4,6 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
-## 2026-07-05 — Livro-jogo v1: aventuras como grafo de nós/escolhas (Passo K2)
-
-**Backup antes da alteração:** `versoes/2026-07-05-k2/`
-(cópia de todos os ficheiros tocados).
-
-**Resumo:** O K2 evoluiu de "mapa mental" para um motor de livro-jogo (arquitetura combinada com o Ismaile em 05/07). Nova aba "📖 Aventura" no Mestre com: biblioteca PESSOAL de aventuras (`aventuras/<uid>`, segue o autor entre campanhas — padrão M4); editor de grafo em lista (nós com título, tipo — narração/encontro/social/assalto/descanso/final —, narração para ler, notas privadas 🔒, encontro do bestiário e saídas com rótulo + aviso 💀 mortal / 🚧 sem saída); validador de grafo ("🔍 Verificar": ids duplicados, saídas para nós inexistentes, nós órfãos via BFS, becos não marcados como final, ausência de caminho de vitória); "▶ Iniciar" copia a definição para a mesa (SNAPSHOT — editar a biblioteca depois não muda a aventura em curso); painel de condução no topo da aba (narração do nó atual, "⚔️ Lançar no combate" reusa `addMonstro`, "✓ Marcar vencido", botões de escolha para avançar com trilha percorrida, encerrar). Jogador por enquanto só sabe o título/que há aventura em curso — as escolhas na tela dele são a próxima fase (decisão do Ismaile).
-
-**Ficheiros alterados:**
-- `app.py` — `ESTADO_PADRAO['aventura_ativa']`; helpers + rotas `GET/PUT /api/aventuras` (biblioteca pessoal, cap 50) e `GET/POST /api/aventura_ativa` (iniciar com validação de definição/nó inicial, avançar com validação de destino, completar nó, encerrar; jogador recebe visão limitada).
-- `static/js/aventura.js` (NOVO) — funções puras `validarAventura` (BFS) e `noDaAventura` (export CommonJS p/ testes) + UI completa (biblioteca, editor em lista, condução).
-- `templates/mestre.html` — aba "📖 Aventura" + secção + script tag.
-- `static/css/style.css` — estilos `.av-no`/`.av-sub`/`.av-conducao`.
-- `.gitignore` — `data/aventuras.json`.
-- `docs/ROADMAP-FUTURO.md` — K2 reescrito com a arquitetura do livro-jogo, v1 marcada ✅ e os 6 próximos passos (escolhas dos jogadores, NPCs por nó, partilha, canvas SVG, grid por nó, Phandelver neste formato).
-
-**Testes:** `node --check`; harness Node do validador (grafo do exemplo "ponto 0 com 6 caminhos" — 1 beco, 1 morte, caminhos cruzados até a vitória —, todos os defeitos detetados, ciclos sem loop infinito; **apanhou um bug real**: `fila.shift()` dentro do callback do `find` corrompia a BFS — corrigido); harness Flask (campanha isolada, limpa no fim): biblioteca pessoal e isolada por utilizador, PUT não-lista 400, iniciar com snapshot, definições inválidas 400, jogador com visão limitada e sem poder conduzir, completar/avançar com validação de destino, snapshot imune a edições da biblioteca, encerrar; `py_compile` + Jinja OK.
-
-**Como reverter:**
-1. Restaurar `app.py`, `templates/mestre.html`, `static/css/style.css`, `.gitignore`, `docs/ROADMAP-FUTURO.md` e `CHANGELOG.md` a partir de `versoes/2026-07-05-k2/`.
-2. Apagar `static/js/aventura.js`.
-
----
-
 ## 2026-07-05 — Lojas geridas por NPC (Fase 12)
 
 **Backup antes da alteração:** `versoes/2026-07-05-f12/`

@@ -27,7 +27,6 @@
       <button class="tab-btn" data-tab="combate">Combate</button>
       <button class="tab-btn" data-tab="encontros">Encontros</button>
       <button class="tab-btn" data-tab="npcs">NPCs</button>
-      <button class="tab-btn" data-tab="aventura">📖 Aventura</button>
       <button class="tab-btn" data-tab="notas">Notas</button>
       <button class="tab-btn" data-tab="progressao">Progressão</button>
       <button class="tab-btn" data-tab="bestiario">Bestiário</button>
@@ -147,18 +146,6 @@
         <div class="panel-header"><h3 id="bancoMembroTitulo">Banco do membro</h3></div>
         <div id="listaBancoMembro" class="card-grid"></div>
       </div>
-    </section>
-
-    <!-- AVENTURA (K2: livro-jogo — grafo de nós/escolhas) -->
-    <section id="aventura" class="tab-content">
-      <div id="aventuraConducao"></div>
-      <div class="panel-header">
-        <h2>📖 Minhas Aventuras</h2>
-        <button id="avNova" class="btn-primary">➕ Nova aventura</button>
-      </div>
-      <p class="aviso-mestre">Estruture a campanha como um livro-jogo: cada NÓ é uma cena (narração, encontro, social...) e cada SAÍDA é uma escolha possível do grupo. As aventuras ficam na sua biblioteca PESSOAL (seguem você entre campanhas); "▶ Iniciar" copia a aventura para a mesa ativa. Escolhas na tela dos jogadores chegam numa fase futura.</p>
-      <div id="aventuraLib" class="card-grid"></div>
-      <div id="aventuraEditor" class="hidden"></div>
     </section>
 
     <!-- NOTAS -->
@@ -379,7 +366,6 @@
   <script src="{{ url_for('static', filename='js/monstros.js') }}"></script>
   <script src="{{ url_for('static', filename='js/ambientes.js') }}"></script>
   <script src="{{ url_for('static', filename='js/loot.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/aventura.js') }}"></script>
   <script src="{{ url_for('static', filename='js/dados5e.js') }}"></script>
   <script src="{{ url_for('static', filename='js/fontes.js') }}"></script>
   <script src="{{ url_for('static', filename='js/equipamento.js') }}"></script>

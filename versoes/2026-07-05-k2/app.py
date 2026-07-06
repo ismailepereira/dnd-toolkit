@@ -41,7 +41,6 @@ ESTADO_PADRAO = {
     'loja_especial_itens': [],  # Fase 9c: itens CURADOS pelo Mestre na Loja Especial [{nome, precoPO}]
     'npcs': [],  # Fase 11: NPCs persistentes da campanha (lojista/aliado/inimigo/neutro)
     'lojas': [],  # Fase 12: lojas geridas por NPC lojista (estoque/preços próprios)
-    'aventura_ativa': None,  # K2: progresso da aventura em curso (snapshot da definição + nó atual)
 }
 
 # ---------------------------------------------------------------
@@ -1021,101 +1020,6 @@ def api_loja_vender():
         entrada['qtd'] = int(entrada['qtd']) + 1
     salvar_estado(estado)
     return jsonify({'ok': True, 'valor': valor, 'ouroRestante': ficha['ouro']})
-
-
-# ----- K2 (livro-jogo): biblioteca PESSOAL de aventuras + aventura ativa -----
-# A DEFINIÇÃO da aventura (grafo de nós/escolhas) vive na biblioteca do autor
-# (aventuras/<uid>, fora da campanha — mesmo padrão do banco de NPCs M4).
-# O PROGRESSO vive no estado da campanha ('aventura_ativa'): ao iniciar, a
-# definição é COPIADA (snapshot) para a mesa — editar a biblioteca depois não
-# muda uma aventura já em curso, e a mesma aventura pode rodar em N mesas.
-AVENTURAS_FILE = os.path.join(BASE_DIR, 'data', 'aventuras.json')
-COLECAO_AVENTURAS = 'aventuras'
-AVENTURAS_MAX = 50
-
-
-def carregar_aventuras(uid):
-    if db is not None:
-        snap = db.collection(COLECAO_AVENTURAS).document(uid).get()
-        return (snap.to_dict() or {}).get('aventuras', []) if snap.exists else []
-    return (_carregar_docs(COLECAO_AVENTURAS, AVENTURAS_FILE).get(uid) or {}).get('aventuras', [])
-
-
-def salvar_aventuras(uid, aventuras):
-    _salvar_doc(COLECAO_AVENTURAS, AVENTURAS_FILE, uid, {'aventuras': aventuras, 'atualizadoEm': _agora()})
-
-
-@app.route('/api/aventuras', methods=['GET'])
-@login_obrigatorio()
-def api_get_aventuras():
-    return jsonify(carregar_aventuras(uid_sessao()))
-
-
-@app.route('/api/aventuras', methods=['PUT'])
-@login_obrigatorio()
-def api_put_aventuras():
-    lista = request.get_json(force=True)
-    if not isinstance(lista, list):
-        return jsonify({'ok': False, 'erro': 'esperava uma lista de aventuras'}), 400
-    lista = [a for a in lista if isinstance(a, dict)][:AVENTURAS_MAX]
-    salvar_aventuras(uid_sessao(), lista)
-    return jsonify({'ok': True, 'total': len(lista)})
-
-
-@app.route('/api/aventura_ativa', methods=['GET'])
-@login_obrigatorio()
-def api_get_aventura_ativa():
-    ativa = carregar_estado().get('aventura_ativa')
-    if session.get('papel') != 'mestre':
-        # v1: jogador ainda não participa (escolhas na mesa são a fase
-        # seguinte) — só fica a saber SE há aventura em curso e o título
-        if not ativa:
-            return jsonify(None)
-        definicao = ativa.get('definicao') or {}
-        return jsonify({'titulo': definicao.get('titulo', 'Aventura'), 'emCurso': True})
-    return jsonify(ativa)
-
-
-@app.route('/api/aventura_ativa', methods=['POST'])
-@login_obrigatorio(papeis=['mestre'])
-def api_post_aventura_ativa():
-    """Inicia (snapshot da definição), atualiza o progresso ou encerra."""
-    data = request.get_json(force=True) or {}
-    estado = carregar_estado()
-    if data.get('encerrar'):
-        estado['aventura_ativa'] = None
-        salvar_estado(estado)
-        return jsonify({'ok': True})
-    if 'definicao' in data:  # iniciar aventura (snapshot completo)
-        definicao = data['definicao']
-        if not isinstance(definicao, dict) or not definicao.get('nos'):
-            return jsonify({'ok': False, 'erro': 'definição inválida (sem nós)'}), 400
-        no_inicial = definicao.get('noInicial') or (definicao['nos'][0].get('id') if definicao['nos'] else None)
-        if not any(n.get('id') == no_inicial for n in definicao['nos']):
-            return jsonify({'ok': False, 'erro': 'nó inicial não existe na aventura'}), 400
-        estado['aventura_ativa'] = {
-            'definicao': definicao,
-            'noAtual': no_inicial,
-            'historico': [no_inicial],
-            'nosCompletados': {},
-            'iniciadaEm': _agora(),
-        }
-        salvar_estado(estado)
-        return jsonify({'ok': True, 'noAtual': no_inicial})
-    # atualizar progresso (avançar de nó / completar nó)
-    ativa = estado.get('aventura_ativa')
-    if not ativa:
-        return jsonify({'ok': False, 'erro': 'não há aventura em curso'}), 400
-    if 'noAtual' in data:
-        destino = data['noAtual']
-        if not any(n.get('id') == destino for n in (ativa.get('definicao') or {}).get('nos', [])):
-            return jsonify({'ok': False, 'erro': 'nó de destino não existe'}), 400
-        ativa['noAtual'] = destino
-        ativa.setdefault('historico', []).append(destino)
-    if 'completarNo' in data:
-        ativa.setdefault('nosCompletados', {})[data['completarNo']] = {'vencido': True, 'em': _agora()}
-    salvar_estado(estado)
-    return jsonify({'ok': True, 'noAtual': ativa['noAtual']})
 
 
 # ----- FASE 10.8: token do Firebase Auth para o tempo real seguro -----

@@ -1793,10 +1793,3 @@ body.alto-contraste a { color: #ffd400; }
 .lj-linha .lj-nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lj-linha label { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; color: var(--text-dim); }
 #lcVenda h4 { margin: 14px 0 6px 0; }
-
-/* ===== K2: livro-jogo (editor e conducao de aventuras) ===== */
-.av-no { margin-bottom: 14px; }
-.av-sub { margin: 10px 0; padding-top: 8px; border-top: 1px solid var(--border); }
-.av-sub .cond-tag { margin: 2px 4px 2px 0; display: inline-block; }
-.av-conducao { border: 1px solid rgba(233, 200, 69, 0.45); margin-bottom: 18px; }
-.av-conducao [data-ac-avancar] { margin: 4px 6px 4px 0; }

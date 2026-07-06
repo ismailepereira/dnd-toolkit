@@ -15,7 +15,6 @@ data/estado_*.json
 data/usuarios.json
 data/campanhas_meta.json
 data/bancos_npc.json
-data/aventuras.json
 
 # ─── Firebase (chave de serviço — NUNCA versionar) ───
 firebase-key.json

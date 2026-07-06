@@ -158,41 +158,19 @@ jogador detetam a transição false→true e disparam o aviso.
 **Ficheiros:** `app.js` (setar flag), `jogador.js` (banner/som/troca de aba),
 `style.css`.
 
-### K2. Livro-jogo: aventuras como grafo de nós/escolhas (evolução do mapa mental)
-
-> **✅ v1 entregue em 05/07/2026** — ver `CHANGELOG.md`. O K2 evoluiu de
-> "mapa mental do Mestre" para um **motor de livro-jogo** (decisão de
-> arquitetura de 05/07 com o Ismaile): campanhas estruturadas como grafo
-> dirigido de cenas jogáveis, reutilizáveis e partilháveis.
-
-**Arquitetura (decisão central):** DEFINIÇÃO separada de PROGRESSO.
-- Definição = grafo `{ id, titulo, limites:{jogadoresMax,nivelMin,nivelMax},
-  noInicial, nos: [{id, titulo, tipo (narracao|encontro|social|assalto|
-  descanso|final), narracao, notasMestre, resultado?, encontro:[{nome,qtd}],
-  saidas:[{para, rotulo, aviso ('' | mortal | beco)}], npcs?, gridId?}] }` —
-  vive na biblioteca PESSOAL do autor (`aventuras/<uid>`, padrão M4).
-- Progresso = `aventura_ativa` no estado da campanha: SNAPSHOT da definição
-  + `noAtual`, `historico`, `nosCompletados`. Editar a biblioteca não muda
-  uma mesa em curso; a mesma aventura roda em N mesas.
-
-**v1 entregue:** biblioteca (criar/editar/duplicar/excluir), editor de grafo
-em LISTA (nós com narração, notas 🔒, encontro do bestiário, saídas com
-rótulo e aviso 💀/🚧), validador de grafo (função pura: ids duplicados,
-saídas para nós inexistentes, órfãos por BFS, becos não-finais, ausência de
-caminho de vitória), "▶ Iniciar" com snapshot, painel de condução (narração,
-lançar encontro no combate via `addMonstro`, completar nó, avançar por
-escolha com trilha percorrida, encerrar). Jogador só vê título/emCurso.
-
-**Próximos passos do livro-jogo (ordem):**
-1. **Escolhas na tela dos jogadores** — o Mestre "abre" as saídas do nó; os
-   jogadores veem os botões e votam (aviso estilo K1); o Mestre confirma.
-2. **NPCs por nó** — referências ao banco M4 nos nós, com cartões na condução.
-3. **Partilha de aventuras** — Mestre copia aventuras de membros (padrão do
-   `GET /api/banco_npc/<uid>`); validação de limites (nº jogadores/nível) ao iniciar.
-4. **Canvas SVG (v2 do editor)** — nós arrastáveis + linhas, sem lib externa.
-5. **Grid por nó** — quando a Fase 14 existir, cada nó aponta um `gridId`.
-6. **CT1/Phandelver** passa a ser escrito NESTE formato (primeira aventura
-   oficial pronta, exemplo para Mestres iniciantes).
+### K2. Mapa mental de decisões da campanha (árvore narrativa)
+**Objetivo:** o Mestre desenha a história como nós ligados ("se o grupo
+aceitar a missão → nó A; se recusar → nó B"), marca onde o grupo está, e
+navega pelos ramos durante a sessão. Ferramenta de planeamento narrativo
+dentro da campanha.
+**Estrutura:** `historia: { nos: [{id, titulo, texto, x, y}], ligacoes:
+[{de, para, rotulo}], noAtual }` no estado da campanha; editor visual
+simples (SVG/HTML absoluto — SEM lib externa, coerente com o projeto):
+criar nó, arrastar, ligar, marcar atual. Só o Mestre vê (segredos!).
+**Ficheiros:** novo `static/js/historia.js`, aba "História" no
+`templates/mestre.html`, `app.py` (chave nova + endpoints), `style.css`.
+**Nota:** é a maior peça do P3 — pode ser dividida (v1: nós e ligações em
+lista/indentação, sem canvas visual; v2: canvas arrastável).
 
 ### (Fase 12 já planeada) Lojas geridas por NPC — encaixa aqui no P3 ✅
 Inventário e preços próprios por lojista — ver secção detalhada

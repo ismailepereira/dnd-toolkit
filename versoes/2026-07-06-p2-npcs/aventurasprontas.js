@@ -36,7 +36,6 @@ const AVENTURAS_PRONTAS = [
       },
       {
         id: 'n_familia', titulo: 'A família Swift', tipo: 'encontro',
-        npcs: [{ nome: 'Linan Swift', tipo: 'aliado', descricao: 'Mulher determinada de lança partida; protege a família na noite do ataque.', notasPrivadas: 'Se escoltada em segurança, vira aliada recorrente e dá +1 atitude do Governador.' }],
         narracao: 'Uma mulher com uma lança partida (Linan Swift) protege o marido ferido e três crianças contra um bando de kobolds que fareja sangue. "Ajudem-nos! A fortaleza ainda está aberta!"',
         notasMestre: 'Vitória fácil pensada para apresentar o combate. Se os PJs escoltarem a família, Linan vira aliada recorrente e o Governador começa com atitude amigável (vantagem em interações sociais na fortaleza).',
         encontro: [{ nome: 'Kobold', qtd: 4 }],
@@ -69,10 +68,6 @@ const AVENTURAS_PRONTAS = [
       },
       {
         id: 'n_fortaleza', titulo: 'A fortaleza do Governador', tipo: 'social',
-        npcs: [
-          { nome: 'Governador Tarbaw Nighthill', tipo: 'aliado', descricao: 'Líder de Greenest, ferido no braço mas firme; coordena a defesa da fortaleza.', notasPrivadas: 'Paga 250 po pelo grupo ao amanhecer; dobra a recompensa se seguirem a trilha do culto.' },
-          { nome: 'Eadyan Falconmoon', tipo: 'aliado', descricao: 'Sacerdote de Chauntea; implora ajuda para o povo cercado no templo.', notasPrivadas: 'Gancho da missão do templo; cura os PJs de graça se salvarem os fiéis.' },
-        ],
         narracao: 'As portas fecham-se atrás de vocês. O Governador Tarbaw Nighthill, ferido no braço, avalia-os com alívio: "Precisamos de gente capaz. O templo de Chauntea está cercado com o meu povo lá dentro, a muralha sul está a ceder... e aquele maldito dragão não nos larga. Escolham onde podem ajudar."',
         notasMestre: 'HUB central do episódio — os PJs podem voltar aqui entre missões (as saídas se cruzam). O sacerdote Eadyan Falconmoon implora pela missão do templo. Recompensa prometida: 250 po pelo grupo ao amanhecer.',
         encontro: [], saidas: [
@@ -129,7 +124,6 @@ const AVENTURAS_PRONTAS = [
       },
       {
         id: 'n_duelo', titulo: 'O desafio do meio-dragão', tipo: 'social',
-        npcs: [{ nome: 'Langdedrosa Cyanwrath', tipo: 'inimigo', descricao: 'Guerreiro meio-dragão de escamas azuis; exige um duelo de honra, um contra um.', notasPrivadas: 'Cumpre a palavra: poupa o campeão caído e liberta os prisioneiros. Guarde o rancor para a revanche no Chocadouro. Bloco de combate no bestiário.' }],
         narracao: 'Ao romper da aurora, os saqueadores recuam — menos um. Um guerreiro meio-dragão de escamas azuis, Langdedrosa Cyanwrath, avança com prisioneiros: a família Swift ajoelhada à sua frente. "Mandem o vosso campeão! Se ele lutar comigo, um contra um, os prisioneiros vivem."',
         notasMestre: 'Momento assinatura do módulo. O duelo é praticamente IMPERDÍVEL para um PJ de nível 1 — e tudo bem: Cyanwrath (bloco próprio no bestiário) deixa o campeão caído (0 PV, estável) e cumpre a palavra. Recusar tem custo moral (ele executa um prisioneiro adulto antes de partir). Guarde o rancor do campeão: a revanche vem no Chocadouro.',
         encontro: [], saidas: [
@@ -147,7 +141,6 @@ const AVENTURAS_PRONTAS = [
       // ============ EPISÓDIO 2 — A TRILHA E O ACAMPAMENTO ============
       {
         id: 'n_amanhecer', titulo: 'O rasto do culto', tipo: 'narracao',
-        npcs: [{ nome: 'Nesim Waladra', tipo: 'aliado', descricao: 'Monge ferido; implora que encontrem o seu mestre Leosin, infiltrado no culto.', notasPrivadas: 'Fica em Greenest; é o elo que garante que Leosin confie nos PJs mais tarde.' }],
         narracao: 'O sol nasce sobre uma Greenest ferida mas de pé. Nighthill paga o prometido e aponta a coluna de poeira ao sul: "Eles levaram prisioneiros e o tesouro da vila. Descubram para onde vão e porquê — e eu dobro a recompensa." Um monge ferido, Nesim Waladra, implora que encontrem o seu mestre Leosin, que se infiltrou entre os cultistas.',
         notasMestre: 'Ponte para o resto do módulo. Se a mesa quiser encerrar aqui como "one-shot da defesa de Greenest", use a saída de reconstrução como final digno.',
         encontro: [], saidas: [
@@ -186,7 +179,6 @@ const AVENTURAS_PRONTAS = [
       },
       {
         id: 'n_fuga_leosin', titulo: 'A fuga com Leosin', tipo: 'narracao',
-        npcs: [{ nome: 'Leosin Erlanthar', tipo: 'aliado', descricao: 'Monge meio-elfo que se infiltrou no culto; ferido, mas cheio de informação vital.', notasPrivadas: 'Paga 150 po, dá o contato em Baldur\'s Gate e revela os ovos do chocadouro. Peça-chave da campanha completa.' }],
         narracao: 'Com o monge meio-elfo apoiado nos vossos ombros, vocês alcançam Greenest ao anoitecer. Leosin sorri entre feridas: "O que eu vi... isto é muito maior que pilhagem. Eles juntam um tesouro para a Rainha dos Dragões — e nas cavernas atrás do acampamento há OVOS. Se eclodirem, cada vila daqui a Baldur\'s Gate arderá." Ele paga 150 po e pede: voltem lá.',
         notasMestre: 'Encruzilhada do arco: encerrar como one-shot (final digno) ou mergulhar no Episódio 3 (o Chocadouro). Se voltarem, o acampamento estará quase abandonado — o grosso do culto marchou para norte; só a guarnição de Mondath ficou nas cavernas.',
         encontro: [], saidas: [
@@ -248,7 +240,6 @@ const AVENTURAS_PRONTAS = [
       },
       {
         id: 'n_mondath', titulo: 'O santuário de Mondath', tipo: 'encontro',
-        npcs: [{ nome: 'Frulam Mondath', tipo: 'inimigo', descricao: 'Sacerdotisa de manto púrpura que comandou o ataque a Greenest; serve a Rainha Dragão.', notasPrivadas: 'Os registos dela (drop garantido) apontam Castelo Naerytar — gancho do próximo arco. Bloco de combate no bestiário.' }],
         narracao: 'Um santuário talhado na rocha, iluminado por círios negros: cinco cabeças de dragão pintadas na parede em leque. Frulam Mondath, a sacerdotisa de manto púrpura que comandou o ataque a Greenest, ergue a alabarda: "Os intrusos de Greenest. A Rainha agradece os sacrifícios que se entregam sozinhos."',
         notasMestre: 'Mondath luta atrás das suas Garras do Dragão e usa Comando/Arma Espiritual. Os REGISTOS dela (drop garantido do loot) revelam o destino do tesouro: a Estrada do Comércio, rumo ao Castelo Naerytar — o gancho do próximo arco do módulo.',
         encontro: [{ nome: 'Frulam Mondath (Sacerdotisa do Culto)', qtd: 1 }, { nome: 'Garra do Dragão (Dragonclaw)', qtd: 2 }],

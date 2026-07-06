@@ -494,29 +494,6 @@ const NPC_TIPOS = [
     });
   }
 
-  // P2 (livro-jogo): a condução da aventura chama isto para "apresentar" um
-  // NPC embutido num nó — cria-o na campanha (visível) sem passar pelo modal.
-  // Único dono do array `npcs` fica aqui, evitando corrida com o /api/npcs.
-  // Retorna 'novo' | 'existente' (não duplica se já houver um com mesmo nome).
-  window.npcAdicionarExterno = function (dados) {
-    if (!ehMestre) return 'sem-permissao';
-    const nome = (dados && dados.nome || '').trim();
-    if (!nome) return 'sem-nome';
-    if (npcs.some(n => (n.nome || '').trim().toLowerCase() === nome.toLowerCase())) return 'existente';
-    npcs.push({
-      id: uidNpc(),
-      nome,
-      tipo: dados.tipo || 'neutro',
-      localizacao: dados.localizacao || '',
-      descricao: dados.descricao || '',
-      notasPrivadas: dados.notasPrivadas || '',
-      visivelParaJogadores: true, // apresentar = tornar visível na hora
-      statBlock: null,
-    });
-    salvar(); render();
-    return 'novo';
-  };
-
   window.npcCriarDeMonstro = function (monstro) {
     if (!modal) return;
     editandoId = null;

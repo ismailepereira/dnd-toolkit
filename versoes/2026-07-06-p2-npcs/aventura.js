@@ -26,15 +26,6 @@ const AVENTURA_AVISOS = [
   ['beco', '🚧 sem saída'],
 ];
 
-// P2: tipos de NPC do nó (espelham NPC_TIPOS de npc.js; duplicados aqui
-// para as funções puras não dependerem do DOM/npc.js)
-const AVENTURA_NPC_TIPOS = [
-  ['lojista', '🛒 Lojista'],
-  ['aliado', '🤝 Aliado'],
-  ['inimigo', '⚔️ Inimigo'],
-  ['neutro', '😐 Neutro'],
-];
-
 // ---------- Funções puras (testáveis em Node) ----------
 
 // Valida o grafo da aventura. Retorna { erros: [...], avisos: [...] }.
@@ -248,20 +239,6 @@ if (typeof module !== 'undefined' && module.exports) {
       const [i, j] = inp.dataset.saidaIdx.split(':').map(Number);
       avEdit.nos[i].saidas[j][inp.dataset.saidaCampo] = inp.value;
     }));
-    editor.querySelectorAll('[data-npcnode-add]').forEach(b => b.addEventListener('click', () => {
-      const n = avEdit.nos[+b.dataset.npcnodeAdd];
-      (n.npcs = n.npcs || []).push({ nome: '', tipo: 'neutro', descricao: '', notasPrivadas: '' });
-      renderEditor();
-    }));
-    editor.querySelectorAll('[data-npcnode-rem]').forEach(b => b.addEventListener('click', () => {
-      const [i, j] = b.dataset.npcnodeRem.split(':').map(Number);
-      avEdit.nos[i].npcs.splice(j, 1);
-      renderEditor();
-    }));
-    editor.querySelectorAll('[data-npcnode-campo]').forEach(inp => inp.addEventListener('change', () => {
-      const [i, j] = inp.dataset.npcnodeIdx.split(':').map(Number);
-      avEdit.nos[i].npcs[j][inp.dataset.npcnodeCampo] = inp.value;
-    }));
     editor.querySelectorAll('[data-no-tipo]').forEach(sel => sel.addEventListener('change', () => {
       avEdit.nos[+sel.dataset.noTipo].tipo = sel.value;
       renderEditor(); // o campo "resultado" aparece/some conforme o tipo
@@ -316,17 +293,6 @@ if (typeof module !== 'undefined' && module.exports) {
         <button class="btn-secondary btn-mini" data-enc-add="${i}">+</button></span>
         ${(n.encontro || []).map((e, j) => `<span class="cond-tag">${e.qtd}× ${esc(e.nome)} <a data-enc-rem="${i}:${j}" style="cursor:pointer">✕</a></span>`).join('')}
       </div>
-      <div class="av-sub"><b>🧑‍🌾 NPCs do nó</b> <span class="criador-hint-inline">(apresentáveis aos jogadores durante a condução)</span>
-        <button class="btn-secondary btn-mini" data-npcnode-add="${i}">+ NPC</button>
-        ${(n.npcs || []).map((p, j) => `
-          <div class="dado-row lj-linha av-npc-edit">
-            <input type="text" placeholder="nome" value="${esc(p.nome)}" data-npcnode-campo="nome" data-npcnode-idx="${i}:${j}" style="flex:1">
-            <select data-npcnode-campo="tipo" data-npcnode-idx="${i}:${j}">${AVENTURA_NPC_TIPOS.map(([k, r]) => `<option value="${k}" ${p.tipo === k ? 'selected' : ''}>${r}</option>`).join('')}</select>
-            <button class="btn-danger btn-mini" data-npcnode-rem="${i}:${j}">✕</button>
-            <input type="text" placeholder="descrição (os jogadores veem ao apresentar)" value="${esc(p.descricao)}" data-npcnode-campo="descricao" data-npcnode-idx="${i}:${j}" style="flex:1 1 100%">
-            <input type="text" placeholder="🔒 notas privadas (nunca vão aos jogadores)" value="${esc(p.notasPrivadas)}" data-npcnode-campo="notasPrivadas" data-npcnode-idx="${i}:${j}" style="flex:1 1 100%">
-          </div>`).join('')}
-      </div>
       <div class="av-sub"><b>➡️ Saídas (escolhas)</b>
         <button class="btn-secondary btn-mini" data-saida-add="${i}">+ Saída</button>
         ${(n.saidas || []).map((s, j) => `
@@ -361,17 +327,6 @@ if (typeof module !== 'undefined' && module.exports) {
         <h3>${rotuloTipo(no.tipo)} — ${esc(no.titulo)}${completado ? ' ✓' : ''}${no.tipo === 'final' ? ` (${esc(no.resultado || 'neutro')})` : ''}</h3>
         ${no.narracao ? `<div class="npc-desc">📜 ${esc(no.narracao)}</div>` : ''}
         ${no.notasMestre ? `<div class="npc-notas-privadas">🔒 ${esc(no.notasMestre)}</div>` : ''}
-        ${(no.npcs || []).length ? `<div class="av-sub"><b>🧑‍🌾 NPCs desta cena:</b>
-          ${no.npcs.map((p, j) => {
-            const jaExiste = (window.NPCS_CAMPANHA || []).some(n => (n.nome || '').trim().toLowerCase() === (p.nome || '').trim().toLowerCase());
-            const rot = (AVENTURA_NPC_TIPOS.find(([k]) => k === p.tipo) || [p.tipo, p.tipo])[1];
-            return `<div class="ficha-card npc-card npc-${esc(p.tipo)} av-npc-cond">
-              <b>${esc(p.nome) || '(sem nome)'}</b> <span class="sub">${rot}</span>
-              ${p.descricao ? `<div class="npc-desc">${esc(p.descricao)}</div>` : ''}
-              ${p.notasPrivadas ? `<div class="npc-notas-privadas">🔒 ${esc(p.notasPrivadas)}</div>` : ''}
-              <button class="btn-secondary btn-mini" data-ac-npc="${j}" ${jaExiste ? 'disabled title="já está na lista de NPCs da campanha"' : ''}>${jaExiste ? '✓ apresentado' : '👁️ Apresentar aos jogadores'}</button>
-            </div>`;
-          }).join('')}</div>` : ''}
         ${(no.encontro || []).length ? `<div class="av-sub"><b>⚔️ Encontro:</b> ${no.encontro.map(e => `${e.qtd}× ${esc(e.nome)}`).join(', ')}
           <button class="btn-secondary btn-mini" id="acLancarEncontro">⚔️ Lançar no combate</button></div>` : ''}
         ${!completado && no.tipo !== 'final' ? '<button class="btn-secondary btn-mini" id="acCompletar">✓ Marcar nó como vencido</button>' : ''}
@@ -400,15 +355,6 @@ if (typeof module !== 'undefined' && module.exports) {
       await fetch('/api/aventura_ativa', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ encerrar: true }) });
       await carregarTudo();
     });
-    conducao.querySelectorAll('[data-ac-npc]').forEach(b => b.addEventListener('click', () => {
-      const p = (no.npcs || [])[+b.dataset.acNpc];
-      if (!p) return;
-      if (typeof window.npcAdicionarExterno !== 'function') { alert('Módulo de NPCs indisponível.'); return; }
-      const r = window.npcAdicionarExterno(p);
-      if (r === 'novo') { b.disabled = true; b.textContent = '✓ apresentado'; }
-      else if (r === 'existente') { b.disabled = true; b.textContent = '✓ já existe na campanha'; }
-      else if (r === 'sem-nome') alert('Dê um nome ao NPC no editor antes de apresentar.');
-    }));
     const bComp = $('acCompletar');
     if (bComp) bComp.addEventListener('click', async () => {
       await fetch('/api/aventura_ativa', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ completarNo: no.id }) });

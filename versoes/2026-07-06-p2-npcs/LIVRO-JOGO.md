@@ -87,15 +87,11 @@ jogadores. (Espelhado na secção K2 do `ROADMAP-FUTURO.md`.)
 > contam como UM votante — cada jogador com conta própria vota
 > individualmente.
 
-### P2. NPCs por nó ✅
-> **✅ Entregue em 06/07/2026** — cada nó tem `npcs: [{nome, tipo,
-> descricao, notasPrivadas}]` embutidos (auto-contidos, sem referências
-> a ids externos). Na condução, cada NPC aparece como cartão com botão
-> "👁️ Apresentar aos jogadores" → `window.npcAdicionarExterno` (npc.js,
-> dono único do array de NPCs) cria o NPC na campanha VISÍVEL, sem
-> duplicar (dedup por nome). Editor de nós ganhou a secção de NPCs; a
-> aventura pronta do Ninho traz 6 nós com o elenco (Nighthill, Linan,
-> Cyanwrath, Leosin, Mondath, Nesim). Ver `CHANGELOG.md`.
+### P2. NPCs por nó
+Campo `npcs: [ids]` nos nós referenciando o banco M4/campanha; a condução
+mostra os cartões e um botão "apresentar aos jogadores" (torna visível).
+Modelos prontos trazem os NPCs embutidos (importar a aventura cria os
+NPCs da campanha automaticamente).
 
 ### P3. Partilha e limites
 - Mestre importa aventuras da biblioteca de MEMBROS da campanha (mesmo

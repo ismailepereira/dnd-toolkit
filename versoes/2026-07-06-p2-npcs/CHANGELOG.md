@@ -4,25 +4,6 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
-## 2026-07-06 — NPCs por nó na aventura (P2 do livro-jogo)
-
-**Backup antes da alteração:** `versoes/2026-07-06-p2-npcs/`.
-
-**Resumo:** Os NPCs de história (Nighthill, Leosin, Cyanwrath...) deixam de viver só na narração e passam a ser figuras apresentáveis por nó. Cada nó ganha `npcs: [{nome, tipo, descricao, notasPrivadas}]` embutidos (auto-contidos — sem referências a ids externos, então importar/iniciar não precisa criar nada). Na condução, cada NPC do nó atual aparece como cartão (nome, tipo, descrição, notas 🔒) com botão "👁️ Apresentar aos jogadores" que cria o NPC na campanha já VISÍVEL, sem duplicar (dedup por nome). O editor de nós ganhou uma secção para adicionar/editar NPCs. A aventura pronta do Ninho da Rainha Dragão traz 6 nós com o elenco: Linan Swift (família), Governador Nighthill + sacerdote Falconmoon (fortaleza), Cyanwrath (duelo), Nesim (amanhecer), Leosin (fuga) e Mondath (santuário).
-
-**Ficheiros alterados:**
-- `static/js/npc.js` — `window.npcAdicionarExterno(dados)`: dono único do array de NPCs cria um NPC visível na campanha (evita corrida com `/api/npcs`), com dedup por nome; retorna 'novo'|'existente'|'sem-nome'|'sem-permissao'.
-- `static/js/aventura.js` — `AVENTURA_NPC_TIPOS`; secção de NPCs no editor de nós (add/editar/remover); cartões de NPC na condução com botão "Apresentar".
-- `static/js/aventurasprontas.js` — 6 nós do Ninho enriquecidos com NPCs.
-- `static/css/style.css` — `.av-npc-edit`/`.av-npc-cond`.
-- `docs/LIVRO-JOGO.md` — P2 marcado ✅.
-
-**Testes:** `node --check` (aventura/npc/aventurasprontas); harness Node do grafo estendido (NPCs por nó: nome, tipo válido, descrição/notas presentes; ≥5 NPCs no modelo — grafo continua 0 erros/0 avisos); verificado ao vivo no preview com o login do Ismaile: nó da fortaleza mostra os 2 cartões com botão, `npcAdicionarExterno` cria o NPC visível com notas e não duplica na 2ª chamada; dados de teste limpos, `data/` real intacta.
-
-**Como reverter:** restaurar `static/js/npc.js`, `static/js/aventura.js`, `static/js/aventurasprontas.js`, `static/css/style.css` e `docs/LIVRO-JOGO.md` de `versoes/2026-07-06-p2-npcs/`.
-
----
-
 ## 2026-07-06 — Segurança: PUT /api/fichas validado no servidor
 
 **Backup antes da alteração:** `versoes/2026-07-06-seg-fichas/`.

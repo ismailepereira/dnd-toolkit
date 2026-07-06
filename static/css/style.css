@@ -1800,3 +1800,8 @@ body.alto-contraste a { color: #ffd400; }
 .av-sub .cond-tag { margin: 2px 4px 2px 0; display: inline-block; }
 .av-conducao { border: 1px solid rgba(233, 200, 69, 0.45); margin-bottom: 18px; }
 .av-conducao [data-ac-avancar] { margin: 4px 6px 4px 0; }
+
+/* ===== P2: NPCs por no (livro-jogo) ===== */
+.av-npc-edit { flex-wrap: wrap; gap: 6px; }
+.av-npc-cond { margin: 8px 0; padding: 8px 10px; }
+.av-npc-cond .sub { color: var(--text-dim); font-size: 0.78rem; }

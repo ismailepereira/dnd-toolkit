@@ -91,12 +91,8 @@ const NPC_TIPOS = [
         <div class="ficha-card-acoes">
           ${fc ? `<button class="btn-primary" data-npc-ver-ficha="${esc(n.id)}">▶ Ver ficha</button>` : ''}
           <button class="btn-editar" data-npc-editar="${esc(n.id)}">✎ Editar</button>
-          <button class="btn-secondary" data-npc-banco="${esc(n.id)}" title="Guardar uma cópia no meu banco pessoal (segue você entre campanhas)">💾 Banco</button>
           <button class="btn-danger" data-npc-excluir="${esc(n.id)}">Excluir</button>
-        </div>` : `
-        <div class="ficha-card-acoes">
-          <button class="btn-secondary" data-npc-banco="${esc(n.id)}" title="Guardar uma cópia no meu banco pessoal">💾 Guardar no meu banco</button>
-        </div>`}
+        </div>` : ''}
     </div>`;
   }
 
@@ -153,122 +149,7 @@ const NPC_TIPOS = [
         salvar(); render();
       }));
     }
-    // M4: guardar no banco pessoal (disponível para Mestre E jogador)
-    el.querySelectorAll('[data-npc-banco]').forEach(b => b.addEventListener('click', () => {
-      const n = npcs.find(x => x.id === b.dataset.npcBanco);
-      if (n) guardarNoBanco(n);
-    }));
     if (typeof window._npcsAtualizados === 'function') window._npcsAtualizados(npcs);
-  }
-
-  // ---------- M4: banco PESSOAL de NPCs (fora da campanha) ----------
-  const listaBanco = $('listaBancoNpc');
-  let banco = [];
-
-  async function carregarBanco() {
-    if (!listaBanco) return;
-    try {
-      const r = await (await fetch('/api/banco_npc')).json();
-      banco = Array.isArray(r) ? r : [];
-    } catch (e) { banco = []; }
-    renderBanco();
-  }
-
-  let _filaBanco = Promise.resolve();
-  function salvarBanco() {
-    const body = JSON.stringify(banco);
-    _filaBanco = _filaBanco.then(() => fetch('/api/banco_npc', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body })).catch(() => {});
-    return _filaBanco;
-  }
-
-  function copiaNpc(n) {
-    // cópia profunda com id novo (banco e campanha não partilham ids)
-    const c = JSON.parse(JSON.stringify(n));
-    c.id = uidNpc();
-    return c;
-  }
-
-  function guardarNoBanco(n) {
-    if (!listaBanco) { alert('Banco indisponível nesta tela.'); return; }
-    if (banco.some(b => b.nome === n.nome && b.tipo === n.tipo)) {
-      if (!confirm(`Já existe "${n.nome}" no seu banco. Guardar outra cópia?`)) return;
-    }
-    banco.push(copiaNpc(n));
-    salvarBanco(); renderBanco();
-  }
-
-  function cardBanco(n, origem) {
-    // origem: 'meu' (com remover/trazer) ou 'membro' (só trazer, Mestre)
-    const fc = n.fichaCompleta;
-    return `<div class="ficha-card npc-card npc-${esc(n.tipo)}">
-      <h3>${esc(n.nome) || 'Sem nome'}</h3>
-      <div class="sub">${rotuloTipo(n.tipo)}${fc ? ' · 📜 Ficha Completa' : ''}${n.statBlock ? ' · ⚔️' : ''}</div>
-      ${n.descricao ? `<div class="npc-desc">${esc(n.descricao)}</div>` : ''}
-      <div class="ficha-card-acoes">
-        ${ehMestre ? `<button class="btn-primary" data-banco-trazer="${esc(n.id)}" data-banco-origem="${origem}">📥 Trazer para a campanha</button>` : ''}
-        ${origem === 'meu' ? `<button class="btn-danger" data-banco-remover="${esc(n.id)}">Remover</button>` : ''}
-      </div>
-    </div>`;
-  }
-
-  let bancoMembro = [];
-  function renderBanco() {
-    if (!listaBanco) return;
-    listaBanco.innerHTML = banco.length
-      ? banco.map(n => cardBanco(n, 'meu')).join('')
-      : '<p style="color:var(--text-dim)">Banco vazio — use 💾 num cartão de NPC para guardar uma cópia pessoal.</p>';
-    listaBanco.querySelectorAll('[data-banco-remover]').forEach(b => b.addEventListener('click', () => {
-      const n = banco.find(x => x.id === b.dataset.bancoRemover);
-      if (!n || !confirm(`Remover "${n.nome}" do seu banco?`)) return;
-      banco = banco.filter(x => x.id !== n.id);
-      salvarBanco(); renderBanco();
-    }));
-    ligarTrazer(listaBanco);
-    const wrapMembro = $('listaBancoMembro');
-    if (wrapMembro) {
-      wrapMembro.innerHTML = bancoMembro.length ? bancoMembro.map(n => cardBanco(n, 'membro')).join('') : '<p style="color:var(--text-dim)">Banco vazio.</p>';
-      ligarTrazer(wrapMembro);
-    }
-  }
-
-  function ligarTrazer(raiz) {
-    if (!ehMestre) return;
-    raiz.querySelectorAll('[data-banco-trazer]').forEach(b => b.addEventListener('click', () => {
-      const fonte = b.dataset.bancoOrigem === 'membro' ? bancoMembro : banco;
-      const n = fonte.find(x => x.id === b.dataset.bancoTrazer);
-      if (!n) return;
-      const c = copiaNpc(n);
-      npcs.push(c);
-      salvar(); render();
-      alert(`"${c.nome}" entrou nos NPCs da campanha.`);
-    }));
-  }
-
-  // Mestre: ver o banco de um membro da campanha ativa
-  async function montarBancoMembros() {
-    const sel = $('bancoMembroSel');
-    const btn = $('verBancoMembro');
-    if (!ehMestre || !sel || !btn) return;
-    try {
-      const info = await (await fetch('/api/campanha_info')).json();
-      const membros = info.membros || [];
-      if (info.legado || !membros.length) {
-        sel.innerHTML = '<option value="">(campanha sem membros geridos)</option>';
-        btn.disabled = true;
-        return;
-      }
-      sel.innerHTML = membros.map(m => `<option value="${esc(m.uid)}">${esc(m.nome)}</option>`).join('');
-    } catch (e) { btn.disabled = true; return; }
-    btn.addEventListener('click', async () => {
-      if (!sel.value) return;
-      try {
-        const r = await (await fetch(`/api/banco_npc/${encodeURIComponent(sel.value)}`)).json();
-        bancoMembro = Array.isArray(r) ? r : [];
-      } catch (e) { bancoMembro = []; }
-      $('bancoMembroTitulo').textContent = `Banco de ${sel.options[sel.selectedIndex].text}`;
-      $('bancoMembroWrap').classList.remove('hidden');
-      renderBanco();
-    });
   }
 
   window.npcCriarDeMonstro = function (monstro) {
@@ -458,6 +339,4 @@ const NPC_TIPOS = [
   }
 
   carregar().then(() => restaurarRascunhoNpc());
-  carregarBanco();
-  montarBancoMembros();
 })();

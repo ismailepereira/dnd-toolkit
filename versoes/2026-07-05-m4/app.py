@@ -850,62 +850,6 @@ def api_put_npcs():
     return jsonify({'ok': True})
 
 
-# ----- M4: banco PESSOAL de NPCs, partilhado entre utilizadores -----
-# Cada utilizador tem um banco fora de qualquer campanha (segue-o entre
-# mesas). O Mestre da campanha ativa pode ver o banco dos MEMBROS dela e
-# copiar NPCs para a campanha ("trazer para a mesa").
-BANCONPC_FILE = os.path.join(BASE_DIR, 'data', 'bancos_npc.json')
-COLECAO_BANCO_NPC = 'bancos_npc'
-BANCONPC_MAX = 100  # limite defensivo por utilizador
-
-
-def uid_sessao():
-    return session.get('uid') or f"legacy:{session.get('usuario', '')}"
-
-
-def carregar_banco_npc(uid):
-    if db is not None:
-        snap = db.collection(COLECAO_BANCO_NPC).document(uid).get()
-        return (snap.to_dict() or {}).get('npcs', []) if snap.exists else []
-    return (_carregar_docs(COLECAO_BANCO_NPC, BANCONPC_FILE).get(uid) or {}).get('npcs', [])
-
-
-def salvar_banco_npc(uid, npcs):
-    _salvar_doc(COLECAO_BANCO_NPC, BANCONPC_FILE, uid, {'npcs': npcs, 'atualizadoEm': _agora()})
-
-
-@app.route('/api/banco_npc', methods=['GET'])
-@login_obrigatorio()
-def api_get_banco_npc():
-    return jsonify(carregar_banco_npc(uid_sessao()))
-
-
-@app.route('/api/banco_npc', methods=['PUT'])
-@login_obrigatorio()
-def api_put_banco_npc():
-    lista = request.get_json(force=True)
-    if not isinstance(lista, list):
-        return jsonify({'ok': False, 'erro': 'esperava uma lista de NPCs'}), 400
-    lista = [n for n in lista if isinstance(n, dict)][:BANCONPC_MAX]
-    salvar_banco_npc(uid_sessao(), lista)
-    return jsonify({'ok': True, 'total': len(lista)})
-
-
-@app.route('/api/banco_npc/<uid_alvo>', methods=['GET'])
-@login_obrigatorio(papeis=['mestre'])
-def api_get_banco_npc_membro(uid_alvo):
-    # o Mestre só vê bancos de quem participa da campanha ATIVA (o servidor
-    # valida a membresia — mesmo princípio do filtro de /api/npcs)
-    cid = campanha_atual()
-    meta = carregar_campanhas_meta().get(cid)
-    if not meta:
-        return jsonify({'ok': False, 'erro': 'campanha legada não tem membros geridos'}), 400
-    permitidos = set((meta.get('membros') or {}).keys()) | {meta.get('mestreUid')}
-    if uid_alvo not in permitidos:
-        return jsonify({'ok': False, 'erro': 'esse utilizador não é membro desta campanha'}), 403
-    return jsonify(carregar_banco_npc(uid_alvo))
-
-
 # ----- FASE 10.8: token do Firebase Auth para o tempo real seguro -----
 # O cliente (firebase-rt.js) troca a sessão Flask por um token personalizado
 # do Firebase Auth; as Regras do Firestore (firestore.rules) validam a

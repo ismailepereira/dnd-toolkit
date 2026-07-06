@@ -4,29 +4,6 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
-## 2026-07-05 — Banco de NPCs partilhado entre utilizadores (Passo M4)
-
-**Backup antes da alteração:** `versoes/2026-07-05-m4/`
-(cópia de todos os ficheiros tocados).
-
-**Resumo:** Cada utilizador (Mestre ou jogador) ganhou um banco PESSOAL de NPCs, fora de qualquer campanha (coleção `bancos_npc/<uid>`, segue o utilizador entre mesas). Botão "💾" no cartão de qualquer NPC guarda uma cópia no banco; a secção "💾 Meu Banco de NPCs" (aba NPCs do Mestre e do jogador) lista o banco com "Remover" e — para o Mestre — "📥 Trazer para a campanha". O Mestre também pode ver o banco de qualquer MEMBRO da campanha ativa (seletor "👀 Ver banco do membro") e copiar NPCs dele para a mesa. A membresia é validada no servidor: `GET /api/banco_npc/<uid>` só devolve bancos de membros/mestre da campanha ativa (403 caso contrário; campanhas legadas sem meta dão 400).
-
-**Ficheiros alterados:**
-- `app.py` — helpers `uid_sessao`, `carregar_banco_npc`, `salvar_banco_npc` e rotas `GET/PUT /api/banco_npc` (o próprio, qualquer papel; PUT valida lista, filtra não-dict e limita a 100) + `GET /api/banco_npc/<uid>` (só Mestre, com validação de membresia).
-- `static/js/npc.js` — botão 💾 nos cartões (Mestre e jogador), secção do banco (`renderBanco`, guardar/remover/trazer com id novo em cada cópia) e navegação pelos bancos dos membros (`/api/campanha_info` para o seletor).
-- `templates/mestre.html` — secção "💾 Meu Banco de NPCs" + seletor de membro na aba NPCs.
-- `templates/jogador.html` — secção "💾 Meu Banco de NPCs" na aba NPCs.
-- `.gitignore` — `data/bancos_npc.json` (estado local de runtime, como os restantes).
-- `docs/ROADMAP-FUTURO.md` — marca o passo M4 como concluído.
-
-**Testes:** `node --check` no `npc.js`; `py_compile` no `app.py`; sintaxe Jinja dos dois templates; harness Flask (modo local, campanha isolada descartável, limpa tudo no fim): registo de 2 contas, campanha nova + convite, banco começa vazio, PUT/GET do próprio banco, rejeição de payload não-lista (400), filtragem de entradas inválidas, limite de 100, jogador sem acesso ao banco alheio (redirect), Mestre vê banco do membro e o próprio, 403 para uid fora da campanha.
-
-**Como reverter:**
-1. Restaurar `app.py`, `static/js/npc.js`, `templates/mestre.html`, `templates/jogador.html`, `docs/ROADMAP-FUTURO.md` e `CHANGELOG.md` a partir de `versoes/2026-07-05-m4/`.
-2. Reverter a linha `data/bancos_npc.json` do `.gitignore` (opcional; inofensiva).
-
----
-
 ## 2026-07-05 — Monstros & Sistema de Loot (Fase 13)
 
 **Backup antes da alteração:** `versoes/2026-07-05-f13/`

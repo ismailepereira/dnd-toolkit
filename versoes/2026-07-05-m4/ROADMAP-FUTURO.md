@@ -118,13 +118,7 @@ combate" quando sair monstro (reusa `addMonstro`).
 **Ficheiros:** `ambientes.js` (novo), `app.js` (card no Geradores),
 `templates/mestre.html`.
 
-### M4. Banco de NPCs partilhado entre utilizadores ✅
-
-> **✅ Entregue em 05/07/2026** — banco pessoal por utilizador
-> (`bancos_npc/<uid>`), 💾 nos cartões, secção "Meu Banco de NPCs" no Mestre
-> e no jogador, Mestre vê bancos dos membros e traz NPCs para a mesa com
-> validação de membresia no servidor (ver `CHANGELOG.md`).
-
+### M4. Banco de NPCs partilhado entre utilizadores
 **Objetivo:** cada utilizador (jogador ou mestre) pode criar NPCs num banco
 PESSOAL (fora da campanha) e partilhá-los; o Mestre pode copiar NPCs do banco
 de qualquer membro para a campanha ativa ("salvar para mim").

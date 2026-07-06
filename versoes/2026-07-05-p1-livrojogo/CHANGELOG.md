@@ -4,24 +4,6 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
-## 2026-07-05 — Escolhas dos jogadores com votação (P1 do livro-jogo) + DATA_DIR
-
-**Backup antes da alteração:** `versoes/2026-07-05-p1-livrojogo/`.
-
-**Resumo:** Os jogadores agora participam da aventura: nova aba "📖 História" na tela do jogador mostra a cena atual (título + narração pública — as `notasMestre` NUNCA saem do servidor, mesmo filtro de `/api/npcs`). Na condução, o Mestre ganha o botão "🗳️ Abrir escolhas aos jogadores": os jogadores veem os botões de escolha (com avisos 💀/🚧), votam e podem trocar o voto (substitui, não duplica); a contagem e os nomes aparecem para todos, e o Mestre vê os votos ao lado de cada saída (atualização a cada 6s). Avançar de nó fecha a votação e limpa os votos — a palavra final é sempre do Mestre. Extra de segurança de desenvolvimento: `DATA_DIR` (env) no `app.py` permite apontar a pasta de dados do modo local para outro sítio — os harnesses de teste agora usam uma pasta temporária descartável e NUNCA tocam na `data/` real (na sequência do incidente de hoje em que limpezas de teste apagaram dados locais).
-
-**Ficheiros alterados:**
-- `app.py` — visão pública do nó para o jogador em `GET /api/aventura_ativa` (narração sem notas; saídas/votos só com votação aberta), `POST /api/aventura_ativa/votar` (valida votação aberta e escolha existente; 1 voto por utilizador), ações `abrirEscolhas` no POST do Mestre, avanço de nó limpa votação; `DATA_DIR` configurável por env.
-- `static/js/jogador.js` — painel "A História" (polling 6s, cache anti-re-render, votação, normalização do shape do Mestre em "Ver como Jogador").
-- `static/js/aventura.js` — botão "🗳️ Abrir/Fechar votação" na condução, votos por saída (contagem + nomes), poll de votos enquanto aberta.
-- `templates/jogador.html` — aba "📖 História".
-
-**Testes:** `py_compile` + `node --check` + Jinja; harness Flask com 3 contas (mestre + 2 jogadores, `DATA_DIR` temporário): narração pública sem vazamento de `notasMestre`, voto com votação fechada 400, abertura expõe saídas com avisos, votos somam e trocam sem duplicar, voto inválido 400, Mestre vê o dict completo, avançar limpa votação, encerrar zera tudo; fluxo verificado ao vivo no preview com o login do Ismaile (aba História, voto pelo botão, troca de voto, contagem no Mestre) — a `data/` real ficou intacta durante os testes.
-
-**Como reverter:** restaurar `app.py`, `static/js/jogador.js`, `static/js/aventura.js` e `templates/jogador.html` de `versoes/2026-07-05-p1-livrojogo/`.
-
----
-
 ## 2026-07-05 — Ninho da Rainha Dragão completo + bestiário do culto + guia do processo (Passo K2c)
 
 **Backup antes da alteração:** `versoes/2026-07-05-k2c/`.

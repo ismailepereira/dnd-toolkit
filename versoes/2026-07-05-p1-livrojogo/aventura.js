@@ -330,25 +330,14 @@ if (typeof module !== 'undefined' && module.exports) {
         ${(no.encontro || []).length ? `<div class="av-sub"><b>⚔️ Encontro:</b> ${no.encontro.map(e => `${e.qtd}× ${esc(e.nome)}`).join(', ')}
           <button class="btn-secondary btn-mini" id="acLancarEncontro">⚔️ Lançar no combate</button></div>` : ''}
         ${!completado && no.tipo !== 'final' ? '<button class="btn-secondary btn-mini" id="acCompletar">✓ Marcar nó como vencido</button>' : ''}
-        ${no.tipo !== 'final' && (no.saidas || []).length ? `<button class="btn-secondary btn-mini" id="acVotacao">${ativa.escolhasAbertas ? '🔒 Fechar votação' : '🗳️ Abrir escolhas aos jogadores'}</button>` : ''}
-        ${no.tipo !== 'final' ? `<div class="av-sub"><b>➡️ Escolhas do grupo:</b>${ativa.escolhasAbertas ? ' <span class="chip-em-combate">🗳️ votação aberta</span>' : ''}<br>
+        ${no.tipo !== 'final' ? `<div class="av-sub"><b>➡️ Escolhas do grupo:</b><br>
           ${(no.saidas || []).map((s, j) => {
             const destino = noDaAventura(def, s.para);
             const avisoTag = s.aviso === 'mortal' ? ' 💀' : s.aviso === 'beco' ? ' 🚧' : '';
-            const votosSaida = Object.values(ativa.votos || {}).filter(v => v.para === s.para);
-            const votoTag = votosSaida.length ? ` · 🗳️ ${votosSaida.length} (${votosSaida.map(v => esc(v.nome)).join(', ')})` : '';
-            return `<button class="btn-primary btn-mini" data-ac-avancar="${esc(s.para)}">${esc(s.rotulo) || (destino ? esc(destino.titulo) : s.para)}${avisoTag}${votoTag}</button> `;
+            return `<button class="btn-primary btn-mini" data-ac-avancar="${esc(s.para)}">${esc(s.rotulo) || (destino ? esc(destino.titulo) : s.para)}${avisoTag}</button> `;
           }).join('') || '<i>sem saídas — marque este nó como Final no editor</i>'}</div>` :
           '<div class="av-sub">🏁 A aventura chegou a um final. Encerre quando quiser.</div>'}
       </div>`;
-
-    const bVot = $('acVotacao');
-    if (bVot) bVot.addEventListener('click', async () => {
-      await fetch('/api/aventura_ativa', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ abrirEscolhas: !ativa.escolhasAbertas }) });
-      ativa.escolhasAbertas = !ativa.escolhasAbertas;
-      if (ativa.escolhasAbertas) ativa.votos = {};
-      renderConducao();
-    });
 
     $('acEncerrar').addEventListener('click', async () => {
       if (!confirm('Encerrar a aventura em curso? (o progresso da mesa é descartado; a definição continua na biblioteca)')) return;
@@ -376,22 +365,9 @@ if (typeof module !== 'undefined' && module.exports) {
       if (!r.ok || !d.ok) { alert(d.erro || 'Não foi possível avançar.'); return; }
       ativa.noAtual = d.noAtual;
       (ativa.historico = ativa.historico || []).push(d.noAtual);
-      ativa.escolhasAbertas = false; ativa.votos = {}; // o servidor também limpa
       renderConducao(); renderLib();
     }));
   }
-
-  // P1: enquanto a votação está aberta, atualiza os votos a cada 6s
-  setInterval(async () => {
-    if (!ativa || !ativa.escolhasAbertas) return;
-    try {
-      const nova = await (await fetch('/api/aventura_ativa')).json();
-      if (nova && JSON.stringify(nova.votos || {}) !== JSON.stringify(ativa.votos || {})) {
-        ativa = nova;
-        renderConducao();
-      }
-    } catch (e) {}
-  }, 6000);
 
   $('avNova').addEventListener('click', () => abrirEditor(null));
 

@@ -78,14 +78,14 @@ Estado atual: o livro-jogo é uma ferramenta do MESTRE (ele lê, conduz,
 escolhe). Os passos abaixo, em ordem, transformam-no em experiência dos
 jogadores. (Espelhado na secção K2 do `ROADMAP-FUTURO.md`.)
 
-### P1. Escolhas na tela dos jogadores ✅
-> **✅ Entregue em 05/07/2026** — aba "📖 História" no jogador (narração
-> pública, sem `notasMestre`), botão "🗳️ Abrir escolhas aos jogadores"
-> na condução, votação com troca de voto e contagem por saída; avançar
-> de nó fecha e limpa a votação (ver `CHANGELOG.md`).
-> Limitação conhecida: contas legadas partilhadas (login fixo "jogador")
-> contam como UM votante — cada jogador com conta própria vota
-> individualmente.
+### P1. Escolhas na tela dos jogadores ← PRÓXIMO
+O Mestre "abre" as saídas do nó atual; os jogadores veem os botões de
+escolha (com os avisos 💀/🚧) na aba deles e VOTAM; o Mestre vê os votos
+e confirma o caminho. Reusa o canal RT/polling do K1.
+- `app.py`: expor nó atual filtrado ao jogador (narração pública, SEM
+  `notasMestre`) + endpoint de voto.
+- `jogador.js`: painel "A história" com narração + botões + votos.
+- `aventura.js`: botão "🗳️ Abrir escolhas aos jogadores" na condução.
 
 ### P2. NPCs por nó
 Campo `npcs: [ids]` nos nós referenciando o banco M4/campanha; a condução

@@ -387,64 +387,6 @@ async function atualizarCombateJog() {
 }
 atualizarCombateJog();
 
-// ===== P1 do livro-jogo: A História (narração do nó + votação) =====
-const historiaJog = document.getElementById('historiaJog');
-let _historiaCache = '';
-
-function renderHistoriaJog(av) {
-  if (!historiaJog) return;
-  // "Ver como Jogador" (Mestre): o servidor devolve o shape completo — normaliza
-  if (av && av.definicao) {
-    const no = (av.definicao.nos || []).find(n => n.id === av.noAtual);
-    av = {
-      titulo: av.definicao.titulo, emCurso: true,
-      no: no ? { titulo: no.titulo, tipo: no.tipo, narracao: no.narracao } : null,
-      escolhasAbertas: !!av.escolhasAbertas,
-      saidas: no ? (no.saidas || []) : [],
-      votos: Object.values(av.votos || {}),
-      meuVoto: null,
-    };
-  }
-  const chave = JSON.stringify(av);
-  if (chave === _historiaCache) return; // nada mudou — não re-renderiza
-  _historiaCache = chave;
-  if (!av || !av.emCurso || !av.no) {
-    historiaJog.innerHTML = '<p style="color:var(--text-dim)">Nenhuma aventura em curso — a história aparece aqui quando o Mestre a iniciar.</p>';
-    return;
-  }
-  const contagem = {};
-  (av.votos || []).forEach(v => { contagem[v.para] = (contagem[v.para] || 0) + 1; });
-  const avisoTag = a => a === 'mortal' ? ' 💀' : a === 'beco' ? ' 🚧' : '';
-  historiaJog.innerHTML = `
-    <div class="ficha-card av-conducao">
-      <h3>🎬 ${escapeHtml(av.titulo)}</h3>
-      <h4>${escapeHtml(av.no.titulo)}</h4>
-      ${av.no.narracao ? `<div class="npc-desc">📜 ${escapeHtml(av.no.narracao)}</div>` : ''}
-      ${av.escolhasAbertas ? `
-        <div class="av-sub"><b>🗳️ O Mestre abriu a votação — qual o caminho do grupo?</b><br>
-          ${(av.saidas || []).map(s => `
-            <button class="btn-${av.meuVoto === s.para ? 'primary' : 'secondary'} btn-mini" data-votar="${escapeHtml(s.para)}">
-              ${escapeHtml(s.rotulo) || s.para}${avisoTag(s.aviso)}${contagem[s.para] ? ` · ${contagem[s.para]} voto(s)` : ''}
-            </button>`).join(' ')}
-          ${av.meuVoto ? '<div class="criador-hint">✓ Seu voto está registado — pode mudar até o Mestre decidir.</div>' : ''}
-          ${(av.votos || []).length ? `<div class="criador-hint">Votos: ${av.votos.map(v => escapeHtml(v.nome)).join(', ')}</div>` : ''}
-        </div>` : '<div class="criador-hint">Aguardando o Mestre… (as escolhas aparecem aqui quando ele abrir a votação)</div>'}
-    </div>`;
-  historiaJog.querySelectorAll('[data-votar]').forEach(b => b.addEventListener('click', async () => {
-    try {
-      const r = await fetch('/api/aventura_ativa/votar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ para: b.dataset.votar }) });
-      if (r.ok) atualizarHistoriaJog();
-    } catch (e) {}
-  }));
-}
-
-async function atualizarHistoriaJog() {
-  if (!historiaJog) return;
-  try { renderHistoriaJog(await (await fetch('/api/aventura_ativa')).json()); } catch (e) {}
-}
-atualizarHistoriaJog();
-setInterval(atualizarHistoriaJog, 6000);
-
 // ===== Handouts (notas compartilhadas pelo Mestre) =====
 const listaHandouts = document.getElementById('listaHandouts');
 function renderHandouts(notas) {

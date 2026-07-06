@@ -13,10 +13,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Pasta de dados do modo local. Sobrepor com a env DATA_DIR permite que
-# testes automatizados usem uma pasta descartável SEM tocar na data/ real.
-DATA_DIR = os.environ.get('DATA_DIR') or os.path.join(BASE_DIR, 'data')
-DATA_FILE = os.path.join(DATA_DIR, 'estado.json')
+DATA_FILE = os.path.join(BASE_DIR, 'data', 'estado.json')
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'troque-esta-chave-em-producao')
@@ -105,8 +102,8 @@ def campanha_atual():
 # As contas fixas de env (Ismaile/jogador) continuam a funcionar (legado):
 # o mestre legado é mestre em QUALQUER campanha.
 # ---------------------------------------------------------------
-USUARIOS_FILE = os.path.join(DATA_DIR, 'usuarios.json')
-CAMPMETA_FILE = os.path.join(DATA_DIR, 'campanhas_meta.json')
+USUARIOS_FILE = os.path.join(BASE_DIR, 'data', 'usuarios.json')
+CAMPMETA_FILE = os.path.join(BASE_DIR, 'data', 'campanhas_meta.json')
 COLECAO_USUARIOS = 'usuarios'
 COLECAO_CAMPANHAS_META = 'campanhas_meta'
 
@@ -276,7 +273,7 @@ def _mais_dias(base_iso, dias):
 def _data_file():
     c = campanha_atual()
     nome = 'estado.json' if c == 'principal' else f'estado_{c}.json'
-    return os.path.join(DATA_DIR, nome)
+    return os.path.join(BASE_DIR, 'data', nome)
 
 
 def senha_confere(armazenada, fornecida):
@@ -859,7 +856,7 @@ def api_put_npcs():
 # Cada utilizador tem um banco fora de qualquer campanha (segue-o entre
 # mesas). O Mestre da campanha ativa pode ver o banco dos MEMBROS dela e
 # copiar NPCs para a campanha ("trazer para a mesa").
-BANCONPC_FILE = os.path.join(DATA_DIR, 'bancos_npc.json')
+BANCONPC_FILE = os.path.join(BASE_DIR, 'data', 'bancos_npc.json')
 COLECAO_BANCO_NPC = 'bancos_npc'
 BANCONPC_MAX = 100  # limite defensivo por utilizador
 
@@ -1032,7 +1029,7 @@ def api_loja_vender():
 # O PROGRESSO vive no estado da campanha ('aventura_ativa'): ao iniciar, a
 # definição é COPIADA (snapshot) para a mesa — editar a biblioteca depois não
 # muda uma aventura já em curso, e a mesma aventura pode rodar em N mesas.
-AVENTURAS_FILE = os.path.join(DATA_DIR, 'aventuras.json')
+AVENTURAS_FILE = os.path.join(BASE_DIR, 'data', 'aventuras.json')
 COLECAO_AVENTURAS = 'aventuras'
 AVENTURAS_MAX = 50
 
@@ -1065,56 +1062,18 @@ def api_put_aventuras():
     return jsonify({'ok': True, 'total': len(lista)})
 
 
-def _no_da_aventura(definicao, no_id):
-    return next((n for n in (definicao or {}).get('nos', []) if n.get('id') == no_id), None)
-
-
 @app.route('/api/aventura_ativa', methods=['GET'])
 @login_obrigatorio()
 def api_get_aventura_ativa():
     ativa = carregar_estado().get('aventura_ativa')
     if session.get('papel') != 'mestre':
-        # P1: o jogador vê a narração PÚBLICA do nó atual (nunca as
-        # notasMestre) e, quando o Mestre abre a votação, as escolhas e
-        # os votos da mesa — o filtro é no servidor, como em /api/npcs
+        # v1: jogador ainda não participa (escolhas na mesa são a fase
+        # seguinte) — só fica a saber SE há aventura em curso e o título
         if not ativa:
             return jsonify(None)
         definicao = ativa.get('definicao') or {}
-        no = _no_da_aventura(definicao, ativa.get('noAtual'))
-        publico = {
-            'titulo': definicao.get('titulo', 'Aventura'), 'emCurso': True,
-            'no': {'titulo': no.get('titulo', ''), 'tipo': no.get('tipo', 'narracao'),
-                   'narracao': no.get('narracao', '')} if no else None,
-            'escolhasAbertas': bool(ativa.get('escolhasAbertas')),
-        }
-        if publico['escolhasAbertas'] and no:
-            publico['saidas'] = [{'para': s.get('para'), 'rotulo': s.get('rotulo', ''),
-                                  'aviso': s.get('aviso', '')} for s in (no.get('saidas') or [])]
-            votos = ativa.get('votos') or {}
-            publico['votos'] = [{'nome': v.get('nome', '?'), 'para': v.get('para')} for v in votos.values()]
-            meu = votos.get(uid_sessao())
-            publico['meuVoto'] = meu.get('para') if meu else None
-        return jsonify(publico)
+        return jsonify({'titulo': definicao.get('titulo', 'Aventura'), 'emCurso': True})
     return jsonify(ativa)
-
-
-@app.route('/api/aventura_ativa/votar', methods=['POST'])
-@login_obrigatorio()
-def api_aventura_votar():
-    """Jogador vota numa escolha do nó atual (só com a votação aberta)."""
-    data = request.get_json(force=True) or {}
-    estado = carregar_estado()
-    ativa = estado.get('aventura_ativa')
-    if not ativa or not ativa.get('escolhasAbertas'):
-        return jsonify({'ok': False, 'erro': 'a votação não está aberta'}), 400
-    no = _no_da_aventura(ativa.get('definicao'), ativa.get('noAtual'))
-    destino = data.get('para')
-    if not no or not any(s.get('para') == destino for s in (no.get('saidas') or [])):
-        return jsonify({'ok': False, 'erro': 'essa escolha não existe no nó atual'}), 400
-    nome = session.get('nomeExibicao') or session.get('usuario') or 'Jogador'
-    ativa.setdefault('votos', {})[uid_sessao()] = {'para': destino, 'nome': nome}
-    salvar_estado(estado)
-    return jsonify({'ok': True, 'totalVotos': len(ativa['votos'])})
 
 
 @app.route('/api/aventura_ativa', methods=['POST'])
@@ -1143,7 +1102,7 @@ def api_post_aventura_ativa():
         }
         salvar_estado(estado)
         return jsonify({'ok': True, 'noAtual': no_inicial})
-    # atualizar progresso (avançar de nó / completar nó / abrir votação)
+    # atualizar progresso (avançar de nó / completar nó)
     ativa = estado.get('aventura_ativa')
     if not ativa:
         return jsonify({'ok': False, 'erro': 'não há aventura em curso'}), 400
@@ -1153,15 +1112,8 @@ def api_post_aventura_ativa():
             return jsonify({'ok': False, 'erro': 'nó de destino não existe'}), 400
         ativa['noAtual'] = destino
         ativa.setdefault('historico', []).append(destino)
-        # avançar fecha a votação e limpa os votos do nó anterior
-        ativa['escolhasAbertas'] = False
-        ativa['votos'] = {}
     if 'completarNo' in data:
         ativa.setdefault('nosCompletados', {})[data['completarNo']] = {'vencido': True, 'em': _agora()}
-    if 'abrirEscolhas' in data:  # P1: True abre a votação (zera votos), False fecha
-        ativa['escolhasAbertas'] = bool(data['abrirEscolhas'])
-        if ativa['escolhasAbertas']:
-            ativa['votos'] = {}
     salvar_estado(estado)
     return jsonify({'ok': True, 'noAtual': ativa['noAtual']})
 

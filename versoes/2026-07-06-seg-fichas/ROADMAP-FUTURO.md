@@ -235,22 +235,6 @@ Mapa de combate com posições, alcance, áreas e linha de visão — ver secç�
 detalhada [Fase 14](#fase-14--grid-virtual--mapa-de-combate). C1 (alvos)
 já prepara metade do terreno.
 
-## 🔒 Segurança / integridade (contínuo)
-
-> Trilha de endurecimento do backend antes de escalar utilizadores pagantes.
-
-- ✅ **PUT /api/fichas validado** (06/07/2026) — jogador só altera fichas
-  próprias; XP e revivência ficam com o Mestre (ver `CHANGELOG.md`).
-- ⏳ **Loja base validada no servidor** — hoje a loja do Modo de Jogo debita
-  `ouro` no cliente (por isso `ouro` ficou editável na trava de fichas).
-  Migrar para endpoints validados (como `POST /api/lojas/comprar` da Fase 12)
-  fecha o último vetor de ouro do jogador.
-- ⏳ **Tempo real com filtro no servidor** — o RT do Firestore entrega o
-  estado cru da campanha (com `notasMestre`/`notasPrivadas`) e filtra no
-  cliente; um jogador curioso lê tudo no DevTools. Resolver com
-  `firestore.rules` por campo ou um documento "público" separado por mesa.
-- ⏳ **Limite de tamanho de payload** nos PUTs (fichas, aventuras, lojas).
-
 ## 📦 Conteúdo (depois das ferramentas)
 
 ### CT1. Campanha pronta: Mina Perdida de Phandelver

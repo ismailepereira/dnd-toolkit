@@ -622,61 +622,11 @@ def api_get_fichas():
     return jsonify(carregar_estado()['fichas'])
 
 
-def _sanitizar_fichas_jogador(recebidas, armazenadas, meu_uid):
-    """Antes desta trava, um jogador podia reescrever TODAS as fichas da mesa
-    (ouro/XP de qualquer um) só chamando PUT /api/fichas — a regra B2 e a
-    posse eram apenas do lado do cliente. Agora o servidor decide:
-    - o jogador só altera fichas PRÓPRIAS (donoUid dele, ou legadas sem dono);
-      fichas de outros são preservadas do estado gravado, ignorando o payload;
-    - `xp` é sempre preservado do valor gravado (B2: XP só via Mestre);
-    - `donoUid` não pode ser reatribuído (evita roubo/troca de dono);
-    - revivência (morto->vivo) fica com o Mestre; morrer (vivo->morto) é livre.
-    NOTA: `ouro` continua editável na ficha própria porque a loja base do Modo
-    de Jogo debita no cliente — travá-lo aqui quebraria a compra. O fix
-    definitivo é validar a loja base no servidor (como as lojas de NPC)."""
-    por_id = {f.get('id'): f for f in armazenadas if isinstance(f, dict) and f.get('id')}
-    vistos = set()
-    saida = []
-    for f in recebidas:
-        if not isinstance(f, dict):
-            continue
-        fid = f.get('id')
-        vistos.add(fid)
-        antiga = por_id.get(fid)
-        if antiga is None:
-            # ficha nova: sempre criada em nome do próprio jogador
-            f['donoUid'] = meu_uid
-            saida.append(f)
-            continue
-        if antiga.get('donoUid') not in (None, meu_uid):
-            # ficha de OUTRO jogador: descarta o payload, mantém a gravada
-            saida.append(antiga)
-            continue
-        # ficha própria (ou legada sem dono): preserva os campos protegidos
-        f['donoUid'] = antiga.get('donoUid')
-        f['xp'] = antiga.get('xp', 0)
-        if antiga.get('status') == 'morto':
-            f['status'] = 'morto'
-        saida.append(f)
-    # fichas gravadas que o cliente omitiu: preserva as de OUTROS donos
-    # (apagar a própria continua a funcionar — some do payload e não é readicionada)
-    for fid, antiga in por_id.items():
-        if fid not in vistos and antiga.get('donoUid') not in (None, meu_uid):
-            saida.append(antiga)
-    return saida
-
-
 @app.route('/api/fichas', methods=['PUT'])
 @login_obrigatorio()
 def api_put_fichas():
     estado = carregar_estado()
-    recebidas = request.get_json(force=True)
-    if not isinstance(recebidas, list):
-        return jsonify({'ok': False, 'erro': 'esperava uma lista de fichas'}), 400
-    if session.get('papel') == 'mestre':
-        estado['fichas'] = [f for f in recebidas if isinstance(f, dict)]
-    else:
-        estado['fichas'] = _sanitizar_fichas_jogador(recebidas, estado.get('fichas', []), uid_sessao())
+    estado['fichas'] = request.get_json(force=True) or []
     salvar_estado(estado)
     return jsonify({'ok': True})
 

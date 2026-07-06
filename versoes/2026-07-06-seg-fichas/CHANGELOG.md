@@ -4,43 +4,6 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
-## 2026-07-06 — Segurança: PUT /api/fichas validado no servidor
-
-**Backup antes da alteração:** `versoes/2026-07-06-seg-fichas/`.
-
-**Resumo:** Fecha um furo de integridade: antes, qualquer jogador logado
-podia reescrever TODAS as fichas da mesa (ouro/XP de qualquer personagem)
-com um único `PUT /api/fichas` — a posse e a regra B2 (XP só via Mestre)
-eram apenas do lado do cliente. Agora o servidor arbitra o PUT do jogador:
-- o jogador só altera fichas PRÓPRIAS (o seu `donoUid`, ou fichas legadas
-  sem dono); fichas de outros donos são preservadas do estado gravado,
-  ignorando o array enviado;
-- `xp` é sempre preservado do valor gravado (B2 — XP só entra via Mestre);
-- `donoUid` não pode ser reatribuído (evita roubo/troca de dono);
-- revivência (morto→vivo) fica com o Mestre; morrer (vivo→morto) é livre;
-- ficha nova criada pelo jogador recebe `donoUid` do próprio;
-- payload não-lista → 400.
-O Mestre mantém controlo total (concede XP/ouro, revive) — o caminho dele
-não passa pela sanitização. **Limitação conhecida:** `ouro` continua
-editável na ficha própria do jogador porque a loja base do Modo de Jogo
-debita no cliente; o fix definitivo é validar a loja base no servidor
-(como já fazem as lojas de NPC da Fase 12) — anotado no roadmap.
-
-**Ficheiros alterados:**
-- `app.py` — helper `_sanitizar_fichas_jogador` + `PUT /api/fichas` passa a
-  ramificar por papel (Mestre: livre; jogador: sanitizado).
-
-**Testes:** `py_compile`; harness Flask com 3 contas (Mestre + 2 jogadores,
-`DATA_DIR` temporário): jogador edita só a própria ficha, XP travado, não
-rouba/reescreve/omite fichas alheias, morre mas não revive sozinho, apaga
-só a própria, Mestre concede XP/ouro/revive, payload inválido 400.
-Verificado ao vivo: o Mestre (Ismaile) continua a gravar ficha com XP/ouro
-(PUT 200) no preview.
-
-**Como reverter:** restaurar `app.py` de `versoes/2026-07-06-seg-fichas/`.
-
----
-
 ## 2026-07-05 — Escolhas dos jogadores com votação (P1 do livro-jogo) + DATA_DIR
 
 **Backup antes da alteração:** `versoes/2026-07-05-p1-livrojogo/`.

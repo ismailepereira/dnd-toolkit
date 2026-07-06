@@ -98,12 +98,7 @@ filtrado por ND).
 **Ficheiros:** `app.js` (botão no bestiário), `npc.js` (preencher modal a
 partir de um monstro), `monstros.js` (nenhuma mudança — só leitura).
 
-### M3. Gerador de ambientes urbanos (ocupação de locais) ✅
-
-> **✅ Entregue em 05/07/2026** — 10 ambientes em `static/js/ambientes.js`,
-> card "🏘️ Ocupar Ambiente" nos Geradores, ~10% de variações raras com botão
-> para lançar o encontro no combate (ver `CHANGELOG.md`).
-
+### M3. Gerador de ambientes urbanos (ocupação de locais)
 **Objetivo:** acervo de ambientes (🏠 casa, 🏚️ casa grande, 🍺 taverna, 🐴
 estábulo, 🏛️ mansão, 👥 multidão, ⛪ templo, 🏪 mercado...) que gera quem/o
 que está lá dentro: nº de pessoas e perfil (família, aristocratas, ladrões,

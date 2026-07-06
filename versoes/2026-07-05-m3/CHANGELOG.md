@@ -4,27 +4,6 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
-## 2026-07-05 — Gerador de ambientes urbanos (Passo M3)
-
-**Backup antes da alteração:** `versoes/2026-07-05-m3/`
-(cópia de todos os ficheiros tocados).
-
-**Resumo:** Novo card "🏘️ Ocupar Ambiente" na aba Geradores do Mestre. O Mestre escolhe um ambiente (🏠 casa, 🏚️ casarão, 🍺 taverna, 🐴 estábulo, 🏛️ mansão, 👥 multidão, ⛪ templo, 🏪 mercado, 🌃 beco, 📦 armazém) e o gerador sorteia o nº de ocupantes (fórmula de dados própria de cada ambiente) e um perfil de ocupação. ~90% dos resultados são normais (a cidade é uma cidade); ~10% são variações raras com encontros — nesse caso aparece o botão "⚔️ Lançar encontro no combate", que adiciona os monstros (nomes validados contra o Bestiário) via `addMonstro` e muda para a aba Combate.
-
-**Ficheiros alterados:**
-- `static/js/ambientes.js` (NOVO) — tabelas curadas de 10 ambientes (perfis normais ponderados + variações raras com monstros) e funções puras `ambRolarFormula`, `ambEscolhaPonderada` e `gerarOcupacao` (com `rng` injetável para testes; export CommonJS quando em Node).
-- `static/js/app.js` — handler do card: popular o seletor, renderizar resultado e botão de lançar encontro no combate.
-- `templates/mestre.html` — card "🏘️ Ocupar Ambiente" na aba Geradores + `<script>` do `ambientes.js`.
-- `docs/ROADMAP-FUTURO.md` — marca o passo M3 como concluído.
-
-**Testes:** `node --check` em `ambientes.js` e `app.js`; harness Node validou que todos os nomes de monstros das tabelas existem no Bestiário, fórmulas de dados válidas, mínimos/máximos de `ambRolarFormula`, substituição do placeholder `{n}`, quantidades de monstros ≥ 1 e frequência de raros ≈ 10% (9,7% em 20 000 amostras); sintaxe Jinja do template validada.
-
-**Como reverter:**
-1. Restaurar `templates/mestre.html`, `static/js/app.js`, `docs/ROADMAP-FUTURO.md` e `CHANGELOG.md` a partir de `versoes/2026-07-05-m3/`.
-2. Apagar `static/js/ambientes.js`.
-
----
-
 ## 2026-07-05 — Miniaturas de classes, atributos e armas (Miniaturas)
 
 **Backup antes da alteração:** `versoes/2026-07-05-miniaturas/`

@@ -1386,27 +1386,6 @@ document.querySelectorAll('[data-ger]').forEach(btn => {
   });
 });
 
-// ----- M3: Ocupar Ambiente (ambientes.js) -----
-let ambUltimoResultado = null;
-const ambienteSel = document.getElementById('ambienteSel');
-if (ambienteSel && typeof AMBIENTES !== 'undefined') {
-  ambienteSel.innerHTML = AMBIENTES.map(a => `<option value="${a.id}">${a.icone} ${a.nome}</option>`).join('');
-  document.getElementById('gerarAmbiente').addEventListener('click', () => {
-    const r = gerarOcupacao(ambienteSel.value);
-    ambUltimoResultado = r;
-    const linhas = [`${r.icone} ${r.ambiente} — ${r.ocupantes} ocupante(s)`, r.texto];
-    if (r.raro) linhas.push('⚠️ Variação rara!' + (r.monstros.length ? ' Encontro: ' + r.monstros.map(m => `${m.qtd}× ${m.nome}`).join(', ') : ''));
-    document.getElementById('resAmbiente').textContent = linhas.join('\n');
-    document.getElementById('ambLancarCombate').classList.toggle('hidden', !r.monstros.length);
-  });
-  document.getElementById('ambLancarCombate').addEventListener('click', () => {
-    if (!ambUltimoResultado || !ambUltimoResultado.monstros.length) return;
-    ambUltimoResultado.monstros.forEach(m => addMonstro(m.nome, m.qtd));
-    logCombate(`Encontro do ambiente "${ambUltimoResultado.ambiente}" lançado no combate`);
-    document.querySelector('[data-tab="combate"]').click();
-  });
-}
-
 // Rolagem de dados
 document.getElementById('rolarDado').addEventListener('click', () => {
   const formula = document.getElementById('dadoFormula').value.trim().toLowerCase();

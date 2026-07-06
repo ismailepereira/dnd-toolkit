@@ -4,16 +4,6 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
-## 2026-07-05 — Preparação de deploy no Render
-
-**Backup antes da alteração:** `versoes/2026-07-05-deploy/`.
-
-**Resumo:** `render.yaml` atualizado com as variáveis da Fase 10.9 (`TRIAL_DIAS`, `ASSINATURA_PRECO`, `PIX_CHAVE`, `CONTATO_PAGAMENTO` — as duas últimas `sync: false`, preencher no painel) e notas sobre a credencial do Firestore (Secret File `firebase-key.json` → `/etc/secrets/`; sem ela o armazenamento no Render é EFÉMERO). Nenhuma mudança de código.
-
-**Como reverter:** restaurar `render.yaml` de `versoes/2026-07-05-deploy/`.
-
----
-
 ## 2026-07-05 — Aventura pronta: Ninho da Rainha Dragão (Passo K2b)
 
 **Backup antes da alteração:** `versoes/2026-07-05-k2b/`

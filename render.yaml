@@ -18,3 +18,16 @@ services:
         value: jogador
       - key: JOGADOR_SENHA
         sync: false
+      # Fase 10.9 — assinatura manual (Pix + confirmação no /admin/assinaturas)
+      - key: TRIAL_DIAS
+        value: "3"
+      - key: ASSINATURA_PRECO
+        value: "R$ 5,00/mês"
+      - key: PIX_CHAVE
+        sync: false          # preencher no painel do Render (chave Pix real)
+      - key: CONTATO_PAGAMENTO
+        sync: false          # preencher no painel (WhatsApp/e-mail p/ comprovantes)
+      # Firestore: NÃO usar env FIREBASE_KEY_JSON — preferir Secret File
+      # chamado "firebase-key.json" (o app procura /etc/secrets/firebase-key.json).
+      # Sem credencial o app cai no ficheiro local, que NO RENDER É EFÉMERO
+      # (os dados somem a cada deploy/restart) — só serve para demonstração.

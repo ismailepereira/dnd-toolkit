@@ -1,0 +1,20 @@
+# Blueprint de deploy para o Render (https://render.com) — plano grátis.
+# Conecte este repositório no Render que ele lê este arquivo automaticamente.
+services:
+  - type: web
+    name: dnd-toolkit
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: MESTRE_USER
+        value: Ismaile
+      - key: MESTRE_SENHA
+        sync: false
+      - key: JOGADOR_USER
+        value: jogador
+      - key: JOGADOR_SENHA
+        sync: false

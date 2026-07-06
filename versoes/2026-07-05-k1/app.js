@@ -438,14 +438,7 @@ function aplicarAreaDano() {
   logCombate(resumo); salvarCombate(); renderCombate();
 }
 
-function ordenarCombate() {
-  combate.combatentes.sort((a, b) => b.iniciativa - a.iniciativa);
-  combate.turno = 0;
-  // K1: com combatentes na mesa, a campanha entra "em combate" — os
-  // jogadores detetam a transição (RT/polling) e recebem o aviso
-  combate.ativo = combate.combatentes.length > 0;
-  salvarCombate(); renderCombate();
-}
+function ordenarCombate() { combate.combatentes.sort((a, b) => b.iniciativa - a.iniciativa); combate.turno = 0; salvarCombate(); renderCombate(); }
 function proximoTurnoCombate() {
   if (!combate.combatentes.length) return;
   combate.turno++;
@@ -733,7 +726,7 @@ document.getElementById('rolarIniciativa').addEventListener('click', () => {
 document.getElementById('proximoTurno').addEventListener('click', proximoTurnoCombate);
 document.getElementById('limparCombate').addEventListener('click', () => {
   if (!confirm('Limpar todo o combate?')) return;
-  combate = { combatentes: [], turno: 0, rodada: 1, log: [], ativo: false };
+  combate = { combatentes: [], turno: 0, rodada: 1, log: [] };
   alvoSelecionado = null;
   salvarCombate(); renderCombate();
 });

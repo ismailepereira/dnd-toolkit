@@ -4,26 +4,6 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
-## 2026-07-05 — Campanhas aprimoradas + aviso de combate (Passo K1)
-
-**Backup antes da alteração:** `versoes/2026-07-05-k1/`
-(cópia de todos os ficheiros tocados).
-
-**Resumo:** Quando o Mestre inicia um combate (adiciona combatentes ou rola iniciativa), a flag `combate.ativo` liga; os jogadores detetam a transição (tempo real Firestore, com polling de fallback) e recebem um banner destacado "⚔️ COMBATE INICIADO — rolem iniciativa!" (pulsante, fecha ao clicar ou após 8s), um toque de corneta via WebAudio (sem ficheiro de som; silencioso se o browser bloquear áudio sem gesto) e a tela salta para a aba Combate. O estado "em combate" fica visível: aba "Combate" do jogador pulsa em vermelho e o cabeçalho da rodada ganha o chip "⚔️ EM COMBATE". "Limpar" desliga tudo. Sem mudanças no backend (a flag viaja dentro do JSON do combate).
-
-**Ficheiros alterados:**
-- `static/js/app.js` — `ordenarCombate` liga `combate.ativo` quando há combatentes; "Limpar" repõe `ativo: false`.
-- `static/js/jogador.js` — deteção da transição inativo→ativo em `renderCombateJog` (sem aviso na primeira renderização, para não disparar ao abrir a página já em combate), `avisoCombateIniciado` (banner + som + salto de aba), `sinalizarEstadoCombate` (pulso na aba) e chip no cabeçalho.
-- `static/css/style.css` — `.banner-combate` (+ animação de pulso), `.tab-btn.combate-ativo` e `.chip-em-combate`.
-- `docs/ROADMAP-FUTURO.md` — marca o passo K1 como concluído.
-
-**Testes:** `node --check` em `app.js` e `jogador.js`; verificação byte a byte de que o append no `style.css` não introduziu BOM intercalado. (O aviso em si é comportamento de browser — validar no preview com duas janelas: Mestre inicia combate, jogador recebe o banner.)
-
-**Como reverter:**
-1. Restaurar `static/js/app.js`, `static/js/jogador.js`, `static/css/style.css`, `docs/ROADMAP-FUTURO.md` e `CHANGELOG.md` a partir de `versoes/2026-07-05-k1/`.
-
----
-
 ## 2026-07-05 — Banco de NPCs partilhado entre utilizadores (Passo M4)
 
 **Backup antes da alteração:** `versoes/2026-07-05-m4/`

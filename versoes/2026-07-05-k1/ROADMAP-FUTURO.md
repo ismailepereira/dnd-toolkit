@@ -142,12 +142,7 @@ raros dos ambientes dão loot).
 
 ## 🟢 P3 — Campanha viva
 
-### K1. Campanhas aprimoradas + aviso de combate ✅
-
-> **✅ Entregue em 05/07/2026** — flag `combate.ativo`, banner "⚔️ COMBATE
-> INICIADO" com som WebAudio e salto para a aba Combate no jogador; aba e
-> cabeçalho sinalizam "em combate" (ver `CHANGELOG.md`).
-
+### K1. Campanhas aprimoradas + aviso de combate
 **Objetivo:** dentro da campanha ativa, quando o Mestre inicia um combate,
 todos os jogadores recebem um aviso imediato ("⚔️ COMBATE INICIADO — rolem
 iniciativa!") — banner destacado + som opcional; e a tela do jogador salta

@@ -296,52 +296,8 @@ function statusMonstro(pct, hpAtual) {
   return { txt: 'Quase morto', cor: '#e94560' };
 }
 
-// ----- K1: aviso de combate iniciado (banner + som + salto de aba) -----
-let _combateAtivoAnterior = null; // null = primeira renderização (sem aviso)
-
-function somCombate() {
-  // toque curto de "corneta" via WebAudio (sem asset externo); se o browser
-  // bloquear áudio sem gesto do utilizador, falha em silêncio
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    [[440, 0, 0.15], [554, 0.18, 0.15], [659, 0.36, 0.3]].forEach(([freq, ini, dur]) => {
-      const osc = ctx.createOscillator(), gain = ctx.createGain();
-      osc.type = 'square'; osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.08, ctx.currentTime + ini);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + ini + dur);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(ctx.currentTime + ini); osc.stop(ctx.currentTime + ini + dur);
-    });
-  } catch (e) {}
-}
-
-function avisoCombateIniciado() {
-  const antigo = document.getElementById('bannerCombate');
-  if (antigo) antigo.remove();
-  const b = document.createElement('div');
-  b.id = 'bannerCombate';
-  b.className = 'banner-combate';
-  b.innerHTML = '⚔️ <b>COMBATE INICIADO</b> — rolem iniciativa! <span class="banner-fechar">✕</span>';
-  b.addEventListener('click', () => b.remove());
-  document.body.appendChild(b);
-  setTimeout(() => { if (b.parentNode) b.remove(); }, 8000);
-  somCombate();
-  const tabCombate = document.querySelector('[data-tab="combate"]');
-  if (tabCombate) tabCombate.click();
-}
-
-function sinalizarEstadoCombate(ativo) {
-  const tabCombate = document.querySelector('[data-tab="combate"]');
-  if (tabCombate) tabCombate.classList.toggle('combate-ativo', ativo);
-}
-
 function renderCombateJog(combate) {
   window.COMBATE_ATUAL = combate;
-  const ativo = !!(combate && combate.ativo && combate.combatentes && combate.combatentes.length);
-  sinalizarEstadoCombate(ativo);
-  // aviso só na TRANSIÇÃO para ativo (não ao carregar a página já em combate)
-  if (ativo && _combateAtivoAnterior === false) avisoCombateIniciado();
-  _combateAtivoAnterior = ativo;
   if (!combate || !combate.combatentes || !combate.combatentes.length) {
     turnoInfoJog.textContent = 'Nenhum combate em andamento.';
     listaCombateJog.innerHTML = '';
@@ -349,7 +305,7 @@ function renderCombateJog(combate) {
   }
   const idx = combate.turno % combate.combatentes.length;
   const atual = combate.combatentes[idx];
-  turnoInfoJog.innerHTML = `${ativo ? '<span class="chip-em-combate">⚔️ EM COMBATE</span> · ' : ''}Rodada <b>${combate.rodada}</b> · Vez de <b>${escapeHtml(atual.nome)}</b>`;
+  turnoInfoJog.innerHTML = `Rodada <b>${combate.rodada}</b> · Vez de <b>${escapeHtml(atual.nome)}</b>`;
   listaCombateJog.innerHTML = '';
   combate.combatentes.forEach((c, i) => {
     const pct = c.hpMax > 0 ? (c.hpAtual / c.hpMax) * 100 : 0;

@@ -193,11 +193,6 @@ escolha com trilha percorrida, encerrar). Jogador só vê título/emCurso.
 5. **Grid por nó** — quando a Fase 14 existir, cada nó aponta um `gridId`.
 6. **CT1/Phandelver** passa a ser escrito NESTE formato (primeira aventura
    oficial pronta, exemplo para Mestres iniciantes).
-   > ✅ Infra de modelos prontos entregue em 05/07/2026
-   > (`static/js/aventurasprontas.js` + botão "📚 Importar modelo"), com a
-   > primeira aventura oficial: **Ninho da Rainha Dragão — Greenest em
-   > Chamas** (18 nós, hub, becos, mortes sinalizadas e infiltração até a
-   > vitória). Phandelver segue o mesmo caminho quando chegar o CT1.
 
 ### (Fase 12 já planeada) Lojas geridas por NPC — encaixa aqui no P3 ✅
 Inventário e preços próprios por lojista — ver secção detalhada

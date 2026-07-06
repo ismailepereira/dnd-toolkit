@@ -4,26 +4,6 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
-## 2026-07-05 — Aventura pronta: Ninho da Rainha Dragão (Passo K2b)
-
-**Backup antes da alteração:** `versoes/2026-07-05-k2b/`
-(cópia de todos os ficheiros tocados).
-
-**Resumo:** Primeira aventura oficial no formato livro-jogo: "Ninho da Rainha Dragão — Greenest em Chamas" (arco de abertura do módulo), disponível como MODELO importável pelo botão "📚 Importar modelo" na aba Aventura (copia para a biblioteca pessoal com id novo — o Mestre adapta tudo sem afetar o modelo; importar 2× cria 2 cópias independentes). O grafo tem 18 nós: ponto de partida com 4 escolhas, hub central na fortaleza (várias entradas — rede, não árvore), 2 becos/finais neutros (esconder-se; ficar a reconstruir), 3 caminhos de morte sinalizados 💀 (horda nas ruas, perseguir o dragão, ataque frontal ao acampamento), o duelo assinatura contra o meio-dragão, e a rota de infiltração até a vitória (resgate do monge Leosin). Cada nó traz narração para ler, notas privadas de condução para Mestres iniciantes (moral do dragão, stand-ins de stats, alternativas a TPK) e encontros calibrados para 4-5 PJs nível 1-3 com monstros do bestiário.
-
-**Ficheiros alterados:**
-- `static/js/aventurasprontas.js` (NOVO) — registo `AVENTURAS_PRONTAS` com a aventura completa (extensível: novos modelos são só novas entradas).
-- `static/js/aventura.js` — botão "📚 Importar modelo" (escolha por prompt quando houver vários; cópia profunda com id novo).
-- `templates/mestre.html` — botão na aba Aventura + script tag do novo ficheiro.
-
-**Testes:** `node --check`; harness Node validou o modelo com `validarAventura` (zero erros E zero avisos — sem órfãos, sem becos não marcados, caminho de vitória alcançável), todos os monstros dos encontros existem no bestiário com qtd válida, narração/notas preenchidas em todos os nós, finais corretos (vitória + 3 derrotas + 2 neutros), nó inicial com 4+ escolhas e hub com múltiplas entradas; sintaxe Jinja OK.
-
-**Como reverter:**
-1. Restaurar `static/js/aventura.js`, `templates/mestre.html`, `docs/ROADMAP-FUTURO.md` e `CHANGELOG.md` a partir de `versoes/2026-07-05-k2b/`.
-2. Apagar `static/js/aventurasprontas.js`.
-
----
-
 ## 2026-07-05 — Livro-jogo v1: aventuras como grafo de nós/escolhas (Passo K2)
 
 **Backup antes da alteração:** `versoes/2026-07-05-k2/`

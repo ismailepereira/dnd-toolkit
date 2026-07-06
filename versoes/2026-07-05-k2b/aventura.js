@@ -370,25 +370,5 @@ if (typeof module !== 'undefined' && module.exports) {
   }
 
   $('avNova').addEventListener('click', () => abrirEditor(null));
-
-  // ----- Modelos prontos (aventurasprontas.js) -----
-  const btnModelo = $('avImportarModelo');
-  if (btnModelo) btnModelo.addEventListener('click', () => {
-    const prontas = (typeof AVENTURAS_PRONTAS !== 'undefined') ? AVENTURAS_PRONTAS : [];
-    if (!prontas.length) { alert('Nenhum modelo disponível.'); return; }
-    let escolhida = prontas[0];
-    if (prontas.length > 1) {
-      const lista = prontas.map((a, i) => `${i + 1}. ${a.titulo}`).join('\n');
-      const resp = prompt(`Qual modelo importar?\n${lista}\n\nDigite o número:`, '1');
-      if (resp === null) return;
-      escolhida = prontas[Math.max(1, Math.min(prontas.length, parseInt(resp, 10) || 1)) - 1];
-    }
-    const copia = JSON.parse(JSON.stringify(escolhida));
-    copia.id = uidAv('av'); // id novo: importar 2× cria 2 cópias independentes
-    aventuras.push(copia);
-    salvarBiblioteca(); renderLib();
-    alert(`"${copia.titulo}" importada para a sua biblioteca — edite à vontade, o modelo original não muda.`);
-  });
-
   carregarTudo();
 })();

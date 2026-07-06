@@ -29,3 +29,8 @@ __pycache__/
 venv/
 .DS_Store
 Thumbs.db
+
+# --- Ferramentas locais do Claude Code (nao fazem parte do produto) ---
+.agents/
+.claude/skills/
+skills-lock.json

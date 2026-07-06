@@ -129,7 +129,7 @@ botões "💾 Guardar no meu banco" / "📥 Trazer para a campanha".
 **Ficheiros:** `app.py`, `npc.js`, `templates/*`.
 **Dependência:** contas da Fase 10 (✅ pronto).
 
-### (Fase 13 já planeada) Monstros & Loot — encaixa aqui no P2 ✅
+### (Fase 13 já planeada) Monstros & Loot — encaixa aqui no P2
 Tabelas de tesouro/drops por ND ao derrotar monstros — ver secção detalhada
 [Fase 13](#fase-13--monstros--sistema-de-loot). Combina com M3 (os encontros
 raros dos ambientes dão loot).
@@ -492,11 +492,6 @@ filtrado desses catálogos + preços próprios + estoque limitado — reaproveit
 ---
 
 ## Fase 13 — Monstros & Sistema de Loot
-
-> **✅ Entregue em 05/07/2026** — `static/js/loot.js` (tabelas genéricas por
-> ND + rolagem), `loot` próprio em 14 monstros comuns, botão "🎲 Gerar Loot"
-> no Combate com "💰 Dividir ouro pelo grupo" (ver `CHANGELOG.md`).
-> Trabalho contínuo: ir adicionando `loot` aos restantes monstros/chefes.
 
 ### Objetivo
 Hoje o bestiário (`static/js/monstros.js`) só tem stats de combate — não tem

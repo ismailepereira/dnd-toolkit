@@ -81,10 +81,8 @@
         <button id="rolarIniciativa" class="btn-secondary">🎲 Rolar Iniciativa</button>
         <button id="proximoTurno" class="btn-secondary">▶ Próximo turno</button>
         <button id="btnAreaDano" class="btn-secondary">💥 Dano em Área</button>
-        <button id="btnGerarLoot" class="btn-secondary" title="Rola o tesouro dos monstros abatidos (PV 0) — tabela própria do monstro ou genérica por ND">🎲 Gerar Loot</button>
         <button id="limparCombate" class="btn-danger">Limpar</button>
       </div>
-      <div id="lootResultado" class="area-dano hidden"></div>
       <p class="aviso-mestre">Clique em 🎯 para escolher o alvo; aí clique num ataque para rolar acerto + dano (já aplica resistência/vulnerabilidade/imunidade). Use ⚔ Multiataque nos monstros, ⭐ Chefe p/ ações e resistência lendária, e 💥 Dano em Área p/ salva em massa.</p>
       <div id="areaDanoPanel" class="area-dano hidden"></div>
       <div class="turno-info" id="turnoInfo"></div>
@@ -354,7 +352,6 @@
   <script src="{{ url_for('static', filename='js/itens.js') }}"></script>
   <script src="{{ url_for('static', filename='js/monstros.js') }}"></script>
   <script src="{{ url_for('static', filename='js/ambientes.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/loot.js') }}"></script>
   <script src="{{ url_for('static', filename='js/dados5e.js') }}"></script>
   <script src="{{ url_for('static', filename='js/fontes.js') }}"></script>
   <script src="{{ url_for('static', filename='js/equipamento.js') }}"></script>

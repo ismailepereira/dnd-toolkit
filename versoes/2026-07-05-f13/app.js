@@ -611,42 +611,6 @@ document.getElementById('addMonstro').addEventListener('click', () => addMonstro
 const btnAliado = document.getElementById('addAliado');
 if (btnAliado) btnAliado.addEventListener('click', () => addMonstro(combMonstroSel.value, qtdComb(), 'aliado'));
 
-// ----- Fase 13: Loot dos monstros abatidos -----
-const btnGerarLoot = document.getElementById('btnGerarLoot');
-if (btnGerarLoot && typeof rolarLootEncontro === 'function') {
-  btnGerarLoot.addEventListener('click', () => {
-    const box = document.getElementById('lootResultado');
-    const abatidos = combate.combatentes.filter(c => c.tipo === 'monstro' && c.hpAtual === 0 && c.monstroNome);
-    if (!abatidos.length) {
-      box.classList.remove('hidden');
-      box.innerHTML = '<p>Nenhum monstro abatido (PV 0) no combate — nada para saquear.</p>';
-      return;
-    }
-    const entradas = abatidos.map(c => MONSTROS.find(m => m.nome === c.monstroNome)).filter(Boolean);
-    const r = rolarLootEncontro(entradas);
-    const linhasItens = r.itens.length ? r.itens.map(i => `<li>${i.qtd}× ${escapeHtml(i.nome)}</li>`).join('') : '<li><i>nenhum item — só moedas</i></li>';
-    box.classList.remove('hidden');
-    box.innerHTML = `
-      <h4>🎲 Loot de ${abatidos.length} monstro(s) abatido(s)</h4>
-      <p><b>💰 ${r.ouro} po</b></p>
-      <ul>${linhasItens}</ul>
-      <p class="criador-hint">Itens: distribua com "📦 Enviar à ficha" na aba Fichas. Ouro:</p>
-      <button class="btn-secondary" id="lootDividirOuro">💰 Dividir ouro pelo grupo</button>
-      <span id="lootMsg" class="envio-msg"></span>`;
-    logCombate(`Loot gerado: ${r.ouro} po` + (r.itens.length ? ` + ${r.itens.map(i => `${i.qtd}× ${i.nome}`).join(', ')}` : ''));
-    document.getElementById('lootDividirOuro').addEventListener('click', () => {
-      const vivos = fichas.filter(f => f.status !== 'morto');
-      if (!vivos.length || !r.ouro) return;
-      const quota = Math.floor(r.ouro / vivos.length);
-      vivos.forEach(f => { f.ouro = (f.ouro || 0) + quota; });
-      salvarFichas();
-      renderFichas();
-      document.getElementById('lootMsg').textContent = `✓ ${quota} po para cada um de ${vivos.length} personagem(ns)` + (r.ouro % vivos.length ? ` (${r.ouro % vivos.length} po de troco ficam com o Mestre)` : '');
-      document.getElementById('lootDividirOuro').disabled = true;
-    });
-  });
-}
-
 // ----- Fase 11: NPCs da campanha no rastreador (persistem fora do combate) -----
 function popularNpcCombate(npcs) {
   const sel = document.getElementById('combNpcSel');

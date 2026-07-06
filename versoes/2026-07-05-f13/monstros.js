@@ -7,7 +7,6 @@ const MONSTROS = [
   // ---------- GOBLINOIDES ----------
   {
     nome: 'Goblin', categoria: 'Goblinoide',
-    loot: { ouroFormula: '2d6', tabela: [{ item: null, peso: 55 }, { item: 'Cimitarra gasta', peso: 20, qtd: 1 }, { item: 'Orelha de goblin (troféu)', peso: 15, qtd: 1 }, { item: 'Poção de Cura', peso: 10, qtd: 1 }] },
     tipo: 'Humanoide pequeno (goblinoide), neutro e mau',
     ca: '15 (armadura de couro, escudo)', hp: '7 (2d6)', velocidade: '9m',
     atributos: { for: 8, des: 14, con: 10, int: 10, sab: 8, car: 8 },
@@ -21,7 +20,6 @@ const MONSTROS = [
   },
   {
     nome: 'Goblin Mestre (Goblin Boss)', categoria: 'Goblinoide',
-    loot: { ouroFormula: '4d6+10', itensGarantidos: ['Chave enferrujada (o que abre?)'], tabela: [{ item: null, peso: 40 }, { item: 'Anel de bronze (5 po)', peso: 30, qtd: 1 }, { item: 'Poção de Cura', peso: 20, qtd: 1 }, { item: 'Mapa rabiscado do covil', peso: 10, qtd: 1 }] },
     tipo: 'Humanoide pequeno (goblinoide), neutro e mau',
     ca: '17 (cota de malha, escudo)', hp: '21 (5d6+3)', velocidade: '9m',
     atributos: { for: 10, des: 14, con: 10, int: 10, sab: 8, car: 10 },
@@ -37,7 +35,6 @@ const MONSTROS = [
   },
   {
     nome: 'Hobgoblin', categoria: 'Goblinoide',
-    loot: { ouroFormula: '2d6+4', tabela: [{ item: null, peso: 50 }, { item: 'Insígnia militar da legião', peso: 20, qtd: 1 }, { item: 'Espada longa bem conservada', peso: 18, qtd: 1 }, { item: 'Ração de campanha', peso: 12, qtd: 2 }] },
     tipo: 'Humanoide médio (goblinoide), leal e mau',
     ca: '18 (cota de malha, escudo)', hp: '11 (2d8+2)', velocidade: '9m',
     atributos: { for: 13, des: 12, con: 12, int: 10, sab: 10, car: 9 },
@@ -51,7 +48,6 @@ const MONSTROS = [
   },
   {
     nome: 'Bugbear', categoria: 'Goblinoide',
-    loot: { ouroFormula: '3d6+5', tabela: [{ item: null, peso: 50 }, { item: 'Saco de "tesouros" (bugigangas roubadas)', peso: 25, qtd: 1 }, { item: 'Clava de guerra pesada', peso: 15, qtd: 1 }, { item: 'Pedra semipreciosa (10 po)', peso: 10, qtd: 1 }] },
     tipo: 'Humanoide médio (goblinoide), caótico e mau',
     ca: '16 (armadura de couro, escudo)', hp: '27 (5d8+5)', velocidade: '9m',
     atributos: { for: 15, des: 14, con: 13, int: 8, sab: 11, car: 9 },
@@ -67,7 +63,6 @@ const MONSTROS = [
   // ---------- HUMANOIDES ----------
   {
     nome: 'Bandido', categoria: 'Humanoide',
-    loot: { ouroFormula: '2d6+2', tabela: [{ item: null, peso: 50 }, { item: 'Baralho de cartas marcado', peso: 18, qtd: 1 }, { item: 'Frasco de aguardente barata', peso: 17, qtd: 1 }, { item: 'Brinco de prata (5 po)', peso: 15, qtd: 1 }] },
     tipo: 'Humanoide médio (qualquer raça), qualquer alinhamento não-leal',
     ca: '12 (armadura de couro)', hp: '11 (2d8+2)', velocidade: '9m',
     atributos: { for: 11, des: 12, con: 12, int: 10, sab: 10, car: 10 },
@@ -80,7 +75,6 @@ const MONSTROS = [
   },
   {
     nome: 'Capanga (Thug)', categoria: 'Humanoide',
-    loot: { ouroFormula: '3d6+5', tabela: [{ item: null, peso: 50 }, { item: 'Soqueira de ferro', peso: 20, qtd: 1 }, { item: 'Lista de nomes riscados', peso: 15, qtd: 1 }, { item: 'Dente de ouro (10 po)', peso: 15, qtd: 1 }] },
     tipo: 'Humanoide médio (qualquer raça), qualquer alinhamento não-bom',
     ca: '11 (armadura de couro)', hp: '32 (5d8+10)', velocidade: '9m',
     atributos: { for: 15, des: 11, con: 14, int: 10, sab: 10, car: 11 },
@@ -95,7 +89,6 @@ const MONSTROS = [
   },
   {
     nome: 'Bandido Capitão', categoria: 'Humanoide',
-    loot: { ouroFormula: '4d6+15', itensGarantidos: ['Cimitarra de boa forja'], tabela: [{ item: null, peso: 35 }, { item: 'Anel de sinete roubado (25 po)', peso: 25, qtd: 1 }, { item: 'Poção de Cura', peso: 20, qtd: 1 }, { item: 'Carta de um contratante misterioso', peso: 20, qtd: 1 }] },
     tipo: 'Humanoide médio (qualquer raça), qualquer alinhamento não-leal',
     ca: '15 (armadura de couro batido)', hp: '65 (10d8+20)', velocidade: '9m',
     atributos: { for: 15, des: 16, con: 14, int: 14, sab: 11, car: 14 },
@@ -157,7 +150,6 @@ const MONSTROS = [
   },
   {
     nome: 'Cultista', categoria: 'Humanoide',
-    loot: { ouroFormula: '1d6+2', tabela: [{ item: null, peso: 45 }, { item: 'Amuleto de símbolo profano', peso: 25, qtd: 1 }, { item: 'Vela negra ritual', peso: 20, qtd: 1 }, { item: 'Bilhete cifrado do culto', peso: 10, qtd: 1 }] },
     tipo: 'Humanoide médio (qualquer raça), qualquer alinhamento não-bom',
     ca: '12 (armadura de couro)', hp: '9 (2d8)', velocidade: '9m',
     atributos: { for: 11, des: 12, con: 10, int: 10, sab: 11, car: 10 },
@@ -194,7 +186,6 @@ const MONSTROS = [
   },
   {
     nome: 'Orc', categoria: 'Humanoide',
-    loot: { ouroFormula: '2d6+3', tabela: [{ item: null, peso: 50 }, { item: 'Machado grosseiro', peso: 20, qtd: 1 }, { item: 'Colar de presas', peso: 20, qtd: 1 }, { item: 'Estandarte de tribo rasgado', peso: 10, qtd: 1 }] },
     tipo: 'Humanoide médio (orc), caótico e mau',
     ca: '13 (armadura de couro)', hp: '15 (2d8+6)', velocidade: '9m',
     atributos: { for: 16, des: 12, con: 16, int: 7, sab: 11, car: 10 },
@@ -208,7 +199,6 @@ const MONSTROS = [
   },
   {
     nome: 'Kobold', categoria: 'Humanoide',
-    loot: { ouroFormula: '1d6', tabela: [{ item: null, peso: 60 }, { item: 'Pedrinha brilhante (sem valor)', peso: 20, qtd: 1 }, { item: 'Funda e pedras', peso: 12, qtd: 1 }, { item: 'Escama "da sorte" de dragão (falsa?)', peso: 8, qtd: 1 }] },
     tipo: 'Humanoide pequeno (kobold), leal e mau',
     ca: '12', hp: '5 (2d6-2)', velocidade: '9m',
     atributos: { for: 7, des: 15, con: 9, int: 8, sab: 7, car: 8 },
@@ -255,7 +245,6 @@ const MONSTROS = [
   // ---------- ANIMAIS / FERAS ----------
   {
     nome: 'Lobo', categoria: 'Animal',
-    loot: { ouroFormula: '0d1', tabela: [{ item: null, peso: 40 }, { item: 'Pele de lobo (2 po ao curtidor)', peso: 45, qtd: 1 }, { item: 'Presas de lobo', peso: 15, qtd: 2 }] },
     tipo: 'Animal médio, sem alinhamento',
     ca: '13', hp: '11 (2d8+2)', velocidade: '12m',
     atributos: { for: 12, des: 15, con: 12, int: 3, sab: 12, car: 6 },
@@ -323,7 +312,6 @@ const MONSTROS = [
   // ---------- MORTOS-VIVOS ----------
   {
     nome: 'Zumbi', categoria: 'Morto-vivo',
-    loot: { ouroFormula: '1d6-1', tabela: [{ item: null, peso: 70 }, { item: 'Anel oxidado (2 po)', peso: 15, qtd: 1 }, { item: 'Pertence pessoal da vítima (gancho de história)', peso: 15, qtd: 1 }] },
     tipo: 'Morto-vivo médio, neutro e mau',
     ca: '8', hp: '22 (3d8+9)', velocidade: '6m',
     atributos: { for: 13, des: 6, con: 16, int: 3, sab: 6, car: 5 },
@@ -334,7 +322,6 @@ const MONSTROS = [
   },
   {
     nome: 'Esqueleto', categoria: 'Morto-vivo',
-    loot: { ouroFormula: '1d6-1', tabela: [{ item: null, peso: 65 }, { item: 'Espada antiga corroída', peso: 15, qtd: 1 }, { item: 'Broche de família esquecida (10 po)', peso: 12, qtd: 1 }, { item: 'Moedas de cunhagem antiga (colecionador paga o dobro)', peso: 8, qtd: 1 }] },
     tipo: 'Morto-vivo médio, leal e mau',
     ca: '13 (armadura de couro)', hp: '13 (2d8+4)', velocidade: '9m',
     atributos: { for: 10, des: 14, con: 15, int: 6, sab: 8, car: 5 },
@@ -431,7 +418,6 @@ const MONSTROS = [
   // ---------- GIGANTES ----------
   {
     nome: 'Ogro', categoria: 'Gigante',
-    loot: { ouroFormula: '3d6+10', tabela: [{ item: null, peso: 45 }, { item: 'Saco com "brilhantes" (moedas e vidro)', peso: 25, qtd: 1 }, { item: 'Barril de hidromel meio cheio', peso: 15, qtd: 1 }, { item: 'Gema (50 po) engolida por engano', peso: 15, qtd: 1 }] },
     tipo: 'Gigante grande, caótico e mau',
     ca: '11 (armadura de peles)', hp: '59 (7d10+21)', velocidade: '12m',
     atributos: { for: 19, des: 8, con: 16, int: 5, sab: 7, car: 7 },

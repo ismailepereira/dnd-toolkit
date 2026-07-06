@@ -4,28 +4,6 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
-## 2026-07-05 — Monstros & Sistema de Loot (Fase 13)
-
-**Backup antes da alteração:** `versoes/2026-07-05-f13/`
-(cópia de todos os ficheiros tocados).
-
-**Resumo:** Botão "🎲 Gerar Loot" na aba Combate do Mestre: rola o tesouro dos monstros abatidos (PV 0) e mostra o total de ouro + itens. Monstros comuns (14: Goblin, Goblin Boss, Bandido, Capanga, Bandido Capitão, Cultista, Orc, Hobgoblin, Bugbear, Kobold, Lobo, Zumbi, Esqueleto, Ogro) têm tabela de loot própria (`loot` em `MONSTROS`, com `itensGarantidos` para chefes); os restantes caem nas tabelas genéricas por Nível de Desafio (bandas 0-4, 5-10, 11-16, 17+, inspiradas na Tabela de Tesouro Individual do Guia do Mestre). Botão "💰 Dividir ouro pelo grupo" reparte o ouro pelas fichas vivas (troco fica com o Mestre); itens distribuem-se manualmente via "📦 Enviar à ficha" (como planeado — automatizar é passo futuro).
-
-**Ficheiros alterados:**
-- `static/js/loot.js` (NOVO) — `TABELAS_LOOT_POR_ND`, `lootBandaDoCr`, `lootRolarFormula`, `lootEscolhaPonderada`, `rolarLoot` e `rolarLootEncontro` (funções puras, `rng` injetável, export CommonJS em Node).
-- `static/js/monstros.js` — campo `loot` adicionado a 14 monstros comuns.
-- `static/js/app.js` — handler do botão "🎲 Gerar Loot" (filtra monstros com PV 0, agrega loot, log no histórico) e "💰 Dividir ouro pelo grupo".
-- `templates/mestre.html` — botão na toolbar do Combate, bloco `#lootResultado` e `<script>` do `loot.js`.
-- `docs/ROADMAP-FUTURO.md` — marca a Fase 13 como concluída (loot por monstro segue incremental).
-
-**Testes:** `node --check` nos três JS; harness Node validou bandas de CR (frações incluídas), mínimos/máximos e clamp das fórmulas, estrutura do `loot` dos 14 monstros, `itensGarantidos` sempre presentes, agregação do encontro, e rolagem sem erro para TODOS os monstros do bestiário (20× cada); sintaxe Jinja validada.
-
-**Como reverter:**
-1. Restaurar `templates/mestre.html`, `static/js/app.js`, `static/js/monstros.js`, `docs/ROADMAP-FUTURO.md` e `CHANGELOG.md` a partir de `versoes/2026-07-05-f13/`.
-2. Apagar `static/js/loot.js`.
-
----
-
 ## 2026-07-05 — Gerador de ambientes urbanos (Passo M3)
 
 **Backup antes da alteração:** `versoes/2026-07-05-m3/`

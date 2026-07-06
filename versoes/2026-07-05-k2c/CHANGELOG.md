@@ -4,23 +4,6 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
-## 2026-07-05 — Ninho da Rainha Dragão completo + bestiário do culto + guia do processo (Passo K2c)
-
-**Backup antes da alteração:** `versoes/2026-07-05-k2c/`.
-
-**Resumo:** (1) **Bestiário**: nova categoria "Culto do Dragão" com 6 criaturas próprias do módulo, todas com `loot` (Fase 13): Garra do Dragão, Guarda Draco, Draco de Emboscada, **Langdedrosa Cyanwrath** (meio-dragão, com o traço do duelo de honra), **Frulam Mondath** (sacerdotisa; os registos do chocadouro são drop garantido — gancho do próximo arco) e **Lennithon, Dragão Azul Adulto** (CR 16, com AVISO AO MESTRE de condução por moral). (2) **Aventura expandida de 19 → 29 nós**: os stand-ins foram substituídos pelos monstros reais e o arco ganhou o Episódio 3 (Chocadouro): retorno ao acampamento abandonado, rota furtiva pela fenda vs. entrada com armadilhas kobold, salão dos fungos com guardas dracos, a decisão moral dos ovos de dragão, o santuário de Mondath e a revanche de Cyanwrath; agora são 2 finais de vitória (arco curto "Heróis de Greenest" e arco completo "O Chocadouro cai"), 4 derrotas jogáveis e 2 finais neutros. (3) **`docs/LIVRO-JOGO.md`** (novo): guia do processo de montar aventuras jogáveis (pipeline bestiário → NPCs → grafo → validação → teste de mesa) + roadmap P1-P7 do que falta para os jogadores jogarem (escolhas na tela deles, NPCs por nó, partilha, canvas, grid por nó, loot/XP integrados, mais modelos).
-
-**Ficheiros alterados:**
-- `static/js/monstros.js` — 6 monstros novos (categoria "Culto do Dragão", com loot).
-- `static/js/aventurasprontas.js` — aventura expandida para 29 nós (Episódios 1-3).
-- `docs/LIVRO-JOGO.md` (NOVO) — guia do processo + roadmap dos jogadores.
-
-**Testes:** `node --check`; harness do grafo (0 erros, 0 avisos; nomes de monstros validados; narração/notas em todos os 29 nós; finais corretos); harness de loot (20 monstros com loot próprio, rolagem sem erro em todo o bestiário); verificado ao vivo no preview (categoria no filtro do bestiário, modelo com 29 nós, biblioteca do Ismaile atualizada para a versão completa).
-
-**Como reverter:** restaurar `static/js/monstros.js` e `static/js/aventurasprontas.js` de `versoes/2026-07-05-k2c/`; apagar `docs/LIVRO-JOGO.md`.
-
----
-
 ## 2026-07-05 — Preparação de deploy no Render
 
 **Backup antes da alteração:** `versoes/2026-07-05-deploy/`.

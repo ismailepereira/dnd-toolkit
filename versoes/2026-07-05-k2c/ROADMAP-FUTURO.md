@@ -183,9 +183,6 @@ caminho de vitória), "▶ Iniciar" com snapshot, painel de condução (narraç�
 lançar encontro no combate via `addMonstro`, completar nó, avançar por
 escolha com trilha percorrida, encerrar). Jogador só vê título/emCurso.
 
-**Guia do processo e roadmap detalhado dos jogadores:** ver
-`docs/LIVRO-JOGO.md` (pipeline de conteúdo + passos P1-P7).
-
 **Próximos passos do livro-jogo (ordem):**
 1. **Escolhas na tela dos jogadores** — o Mestre "abre" as saídas do nó; os
    jogadores veem os botões e votam (aviso estilo K1); o Mestre confirma.

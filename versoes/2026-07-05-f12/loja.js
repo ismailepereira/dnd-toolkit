@@ -135,36 +135,6 @@ function lojaEspecialLiberada(ficha) {
   return !!(ficha && ficha.lojaEspecialLiberada);
 }
 
-// ----- Fase 12: lojas geridas por NPC -----
-// Resolve cada entrada do estoque de uma loja de NPC para os dados completos
-// do item (categoria, descrição, peso) usando os catálogos existentes, mas
-// mantendo o PREÇO próprio da loja (entrada.precoPO) e o estoque (qtd).
-function itensDaLojaNpc(loja) {
-  const base = [...itensLojaBasica(), ...acervoItensMagicos()];
-  return (loja && loja.estoque || []).map(e => {
-    const info = base.find(i => i.nome === e.nome) || {};
-    return {
-      nome: e.nome,
-      categoriaLoja: info.categoriaLoja || 'outro',
-      descricao: info.descricao || '',
-      pesoTexto: info.pesoTexto || '',
-      raridade: info.raridade,
-      precoPO: Math.max(0, Number(e.precoPO) || 0),
-      qtd: (e.qtd === undefined || e.qtd === null) ? -1 : Number(e.qtd), // -1 = infinito
-    };
-  });
-}
-
-// Preço de recompra de um item pelo lojista (fração do preço da loja).
-function precoRecompraLojaNpc(loja, nomeItem) {
-  const compra = loja && loja.compraDoJogador;
-  if (!compra || !compra.aceita) return null;
-  const entrada = (loja.estoque || []).find(e => e.nome === nomeItem);
-  if (!entrada) return null; // o lojista só compra o que conhece
-  const mult = Number(compra.multiplicador) || 0.5;
-  return Math.max(0, Math.floor((Number(entrada.precoPO) || 0) * mult));
-}
-
 // Agrupa uma lista de itens (já com .categoriaLoja) na ordem de CATEGORIAS_LOJA.
 function agruparPorCategoriaLoja(itens) {
   const grupos = {};

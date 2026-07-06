@@ -4,27 +4,6 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
-## 2026-07-05 — Lojas geridas por NPC (Fase 12)
-
-**Backup antes da alteração:** `versoes/2026-07-05-f12/`
-(cópia de todos os ficheiros tocados).
-
-**Resumo:** NPCs lojistas agora têm loja própria com estoque e preços definidos pelo Mestre. No cartão do NPC lojista, o Mestre ganha o botão "🛒 Loja" (editor em modal: adicionar itens de qualquer catálogo — básico, mágicos e itens do Mestre —, preço próprio por item, qtd finita ou −1 = infinito, toggle "compra dos aventureiros" com percentagem do preço). O jogador vê "🛒 Ver loja" nos NPCs lojistas visíveis: compra com uma ficha própria (débito de ouro + decremento de estoque) e vende de volta itens que o lojista conhece (recebe a percentagem configurada; estoque incrementa). Compra e venda são VALIDADAS no servidor (`POST /api/lojas/comprar|vender` — estoque, preço e ouro conferidos lá; o cliente nunca dita valores), seguindo o padrão do `/api/combate/acao` da Fase C1. Jogadores só veem lojas de NPCs visíveis (filtro no servidor, como `/api/npcs`).
-
-**Ficheiros alterados:**
-- `app.py` — `ESTADO_PADRAO['lojas']`; `GET /api/lojas` (filtrado por visibilidade do NPC para jogadores), `PUT /api/lojas` (só Mestre), `POST /api/lojas/comprar` (valida loja/ficha/dono/estoque/ouro, persiste tudo junto) e `POST /api/lojas/vender` (só itens que existem no estoque do lojista — é de lá que sai o preço de referência; ficha precisa ter o item; lojista precisa aceitar compras).
-- `static/js/loja.js` — `itensDaLojaNpc(loja)` (resolve estoque contra os catálogos, mantendo preço/qtd da loja) e `precoRecompraLojaNpc(loja, nome)`.
-- `static/js/npc.js` — botões "🛒 Loja" (Mestre) e "🛒 Ver loja" (jogador) nos cartões de lojista; editor de loja e modal de compra/venda criados em JS (sem tocar nos templates); espelho local do resultado das operações do servidor.
-- `static/css/style.css` — estilos `.lj-linha` das linhas de estoque.
-- `docs/ROADMAP-FUTURO.md` — marca a Fase 12 como concluída (reabastecimento periódico fica pendente).
-
-**Testes:** `node --check` em `npc.js`/`loja.js`; `py_compile`; harness Flask (campanha isolada descartável, limpa no fim): PUT lojas só-Mestre, jogador só vê lojas de NPCs visíveis, compra normal (ouro e estoque certos e persistidos), ouro insuficiente, estoque insuficiente/esgotado, item/loja inexistentes (404), ficha alheia (403), venda a 50% com incremento de estoque, venda de item que a ficha não tem, item que o lojista não conhece e lojista que não compra (400s).
-
-**Como reverter:**
-1. Restaurar `app.py`, `static/js/loja.js`, `static/js/npc.js`, `static/css/style.css`, `docs/ROADMAP-FUTURO.md` e `CHANGELOG.md` a partir de `versoes/2026-07-05-f12/`.
-
----
-
 ## 2026-07-05 — Campanhas aprimoradas + aviso de combate (Passo K1)
 
 **Backup antes da alteração:** `versoes/2026-07-05-k1/`

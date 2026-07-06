@@ -90,13 +90,11 @@ const NPC_TIPOS = [
         </label>
         <div class="ficha-card-acoes">
           ${fc ? `<button class="btn-primary" data-npc-ver-ficha="${esc(n.id)}">▶ Ver ficha</button>` : ''}
-          ${n.tipo === 'lojista' ? `<button class="btn-secondary" data-npc-loja-editar="${esc(n.id)}" title="Editar o estoque e os preços da loja deste NPC">🛒 Loja</button>` : ''}
           <button class="btn-editar" data-npc-editar="${esc(n.id)}">✎ Editar</button>
           <button class="btn-secondary" data-npc-banco="${esc(n.id)}" title="Guardar uma cópia no meu banco pessoal (segue você entre campanhas)">💾 Banco</button>
           <button class="btn-danger" data-npc-excluir="${esc(n.id)}">Excluir</button>
         </div>` : `
         <div class="ficha-card-acoes">
-          ${n.tipo === 'lojista' && lojaDoNpc(n.id) ? `<button class="btn-primary" data-npc-loja-ver="${esc(n.id)}">🛒 Ver loja</button>` : ''}
           <button class="btn-secondary" data-npc-banco="${esc(n.id)}" title="Guardar uma cópia no meu banco pessoal">💾 Guardar no meu banco</button>
         </div>`}
     </div>`;
@@ -159,15 +157,6 @@ const NPC_TIPOS = [
     el.querySelectorAll('[data-npc-banco]').forEach(b => b.addEventListener('click', () => {
       const n = npcs.find(x => x.id === b.dataset.npcBanco);
       if (n) guardarNoBanco(n);
-    }));
-    // Fase 12: loja do NPC lojista
-    el.querySelectorAll('[data-npc-loja-editar]').forEach(b => b.addEventListener('click', () => {
-      const n = npcs.find(x => x.id === b.dataset.npcLojaEditar);
-      if (n) abrirEditorLoja(n);
-    }));
-    el.querySelectorAll('[data-npc-loja-ver]').forEach(b => b.addEventListener('click', () => {
-      const n = npcs.find(x => x.id === b.dataset.npcLojaVer);
-      if (n) abrirLojaCompra(n);
     }));
     if (typeof window._npcsAtualizados === 'function') window._npcsAtualizados(npcs);
   }
@@ -253,218 +242,6 @@ const NPC_TIPOS = [
       salvar(); render();
       alert(`"${c.nome}" entrou nos NPCs da campanha.`);
     }));
-  }
-
-  // ---------- Fase 12: lojas geridas por NPC lojista ----------
-  let lojas = [];
-
-  async function carregarLojas() {
-    try {
-      const r = await (await fetch('/api/lojas')).json();
-      lojas = Array.isArray(r) ? r : [];
-    } catch (e) { lojas = []; }
-  }
-
-  function lojaDoNpc(npcId) {
-    return lojas.find(l => l.npcId === npcId) || null;
-  }
-
-  function salvarLojas() {
-    return fetch('/api/lojas', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(lojas) }).catch(() => {});
-  }
-
-  // Modal genérico criado em JS (reusa as classes .modal/.modal-content do CSS)
-  function modalLoja(html) {
-    fecharModalLoja();
-    const wrap = document.createElement('div');
-    wrap.id = 'modalLojaNpc';
-    wrap.className = 'modal';
-    wrap.innerHTML = `<div class="modal-content">${html}</div>`;
-    wrap.addEventListener('click', e => { if (e.target === wrap) fecharModalLoja(); });
-    document.body.appendChild(wrap);
-    return wrap;
-  }
-  function fecharModalLoja() {
-    const m = document.getElementById('modalLojaNpc');
-    if (m) m.remove();
-  }
-
-  // Catálogo completo para o editor (básico + itens mágicos/do Mestre)
-  function catalogoParaLoja() {
-    const base = (typeof itensLojaBasica === 'function') ? itensLojaBasica() : [];
-    const magicos = (typeof acervoItensMagicos === 'function') ? acervoItensMagicos() : [];
-    return [...base, ...magicos];
-  }
-
-  // ----- Editor do Mestre -----
-  function abrirEditorLoja(npc) {
-    const existente = lojaDoNpc(npc.id);
-    // trabalha numa cópia: só grava no "Salvar"
-    const loja = existente ? JSON.parse(JSON.stringify(existente)) : {
-      id: 'loja_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-      npcId: npc.id,
-      nome: `Loja de ${npc.nome}`,
-      estoque: [],
-      compraDoJogador: { aceita: true, multiplicador: 0.5 },
-    };
-    const catalogo = catalogoParaLoja();
-    const wrap = modalLoja(`
-      <h2>🛒 ${esc(loja.nome)}</h2>
-      <label class="full">Nome da loja <input type="text" id="ljNome" value="${esc(loja.nome)}"></label>
-      <div class="dado-row">
-        <select id="ljItemSel">${catalogo.map(i => `<option value="${esc(i.nome)}" data-preco="${i.precoPO || 0}">${esc(i.nome)}${i.raridade ? ' ✨' : ''} (${i.precoPO || 0} po)</option>`).join('')}</select>
-        <button class="btn-secondary" id="ljAddItem">+ Adicionar ao estoque</button>
-      </div>
-      <div id="ljEstoque"></div>
-      <label class="check-chip"><input type="checkbox" id="ljCompra" ${loja.compraDoJogador && loja.compraDoJogador.aceita ? 'checked' : ''}> 💰 Compra dos aventureiros</label>
-      <label>pagando <input type="number" id="ljMult" value="${Math.round(((loja.compraDoJogador && loja.compraDoJogador.multiplicador) || 0.5) * 100)}" min="0" max="200" style="width:64px"> % do preço da loja</label>
-      <p class="criador-hint">Qtd −1 = estoque infinito. O lojista só compra itens que existem no estoque dele (é de lá que sai o preço de referência).</p>
-      <div class="ficha-card-acoes">
-        <button class="btn-primary" id="ljSalvar">💾 Salvar loja</button>
-        ${existente ? '<button class="btn-danger" id="ljExcluir">Excluir loja</button>' : ''}
-        <button class="btn-secondary" id="ljFechar">Cancelar</button>
-      </div>`);
-
-    function renderEstoque() {
-      const alvo = wrap.querySelector('#ljEstoque');
-      alvo.innerHTML = loja.estoque.length ? loja.estoque.map((e, i) => `
-        <div class="dado-row lj-linha">
-          <span class="lj-nome">${esc(e.nome)}</span>
-          <label>po <input type="number" data-lj-preco="${i}" value="${e.precoPO}" min="0" style="width:70px"></label>
-          <label>qtd <input type="number" data-lj-qtd="${i}" value="${e.qtd}" min="-1" style="width:60px"></label>
-          <button class="btn-danger btn-mini" data-lj-rem="${i}">✕</button>
-        </div>`).join('') : '<p class="criador-hint">Estoque vazio — adicione itens acima.</p>';
-      alvo.querySelectorAll('[data-lj-preco]').forEach(inp => inp.addEventListener('change', () => { loja.estoque[+inp.dataset.ljPreco].precoPO = Math.max(0, Number(inp.value) || 0); }));
-      alvo.querySelectorAll('[data-lj-qtd]').forEach(inp => inp.addEventListener('change', () => { loja.estoque[+inp.dataset.ljQtd].qtd = Math.max(-1, Math.trunc(Number(inp.value) || 0)); }));
-      alvo.querySelectorAll('[data-lj-rem]').forEach(b => b.addEventListener('click', () => { loja.estoque.splice(+b.dataset.ljRem, 1); renderEstoque(); }));
-    }
-    renderEstoque();
-
-    wrap.querySelector('#ljAddItem').addEventListener('click', () => {
-      const sel = wrap.querySelector('#ljItemSel');
-      const nome = sel.value;
-      if (!nome || loja.estoque.some(e => e.nome === nome)) return;
-      loja.estoque.push({ nome, precoPO: Math.max(0, Number(sel.selectedOptions[0].dataset.preco) || 0), qtd: -1 });
-      renderEstoque();
-    });
-    wrap.querySelector('#ljSalvar').addEventListener('click', async () => {
-      loja.nome = wrap.querySelector('#ljNome').value.trim() || loja.nome;
-      loja.compraDoJogador = {
-        aceita: wrap.querySelector('#ljCompra').checked,
-        multiplicador: Math.max(0, Math.min(2, (Number(wrap.querySelector('#ljMult').value) || 50) / 100)),
-      };
-      const i = lojas.findIndex(l => l.id === loja.id);
-      if (i >= 0) lojas[i] = loja; else lojas.push(loja);
-      await salvarLojas();
-      fecharModalLoja(); render();
-    });
-    const btnExcluir = wrap.querySelector('#ljExcluir');
-    if (btnExcluir) btnExcluir.addEventListener('click', async () => {
-      if (!confirm(`Excluir a loja "${loja.nome}"?`)) return;
-      lojas = lojas.filter(l => l.id !== loja.id);
-      await salvarLojas();
-      fecharModalLoja(); render();
-    });
-    wrap.querySelector('#ljFechar').addEventListener('click', fecharModalLoja);
-  }
-
-  // ----- Compra/venda (jogador; o Mestre também pode, com qualquer ficha) -----
-  function fichasCompraveis() {
-    const todas = (typeof fichas !== 'undefined' && Array.isArray(fichas)) ? fichas : [];
-    return todas.filter(f => f.status !== 'morto' &&
-      (ehMestre || !f.donoUid || !window.MEU_UID || f.donoUid === window.MEU_UID));
-  }
-
-  function abrirLojaCompra(npc) {
-    const loja = lojaDoNpc(npc.id);
-    if (!loja) { alert('Este lojista ainda não montou a banca.'); return; }
-    const minhas = fichasCompraveis();
-    if (!minhas.length) { alert('Nenhuma ficha sua disponível para comprar.'); return; }
-    const itens = (typeof itensDaLojaNpc === 'function') ? itensDaLojaNpc(loja) : [];
-    const wrap = modalLoja(`
-      <h2>🛒 ${esc(loja.nome)}</h2>
-      <div class="sub">${esc(npc.nome)}${npc.localizacao ? ' · 📍 ' + esc(npc.localizacao) : ''}</div>
-      <label>Comprar com <select id="lcFicha">${minhas.map(f => `<option value="${esc(f.id)}">${esc(f.nome)} (${f.ouro || 0} po)</option>`).join('')}</select></label>
-      <div id="lcLista"></div>
-      <div id="lcVenda"></div>
-      <div id="lcMsg" class="envio-msg"></div>
-      <div class="ficha-card-acoes"><button class="btn-secondary" id="lcFechar">Fechar</button></div>`);
-
-    const fichaSel = () => minhas.find(f => f.id === wrap.querySelector('#lcFicha').value);
-
-    function renderCompra() {
-      wrap.querySelector('#lcLista').innerHTML = itens.length ? itens.map(i => `
-        <div class="dado-row lj-linha">
-          <span class="lj-nome" title="${esc(i.descricao)}">${esc(i.nome)}${i.raridade ? ' ✨' : ''}</span>
-          <span><b>${i.precoPO} po</b></span>
-          <span>${i.qtd < 0 ? '∞' : (i.qtd === 0 ? '<i>esgotado</i>' : `${i.qtd}×`)}</span>
-          ${i.qtd !== 0 ? `<button class="btn-primary btn-mini" data-lc-comprar="${esc(i.nome)}">Comprar</button>` : ''}
-        </div>`).join('') : '<p class="criador-hint">A banca está vazia.</p>';
-      wrap.querySelectorAll('[data-lc-comprar]').forEach(b => b.addEventListener('click', () => operacao('comprar', b.dataset.lcComprar)));
-      renderVenda();
-    }
-
-    function renderVenda() {
-      const alvo = wrap.querySelector('#lcVenda');
-      const f = fichaSel();
-      const compra = loja.compraDoJogador || {};
-      if (!compra.aceita || !f) { alvo.innerHTML = ''; return; }
-      const vendaveis = [];
-      const vistos = new Set();
-      (f.itens || []).forEach(nome => {
-        if (vistos.has(nome)) return;
-        vistos.add(nome);
-        const preco = (typeof precoRecompraLojaNpc === 'function') ? precoRecompraLojaNpc(loja, nome) : null;
-        if (preco !== null) vendaveis.push({ nome, preco, qtd: f.itens.filter(x => x === nome).length });
-      });
-      alvo.innerHTML = vendaveis.length ? `<h4>💰 O lojista compra de você (${Math.round((compra.multiplicador || 0.5) * 100)}% do preço):</h4>` +
-        vendaveis.map(v => `
-          <div class="dado-row lj-linha">
-            <span class="lj-nome">${esc(v.nome)} (${v.qtd}×)</span>
-            <span><b>${v.preco} po</b></span>
-            <button class="btn-secondary btn-mini" data-lc-vender="${esc(v.nome)}">Vender 1</button>
-          </div>`).join('') : '';
-      alvo.querySelectorAll('[data-lc-vender]').forEach(b => b.addEventListener('click', () => operacao('vender', b.dataset.lcVender)));
-    }
-
-    async function operacao(tipo, itemNome) {
-      const f = fichaSel();
-      if (!f) return;
-      const msg = wrap.querySelector('#lcMsg');
-      try {
-        const r = await fetch(`/api/lojas/${tipo}`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lojaId: loja.id, fichaId: f.id, itemNome, qtd: 1 }),
-        });
-        const d = await r.json();
-        if (!r.ok || d.erro) { msg.textContent = `✗ ${d.erro || 'Falhou.'}`; return; }
-        // espelha localmente o que o servidor já persistiu
-        if (tipo === 'comprar') {
-          f.ouro = d.ouroRestante;
-          f.itens = f.itens || []; f.itens.push(itemNome);
-          const e = (loja.estoque || []).find(x => x.nome === itemNome);
-          if (e && e.qtd > 0) e.qtd--;
-          const it = itens.find(x => x.nome === itemNome);
-          if (it && it.qtd > 0) it.qtd--;
-          msg.textContent = `✓ ${itemNome} comprado (${d.total} po). Restam ${d.ouroRestante} po.`;
-        } else {
-          f.ouro = d.ouroRestante;
-          const i = (f.itens || []).indexOf(itemNome);
-          if (i >= 0) f.itens.splice(i, 1);
-          const e = (loja.estoque || []).find(x => x.nome === itemNome);
-          if (e && e.qtd >= 0) e.qtd++;
-          const it = itens.find(x => x.nome === itemNome);
-          if (it && it.qtd >= 0) it.qtd++;
-          msg.textContent = `✓ ${itemNome} vendido por ${d.valor} po. Agora tem ${d.ouroRestante} po.`;
-        }
-        wrap.querySelectorAll('#lcFicha option').forEach(o => { const ff = minhas.find(x => x.id === o.value); if (ff) o.textContent = `${ff.nome} (${ff.ouro || 0} po)`; });
-        renderCompra();
-      } catch (e) { msg.textContent = '✗ Erro de rede.'; }
-    }
-
-    wrap.querySelector('#lcFicha').addEventListener('change', renderVenda);
-    wrap.querySelector('#lcFechar').addEventListener('click', fecharModalLoja);
-    renderCompra();
   }
 
   // Mestre: ver o banco de um membro da campanha ativa
@@ -680,9 +457,7 @@ const NPC_TIPOS = [
     $('npcSalvar').addEventListener('click', salvarModal);
   }
 
-  // Fase 12: as lojas carregam ANTES dos NPCs para o botão "🛒 Ver loja"
-  // aparecer logo na primeira renderização dos cartões
-  carregarLojas().then(() => carregar()).then(() => restaurarRascunhoNpc());
+  carregar().then(() => restaurarRascunhoNpc());
   carregarBanco();
   montarBancoMembros();
 })();

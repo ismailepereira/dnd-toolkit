@@ -172,7 +172,7 @@ criar nó, arrastar, ligar, marcar atual. Só o Mestre vê (segredos!).
 **Nota:** é a maior peça do P3 — pode ser dividida (v1: nós e ligações em
 lista/indentação, sem canvas visual; v2: canvas arrastável).
 
-### (Fase 12 já planeada) Lojas geridas por NPC — encaixa aqui no P3 ✅
+### (Fase 12 já planeada) Lojas geridas por NPC — encaixa aqui no P3
 Inventário e preços próprios por lojista — ver secção detalhada
 [Fase 12](#fase-12--lojas-geridas-por-npc). Depende de M1/M2 darem vida aos
 lojistas; reusa `loja.js` da Fase 9.
@@ -432,12 +432,6 @@ Novo array no estado da campanha (mesmo padrão de `notas`/`encontros`):
 ---
 
 ## Fase 12 — Lojas geridas por NPC
-
-> **✅ Entregue em 05/07/2026 (v1)** — loja por NPC lojista com estoque e
-> preços próprios, editor no cartão do NPC (Mestre), compra/venda do jogador
-> validadas no servidor (`POST /api/lojas/comprar|vender`). Pendente:
-> reabastecimento periódico (passo 5) e loja aberta direto do Modo de Jogo
-> (ver `CHANGELOG.md`).
 
 ### Objetivo
 Cada NPC do tipo `lojista` tem uma loja própria (inventário e preços

@@ -1787,9 +1787,3 @@ body.alto-contraste a { color: #ffd400; }
   border: 1px solid rgba(233, 69, 96, 0.5); border-radius: 999px;
   padding: 2px 10px; font-size: 0.78rem; font-weight: 700; letter-spacing: .5px;
 }
-
-/* ===== Fase 12: lojas geridas por NPC ===== */
-.lj-linha { align-items: center; border-bottom: 1px solid var(--border); padding: 6px 0; }
-.lj-linha .lj-nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lj-linha label { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; color: var(--text-dim); }
-#lcVenda h4 { margin: 14px 0 6px 0; }

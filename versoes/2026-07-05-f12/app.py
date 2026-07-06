@@ -40,7 +40,6 @@ ESTADO_PADRAO = {
     'loja_especial_campanha': False,  # Fase 9: libera a Loja Especial (itens mágicos) p/ toda a campanha
     'loja_especial_itens': [],  # Fase 9c: itens CURADOS pelo Mestre na Loja Especial [{nome, precoPO}]
     'npcs': [],  # Fase 11: NPCs persistentes da campanha (lojista/aliado/inimigo/neutro)
-    'lojas': [],  # Fase 12: lojas geridas por NPC lojista (estoque/preços próprios)
 }
 
 # ---------------------------------------------------------------
@@ -905,121 +904,6 @@ def api_get_banco_npc_membro(uid_alvo):
     if uid_alvo not in permitidos:
         return jsonify({'ok': False, 'erro': 'esse utilizador não é membro desta campanha'}), 403
     return jsonify(carregar_banco_npc(uid_alvo))
-
-
-# ----- FASE 12: lojas geridas por NPC lojista -----
-# Estoque/preços próprios por loja; compra e venda são VALIDADAS no servidor
-# (mesmo princípio do /api/combate/acao da Fase C1): o cliente só pede, o
-# servidor confere estoque, preço e ouro, e persiste tudo numa transação só.
-def _loja_por_id(estado, loja_id):
-    return next((l for l in estado.get('lojas', []) if l.get('id') == loja_id), None)
-
-
-def _ficha_por_id(estado, ficha_id):
-    return next((f for f in estado.get('fichas', []) if f.get('id') == ficha_id), None)
-
-
-def _pode_usar_ficha(ficha):
-    """Jogador só compra/vende com ficha PRÓPRIA; o Mestre com qualquer uma."""
-    if session.get('papel') == 'mestre':
-        return True
-    dono = ficha.get('donoUid')
-    return not dono or dono == uid_sessao()  # fichas legadas sem dono: liberadas
-
-
-@app.route('/api/lojas', methods=['GET'])
-@login_obrigatorio()
-def api_get_lojas():
-    estado = carregar_estado()
-    lojas = estado.get('lojas', [])
-    if session.get('papel') != 'mestre':
-        # jogador só vê lojas de NPCs visíveis (mesmo filtro de /api/npcs)
-        visiveis = {n.get('id') for n in estado.get('npcs', []) if n.get('visivelParaJogadores')}
-        lojas = [l for l in lojas if l.get('npcId') in visiveis]
-    return jsonify(lojas)
-
-
-@app.route('/api/lojas', methods=['PUT'])
-@login_obrigatorio(papeis=['mestre'])
-def api_put_lojas():
-    lista = request.get_json(force=True)
-    if not isinstance(lista, list):
-        return jsonify({'ok': False, 'erro': 'esperava uma lista de lojas'}), 400
-    estado = carregar_estado()
-    estado['lojas'] = [l for l in lista if isinstance(l, dict)]
-    salvar_estado(estado)
-    return jsonify({'ok': True})
-
-
-@app.route('/api/lojas/comprar', methods=['POST'])
-@login_obrigatorio()
-def api_loja_comprar():
-    data = request.get_json(force=True) or {}
-    qtd = max(1, int(data.get('qtd', 1) or 1))
-    estado = carregar_estado()
-    loja = _loja_por_id(estado, data.get('lojaId'))
-    if not loja:
-        return jsonify({'erro': 'Loja não encontrada.'}), 404
-    ficha = _ficha_por_id(estado, data.get('fichaId'))
-    if not ficha:
-        return jsonify({'erro': 'Ficha não encontrada.'}), 404
-    if not _pode_usar_ficha(ficha):
-        return jsonify({'erro': 'Essa ficha não é sua.'}), 403
-    entrada = next((e for e in loja.get('estoque', []) if e.get('nome') == data.get('itemNome')), None)
-    if not entrada:
-        return jsonify({'erro': 'O lojista não vende esse item.'}), 404
-    disponivel = int(entrada.get('qtd', -1))
-    if disponivel == 0:
-        return jsonify({'erro': 'Esgotado! O lojista não tem mais esse item.'}), 400
-    if 0 < disponivel < qtd:
-        return jsonify({'erro': f'O lojista só tem {disponivel} unidade(s).'}), 400
-    preco_total = max(0, int(entrada.get('precoPO', 0))) * qtd
-    ouro = int(ficha.get('ouro', 0) or 0)
-    if ouro < preco_total:
-        return jsonify({'erro': f'Ouro insuficiente: custa {preco_total} po e a ficha tem {ouro} po.'}), 400
-    ficha['ouro'] = ouro - preco_total
-    ficha.setdefault('itens', []).extend([entrada['nome']] * qtd)
-    if disponivel > 0:
-        entrada['qtd'] = disponivel - qtd
-    salvar_estado(estado)
-    return jsonify({'ok': True, 'ouroRestante': ficha['ouro'], 'qtdRestante': entrada.get('qtd', -1),
-                    'total': preco_total})
-
-
-@app.route('/api/lojas/vender', methods=['POST'])
-@login_obrigatorio()
-def api_loja_vender():
-    data = request.get_json(force=True) or {}
-    estado = carregar_estado()
-    loja = _loja_por_id(estado, data.get('lojaId'))
-    if not loja:
-        return jsonify({'erro': 'Loja não encontrada.'}), 404
-    compra = loja.get('compraDoJogador') or {}
-    if not compra.get('aceita'):
-        return jsonify({'erro': 'Este lojista não compra dos aventureiros.'}), 400
-    ficha = _ficha_por_id(estado, data.get('fichaId'))
-    if not ficha:
-        return jsonify({'erro': 'Ficha não encontrada.'}), 404
-    if not _pode_usar_ficha(ficha):
-        return jsonify({'erro': 'Essa ficha não é sua.'}), 403
-    nome = data.get('itemNome')
-    itens = ficha.get('itens', [])
-    if nome not in itens:
-        return jsonify({'erro': 'A ficha não tem esse item.'}), 400
-    # o lojista só compra o que conhece: o item precisa existir no estoque
-    # (é de lá que vem o preço de referência — o cliente nunca dita valores)
-    entrada = next((e for e in loja.get('estoque', []) if e.get('nome') == nome), None)
-    if not entrada:
-        return jsonify({'erro': 'O lojista não se interessa por esse item.'}), 400
-    mult = float(compra.get('multiplicador', 0.5) or 0.5)
-    valor = max(0, int(int(entrada.get('precoPO', 0)) * mult))
-    itens.remove(nome)
-    ficha['itens'] = itens
-    ficha['ouro'] = int(ficha.get('ouro', 0) or 0) + valor
-    if int(entrada.get('qtd', -1)) >= 0:
-        entrada['qtd'] = int(entrada['qtd']) + 1
-    salvar_estado(estado)
-    return jsonify({'ok': True, 'valor': valor, 'ouroRestante': ficha['ouro']})
 
 
 # ----- FASE 10.8: token do Firebase Auth para o tempo real seguro -----

@@ -4,6 +4,22 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-08 — Campanha pronta: Mina Perdida de Phandelver, Cap. 1 (CT1)
+
+**Backup antes da alteração:** `versoes/2026-07-08-ct1-phandelver/`.
+
+**Resumo:** Primeira campanha pronta do módulo clássico de introdução ao D&D 5e — **"Mina Perdida de Phandelver — Emboscada Goblin"** (Capítulo 1, "Flechas Goblin") — adicionada à biblioteca de aventuras prontas no mesmo formato de livro-jogo do "Ninho da Rainha Dragão". É um grafo de 14 nós, calibrado para 4-5 PJs de nível 1-2, com ramificação real: a emboscada na Trilha de Triboar (com rota cautelosa que dá vantagem), o rasto até o Esconderijo Cragmaw (canil dos lobos ou ponte da represa), a proposta de Yeemik (aceitar o trato, atacar com o refém em risco, ou dobrá-lo na conversa), o covil do chefe bugbear Klarg, o resgate de Sildar Hallwinter (que revela o gancho do Aranha Negra / Castelo Cragmaw / mapa da Mina) e três finais (vitória em Phandalin, neutro por abandonar o resgate, derrota jogável por acordar o esconderijo inteiro). Todos os NPCs (Gundren, Sildar, Yeemik, Klarg) estão embutidos por nó com notas do Mestre; os encontros referenciam nomes exatos do bestiário (Goblin, Goblin Mestre, Bugbear, Lobo — todos já existentes).
+
+**Ficheiros alterados:**
+- `static/js/aventurasprontas.js` — nova entrada `modelo_phandelver_emboscada` no array `AVENTURAS_PRONTAS` (14 nós; sem mudança de esquema — reusa o formato existente).
+- `ROADMAP.md` / `docs/ROADMAP-FUTURO.md` — CT1 marcado como entregue.
+
+**Testes:** validação de integridade do grafo (14 nós, 0 saídas quebradas, 0 nós inalcançáveis a partir de `noInicial`, os 3 tipos de final com `resultado`); nomes de monstros conferidos 1:1 com `monstros.js`; sem apóstrofos não escapados; verificado ao vivo no preview com o login do Ismaile: `mestre.html` carrega `AVENTURAS_PRONTAS` com a nova aventura, 0 erros no console, e o round-trip de JSON da importação resolve o nó inicial ("A Trilha de Triboar") e todas as saídas.
+
+**Como reverter:** restaurar `static/js/aventurasprontas.js` de `versoes/2026-07-08-ct1-phandelver/` e reverter as duas linhas dos roadmaps.
+
+---
+
 ## 2026-07-06 — NPCs por nó na aventura (P2 do livro-jogo)
 
 **Backup antes da alteração:** `versoes/2026-07-06-p2-npcs/`.

@@ -253,12 +253,17 @@ já prepara metade do terreno.
 
 ## 📦 Conteúdo (depois das ferramentas)
 
-### CT1. Campanha pronta: Mina Perdida de Phandelver
+### CT1. Campanha pronta: Mina Perdida de Phandelver — Cap. 1 ✅ (08/07/2026)
 Montar a campanha completa baseada no módulo (NPCs com ficha, lojas de
 Phandalin, encontros por capítulo, ambientes, árvore de decisões) usando
-todas as ferramentas acima — **explicitamente para DEPOIS** (palavras do
-Ismaile: "não agora"). O antecedente "Herdeiro de Phandalin" (Fase 7) já
+todas as ferramentas acima. O antecedente "Herdeiro de Phandalin" (Fase 7) já
 existe como semente.
+**Entregue (v1):** Capítulo 1 "Emboscada Goblin" (`modelo_phandelver_emboscada`
+em `aventurasprontas.js`) — grafo de 14 nós de livro-jogo, nível 1-2, com a
+emboscada da Trilha de Triboar, o Esconderijo Cragmaw (lobos/ponte/Yeemik/Klarg),
+o resgate de Sildar e o gancho do Aranha Negra / Castelo Cragmaw / mapa da Mina.
+**Próximos capítulos** (Phandalin + Mantos Vermelhos, Castelo Cragmaw, Caverna
+do Eco das Ondas) ficam como evolução futura, seguindo o mesmo formato.
 
 ## Ordem de trabalho sugerida (resumo de 1 linha cada)
 1. **B1** rascunho persistente (bug do F5)

@@ -198,7 +198,7 @@ Detalhe completo (objetivo/estrutura/ficheiros/passos) em `docs/ROADMAP-FUTURO.m
 12. 🔵 **U1** — Loja com visual interativo (cartões, ícones, feedback de compra)
 13. 🔵 **U2** — Integração com IA (gerar história/ficha/NPC — endpoint no servidor, quota por assinatura)
 14. 🔵 **Fase 14** — Grid Virtual / mapa de combate
-15. 📦 **CT1** — Campanha pronta: Mina Perdida de Phandelver (explicitamente para depois)
+15. ✅ **CT1** — ~~Campanha pronta: Mina Perdida de Phandelver~~ (entregue 08/07/2026: Capítulo 1 "Emboscada Goblin" como livro-jogo — grafo de 14 nós, nível 1-2, na biblioteca de aventuras prontas)
 
 ---
 

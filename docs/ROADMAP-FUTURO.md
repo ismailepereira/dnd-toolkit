@@ -222,7 +222,18 @@ em `loja.js` (só apresentação); `.loja-cards`/`.loja-card` + bolha flutuante
 `jogo.js` (Modo de Jogo) trocam `.loja-item` (linha) por cartão e disparam a
 bolha "−X po" ao comprar. Filtros por categoria/abas continuam os mesmos.
 
-### U2. Integração com IA (gerar fichas, histórias e NPCs)
+### U2. Integração com IA (gerar fichas, histórias e NPCs) ✅ (08/07/2026)
+**Entregue (v1):** endpoint `POST /api/ia/gerar` (+ `GET /api/ia/status`) em
+`app.py`, chamando a API da Anthropic (Claude) via SDK oficial, com a chave em
+`ANTHROPIC_API_KEY` (servidor, nunca no cliente). Gated por `login_obrigatorio`
+(assinatura ativa) + quota diária por utilizador (`IA_QUOTA_DIARIA`, guardada em
+`data/ia_uso.json`). Modelo configurável (`IA_MODELO`, padrão `claude-haiku-4-5`).
+Tipos suportados: `historia`, `npc`, `gancho`, `ambiente`. Frontend: botão
+"✨ Gerar com IA" na história prévia do Criador (`criador.js`/`_criador.html`),
+que só aparece se o servidor tiver a chave. Sem a chave, degrada suave (botões
+ocultos, resto do app intacto). **Decisões do Ismaile ainda em aberto:**
+orçamento mensal, se o custo entra na assinatura ou é premium. **Próximo:**
+botões nos NPCs (`npc.js`) reusando os tipos `npc`/`gancho`/`ambiente`.
 **Objetivo:** botões "✨ Gerar com IA": história prévia do personagem (a
 partir de raça/classe/antecedente/personalidade já escolhidos), NPC completo
 (perfil + stat block), ganchos de aventura, descrições de ambiente.

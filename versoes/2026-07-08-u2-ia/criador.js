@@ -1901,53 +1901,6 @@ const Criador = (function () {
       atualizarContadorHistoria();
       renderPreview();
     });
-    // U2: gerar a história prévia com IA (botão só aparece se o servidor tiver ANTHROPIC_API_KEY)
-    (function setupIaHistoria() {
-      const btn = $('cIaHistoria');
-      if (!btn) return;
-      fetch('/api/ia/status').then(r => r.ok ? r.json() : null).then(st => {
-        if (st && st.disponivel) {
-          btn.style.display = '';
-          btn.title = `Gerações restantes hoje: ${st.restantes}/${st.quota}`;
-        }
-      }).catch(() => {});
-      btn.addEventListener('click', async () => {
-        if (!estado.classe && !estado.raca) { alert('Escolha ao menos raça e classe antes de gerar.'); return; }
-        const p = estado.personalidade || {};
-        const contexto = [
-          estado.nome ? `Nome: ${estado.nome}` : '',
-          estado.raca ? `Raça: ${estado.raca}` : '',
-          estado.classe ? `Classe: ${estado.classe}${estado.subclasse ? ' (' + estado.subclasse + ')' : ''}` : '',
-          estado.antecedente ? `Antecedente: ${estado.antecedente}` : '',
-          estado.nivel ? `Nível: ${estado.nivel}` : '',
-          p.traco ? `Traço: ${p.traco}` : '',
-          p.ideal ? `Ideal: ${p.ideal}` : '',
-          p.ligacao ? `Vínculo: ${p.ligacao}` : '',
-          p.defeito ? `Defeito: ${p.defeito}` : '',
-        ].filter(Boolean).join('\n');
-        const rotulo = btn.textContent;
-        btn.disabled = true; btn.textContent = '✨ Gerando...';
-        try {
-          const r = await fetch('/api/ia/gerar', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tipo: 'historia', contexto }),
-          });
-          const d = await r.json().catch(() => ({}));
-          if (r.ok && d.texto) {
-            $('cHistoria').value = d.texto;
-            estado.historia = d.texto;
-            atualizarContadorHistoria(); renderPreview();
-            if (typeof d.restantes === 'number') btn.title = `Gerações restantes hoje: ${d.restantes}`;
-          } else {
-            alert(d.detalhe || 'Não foi possível gerar agora.');
-          }
-        } catch (e) {
-          alert('Falha de rede ao contatar a IA.');
-        } finally {
-          btn.disabled = false; btn.textContent = rotulo;
-        }
-      });
-    })();
     $('cItemMemNome').addEventListener('input', () => { estado.itemMemoria.nome = $('cItemMemNome').value; renderPreview(); });
     $('cItemMemTipo').addEventListener('input', () => { estado.itemMemoria.tipo = $('cItemMemTipo').value; renderPreview(); });
     $('cItemMemDescricao').addEventListener('input', () => { estado.itemMemoria.descricao = $('cItemMemDescricao').value; renderPreview(); });

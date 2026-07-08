@@ -4,6 +4,28 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-08 — Integração com IA: gerar história do personagem (U2 v1)
+
+**Backup antes da alteração:** `versoes/2026-07-08-u2-ia/`.
+
+**Resumo:** Primeira integração com IA (Anthropic/Claude). Novo endpoint `POST /api/ia/gerar` (+ `GET /api/ia/status`) no servidor que chama a API da Anthropic via SDK oficial, com a **chave sempre no servidor** (`ANTHROPIC_API_KEY`), nunca no cliente. É gated por `login_obrigatorio` (assinatura ativa — contas legadas passam) e por **quota diária por utilizador** (`IA_QUOTA_DIARIA`, padrão 20, guardada em `data/ia_uso.json`), para controlar custo. O **modelo é configurável** (`IA_MODELO`, padrão `claude-haiku-4-5` — barato e ótimo para textos curtos de mesa; troque para `claude-opus-4-8` se quiser respostas mais ricas). Suporta 4 tipos de prompt (`historia`, `npc`, `gancho`, `ambiente`); a v1 liga o frontend só na **história prévia do Criador**: botão "✨ Gerar com IA" que monta o contexto (raça/classe/subclasse/antecedente/nível/personalidade), chama o endpoint e preenche o textarea. O botão **só aparece se o servidor tiver a chave** — sem ela, tudo degrada suave (botões ocultos, resto do app 100% intacto).
+
+**Ficheiros alterados:**
+- `app.py` — `GET /api/ia/status`, `POST /api/ia/gerar`; helpers `_anthropic_client()` (lazy, None sem chave/SDK), `_ia_quota_hoje`/`_ia_registar_uso` (quota em `data/ia_uso.json`); prompts `_IA_PROMPTS`; envs `IA_MODELO`/`IA_QUOTA_DIARIA`.
+- `requirements.txt` — `anthropic>=0.40`.
+- `templates/_criador.html` — botão `#cIaHistoria` (oculto por padrão).
+- `static/js/criador.js` — `setupIaHistoria()`: consulta `/api/ia/status` (mostra o botão + quota no title), monta o contexto e chama `/api/ia/gerar`, com estados de "Gerando..."/erro amigável.
+- `.env.example` — `ANTHROPIC_API_KEY` (vazio), `IA_MODELO`, `IA_QUOTA_DIARIA`.
+- `ROADMAP.md` / `docs/ROADMAP-FUTURO.md` — U2 marcado como entregue (v1).
+
+**Testes:** ao vivo no preview com o login do Ismaile — sem chave: `/api/ia/status` → `{disponivel:false}`, `/api/ia/gerar` → 503 amigável, tipo inválido → 400, tudo gated por login; com chave fictícia: `disponivel:true`, o SDK é chamado corretamente (snippet isolado confirmou `AuthenticationError` 401 — cabeamento certo, não bug de código) e o botão "✨ Gerar com IA" aparece no Criador com a quota no tooltip ("20/20"); zero erros no console; dados de teste (`data/ia_uso.json`, chave fictícia) limpos.
+
+**Pendências do Mestre (não-código):** pôr um `ANTHROPIC_API_KEY` real no `.env` local e nas envs do Render para ligar a geração; decidir orçamento mensal e se o custo entra na assinatura ou vira recurso premium.
+
+**Como reverter:** restaurar `app.py`, `requirements.txt`, `templates/_criador.html`, `static/js/criador.js` e `.env.example` de `versoes/2026-07-08-u2-ia/`, reverter as linhas dos roadmaps e (opcional) `pip uninstall anthropic`.
+
+---
+
 ## 2026-07-08 — Loja em cartões com feedback de compra (U1)
 
 **Backup antes da alteração:** `versoes/2026-07-08-u1-loja-cartoes/`.

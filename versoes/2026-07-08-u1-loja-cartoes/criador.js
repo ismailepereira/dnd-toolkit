@@ -645,24 +645,24 @@ const Criador = (function () {
       const precoTxt = lojaAbaAtiva === 'especial'
         ? `${i.precoPO ? i.precoPO + ' po · ' : ''}${escHtml(i.raridade || '')}${i.sintonia ? ' · sintonia' : ''}`
         : `${i.precoPO} po${i.pesoTexto ? ' · ' + escHtml(i.pesoTexto) : ''}`;
-      const acao = lojaAbaAtiva === 'especial'
-        ? `<span class="loja-cadeado" title="Itens especiais são concedidos pelo Mestre (aba Fichas → Enviar à ficha), não comprados aqui">✨</span>`
-        : (bloqueada
-          ? `<span class="loja-cadeado" title="${escHtml(estado.classe)} não tem proficiência">🔒</span>`
-          : `<button type="button" class="btn-mini" data-comprar="${escHtml(i.nome)}"${semOuro ? ' disabled title="ouro insuficiente"' : ''}>Comprar</button>`);
-      return cardLojaHtml({
-        icone: iconeCategoriaLoja(i.categoriaLoja),
-        nome: escHtml(i.nome), descricao: escHtml(i.descricao || ''),
-        precoTxt, bloqueada, acaoHtml: acao,
-      });
+      return `<div class="loja-item${bloqueada ? ' bloqueada' : ''}">
+        <span class="loja-nome">${escHtml(i.nome)}</span>
+        <span class="loja-desc">${escHtml(i.descricao || '')}</span>
+        <span class="loja-preco">${precoTxt}</span>
+        ${lojaAbaAtiva === 'especial'
+          ? `<span class="loja-cadeado" title="Itens especiais são concedidos pelo Mestre (aba Fichas → Enviar à ficha), não comprados aqui">✨</span>`
+          : (bloqueada
+            ? `<span class="loja-cadeado" title="${escHtml(estado.classe)} não tem proficiência">🔒</span>`
+            : `<button type="button" class="btn-mini" data-comprar="${escHtml(i.nome)}"${semOuro ? ' disabled title="ouro insuficiente"' : ''}>Comprar</button>`)}
+      </div>`;
     };
     let corpo;
     if (lojaMostrarTudo) {
-      corpo = gruposAtivos.map(g => `<h4 class="loja-cat-titulo">${g.rotulo}</h4><div class="loja-cards">${g.itens.map(linhaItem).join('')}</div>`).join('')
+      corpo = gruposAtivos.map(g => `<h4 class="loja-cat-titulo">${g.rotulo}</h4>${g.itens.map(linhaItem).join('')}`).join('')
         || '<span class="criador-hint">Nenhum item disponível.</span>';
     } else {
       const grupo = gruposAtivos.find(g => g.chave === lojaCat);
-      corpo = grupo ? `<div class="loja-cards">${grupo.itens.map(linhaItem).join('')}</div>` : '<span class="criador-hint">Loja Especial vazia — peça ao Mestre para criar itens (aba Itens Mágicos).</span>';
+      corpo = grupo ? grupo.itens.map(linhaItem).join('') : '<span class="criador-hint">Loja Especial vazia — peça ao Mestre para criar itens (aba Itens Mágicos).</span>';
     }
 
     wrap.innerHTML = `<h3>🛒 Loja <span class="criador-hint-inline">(compre com o ouro rolado; devolver reembolsa 100% antes de salvar)</span></h3>
@@ -680,10 +680,7 @@ const Criador = (function () {
       const nome = b.dataset.comprar;
       const preco = precoEmPO(nome);
       if (!(ctx && ctx.modoNpc) && preco > estado.ouro) return;
-      if (!(ctx && ctx.modoNpc)) {
-        estado.ouro = arred(estado.ouro - preco);
-        if (typeof lojaFeedbackCompra === 'function') lojaFeedbackCompra(b, `−${preco} po`);
-      }
+      if (!(ctx && ctx.modoNpc)) estado.ouro = arred(estado.ouro - preco);
       adquirirItem(nome, 'loja');
       autoEquipar(); sincronizarEquipado();
       renderPasso5(); renderPreview();

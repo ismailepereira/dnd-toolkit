@@ -209,13 +209,18 @@ lojistas; reusa `loja.js` da Fase 9.
 
 ## 🔵 P4 — Visual e IA
 
-### U1. Loja com visual interativo (reforma de UI)
+### U1. Loja com visual interativo (reforma de UI) ✅ (08/07/2026)
 **Objetivo:** a loja (criação + Modo de Jogo) deixa de ser lista de linhas e
 vira uma grelha visual: cartões com ícone grande por categoria, hover com
 detalhe, feedback de compra (animação do ouro a descer), filtros mais
 gráficos. Sem lib externa — CSS + emoji/SVG.
 **Ficheiros:** `style.css` (principal), `criador.js`/`jogo.js` (markup das
 linhas → cartões), `loja.js` (sem mudança de dados).
+**Entregue:** helpers `iconeCategoriaLoja`/`cardLojaHtml`/`lojaFeedbackCompra`
+em `loja.js` (só apresentação); `.loja-cards`/`.loja-card` + bolha flutuante
+`.loja-fx-bolha` (keyframes `lojaFxSobe`) no CSS; `criador.js` (passo 5) e
+`jogo.js` (Modo de Jogo) trocam `.loja-item` (linha) por cartão e disparam a
+bolha "−X po" ao comprar. Filtros por categoria/abas continuam os mesmos.
 
 ### U2. Integração com IA (gerar fichas, histórias e NPCs)
 **Objetivo:** botões "✨ Gerar com IA": história prévia do personagem (a

@@ -4,6 +4,25 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-08 — Loja em cartões com feedback de compra (U1)
+
+**Backup antes da alteração:** `versoes/2026-07-08-u1-loja-cartoes/`.
+
+**Resumo:** A loja do jogador (Criador — passo 5 — e Modo de Jogo) deixa de ser uma lista de linhas e passa a uma **grade de cartões**: ícone grande por categoria (reaproveitando os emojis de `CATEGORIAS_LOJA`), nome, descrição (2 linhas com reticências + tooltip), preço em dourado e botão "Comprar" de largura total. Ao comprar, uma **bolha flutuante "−X po 💰"** sobe a partir do botão (anexada ao `<body>` para sobreviver ao re-render) e o cartão pisca com borda verde. É pura reforma de UI: os dados, preços, filtros por categoria, abas Básica/Especial, travas de proficiência e o fluxo de compra/ouro continuam idênticos. O painel de itens do Mestre (`.item-card`/`.loja-grid`) não foi tocado.
+
+**Ficheiros alterados:**
+- `static/js/loja.js` — helpers de apresentação `iconeCategoriaLoja()`, `cardLojaHtml()` e `lojaFeedbackCompra()` (expostos em `window`); nenhuma mudança de dados.
+- `static/js/jogo.js` — `linhaLojaJg` monta cartão via `cardLojaHtml`; grupos embrulhados em `.loja-cards`; handler `data-lojaadd` dispara a bolha antes do re-render.
+- `static/js/criador.js` — `linhaItem` monta cartão (preserva cadeado de proficiência/✨ especial); grupos em `.loja-cards`; handler `data-comprar` dispara a bolha (só quando há custo de ouro, não em modo NPC).
+- `static/css/style.css` — `.loja-cards`/`.loja-card`/`.loja-card-ico|nome|desc|rodape|preco`, estado `.comprado` e `.loja-fx-bolha` com keyframes `lojaFxSobe`.
+- `ROADMAP.md` / `docs/ROADMAP-FUTURO.md` — U1 marcado como entregue.
+
+**Testes:** verificado ao vivo no preview com o login do Ismaile — `mestre.html` carrega sem erro no console; `Criador`/`Jogo` e os helpers definidos; loja básica real (38 armas) renderizada em cartões com ícone ⚔️/nome/descrição/preço; `lojaFeedbackCompra` cria a bolha "−2 po 💰" e marca o cartão como `.comprado` (borda verde confirmada em screenshot). Dados de teste limpos.
+
+**Como reverter:** restaurar `static/js/loja.js`, `static/js/criador.js`, `static/js/jogo.js` e `static/css/style.css` de `versoes/2026-07-08-u1-loja-cartoes/` e reverter as duas linhas dos roadmaps.
+
+---
+
 ## 2026-07-08 — Campanha pronta: Mina Perdida de Phandelver, Cap. 1 (CT1)
 
 **Backup antes da alteração:** `versoes/2026-07-08-ct1-phandelver/`.

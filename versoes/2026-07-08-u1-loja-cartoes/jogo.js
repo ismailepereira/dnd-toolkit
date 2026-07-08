@@ -760,19 +760,19 @@ const Jogo = (function () {
       const rotuloPreco = jgLojaAba === 'especial'
         ? `${precoJg} po · ${esc(i.raridade || '')}${i.sintonia ? ' · sintonia' : ''}`
         : `${precoJg} po`;
-      const acaoJg = `<button type="button" class="btn-mini" data-lojaadd="${esc(i.nome)}" data-lojapreco="${precoJg}"${semOuroJg ? ' disabled title="ouro insuficiente"' : ''}>Comprar</button>`;
-      return cardLojaHtml({
-        icone: iconeCategoriaLoja(i.categoriaLoja),
-        nome: esc(i.nome), descricao: esc(i.descricao || ''),
-        precoTxt: rotuloPreco, bloqueada: false, acaoHtml: acaoJg,
-      });
+      return `<div class="loja-item">
+        <span class="loja-nome">${esc(i.nome)}</span>
+        <span class="loja-desc">${esc(i.descricao || '')}</span>
+        <span class="loja-preco">${rotuloPreco}</span>
+        <button type="button" class="btn-mini" data-lojaadd="${esc(i.nome)}" data-lojapreco="${precoJg}"${semOuroJg ? ' disabled title="ouro insuficiente"' : ''}>Comprar</button>
+      </div>`;
     };
     let corpoLojaJg;
     if (jgLojaMostrarTudo) {
-      corpoLojaJg = gruposAtivosJg.map(g => `<h4 class="loja-cat-titulo">${g.rotulo}</h4><div class="loja-cards">${g.itens.map(linhaLojaJg).join('')}</div>`).join('') || '<span class="criador-hint">Nenhum item disponível.</span>';
+      corpoLojaJg = gruposAtivosJg.map(g => `<h4 class="loja-cat-titulo">${g.rotulo}</h4>${g.itens.map(linhaLojaJg).join('')}`).join('') || '<span class="criador-hint">Nenhum item disponível.</span>';
     } else {
       const grupoJg = gruposAtivosJg.find(g => g.chave === jgLojaCat);
-      corpoLojaJg = grupoJg ? `<div class="loja-cards">${grupoJg.itens.map(linhaLojaJg).join('')}</div>` : '<span class="criador-hint">Loja Especial vazia — peça ao Mestre.</span>';
+      corpoLojaJg = grupoJg ? grupoJg.itens.map(linhaLojaJg).join('') : '<span class="criador-hint">Loja Especial vazia — peça ao Mestre.</span>';
     }
     const lojaHtml = `<details class="jg-magia" id="jgLojaDetails"${jgLojaAberta ? ' open' : ''}><summary>🛒 Loja</summary><div class="jg-magia-corpo">
       <div class="loja-abas">
@@ -977,7 +977,6 @@ const Jogo = (function () {
       }
       ficha.ouro = Math.round(((ficha.ouro || 0) - preco) * 100) / 100;
       log(`💰 Comprou ${v} por ${preco} po (restam ${ficha.ouro} po)`);
-      if (typeof lojaFeedbackCompra === 'function') lojaFeedbackCompra(b, `−${preco} po`);
       salvar(); render();
     });
     document.querySelectorAll('[data-jglojaaba]').forEach(b => b.onclick = () => {

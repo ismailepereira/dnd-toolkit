@@ -658,8 +658,16 @@ const TABELAS_LOOT_POR_ND = {
 > (usando `jgAlvoId` da C1) via `Grid.adjacentes`, e a ajuda tática (Fase 8A)
 > passa a usar esses valores. Na UI, os dois toggles manuais viram chips
 > só-leitura "(auto)"; sem mapa (ou sem o meu token posicionado) caem de volta
-> aos toggles manuais. **Faltam:** 14.4 (obstáculos + cobertura), 14.5 (áreas
-> de efeito visuais), 14.6 (imagem de fundo). Ver detalhe das sub-fases abaixo.
+> aos toggles manuais.
+>
+> **14.4 entregue (08/07/2026):** obstáculos + cobertura. `grid.js` ganhou
+> `nivelDeCobertura(a,b,obstaculos)` (ray casting por Bresenham nas células do
+> caminho; retorna meia/três-quartos/total com bónus de CA — total = sem linha
+> de visão). `mapa-ui.js`: botão "🧱 Obstáculos" liga um modo em que o Mestre
+> clica células para adicionar/remover paredes (desenhadas como quadrados
+> escuros, `bloqueiaVisao` + cobertura); o topo do mapa mostra a cobertura do
+> combatente do turno até o alvo (ex.: "meia cobertura (+2 CA)"). **Faltam:**
+> 14.5 (áreas de efeito visuais), 14.6 (imagem de fundo). Ver detalhe abaixo.
 
 ### Objetivo
 A maior mudança estrutural desta lista: dar posição real (x/y) a cada

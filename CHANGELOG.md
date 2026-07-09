@@ -4,6 +4,26 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-08 — Obstáculos + cobertura no mapa (Fase 14.4)
+
+**Backup antes da alteração:** `versoes/2026-07-08-fase14-4/`.
+
+**Resumo:** O Mestre agora desenha **paredes/obstáculos** no mapa tático e o jogo calcula **cobertura** entre atacante e alvo. `grid.js` ganhou `nivelDeCobertura(a, b, obstaculos)`: percorre as células do caminho (Bresenham, via `celulasEntre`) e devolve o obstáculo de cobertura mais forte encontrado — `meia` (+2 CA/DES), `tresQuartos` (+5) ou `total` (não pode ser alvo direto → `semLinhaDeVisao: true`). No `mapa-ui.js`, um botão **"🧱 Obstáculos"** liga um modo de edição: clicar num quadrado adiciona/remove uma parede (`{x, y, bloqueiaVisao: true, cobertura: 'meia'}`), desenhada como quadrado escuro; enquanto isso o clique não move tokens. O topo do mapa, quando há alvo selecionado, mostra a cobertura do combatente do turno até o alvo (ex.: "· 🧱 meia cobertura (+2 CA)" ou "cobertura total (sem alvo direto)"). Tudo opcional e retrocompatível: sem obstáculos, nada muda.
+
+**Ficheiros alterados:**
+- `static/js/grid.js` — `nivelDeCobertura()` (+ tabelas de rank/CA de cobertura) exportada em `Grid`.
+- `static/js/mapa-ui.js` — estado `modoObstaculo`; botão "🧱 Obstáculos"; camada de células de edição (adiciona/remove parede); desenho dos obstáculos; cobertura no topo; move de token bloqueado enquanto em modo obstáculo.
+- `static/css/style.css` — `.mapa-obstaculo`(`.total`) e `.mapa-cel-obst`.
+- `ROADMAP.md` / `docs/ROADMAP-FUTURO.md` — 14.4 marcada como entregue.
+
+**Testes:** ao vivo no preview — `Grid.nivelDeCobertura` validado (sem obstáculo → nenhuma/+0; meia no caminho → +2; total → sem linha de visão; obstáculo fora do caminho → ignorado; dois obstáculos → pega o mais forte, três-quartos +5); fluxo de UI: 2 goblins em (2,5) e (8,5) → ativar mapa → botão "🧱 Obstáculos" → 192 células de edição → clicar (5,5) adiciona a parede (no estado e desenhada) → topo mostra "meia cobertura (+2 CA)"; clicar (5,5) de novo remove (cobertura some); screenshot confirma a parede marrom entre atacante (anel dourado) e alvo (anel vermelho); 0 erros no console; combate de teste limpo (0 combatentes, mapa null).
+
+**Próximo (14.5+):** overlay de áreas de efeito ao conjurar magia (círculo/cone/linha) listando quem é afetado; depois 14.6 (imagem de fundo).
+
+**Como reverter:** restaurar `static/js/grid.js`, `static/js/mapa-ui.js` e `static/css/style.css` de `versoes/2026-07-08-fase14-4/` e reverter as linhas dos roadmaps.
+
+---
+
 ## 2026-07-08 — Grid ligado à ajuda tática (Fase 14.3)
 
 **Backup antes da alteração:** `versoes/2026-07-08-fase14-3/`.

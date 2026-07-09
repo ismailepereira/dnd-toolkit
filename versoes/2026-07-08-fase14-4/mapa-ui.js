@@ -13,8 +13,7 @@
 // =====================================================================
 const MapaCombate = (function () {
   const SVGNS = 'http://www.w3.org/2000/svg';
-  let pegouId = null;         // token "na mão" do Mestre à espera de célula-destino
-  let modoObstaculo = false;  // Fase 14.4: clicar em células adiciona/remove obstáculo
+  let pegouId = null; // token "na mão" do Mestre à espera de célula-destino
 
   const LARGURA_PADRAO = 16, ALTURA_PADRAO = 12;
 
@@ -98,28 +97,20 @@ const MapaCombate = (function () {
     const alvo = combate.combatentes.find(c => c.id === opts.alvoId);
     const topo = document.createElement('div');
     topo.className = 'mapa-topo';
-    const obst = mapa.obstaculos || [];
     let infoTxt = '';
     if (atual && alvo && atual.id !== alvo.id && atual.pos && alvo.pos) {
       const dQ = Grid.distanciaQuadros(atual.pos, alvo.pos);
       const dM = Grid.distanciaMetros(atual.pos, alvo.pos);
       const adj = Grid.adjacentes(atual.pos, alvo.pos);
-      const cob = Grid.nivelDeCobertura(atual.pos, alvo.pos, obst);
-      const rotCob = { nenhuma: '', meia: ' · 🧱 meia cobertura (+2 CA)', tresQuartos: ' · 🧱 três-quartos (+5 CA)', total: ' · 🧱 <b style="color:#e94560">cobertura total (sem alvo direto)</b>' };
       infoTxt = `📏 ${esc(atual.nome)} → ${esc(alvo.nome)}: <b>${dQ}</b> quadrado(s) (${dM.toFixed(1)} m)` +
-        (adj ? ' · <b style="color:#3fb950">adjacente</b>' : '') + (rotCob[cob.nivel] || '');
+        (adj ? ' · <b style="color:#3fb950">adjacente</b>' : '');
     } else {
       infoTxt = ehMestre
-        ? (modoObstaculo
-          ? '🧱 <b>Modo obstáculo:</b> clique nos quadrados para adicionar/remover paredes (dão cobertura e bloqueiam visão).'
-          : 'Clique num token para pegá-lo e num quadrado para movê-lo. Selecione um alvo na lista para ver a distância e a cobertura.')
+        ? 'Clique num token para pegá-lo e num quadrado para movê-lo. Selecione um alvo na lista para ver a distância.'
         : 'Mapa do combate (somente leitura).';
     }
-    const botoesMestre = ehMestre
-      ? ` <button type="button" class="btn-mini${modoObstaculo ? ' on' : ''}" id="mapaObstaculo" title="Adicionar/remover paredes que dão cobertura">🧱 Obstáculos${modoObstaculo ? ' (ligado)' : ''}</button>` +
-        ` <button type="button" class="btn-mini" id="mapaDesativar" title="Volta ao combate só por lista">Desativar mapa</button>`
-      : '';
-    topo.innerHTML = infoTxt + botoesMestre;
+    topo.innerHTML = infoTxt +
+      (ehMestre ? ' <button type="button" class="btn-mini" id="mapaDesativar" title="Volta ao combate só por lista">Desativar mapa</button>' : '');
     container.appendChild(topo);
 
     // ---- SVG ----
@@ -148,40 +139,18 @@ const MapaCombate = (function () {
       l.setAttribute('class', 'mapa-linha'); svg.appendChild(l);
     }
 
-    // obstáculos (paredes) — quadrados escuros que dão cobertura/bloqueiam visão
-    (mapa.obstaculos || []).forEach(o => {
-      const r = document.createElementNS(SVGNS, 'rect');
-      r.setAttribute('x', o.x * CELL); r.setAttribute('y', o.y * CELL);
-      r.setAttribute('width', CELL); r.setAttribute('height', CELL);
-      r.setAttribute('class', 'mapa-obstaculo' + (o.cobertura === 'total' ? ' total' : ''));
-      const t = document.createElementNS(SVGNS, 'title');
-      t.textContent = (o.cobertura === 'total' ? 'Parede (cobertura total)' : 'Obstáculo (meia cobertura)');
-      r.appendChild(t);
-      svg.appendChild(r);
-    });
-
-    // camada de células clicáveis — só Mestre. Em modo obstáculo: adiciona/remove
-    // parede; senão, quando há token pego: move-o para a célula clicada.
-    if (ehMestre && (modoObstaculo || pegouId)) {
+    // camada de células clicáveis (mover o token pego) — só Mestre
+    if (ehMestre && pegouId) {
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
           const cel = document.createElementNS(SVGNS, 'rect');
           cel.setAttribute('x', x * CELL); cel.setAttribute('y', y * CELL);
           cel.setAttribute('width', CELL); cel.setAttribute('height', CELL);
-          cel.setAttribute('class', modoObstaculo ? 'mapa-cel-obst' : 'mapa-cel-alvo');
+          cel.setAttribute('class', 'mapa-cel-alvo');
           cel.dataset.cx = x; cel.dataset.cy = y;
           cel.addEventListener('click', () => {
-            if (modoObstaculo) {
-              mapa.obstaculos = mapa.obstaculos || [];
-              const i = mapa.obstaculos.findIndex(o => o.x === x && o.y === y);
-              if (i >= 0) mapa.obstaculos.splice(i, 1);
-              else mapa.obstaculos.push({ x: x, y: y, bloqueiaVisao: true, cobertura: 'meia' });
-            } else {
-              const c = combate.combatentes.find(k => k.id === pegouId);
-              if (c) { c.pos = { x: x, y: y }; pegouId = null; }
-            }
-            if (opts.onMudou) opts.onMudou();
-            render(container, combate, opts);
+            const c = combate.combatentes.find(k => k.id === pegouId);
+            if (c) { c.pos = { x: x, y: y }; pegouId = null; if (opts.onMudou) opts.onMudou(); render(container, combate, opts); }
           });
           svg.appendChild(cel);
         }
@@ -218,7 +187,6 @@ const MapaCombate = (function () {
       if (ehMestre) {
         g.addEventListener('click', (ev) => {
           ev.stopPropagation();
-          if (modoObstaculo) return; // em modo obstáculo, o clique é para paredes
           pegouId = (pegouId === c.id) ? null : c.id; // clicar de novo solta
           render(container, combate, opts);
         });
@@ -232,14 +200,12 @@ const MapaCombate = (function () {
     container.appendChild(wrap);
 
     if (ehMestre) {
-      const bo = container.querySelector('#mapaObstaculo');
-      if (bo) bo.onclick = () => { modoObstaculo = !modoObstaculo; pegouId = null; render(container, combate, opts); };
       const bd = container.querySelector('#mapaDesativar');
       if (bd) bd.onclick = () => {
-        if (!confirm('Desativar o mapa tático? As posições e obstáculos são descartados; o combate volta a ser só por lista.')) return;
+        if (!confirm('Desativar o mapa tático? As posições são descartadas; o combate volta a ser só por lista.')) return;
         combate.mapa = null;
         combate.combatentes.forEach(c => { delete c.pos; });
-        pegouId = null; modoObstaculo = false;
+        pegouId = null;
         if (opts.onMudou) opts.onMudou();
         render(container, combate, opts);
       };

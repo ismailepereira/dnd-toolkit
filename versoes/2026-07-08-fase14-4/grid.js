@@ -79,29 +79,12 @@ const Grid = (function () {
     return !celulasEntre(a, b).some(c => bloq.has(c.x + ',' + c.y));
   }
 
-  // Nível de cobertura entre atacante (a) e alvo (b), pelos obstáculos que
-  // caem nas células do caminho (Bresenham). Regras 5e: meia = +2 CA/DES,
-  // três-quartos = +5, total = não pode ser alvo direto. Retorna o mais forte.
-  const _RANK_COB = { nenhuma: 0, meia: 1, tresQuartos: 2, total: 3 };
-  const _CA_COB = { nenhuma: 0, meia: 2, tresQuartos: 5, total: Infinity };
-  function nivelDeCobertura(a, b, obstaculos) {
-    if (!a || !b) return { nivel: 'nenhuma', bonusCA: 0, semLinhaDeVisao: false };
-    const noCaminho = new Map();
-    (obstaculos || []).forEach(o => { if (o) noCaminho.set(o.x + ',' + o.y, o.cobertura || 'meia'); });
-    let melhor = 'nenhuma';
-    celulasEntre(a, b).forEach(c => {
-      const cob = noCaminho.get(c.x + ',' + c.y);
-      if (cob && _RANK_COB[cob] > _RANK_COB[melhor]) melhor = cob;
-    });
-    return { nivel: melhor, bonusCA: _CA_COB[melhor], semLinhaDeVisao: melhor === 'total' };
-  }
-
   return {
     METROS_POR_QUADRO,
     distanciaQuadros, distanciaMetros, adjacentes,
     dentroDoAlcanceMetros, parseAlcanceMetros,
     dentroDaArea, combatentesNaArea,
-    celulasEntre, temLinhaDeVisao, nivelDeCobertura,
+    celulasEntre, temLinhaDeVisao,
   };
 })();
 

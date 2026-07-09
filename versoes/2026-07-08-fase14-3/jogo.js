@@ -91,27 +91,6 @@ const Jogo = (function () {
   function classesFicha() { return (typeof classesAtuais === 'function') ? classesAtuais(ficha) : [{ classe: ficha.classe, nivel: ficha.nivel, subclasse: ficha.subclasse || '' }]; }
   function ehMulticlasse() { return classesFicha().length > 1; }
 
-  // ----- Fase 14.3: adjacência real pelo grid (quando há mapa ativo) -----
-  // Retorna null se não há mapa OU se o meu personagem não está posicionado
-  // (aí a ajuda tática cai nos toggles manuais da Fase 8A).
-  function adjacenciaAutoDoMapa(f) {
-    const comb = window.COMBATE_ATUAL;
-    if (!comb || !comb.mapa || typeof Grid === 'undefined' || !comb.combatentes) return null;
-    const meu = comb.combatentes.find(c => c.pos && c.fichaId === f.id);
-    if (!meu) return null;
-    const ehInimigo = c => c.tipo === 'monstro' && !c.aliado;
-    const ehAliado = c => c.tipo === 'pc' || c.aliado;
-    const inimigoAdjacente = comb.combatentes.some(c =>
-      c.pos && c.id !== meu.id && c.hpAtual > 0 && ehInimigo(c) && Grid.adjacentes(meu.pos, c.pos));
-    let aliadoAdjacenteAoAlvo = false;
-    const alvo = jgAlvoId ? comb.combatentes.find(c => c.id === jgAlvoId && c.pos) : null;
-    if (alvo) {
-      aliadoAdjacenteAoAlvo = comb.combatentes.some(c =>
-        c.pos && c.id !== alvo.id && c.id !== meu.id && c.hpAtual > 0 && ehAliado(c) && Grid.adjacentes(c.pos, alvo.pos));
-    }
-    return { meu, inimigoAdjacente, aliadoAdjacenteAoAlvo, temAlvo: !!alvo };
-  }
-
   // ----- dados derivados -----
   function chaveClasse() { return CLASSE_NOME_PARA_CHAVE[ficha.classe]; }
   function classeObj() { return CLASSES[chaveClasse()]; }
@@ -839,11 +818,6 @@ const Jogo = (function () {
 
     // ---------- Fase 8A: painel "O teu turno" + dicas/combos + movimento/ataque ----------
     const et = f.estadoTatico;
-    // Fase 14.3: com mapa ativo, detecta adjacência REAL pelo grid (senão usa os toggles manuais).
-    const autoAdj = adjacenciaAutoDoMapa(f);
-    const etEfetivo = autoAdj
-      ? { ...et, inimigoAdjacente: autoAdj.inimigoAdjacente, aliadoAdjacenteAoAlvo: autoAdj.aliadoAdjacenteAoAlvo }
-      : et;
     const rDesloc = RACAS_DETALHE[f.raca] || {};
     const penDesloc = avisos.reduce((acc, a) => acc + (a.deslocamento || 0), 0);
     const ctxTatico = {
@@ -855,7 +829,7 @@ const Jogo = (function () {
       concentrando: f.concentrando,
       estilo: f.estilo,
       duasArmasDisponivel: !!bonusDuasArmas,
-      estadoTatico: etEfetivo,
+      estadoTatico: et,
       deslocamento: (rDesloc.deslocamento || 30) + penDesloc,
     };
     let turnoHtml = '';
@@ -871,11 +845,8 @@ const Jogo = (function () {
         <div class="jg-turno-toggles">
           <label class="check-chip ${et.emCombate ? 'on' : ''}"><input type="checkbox" id="jgEtCombate" ${et.emCombate ? 'checked' : ''}> ⚔️ Em combate</label>
           <label class="check-chip ${et.emFuria ? 'on' : ''}"><input type="checkbox" id="jgEtFuria" ${et.emFuria ? 'checked' : ''}> 🔥 Em Fúria</label>
-          ${autoAdj
-            ? `<span class="check-chip auto ${etEfetivo.inimigoAdjacente ? 'on' : ''}" title="Detetado pelo mapa tático">🎯 Inimigo adjacente: ${etEfetivo.inimigoAdjacente ? 'sim' : 'não'} <small>(auto)</small></span>
-               <span class="check-chip auto ${etEfetivo.aliadoAdjacenteAoAlvo ? 'on' : ''}" title="${autoAdj.temAlvo ? 'Detetado pelo mapa tático' : 'Selecione um alvo no combate'}">🤝 Aliado adj. ao alvo: ${autoAdj.temAlvo ? (etEfetivo.aliadoAdjacenteAoAlvo ? 'sim' : 'não') : '—'} <small>(auto)</small></span>`
-            : `<label class="check-chip ${et.inimigoAdjacente ? 'on' : ''}"><input type="checkbox" id="jgEtInimigo" ${et.inimigoAdjacente ? 'checked' : ''}> 🎯 Inimigo adjacente a mim</label>
-               <label class="check-chip ${et.aliadoAdjacenteAoAlvo ? 'on' : ''}"><input type="checkbox" id="jgEtAliado" ${et.aliadoAdjacenteAoAlvo ? 'checked' : ''}> 🤝 Aliado adjacente ao alvo</label>`}
+          <label class="check-chip ${et.inimigoAdjacente ? 'on' : ''}"><input type="checkbox" id="jgEtInimigo" ${et.inimigoAdjacente ? 'checked' : ''}> 🎯 Inimigo adjacente a mim</label>
+          <label class="check-chip ${et.aliadoAdjacenteAoAlvo ? 'on' : ''}"><input type="checkbox" id="jgEtAliado" ${et.aliadoAdjacenteAoAlvo ? 'checked' : ''}> 🤝 Aliado adjacente ao alvo</label>
           <label class="check-chip ${et.caido ? 'on' : ''}"><input type="checkbox" id="jgEtCaido" ${et.caido ? 'checked' : ''}> 🤕 Estou caído</label>
         </div>
         <div class="jg-turno-grid">

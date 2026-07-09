@@ -1420,9 +1420,6 @@ body.alto-contraste a { color: #ffd400; }
 }
 .check-chip.on { border-color: var(--accent); color: var(--text); background: rgba(233,69,96,0.1); }
 .check-chip input { margin: 0; }
-/* Fase 14.3: chip só-leitura (adjacência detetada pelo mapa) */
-.check-chip.auto { cursor: default; border-style: dashed; }
-.check-chip.auto small { opacity: 0.7; }
 
 .check-inline { flex-direction: row !important; align-items: center; gap: 6px; font-size: 0.85rem; }
 .check-inline input { width: auto !important; }

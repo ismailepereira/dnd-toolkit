@@ -650,9 +650,16 @@ const TABELAS_LOOT_POR_ND = {
 > + `mapa-ui.js` (grid SVG sem imagem de fundo, tokens clicáveis, mover por
 > clique, leitura de distância/adjacência para o alvo). Integrado na aba
 > Combate do Mestre (`app.js`/`mestre.html`), opcional e retrocompatível
-> (combate sem mapa continua igual). **Faltam:** 14.3 (ligar `ajudatatica.js`
-> ao grid), 14.4 (obstáculos + cobertura), 14.5 (áreas de efeito visuais),
-> 14.6 (imagem de fundo). Ver detalhe das sub-fases abaixo.
+> (combate sem mapa continua igual).
+>
+> **14.3 entregue (08/07/2026):** `jogo.js` deteta adjacência REAL pelo grid
+> quando há mapa ativo — `adjacenciaAutoDoMapa(f)` acha o combatente do jogador
+> (`fichaId`), calcula "inimigo adjacente a mim" e "aliado adjacente ao alvo"
+> (usando `jgAlvoId` da C1) via `Grid.adjacentes`, e a ajuda tática (Fase 8A)
+> passa a usar esses valores. Na UI, os dois toggles manuais viram chips
+> só-leitura "(auto)"; sem mapa (ou sem o meu token posicionado) caem de volta
+> aos toggles manuais. **Faltam:** 14.4 (obstáculos + cobertura), 14.5 (áreas
+> de efeito visuais), 14.6 (imagem de fundo). Ver detalhe das sub-fases abaixo.
 
 ### Objetivo
 A maior mudança estrutural desta lista: dar posição real (x/y) a cada

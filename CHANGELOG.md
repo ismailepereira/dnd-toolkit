@@ -4,6 +4,23 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-08 — Grid ligado à ajuda tática (Fase 14.3)
+
+**Backup antes da alteração:** `versoes/2026-07-08-fase14-3/`.
+
+**Resumo:** Fecha o elo prometido desde a Fase 8A: quando há um **mapa tático ativo** no combate, a ajuda tática do jogador (Modo de Jogo) deixa de depender dos toggles manuais e passa a **detectar adjacência de verdade pelo grid**. Nova função `adjacenciaAutoDoMapa(f)` em `jogo.js`: localiza o combatente do jogador no `window.COMBATE_ATUAL` pelo `fichaId`, e com `Grid.adjacentes` calcula "inimigo adjacente a mim" (algum inimigo vivo a ≤1 quadrado) e "aliado adjacente ao alvo" (algum aliado vivo adjacente ao alvo selecionado via `jgAlvoId`, da C1). Esses valores substituem os do `estadoTatico` no contexto passado a `opcoesTurno`/`dicasContextuais`/`combosSugeridos` (ex.: a dica de Ataque Furtivo do Ladino agora acende sozinha quando um aliado está de fato colado no alvo). Na UI, os dois toggles manuais de adjacência viram **chips só-leitura "(auto)"** mostrando sim/não (ou "—" quando não há alvo); sem mapa ativo — ou sem o token do jogador posicionado — tudo cai de volta aos **toggles manuais** de antes (retrocompatível, "theatre of the mind" continua a funcionar). `emFuria`/`caído` seguem manuais (o grid não sabe disso).
+
+**Ficheiros alterados:**
+- `static/js/jogo.js` — `adjacenciaAutoDoMapa(f)`; `etEfetivo` (estadoTatico com adjacência auto) alimenta o `ctxTatico`; os dois toggles de adjacência renderizam como chip `.auto` quando há mapa.
+- `static/css/style.css` — `.check-chip.auto` (borda tracejada, cursor default, `small` esmaecido).
+- `ROADMAP.md` / `docs/ROADMAP-FUTURO.md` — 14.3 marcada como entregue.
+
+**Testes:** ao vivo no preview — `Jogo`/`Grid`/`MapaCombate` carregam, 0 erros no console; abrindo o Modo de Jogo com uma ficha e um `COMBATE_ATUAL` com mapa: PJ em (5,5) + goblin em (5,6) → chip "🎯 Inimigo adjacente: **sim** (auto)" e checkbox manual ausente; goblin movido para (10,10) → "**não** (auto)"; `mapa=null` → o checkbox manual `#jgEtInimigo` volta e 0 chips auto (fallback); sem alvo selecionado, o chip do aliado mostra "—". Estado do servidor conferido limpo no fim (0 fichas, 0 combatentes, mapa null).
+
+**Como reverter:** restaurar `static/js/jogo.js` e `static/css/style.css` de `versoes/2026-07-08-fase14-3/` e reverter as linhas dos roadmaps.
+
+---
+
 ## 2026-07-08 — Grid Virtual / mapa de combate, v1 (Fase 14.1 + 14.2)
 
 **Backup antes da alteração:** `versoes/2026-07-08-fase14-grid/`.

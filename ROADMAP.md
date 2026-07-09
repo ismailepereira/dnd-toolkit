@@ -197,9 +197,18 @@ Detalhe completo (objetivo/estrutura/ficheiros/passos) em `docs/ROADMAP-FUTURO.m
 11. 🟢 **K2** — Árvore narrativa da campanha (mapa mental de decisões, só o Mestre)
 12. ✅ **U1** — ~~Loja com visual interativo~~ (entregue 08/07/2026: loja do jogador — Criador e Modo de Jogo — vira grade de cartões com ícone por categoria, hover e bolha "−X po" ao comprar; só CSS + emoji, dados intactos)
 13. ✅ **U2** — ~~Integração com IA~~ (entregue 08/07/2026, v1: endpoint `POST /api/ia/gerar` no servidor com a chave em env — Anthropic/Claude —, gate de assinatura + quota diária, botão "✨ Gerar com IA" na história do Criador; degrada suave sem chave. Falta só o Mestre pôr `ANTHROPIC_API_KEY` no `.env`/Render)
-14. 🟡 **Fase 14** — Grid Virtual / mapa de combate — **14.1–14.4 entregues 08/07/2026** (matemática pura `grid.js`; grid SVG com tokens clicáveis; ajuda tática detecta adjacência real pelo mapa; e **obstáculos + cobertura** — o Mestre desenha paredes que dão meia/total cobertura e o topo mostra "+2 CA / sem alvo direto" entre atacante e alvo). Faltam 14.5 (áreas de efeito visuais), 14.6 (imagem de fundo)
+14. 💤 **Fase 14** — Grid Virtual / mapa de combate — **DORMENTE** (14.1–14.4 entregues 08/07/2026, mas o grid foi **substituído pelo Tabuleiro-imagem** — ver Fase 16 e `docs/ARQUITETURA.md`). `grid.js`/`mapa-ui.js` continuam no repo, fora do fluxo principal.
 15. ✅ **CT1** — ~~Campanha pronta: Mina Perdida de Phandelver~~ (entregue 08/07/2026: Capítulo 1 "Emboscada Goblin" como livro-jogo — grafo de 14 nós, nível 1-2, na biblioteca de aventuras prontas)
-16. 🟡 **Fase 15** — Editor de Mapas — **15.1 entregue 08/07/2026** (modo Cenário com paleta de miniaturas: parede, elevação, escada, alçapão, cadeira, barril, fogueira — o Mestre coloca peças clicando no grid; parede vira obstáculo, as demais viram objetos desenhados como emoji). Faltam 15.2 (biblioteca de mapas salvos), 15.3 (mapa por nó da aventura), 15.4 (gerador de masmorras), e mecânicas por peça
+16. 💤 **Fase 15** — Editor de Mapas (grid) — **DORMENTE** (15.1 entregue 08/07/2026; substituído pelo Tabuleiro-imagem — ver Fase 16).
+
+---
+
+## 🎯 DIREÇÃO NOVA (08/07/2026) — ver `docs/ARQUITETURA.md`
+
+Virada: o grid virtual sai, entra o **Tabuleiro-imagem sem grelha**. Web-first + PWA; preparação offline × mesa ao vivo com sync; imagens no Firebase Storage.
+
+17. 🎲 **Fase 16 — Tabuleiro-imagem** (novo sistema de batalha): imagem no nó da aventura → o Mestre "abre o mapa" pros jogadores → tokens (miniatura da ficha ou símbolo da classe; monstros depois) que movem **livremente** sobre a imagem, em tempo real. Sub-fases 16.1–16.5 no `docs/ARQUITETURA.md`. **Storage:** Firebase Storage.
+18. 🎨 **Fase 17 — UX & PWA**: reorganizar o Mestre em 3 modos (🎲 Jogar / 📝 Preparar / 📖 Consultar), enxugar a tela do jogador, e virar PWA (instalável + preparação offline).
 
 ---
 

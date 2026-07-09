@@ -4,6 +4,18 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-08 — Virada de direção: Tabuleiro-imagem + arquitetura (docs)
+
+**Resumo:** Decisão estratégica (só documentação, sem mudança de código). O **grid virtual** (Fases 14 e 15) fica **dormente** e é substituído por um **Tabuleiro-imagem sem grelha**: o nó da aventura recebe uma imagem, o Mestre a abre para os jogadores, e tokens (miniatura da ficha — PNG/WebP sem fundo — ou símbolo da classe; monstros depois) se movem **livremente** sobre a imagem, em tempo real. Definido também: **web-first + PWA** (não desktop nativo agora); separação **preparação (offline) × mesa ao vivo (sync)**; canal da mesa por **nuvem (Firebase) e/ou LAN**; e **imagens no Firebase Storage**. Tudo detalhado no novo `docs/ARQUITETURA.md`, com o roadmap novo (Fase 16 Tabuleiro, Fase 17 UX & PWA).
+
+**Ficheiros:**
+- **Novo** `docs/ARQUITETURA.md` — decisões + spec do tabuleiro + Fases 16/17.
+- `ROADMAP.md` — Fases 14/15 marcadas dormentes; abertas as Fases 16 e 17.
+
+**Próximo:** Fase 16.1 (upload p/ Firebase Storage + miniatura na ficha).
+
+---
+
 ## 2026-07-08 — Miniaturas de cenário no mapa (Fase 15.1)
 
 **Backup antes da alteração:** `versoes/2026-07-08-fase15-1/`.

@@ -4,6 +4,25 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-08 — Miniaturas de cenário no mapa (Fase 15.1)
+
+**Backup antes da alteração:** `versoes/2026-07-08-fase15-1/`.
+
+**Resumo:** Início do "editor de mapas" (Fase 15). O antigo modo "🧱 Obstáculos" virou um **modo Cenário** com uma **paleta de peças** que o Mestre coloca no grid clicando: **Parede** 🧱, **Elevação** ⛰️, **Escada** 🪜, **Alçapão** 🕳️, **Cadeira** 🪑, **Barril** 🛢️ e **Fogueira** 🔥. A Parede continua sendo obstáculo (dá cobertura + bloqueia visão, guardada em `mapa.obstaculos`); as demais são **miniaturas** guardadas num novo `mapa.objetos: [{tipo, x, y}]` e desenhadas como emoji no centro da célula, sob os tokens dos combatentes. Selecionar uma peça na paleta e clicar num quadrado coloca; clicar de novo com a mesma peça remove; clicar com outra peça troca. v1 é visual + tooltip (as mecânicas próprias de cada peça — vantagem de elevação, dano de fogueira — virão numa sub-fase). Opcional e retrocompatível: mapas sem objetos não mudam.
+
+**Ficheiros alterados:**
+- `static/js/mapa-ui.js` — catálogo `PROPS` (7 peças); estado `modoCenario`/`propAtivo` (substituem `modoObstaculo`); paleta `.mapa-paleta`; camada de edição generalizada (parede→obstáculo, demais→objeto, com colocar/trocar/remover); desenho dos objetos como emoji; `objetos: []` no mapa padrão; botão "🎭 Cenário".
+- `static/css/style.css` — `.mapa-objeto`, `.mapa-paleta`, `.mapa-prop`(`.on`).
+- `ROADMAP.md` — Fase 15 aberta com 15.1 entregue.
+
+**Testes:** ao vivo no preview com o login do Ismaile — paleta rende as 7 peças; selecionar Barril → clicar (5,5) grava `{tipo:'barril',x:5,y:5}` em `mapa.objetos` e desenha 🛢️; Fogueira em (6,5) → 🔥; Parede em (7,5) → entra em `mapa.obstaculos` (mantém a cobertura); clicar de novo no Barril remove-o (fogueira permanece); 0 erros no console; combate de teste limpo no fim. (Nota: um segundo servidor rodando na mesma pasta recarregava a página entre passos — a verificação foi feita em evals únicos e síncronos.)
+
+**Próximo (Fase 15):** 15.2 biblioteca de mapas salvos; 15.3 mapa por nó da aventura; 15.4 gerador de masmorras. E as mecânicas por peça (elevação/escada/alçapão/fogueira).
+
+**Como reverter:** restaurar `static/js/mapa-ui.js` e `static/css/style.css` de `versoes/2026-07-08-fase15-1/` e reverter a linha do ROADMAP.
+
+---
+
 ## 2026-07-08 — Obstáculos + cobertura no mapa (Fase 14.4)
 
 **Backup antes da alteração:** `versoes/2026-07-08-fase14-4/`.

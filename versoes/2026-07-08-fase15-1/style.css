@@ -1149,15 +1149,6 @@ input:focus, textarea:focus, select:focus {
 .mapa-obstaculo.total { fill: rgba(70, 70, 80, 0.85); stroke: #2d2d40; }
 .mapa-cel-obst { fill: rgba(210, 153, 34, 0.06); stroke: rgba(210, 153, 34, 0.3); stroke-width: 1; cursor: crosshair; }
 .mapa-cel-obst:hover { fill: rgba(210, 153, 34, 0.3); }
-/* Fase 15.1: miniaturas de cenário + paleta */
-.mapa-objeto { font-size: 20px; text-anchor: middle; dominant-baseline: central; pointer-events: none;
-  paint-order: stroke; stroke: rgba(0,0,0,0.35); stroke-width: 0.5px; }
-.mapa-paleta { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
-.mapa-prop { display: inline-flex; align-items: center; gap: 5px; font-size: 0.76rem; color: var(--text-dim);
-  background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 4px 8px; cursor: pointer; }
-.mapa-prop .g { font-size: 1.05rem; line-height: 1; }
-.mapa-prop:hover { border-color: var(--border-focus); color: var(--text); }
-.mapa-prop.on { border-color: var(--accent); background: rgba(233,69,96,0.12); color: var(--text); }
 .combate-log-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; position: sticky; top: 0; max-height: 70vh; overflow-y: auto; }
 .combate-log-box h4 { margin: 0 0 6px 0; font-size: 0.8rem; text-transform: uppercase; color: var(--text-dim); }
 .combate-log-box ul { list-style: none; margin: 0; padding: 0; font-size: 0.78rem; }

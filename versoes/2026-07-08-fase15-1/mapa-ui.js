@@ -14,24 +14,9 @@
 const MapaCombate = (function () {
   const SVGNS = 'http://www.w3.org/2000/svg';
   let pegouId = null;         // token "na mão" do Mestre à espera de célula-destino
-  let modoCenario = false;    // Fase 14.4/15.1: editar cenário (paredes + miniaturas)
-  let propAtivo = 'parede';   // peça selecionada na paleta de cenário
+  let modoObstaculo = false;  // Fase 14.4: clicar em células adiciona/remove obstáculo
 
   const LARGURA_PADRAO = 16, ALTURA_PADRAO = 12;
-
-  // Fase 15.1 — peças de cenário. 'parede' vira obstáculo (dá cobertura e
-  // bloqueia visão); as demais são objetos decorativos/semi-mecânicos (v1:
-  // miniatura visual + tooltip; mecânicas próprias virão numa sub-fase).
-  const PROPS = [
-    { tipo: 'parede', glifo: '🧱', nome: 'Parede', obstaculo: true },
-    { tipo: 'elevacao', glifo: '⛰️', nome: 'Elevação', dica: 'Terreno alto (vantagem de posição)' },
-    { tipo: 'escada', glifo: '🪜', nome: 'Escada', dica: 'Liga níveis / sobe' },
-    { tipo: 'alcapao', glifo: '🕳️', nome: 'Alçapão', dica: 'Armadilha no chão' },
-    { tipo: 'cadeira', glifo: '🪑', nome: 'Cadeira', dica: 'Mobília' },
-    { tipo: 'barril', glifo: '🛢️', nome: 'Barril', dica: 'Objeto (cobertura baixa)' },
-    { tipo: 'fogueira', glifo: '🔥', nome: 'Fogueira', dica: 'Fogo — perigo ao entrar' },
-  ];
-  const propPorTipo = t => PROPS.find(p => p.tipo === t) || PROPS[0];
 
   function esc(s) {
     return s == null ? '' : String(s).replace(/[&<>"']/g, c => (
@@ -73,7 +58,6 @@ const MapaCombate = (function () {
       larguraQuadros: LARGURA_PADRAO,
       alturaQuadros: ALTURA_PADRAO,
       obstaculos: [],
-      objetos: [],
       areasDeEfeito: [],
     };
     posicionarFaltantes(combate);
@@ -126,33 +110,17 @@ const MapaCombate = (function () {
         (adj ? ' · <b style="color:#3fb950">adjacente</b>' : '') + (rotCob[cob.nivel] || '');
     } else {
       infoTxt = ehMestre
-        ? (modoCenario
-          ? '🎭 <b>Modo cenário:</b> escolha uma peça abaixo e clique nos quadrados para colocá-la; clique de novo na mesma peça para removê-la.'
+        ? (modoObstaculo
+          ? '🧱 <b>Modo obstáculo:</b> clique nos quadrados para adicionar/remover paredes (dão cobertura e bloqueiam visão).'
           : 'Clique num token para pegá-lo e num quadrado para movê-lo. Selecione um alvo na lista para ver a distância e a cobertura.')
         : 'Mapa do combate (somente leitura).';
     }
     const botoesMestre = ehMestre
-      ? ` <button type="button" class="btn-mini${modoCenario ? ' on' : ''}" id="mapaCenario" title="Colocar paredes e miniaturas de cenário no mapa">🎭 Cenário${modoCenario ? ' (ligado)' : ''}</button>` +
+      ? ` <button type="button" class="btn-mini${modoObstaculo ? ' on' : ''}" id="mapaObstaculo" title="Adicionar/remover paredes que dão cobertura">🧱 Obstáculos${modoObstaculo ? ' (ligado)' : ''}</button>` +
         ` <button type="button" class="btn-mini" id="mapaDesativar" title="Volta ao combate só por lista">Desativar mapa</button>`
       : '';
     topo.innerHTML = infoTxt + botoesMestre;
     container.appendChild(topo);
-
-    // paleta de peças de cenário (só Mestre, em modo cenário)
-    if (ehMestre && modoCenario) {
-      const pal = document.createElement('div');
-      pal.className = 'mapa-paleta';
-      PROPS.forEach(p => {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'mapa-prop' + (propAtivo === p.tipo ? ' on' : '');
-        b.title = p.nome + (p.dica ? ' — ' + p.dica : '');
-        b.innerHTML = `<span class="g">${p.glifo}</span><span class="n">${esc(p.nome)}</span>`;
-        b.onclick = () => { propAtivo = p.tipo; render(container, combate, opts); };
-        pal.appendChild(b);
-      });
-      container.appendChild(pal);
-    }
 
     // ---- SVG ----
     const svg = document.createElementNS(SVGNS, 'svg');
@@ -192,45 +160,22 @@ const MapaCombate = (function () {
       svg.appendChild(r);
     });
 
-    // objetos de cenário (miniaturas) — emoji no centro da célula, sob os tokens
-    (mapa.objetos || []).forEach(o => {
-      const p = propPorTipo(o.tipo);
-      const t = document.createElementNS(SVGNS, 'text');
-      t.setAttribute('x', o.x * CELL + CELL / 2); t.setAttribute('y', o.y * CELL + CELL / 2);
-      t.setAttribute('class', 'mapa-objeto');
-      t.textContent = p.glifo;
-      const ti = document.createElementNS(SVGNS, 'title');
-      ti.textContent = p.nome + (p.dica ? ' — ' + p.dica : '');
-      t.appendChild(ti);
-      svg.appendChild(t);
-    });
-
-    // camada de células clicáveis — só Mestre. Em modo cenário: coloca/remove a
-    // peça ativa (parede = obstáculo; demais = objeto). Senão, com token pego:
-    // move-o para a célula clicada.
-    if (ehMestre && (modoCenario || pegouId)) {
-      const propSel = propPorTipo(propAtivo);
+    // camada de células clicáveis — só Mestre. Em modo obstáculo: adiciona/remove
+    // parede; senão, quando há token pego: move-o para a célula clicada.
+    if (ehMestre && (modoObstaculo || pegouId)) {
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
           const cel = document.createElementNS(SVGNS, 'rect');
           cel.setAttribute('x', x * CELL); cel.setAttribute('y', y * CELL);
           cel.setAttribute('width', CELL); cel.setAttribute('height', CELL);
-          cel.setAttribute('class', modoCenario ? 'mapa-cel-obst' : 'mapa-cel-alvo');
+          cel.setAttribute('class', modoObstaculo ? 'mapa-cel-obst' : 'mapa-cel-alvo');
           cel.dataset.cx = x; cel.dataset.cy = y;
           cel.addEventListener('click', () => {
-            if (modoCenario) {
-              if (propSel.obstaculo) {
-                mapa.obstaculos = mapa.obstaculos || [];
-                const i = mapa.obstaculos.findIndex(o => o.x === x && o.y === y);
-                if (i >= 0) mapa.obstaculos.splice(i, 1);
-                else mapa.obstaculos.push({ x: x, y: y, bloqueiaVisao: true, cobertura: 'meia' });
-              } else {
-                mapa.objetos = mapa.objetos || [];
-                const i = mapa.objetos.findIndex(o => o.x === x && o.y === y);
-                if (i >= 0 && mapa.objetos[i].tipo === propAtivo) mapa.objetos.splice(i, 1); // mesma peça → remove
-                else if (i >= 0) mapa.objetos[i].tipo = propAtivo;                            // outra peça → troca
-                else mapa.objetos.push({ tipo: propAtivo, x: x, y: y });
-              }
+            if (modoObstaculo) {
+              mapa.obstaculos = mapa.obstaculos || [];
+              const i = mapa.obstaculos.findIndex(o => o.x === x && o.y === y);
+              if (i >= 0) mapa.obstaculos.splice(i, 1);
+              else mapa.obstaculos.push({ x: x, y: y, bloqueiaVisao: true, cobertura: 'meia' });
             } else {
               const c = combate.combatentes.find(k => k.id === pegouId);
               if (c) { c.pos = { x: x, y: y }; pegouId = null; }
@@ -273,7 +218,7 @@ const MapaCombate = (function () {
       if (ehMestre) {
         g.addEventListener('click', (ev) => {
           ev.stopPropagation();
-          if (modoCenario) return; // em modo cenário, o clique é para as peças
+          if (modoObstaculo) return; // em modo obstáculo, o clique é para paredes
           pegouId = (pegouId === c.id) ? null : c.id; // clicar de novo solta
           render(container, combate, opts);
         });
@@ -287,14 +232,14 @@ const MapaCombate = (function () {
     container.appendChild(wrap);
 
     if (ehMestre) {
-      const bo = container.querySelector('#mapaCenario');
-      if (bo) bo.onclick = () => { modoCenario = !modoCenario; pegouId = null; render(container, combate, opts); };
+      const bo = container.querySelector('#mapaObstaculo');
+      if (bo) bo.onclick = () => { modoObstaculo = !modoObstaculo; pegouId = null; render(container, combate, opts); };
       const bd = container.querySelector('#mapaDesativar');
       if (bd) bd.onclick = () => {
-        if (!confirm('Desativar o mapa tático? As posições, paredes e miniaturas são descartadas; o combate volta a ser só por lista.')) return;
+        if (!confirm('Desativar o mapa tático? As posições e obstáculos são descartados; o combate volta a ser só por lista.')) return;
         combate.mapa = null;
         combate.combatentes.forEach(c => { delete c.pos; });
-        pegouId = null; modoCenario = false;
+        pegouId = null; modoObstaculo = false;
         if (opts.onMudou) opts.onMudou();
         render(container, combate, opts);
       };

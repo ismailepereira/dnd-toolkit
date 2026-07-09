@@ -199,6 +199,7 @@ Detalhe completo (objetivo/estrutura/ficheiros/passos) em `docs/ROADMAP-FUTURO.m
 13. ✅ **U2** — ~~Integração com IA~~ (entregue 08/07/2026, v1: endpoint `POST /api/ia/gerar` no servidor com a chave em env — Anthropic/Claude —, gate de assinatura + quota diária, botão "✨ Gerar com IA" na história do Criador; degrada suave sem chave. Falta só o Mestre pôr `ANTHROPIC_API_KEY` no `.env`/Render)
 14. 🟡 **Fase 14** — Grid Virtual / mapa de combate — **14.1–14.4 entregues 08/07/2026** (matemática pura `grid.js`; grid SVG com tokens clicáveis; ajuda tática detecta adjacência real pelo mapa; e **obstáculos + cobertura** — o Mestre desenha paredes que dão meia/total cobertura e o topo mostra "+2 CA / sem alvo direto" entre atacante e alvo). Faltam 14.5 (áreas de efeito visuais), 14.6 (imagem de fundo)
 15. ✅ **CT1** — ~~Campanha pronta: Mina Perdida de Phandelver~~ (entregue 08/07/2026: Capítulo 1 "Emboscada Goblin" como livro-jogo — grafo de 14 nós, nível 1-2, na biblioteca de aventuras prontas)
+16. 🟡 **Fase 15** — Editor de Mapas — **15.1 entregue 08/07/2026** (modo Cenário com paleta de miniaturas: parede, elevação, escada, alçapão, cadeira, barril, fogueira — o Mestre coloca peças clicando no grid; parede vira obstáculo, as demais viram objetos desenhados como emoji). Faltam 15.2 (biblioteca de mapas salvos), 15.3 (mapa por nó da aventura), 15.4 (gerador de masmorras), e mecânicas por peça
 
 ---
 

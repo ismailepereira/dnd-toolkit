@@ -4,6 +4,29 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-08 — Grid Virtual / mapa de combate, v1 (Fase 14.1 + 14.2)
+
+**Backup antes da alteração:** `versoes/2026-07-08-fase14-grid/`.
+
+**Resumo:** Primeira versão do maior item estrutural do roadmap: dar posição real (x,y) aos combatentes e um mapa tático em grade. Duas peças novas: (1) **`grid.js`** — matemática pura de grelha 5e, sem DOM: distância de Chebyshev (diagonal = 1 quadrado = 1,5 m), alcance em metros, adjacência, `parseAlcanceMetros` (extrai de "18m"/"(24/96m)"/"Toque"), área de efeito circular, e linha de visão por Bresenham contra obstáculos. (2) **`mapa-ui.js`** (`MapaCombate`) — grid SVG lisco (sem imagem de fundo) desenhado sob a lista de combate: um token por combatente (cor por tipo — PJ verde, aliado azul, inimigo vermelho, caído cinza; iniciais no centro), com anéis de destaque para o turno atual (dourado) e o alvo selecionado (vermelho). O Mestre **ativa o mapa** por um botão (posiciona automaticamente quem não tem `pos`), **move** por clique-no-token-depois-clique-na-célula, e vê no topo a **distância/adjacência** do combatente do turno até o alvo. Retrocompatível: sem mapa, o combate continua exatamente como antes (lista pura); jogadores veriam em modo leitura. Integração aditiva na aba Combate do Mestre.
+
+**Ficheiros:**
+- **Novo** `static/js/grid.js` — funções puras (`distanciaQuadros`, `distanciaMetros`, `adjacentes`, `dentroDoAlcanceMetros`, `parseAlcanceMetros`, `dentroDaArea`, `combatentesNaArea`, `celulasEntre`, `temLinhaDeVisao`); expostas em `window.Grid` + `module.exports`.
+- **Novo** `static/js/mapa-ui.js` — `MapaCombate.render(container, combate, {ehMestre, alvoId, onMudou})`, `ativarMapa`, `posicionarFaltantes`.
+- `static/js/app.js` — hook no fim de `renderCombate()` que chama `MapaCombate.render` no `#mapaCombate` (só quando o módulo existe), passando `EH_MESTRE`, o alvo selecionado e `salvarCombate` como `onMudou`.
+- `templates/mestre.html` — `<div id="mapaCombate">` na aba Combate + `<script>` de `grid.js` e `mapa-ui.js`.
+- `static/css/style.css` — estilos `.mapa-*` (grelha, tokens, anéis de turno/alvo/pego, células-alvo clicáveis); o mapa ocupa a largura toda da aba (`grid-column: 1 / -1`).
+- `app.py` — `ESTADO_PADRAO['combate']['mapa'] = None` (opcional, retrocompatível).
+- `ROADMAP.md` / `docs/ROADMAP-FUTURO.md` — Fase 14 marcada como v1 (14.1+14.2).
+
+**Testes:** ao vivo no preview com o login do Ismaile — `grid.js` validado com ~13 asserções (Chebyshev=4, 6 m, adjacência sim/não, alcance, `parseAlcanceMetros` 18/24/1.5, área círculo dentro/fora, `celulasEntre` exclui extremos, LDV com/sem obstáculo); fluxo de UI: 2 goblins → botão "Ativar mapa tático" → grid 16×12 com 2 tokens auto-posicionados → pegar token (192 células clicáveis = 16×12) → mover para (5,5) (posição persistida, células limpas ao largar) → distância "Goblin 2 → Goblin 1: 5 quadrado(s) (7.5 m)"; screenshot confirma a grelha com anéis de turno (dourado) e alvo (vermelho); zero erros no console; dados de teste do combate limpos no fim.
+
+**Próximo (14.3+):** trocar os toggles manuais da Fase 8A (`ajudatatica.js`) por detecção real via `grid.js` quando há mapa ativo; obstáculos + cobertura; overlay de áreas de efeito ao conjurar; imagem de fundo.
+
+**Como reverter:** apagar `static/js/grid.js` e `static/js/mapa-ui.js`; restaurar `app.py`, `static/js/app.js`, `templates/mestre.html` e `static/css/style.css` de `versoes/2026-07-08-fase14-grid/`; reverter as linhas dos roadmaps.
+
+---
+
 ## 2026-07-08 — Integração com IA: gerar história do personagem (U2 v1)
 
 **Backup antes da alteração:** `versoes/2026-07-08-u2-ia/`.

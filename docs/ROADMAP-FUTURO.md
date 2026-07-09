@@ -645,6 +645,15 @@ const TABELAS_LOOT_POR_ND = {
 
 ## Fase 14 — Grid Virtual / Mapa de Combate
 
+> **v1 entregue (08/07/2026): sub-fases 14.1 + 14.2.** `grid.js` (matemática
+> pura: Chebyshev, alcance, adjacência, área circular, linha de visão/Bresenham)
+> + `mapa-ui.js` (grid SVG sem imagem de fundo, tokens clicáveis, mover por
+> clique, leitura de distância/adjacência para o alvo). Integrado na aba
+> Combate do Mestre (`app.js`/`mestre.html`), opcional e retrocompatível
+> (combate sem mapa continua igual). **Faltam:** 14.3 (ligar `ajudatatica.js`
+> ao grid), 14.4 (obstáculos + cobertura), 14.5 (áreas de efeito visuais),
+> 14.6 (imagem de fundo). Ver detalhe das sub-fases abaixo.
+
 ### Objetivo
 A maior mudança estrutural desta lista: dar posição real (x/y) a cada
 combatente, calcular distância/alcance de verdade, e permitir desenhar áreas

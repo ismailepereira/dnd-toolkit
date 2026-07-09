@@ -1128,22 +1128,6 @@ input:focus, textarea:focus, select:focus {
 .add-monstro input { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 5px; padding: 5px; }
 
 .combate-layout { display: grid; grid-template-columns: 1fr 300px; gap: 14px; align-items: start; }
-
-/* ===== Fase 14: mapa tático (grid) ===== */
-.mapa-combate { grid-column: 1 / -1; }
-.mapa-combate:empty { display: none; }
-.mapa-topo { font-size: 0.82rem; color: var(--text-dim); margin: 4px 0 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.mapa-topo b { color: var(--text); }
-.mapa-svg-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); padding: 6px; }
-.mapa-svg { display: block; height: auto; width: 100%; }
-.mapa-fundo { fill: rgba(0, 0, 0, 0.18); }
-.mapa-linha { stroke: var(--border); stroke-width: 1; }
-.mapa-cel-alvo { fill: rgba(88, 166, 255, 0.08); stroke: rgba(88, 166, 255, 0.35); stroke-width: 1; cursor: pointer; }
-.mapa-cel-alvo:hover { fill: rgba(88, 166, 255, 0.28); }
-.mapa-token-txt { fill: #fff; font-size: 12px; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
-.mapa-token.turno circle { stroke: #e3b341; stroke-width: 3; }
-.mapa-token.alvo circle { stroke: var(--accent); stroke-width: 3; }
-.mapa-token.pego circle { stroke: #58a6ff; stroke-width: 3; stroke-dasharray: 4 3; }
 .combate-log-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; position: sticky; top: 0; max-height: 70vh; overflow-y: auto; }
 .combate-log-box h4 { margin: 0 0 6px 0; font-size: 0.8rem; text-transform: uppercase; color: var(--text-dim); }
 .combate-log-box ul { list-style: none; margin: 0; padding: 0; font-size: 0.78rem; }

@@ -197,7 +197,7 @@ Detalhe completo (objetivo/estrutura/ficheiros/passos) em `docs/ROADMAP-FUTURO.m
 11. 🟢 **K2** — Árvore narrativa da campanha (mapa mental de decisões, só o Mestre)
 12. ✅ **U1** — ~~Loja com visual interativo~~ (entregue 08/07/2026: loja do jogador — Criador e Modo de Jogo — vira grade de cartões com ícone por categoria, hover e bolha "−X po" ao comprar; só CSS + emoji, dados intactos)
 13. ✅ **U2** — ~~Integração com IA~~ (entregue 08/07/2026, v1: endpoint `POST /api/ia/gerar` no servidor com a chave em env — Anthropic/Claude —, gate de assinatura + quota diária, botão "✨ Gerar com IA" na história do Criador; degrada suave sem chave. Falta só o Mestre pôr `ANTHROPIC_API_KEY` no `.env`/Render)
-14. 🔵 **Fase 14** — Grid Virtual / mapa de combate
+14. 🟡 **Fase 14** — Grid Virtual / mapa de combate — **v1 entregue 08/07/2026** (14.1 matemática pura `grid.js` + 14.2 grid SVG com tokens clicáveis na aba Combate do Mestre: ativar mapa, mover por clique, distância/adjacência reais). Faltam 14.3 (ligar à ajuda tática), 14.4 (obstáculos/cobertura), 14.5 (áreas de efeito), 14.6 (imagem de fundo)
 15. ✅ **CT1** — ~~Campanha pronta: Mina Perdida de Phandelver~~ (entregue 08/07/2026: Capítulo 1 "Emboscada Goblin" como livro-jogo — grafo de 14 nós, nível 1-2, na biblioteca de aventuras prontas)
 
 ---

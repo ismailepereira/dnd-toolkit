@@ -610,15 +610,6 @@ function renderCombate() {
   // mantém o painel de Dano em Área em sincronia com os combatentes atuais
   const ap = document.getElementById('areaDanoPanel');
   if (ap && !ap.classList.contains('hidden')) renderAreaDano();
-  // Fase 14: mapa tático (grid) sob a lista, quando o módulo está carregado
-  const mapaEl = document.getElementById('mapaCombate');
-  if (mapaEl && typeof MapaCombate !== 'undefined') {
-    MapaCombate.render(mapaEl, combate, {
-      ehMestre: !!window.EH_MESTRE,
-      alvoId: alvoSelecionado,
-      onMudou: () => salvarCombate(),
-    });
-  }
 }
 
 document.getElementById('addPersonagens').addEventListener('click', addPersonagens);

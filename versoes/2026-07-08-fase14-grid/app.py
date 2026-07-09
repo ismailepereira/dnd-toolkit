@@ -36,7 +36,7 @@ USUARIOS = {
 ESTADO_PADRAO = {
     'fichas': [],
     'monstros_visiveis': [],
-    'combate': {'combatentes': [], 'turno': 0, 'rodada': 1, 'log': [], 'mapa': None},  # Fase 14: mapa opcional
+    'combate': {'combatentes': [], 'turno': 0, 'rodada': 1, 'log': []},
     'notas': [],       # notas/handouts do Mestre (com flag 'compartilhada' p/ jogadores)
     'encontros': [],   # encontros salvos do montador (lançáveis no combate)
     'itens_mestre': [],  # itens mágicos criados pelo Mestre (fora do acervo/loja do jogador)

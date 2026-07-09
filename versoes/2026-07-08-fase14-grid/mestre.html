@@ -91,7 +91,6 @@
       <div class="turno-info" id="turnoInfo"></div>
       <div class="combate-layout">
         <div id="listaCombate" class="combat-list"></div>
-        <div id="mapaCombate" class="mapa-combate"></div>
         <div class="combate-log-box"><h4>Histórico</h4><ul id="combateLog"></ul></div>
       </div>
     </section>
@@ -396,8 +395,6 @@
   <script src="{{ url_for('static', filename='js/criador.js') }}"></script>
   <script src="{{ url_for('static', filename='js/nivel.js') }}"></script>
   <script src="{{ url_for('static', filename='js/jogo.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/grid.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/mapa-ui.js') }}"></script>
   {% if not use_local %}
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>

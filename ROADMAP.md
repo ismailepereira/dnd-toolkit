@@ -214,6 +214,9 @@ Virada: o grid virtual sai, entra o **Tabuleiro-imagem sem grelha**. Web-first +
     - ✅ **16.4** (10/07/2026) — **tokens de monstro** no tabuleiro: barra do Mestre (bestiário → ➕ Colocar; várias instâncias), token quadrado com **ícone da categoria** como fallback (ou imagem por URL), só o Mestre arrasta, duplo-clique remove (`tabuleiro.monstros`, endpoint `POST /api/tabuleiro/monstro` só-Mestre). Bônus: **no-flicker** — `render()` só reconstrói o DOM quando o estado muda (poll ocioso virou no-op; arrasto estável).
     - ✅ **16.5** (10/07/2026) — **toque** (arrasto reescrito em Pointer Events + `touch-action`, funciona no celular), **travar jogadores** (`tabuleiro.travado`, servidor bloqueia move de não-Mestre), **redimensionar token** (Mestre seleciona e usa 🔎−/🔎＋; `tam` por token, só-Mestre) e **remover** monstro pela barra do selecionado. Ficaram de fora (dependem de zoom/pan): centralizar/seguir e medir distância → viram 16.6 se precisar. **Fase 16 concluída.**
 18. 🎨 **Fase 17 — UX & PWA**: reorganizar o Mestre em 3 modos (🎲 Jogar / 📝 Preparar / 📖 Consultar), enxugar a tela do jogador, e virar PWA (instalável + preparação offline).
+    - ✅ **17.3** (10/07/2026) — **PWA**: `manifest.webmanifest` + ícones (192/512/maskable, 🐉) + Service Worker no escopo raiz (network-first + fallback ao cache + `offline.html`); rotas `/sw.js` e `/manifest.webmanifest`; link/registro nos templates. Instalável no celular/desktop; código sempre fresco online.
+    - ⏳ **17.1** — três modos no Mestre (🎲 Jogar / 📝 Preparar / 📖 Consultar) — as ~12 abas viram sub-itens por tarefa.
+    - ⏳ **17.2** — tela do jogador enxuta (ficha, mapa, handouts, dados).
 
 ---
 

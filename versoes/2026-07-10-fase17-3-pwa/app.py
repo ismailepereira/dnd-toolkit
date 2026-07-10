@@ -342,27 +342,6 @@ def login_obrigatorio(papeis=None, exigir_assinatura=True):
     return decorador
 
 
-# ----- FASE 17.3: PWA (instalável + offline básico) -----
-# O Service Worker precisa ser servido da RAIZ para controlar todo o app (o
-# escopo padrão é a pasta do próprio ficheiro). Servimos static/sw.js em /sw.js
-# com o header Service-Worker-Allowed. O manifest vai com o MIME correto.
-# Ambos são públicos (o SW/manifest são buscados antes de qualquer login).
-@app.route('/sw.js')
-def service_worker():
-    resp = app.send_static_file('sw.js')
-    resp.headers['Content-Type'] = 'application/javascript'
-    resp.headers['Service-Worker-Allowed'] = '/'
-    resp.headers['Cache-Control'] = 'no-cache'
-    return resp
-
-
-@app.route('/manifest.webmanifest')
-def web_manifest():
-    resp = app.send_static_file('manifest.webmanifest')
-    resp.headers['Content-Type'] = 'application/manifest+json'
-    return resp
-
-
 @app.route('/')
 def index():
     if 'usuario' not in session:

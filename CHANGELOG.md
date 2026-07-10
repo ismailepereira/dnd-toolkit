@@ -4,6 +4,31 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-10 — Fase 17.3: PWA (instalável + offline básico)
+
+**Backup antes da alteração:** `versoes/2026-07-10-fase17-3-pwa/` (HEAD 16.5 de `app.py` + templates `mestre/jogador/login/campanhas`).
+
+**Resumo:** O D&D Toolkit virou **PWA** — dá pra **instalar na tela inicial** (celular e desktop) e abre em janela própria (standalone), combinando com o tabuleiro que agora funciona no toque.
+- **Manifest** (`/manifest.webmanifest`): nome, ícones (192/512 + maskable), `display: standalone`, cores do tema (`#e94560` / fundo `#12121e`).
+- **Ícones** (`static/icons/`): 🐉 sobre fundo escuro com o anel vermelho da marca, gerados com Pillow (Segoe UI Emoji) em 192, 512 e 512-maskable.
+- **Service Worker** (`/sw.js`, escopo **raiz**): estratégia **network-first + fallback ao cache** — sempre busca a rede primeiro (código/estado/tempo real SEMPRE frescos; evita o clássico "PWA servindo JS velho após deploy"), e offline cai no cache das páginas/estáticos já visitados. **Não** intercepta POST/PUT nem `/api/` (dinâmicos). Precache do shell (`style.css`) + página **`offline.html`** para navegações sem conexão.
+
+**Ficheiros:**
+- **Novos** `static/manifest.webmanifest`, `static/sw.js`, `static/offline.html`, `static/icons/icon-192.png` / `icon-512.png` / `icon-512-maskable.png`.
+- `app.py` — rotas públicas **`/sw.js`** (com `Service-Worker-Allowed: /` para o SW controlar todo o app + `Content-Type` de JS + `no-cache`) e **`/manifest.webmanifest`** (MIME `application/manifest+json`).
+- `templates/mestre.html`, `jogador.html`, `login.html`, `campanhas.html`, `assinatura.html` — `<link rel="manifest">` + `theme-color` + `icon`/`apple-touch-icon` + registro do SW (`navigator.serviceWorker.register('/sw.js')` no `load`).
+- `ROADMAP.md` — Fase 17.3 marcada como entregue.
+
+**Sem dependências novas de runtime** (Pillow só foi usado para gerar os ícones, offline; não entra no `requirements.txt`). **Sem env nova.** HTTPS de produção (Render) já satisfaz o requisito de PWA; em `localhost` funciona para teste.
+
+**Verificação (Playwright — browser real, 0 erros de console):** boot local (`USE_LOCAL_DB=1`, `data/estado.json` restaurado do backup). `/manifest.webmanifest` → 200 `application/manifest+json`, JSON válido (name, 3 ícones, standalone); `/sw.js` → 200 `application/javascript` com `Service-Worker-Allowed: /`; ícones → 200 `image/png`. No browser: link do manifest + theme-color + apple-touch-icon no `<head>`; **SW registrado, `active`, escopo `http://localhost:5300/`, controlando a página**; cache `dnd-toolkit-v1` com o shell precacheado (`style.css` + `offline.html`); fallback offline disponível.
+
+**Como reverter:** restaurar `versoes/2026-07-10-fase17-3-pwa/`, apagar `static/sw.js`/`manifest.webmanifest`/`offline.html`/`icons/` e as rotas `/sw.js` e `/manifest.webmanifest`. (Para desinstalar o SW de um browser: DevTools → Application → Service Workers → Unregister.)
+
+**Próximo (Fase 17):** 17.1 — reorganizar a tela do Mestre (~12 abas) em 3 modos (🎲 Jogar / 📝 Preparar / 📖 Consultar); 17.2 — enxugar a tela do jogador. (17.3 PWA entregue.)
+
+---
+
 ## 2026-07-10 — Fase 16.5: tabuleiro com toque + travar + redimensionar
 
 **Backup antes da alteração:** `versoes/2026-07-10-fase16-5-toque-refinos/` (HEAD 16.4 de `app.py`, `tabuleiro.js`, `style.css`).

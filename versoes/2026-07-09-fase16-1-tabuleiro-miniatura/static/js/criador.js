@@ -20,7 +20,6 @@ const Criador = (function () {
   function estadoVazio() {
     return {
       nome: '',
-      miniaturaUrl: null,     // Fase 16.1: PNG/WebP sem fundo (Storage); null → símbolo da classe
       raca: 'Humano',
       classe: 'Guerreiro',
       antecedente: 'Soldado',
@@ -188,12 +187,9 @@ const Criador = (function () {
     const avisosHtml = avisos.length ? `<div class="pv-bloco pv-avisos"><h4>⚠ Penalidades</h4>${avisos.map(a => `<div class="pv-linha">${escHtml(a.texto)}</div>`).join('')}</div>` : '';
 
     $('cPreview').innerHTML = `
-      <div class="pv-cabecalho pv-cabecalho-mini">
-        ${(typeof miniaturaFichaHtml === 'function') ? miniaturaFichaHtml(s, 56) : ''}
-        <div>
-          <h3>${escHtml(s.nome) || 'Personagem sem nome'}</h3>
-          <div class="pv-sub">${escHtml(s.raca)} · ${getClasseIcone(s.classe)} ${escHtml(s.classe)} Nível ${s.nivel} · ${escHtml(s.antecedente)}</div>
-        </div>
+      <div class="pv-cabecalho">
+        <h3>${escHtml(s.nome) || 'Personagem sem nome'}</h3>
+        <div class="pv-sub">${escHtml(s.raca)} · ${getClasseIcone(s.classe)} ${escHtml(s.classe)} Nível ${s.nivel} · ${escHtml(s.antecedente)}</div>
       </div>
       <div class="pv-destaques">
         <div class="pv-box"><span class="pv-box-num">${c.hp}</span><span>PV</span></div>
@@ -1587,20 +1583,9 @@ const Criador = (function () {
     $('cItemMemTipo').value = estado.itemMemoria.tipo || '';
     $('cItemMemDescricao').value = estado.itemMemoria.descricao || '';
     atualizarContadorHistoria();
-    renderMiniatura();
     renderAtributosBase();
     renderAntecedenteInfo();
     renderPersonalidade();
-  }
-
-  // Fase 16.1: preview do avatar (miniatura enviada ou símbolo da classe) +
-  // estado do botão "Remover". Chamado ao preencher e após enviar/remover.
-  function renderMiniatura() {
-    const box = $('cMiniPreview');
-    if (box) box.innerHTML = (typeof miniaturaFichaHtml === 'function')
-      ? miniaturaFichaHtml(estado, 72) : '';
-    const rem = $('cMiniRemover');
-    if (rem) rem.style.display = estado.miniaturaUrl ? '' : 'none';
   }
 
   // ---------- Construir ficha final (schema compatível) ----------
@@ -1637,7 +1622,6 @@ const Criador = (function () {
     return {
       ...limpezaJogo,
       nome: s.nome.trim() || 'Sem nome',
-      miniaturaUrl: s.miniaturaUrl || null,
       classe: s.classe,
       classes: classesPreservadas,
       raca: s.raca,
@@ -1678,7 +1662,6 @@ const Criador = (function () {
     mostrarTodasEscolas = false;
     if (f) {
       s.nome = f.nome || '';
-      s.miniaturaUrl = f.miniaturaUrl || null;
       s.raca = f.raca && RACAS_DETALHE[f.raca] ? f.raca : 'Humano';
       s.classe = f.classe && CLASSE_NOME_PARA_CHAVE[f.classe] ? f.classe : 'Guerreiro';
       const _antValido = typeof antecedenteDados === 'function' ? antecedenteDados(f.antecedente) : ANTECEDENTES[f.antecedente];
@@ -1968,37 +1951,6 @@ const Criador = (function () {
     $('cItemMemNome').addEventListener('input', () => { estado.itemMemoria.nome = $('cItemMemNome').value; renderPreview(); });
     $('cItemMemTipo').addEventListener('input', () => { estado.itemMemoria.tipo = $('cItemMemTipo').value; renderPreview(); });
     $('cItemMemDescricao').addEventListener('input', () => { estado.itemMemoria.descricao = $('cItemMemDescricao').value; renderPreview(); });
-
-    // Fase 16.1: enviar miniatura (Firebase Storage). Degrada em modo LAN
-    // (sem Firebase) e enquanto o Storage não estiver ativo no Console.
-    const miniInput = $('cMiniInput');
-    if (miniInput) miniInput.addEventListener('change', async () => {
-      const file = miniInput.files && miniInput.files[0];
-      miniInput.value = ''; // permite reenviar o mesmo ficheiro depois
-      if (!file) return;
-      const msg = $('cMiniMsg');
-      if (!(window.Armazenamento && window.Armazenamento.disponivel())) {
-        if (msg) msg.textContent = '⚠ Envio de imagem indisponível aqui (ative o Storage no Firebase). A ficha usa o símbolo da classe.';
-        return;
-      }
-      if (msg) msg.textContent = '⏳ Enviando… 0%';
-      try {
-        const url = await window.Armazenamento.enviarMiniatura(file, {
-          onProgress: p => { if (msg) msg.textContent = `⏳ Enviando… ${p}%`; },
-        });
-        estado.miniaturaUrl = url;
-        if (msg) msg.textContent = '✓ Miniatura enviada.';
-        renderMiniatura(); renderPreview();
-      } catch (e) {
-        if (msg) msg.textContent = '⚠ ' + ((e && e.message) || 'Falha ao enviar.');
-      }
-    });
-    const miniRem = $('cMiniRemover');
-    if (miniRem) miniRem.addEventListener('click', () => {
-      estado.miniaturaUrl = null;
-      const msg = $('cMiniMsg'); if (msg) msg.textContent = '';
-      renderMiniatura(); renderPreview();
-    });
 
     $('btnArranjoPadrao').addEventListener('click', () => {
       arranjarPorClasse(ARRANJO_PADRAO);

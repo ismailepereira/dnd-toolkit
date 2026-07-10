@@ -449,21 +449,3 @@ const ARMA_ICONE = {
 function getClasseIcone(c) { return CLASSE_ICONE[c] || '👤'; }
 function getAttrIcone(a) { return ATTR_ICONE[a] || '⭐'; }
 function getArmaIcone(w) { return ARMA_ICONE[w] || '⚔️'; }
-
-// Fase 16.1: avatar da ficha — miniatura enviada (Firebase Storage) ou, sem
-// ela, o símbolo da classe como fallback. `tam` em px (default 48). Devolve
-// HTML; a URL vem do Storage do próprio projeto, mas escapamos aspas por
-// garantia contra quebra de atributo.
-function miniaturaFichaHtml(f, tam) {
-  tam = tam || 48;
-  const url = f && f.miniaturaUrl;
-  if (url) {
-    const safe = String(url).replace(/"/g, '&quot;');
-    return `<img class="ficha-mini" src="${safe}" alt="" ` +
-      `style="width:${tam}px;height:${tam}px;object-fit:cover;border-radius:50%;flex:0 0 auto">`;
-  }
-  return `<span class="ficha-mini ficha-mini-simbolo" ` +
-    `style="width:${tam}px;height:${tam}px;font-size:${Math.round(tam * 0.55)}px;` +
-    `line-height:${tam}px;display:inline-flex;align-items:center;justify-content:center;` +
-    `border-radius:50%;background:var(--accent2,#2a2a35);flex:0 0 auto">${getClasseIcone(f && f.classe)}</span>`;
-}

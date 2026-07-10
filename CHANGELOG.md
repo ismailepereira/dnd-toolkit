@@ -4,6 +4,67 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-09 — Editor de aventuras: canvas / mapa mental (estilo MindMeister)
+
+**Backup antes da alteração:** `versoes/2026-07-09-editor-canvas-mapa-mental/` (versões do HEAD de `aventura.js` e `style.css`).
+
+**Resumo:** O editor de aventuras (grafo de nós/escolhas) ganhou uma **vista visual de mapa mental**, ao lado da lista de cartões — o "canvas SVG v2" que já estava previsto. No editor há agora um alternador **🗺️ Mapa / 📋 Lista**:
+- **Mapa:** cada nó é uma **caixa arrastável** posicionada livremente; as **saídas** viram **setas curvas** desenhadas automaticamente (setas de saída "mortal" saem em dourado). Arrastar da **bolinha ●** de um nó até outro **cria uma saída**; **clicar numa seta remove** a ligação; **arrastar o corpo** move o nó; **duplo-clique** abre a Lista já rolada até os campos completos daquele nó; clicar no ícone marca o nó como **inicial** (⭐). Cada caixa mostra tipo (cor da borda), título e contadores (⚔️ encontro, 🧑 NPCs, ➡️ saídas, 🏁 final).
+- **Lista:** exatamente o editor de cartões anterior (narração, notas, encontro, NPCs, saídas), intacto.
+- **Posições** ficam em `no.x`/`no.y` (persistem no Salvar). Nós sem posição (aventuras antigas e modelos prontos) recebem um **layout automático em camadas** a partir do nó inicial (esq→dir), sem sobreposição.
+
+**Refinos (mesma sessão):**
+- **Zoom** — botões **− / % / ＋** e **⤢ Ajustar** (enquadra tudo), além de **roda do mouse** (zoom ancorado no cursor). O desenho passou a usar coordenadas do canvas (`offsetLeft/Top`), imune ao zoom; o `#aeCanvasScroll` fica com o tamanho já escalado para as barras de rolagem baterem. Zoom clamped a 40–180%.
+- **Pan** — arrastar o **fundo** do canvas desloca a vista.
+- **Renomear inline** — **duplo-clique no título** vira um input (Enter/blur confirma, Esc cancela); duplo-clique no resto do nó continua abrindo a Lista.
+- **Rótulo na seta** — a escolha (`saida.rotulo`) aparece sobre a seta correspondente.
+
+**Decisões (confirmadas pelo Ismaile):** canvas **+** lista convivendo (alternador), e ligações **por arrastar** (tipo MindMeister).
+
+**Ficheiros:**
+- `static/js/aventura.js` — `renderEditor` reestruturado (toggle + `#aeCorpo`); vista lista extraída para `renderListaNos`/`bindListaNos` (comportamento idêntico); vista canvas: `autoLayout`, `posicionarNovo`, `renderCanvas`, `nodeEl`, `desenharEdges` (geometria por `offset*` + rótulos), `ligarCanvas` (arrastar-mover, arrastar-ligar, pan de fundo, roda-zoom, remover nó/ligação, marcar inicial, renomear inline, duplo-clique→lista), `aplicarZoom`/`pontoCanvas`/`renomearInline`/`ajustarCanvas`. Remover nó também limpa as saídas que apontavam para ele (nas duas vistas).
+- `static/css/style.css` — estilos do canvas (`.ae-canvas-topo`/`.ae-zoom-pct`, `.ae-canvas-wrap` com grid pontilhado + `.ae-panning`, `.ae-canvas-scroll`, `.ae-node`/`.ae-node-handle`/`.ae-node-tit-input`, `.ae-edge`/`.ae-edge-mortal`/`.ae-edge-temp`/`.ae-edge-lbl`, toggle `.ae-vista-toggle`).
+
+**Modelo de dados:** só aditivo — `x`/`y` por nó. Retrocompatível: aventuras/modelos sem coordenadas recebem layout automático ao abrir.
+
+**Verificação:** `node --check` (ok). Boot local (`USE_LOCAL_DB=1`, sem tocar dados reais) + login do Mestre e drive no browser: criar aventura, adicionar nós (posições em cascata), **arrastar-ligar** cria saída + seta, **arrastar-mover** reposiciona, alternar Mapa↔Lista preserva nós/cartões, **salvar+reabrir preserva posições E ligações**. Autolayout no modelo real **Phandelver: 29 nós, 43 setas + 43 rótulos, 0 sobreposições**. Refinos: **zoom** por botão (100→115%, área de scroll 3008→3459px), **−−** (87%), **roda** ancorada no cursor (→97%), **Ajustar** (enquadra a 40%); **mover sob zoom 132%** → Δmodelo 76px = 100/1.32 (conversão de coordenadas correta); **pan** (scrollLeft 0→120); **renomear inline** ("Greenest em chamas" → texto novo via Enter). **0 erros de console.** Dados de teste (`data/aventuras.json`) removidos após a verificação.
+
+**Como reverter:** restaurar `versoes/2026-07-09-editor-canvas-mapa-mental/` ou `git checkout` de `aventura.js`/`style.css`. Aventuras salvas com `x`/`y` seguem válidas na lista.
+
+---
+
+## 2026-07-09 — Fase 16.1: upload p/ Firebase Storage + miniatura na ficha
+
+**Backup antes da alteração:** `versoes/2026-07-09-fase16-1-tabuleiro-miniatura/`.
+
+**Resumo:** Primeira sub-fase do Tabuleiro-imagem. A ficha ganha uma **miniatura** (avatar): no passo 3 do Criador (Identidade) há um botão **🖼️ Enviar miniatura** que sobe a imagem (PNG/WebP sem fundo, ou JPG; teto 5 MB) para o **Firebase Storage** e guarda a URL em `ficha.miniaturaUrl`. Sem imagem — ou em modo LAN/Storage inativo —, tudo cai no **símbolo da classe** como fallback. O avatar aparece no preview do Criador e nos cards de ficha (Mestre e Jogador). Novo helper de upload reutiliza o app/auth do Firebase que o tempo real já usa (mesmo token de `/api/firebase_token`), com degradação suave e mensagens amigáveis quando o Storage ainda não está ativo.
+
+**Ficheiros:**
+- **Novo** `static/js/storage.js` — helper `window.Armazenamento` (`enviarMiniatura`/`enviarMapa`, `disponivel()`); valida tipo/tamanho no cliente; progresso; erros amigáveis.
+- **Novo** `storage.rules` — regras do Firebase Storage (v1): só autenticado; miniatura só o dono escreve; mapas/monstros autenticado; teto 5 MB e PNG/WebP/JPEG.
+- `static/js/firebase-rt.js` — expõe `window.FIREBASE_CONFIG` e `RT.garantirAuth()` para o `storage.js` reutilizar o mesmo app/login (evita duplo `initializeApp`).
+- `static/js/regras.js` — helper `miniaturaFichaHtml(f, tam)` (imagem ou símbolo da classe).
+- `static/js/criador.js` — `miniaturaUrl` no estado/carregar/salvar; controle de upload+preview no passo 3; avatar no header do preview.
+- `static/js/app.js` e `static/js/jogador.js` — avatar nos cards de ficha (`.ficha-card-topo`).
+- `static/css/style.css` — estilos do avatar/controle (`.ficha-mini`, `.criador-mini-*`, `.ficha-card-topo`, `.pv-cabecalho-mini`).
+- `templates/mestre.html` e `templates/jogador.html` — carregam `firebase-storage-compat.js` + `storage.js` (dentro do bloco `{% if not use_local %}`).
+- `templates/_criador.html` — bloco da miniatura no passo 3.
+- `ROADMAP.md` — Fase 16.1 marcada como entregue.
+
+**Backend:** nenhuma mudança — a ficha faz passthrough de campos arbitrários, então `miniaturaUrl` persiste no PUT `/api/fichas` sem tocar no servidor.
+
+**Verificação:** `node --check` em todos os JS alterados (ok). Boot local (`USE_LOCAL_DB=1`, sem tocar nos dados reais nem no Firestore) + login do Mestre e drive no browser: o passo 3 rende o controle de miniatura; `#cMiniPreview` e o header do preview mostram o **símbolo da classe** (fallback); em modo local `window.Armazenamento` é `undefined` e a UI degrada com mensagem própria; **0 erros de console**. O caminho de upload real só é exercível depois de ativar o Storage no Console (ver abaixo).
+
+**⚠️ Pré-requisitos manuais (Ismaile, uma vez) para o upload funcionar em produção:**
+1. **Ativar o Firebase Storage** — Console → Storage → Começar.
+2. **Publicar `storage.rules`** — Console → Storage → Regras → colar → Publicar (fazer o deploy do código ANTES).
+
+**Como reverter:** restaurar `versoes/2026-07-09-fase16-1-tabuleiro-miniatura/`, apagar `static/js/storage.js` e `storage.rules`, ou `git revert`. Fichas com `miniaturaUrl` continuam válidas (campo ignorado sem o helper).
+
+**Próximo:** Fase 16.2 (imagem no nó da aventura + botão "Abrir mapa para os jogadores").
+
+---
+
 ## 2026-07-08 — Virada de direção: Tabuleiro-imagem + arquitetura (docs)
 
 **Resumo:** Decisão estratégica (só documentação, sem mudança de código). O **grid virtual** (Fases 14 e 15) fica **dormente** e é substituído por um **Tabuleiro-imagem sem grelha**: o nó da aventura recebe uma imagem, o Mestre a abre para os jogadores, e tokens (miniatura da ficha — PNG/WebP sem fundo — ou símbolo da classe; monstros depois) se movem **livremente** sobre a imagem, em tempo real. Definido também: **web-first + PWA** (não desktop nativo agora); separação **preparação (offline) × mesa ao vivo (sync)**; canal da mesa por **nuvem (Firebase) e/ou LAN**; e **imagens no Firebase Storage**. Tudo detalhado no novo `docs/ARQUITETURA.md`, com o roadmap novo (Fase 16 Tabuleiro, Fase 17 UX & PWA).

@@ -11,17 +11,14 @@
 // não quebrar o tempo real durante a transição de regras.
 // =====================================================
 (function () {
-  // Config web partilhada (não é segredo). Exposta em window.FIREBASE_CONFIG
-  // para o storage.js (Fase 16.1) reutilizar o MESMO app/auth — inicializar o
-  // Firebase duas vezes lançaria erro.
-  const firebaseConfig = window.FIREBASE_CONFIG || (window.FIREBASE_CONFIG = {
+  const firebaseConfig = {
     apiKey: "AIzaSyAKKSGRPAtfmXgjGDNrqfs5WaoDBZTURHQ",
     authDomain: "ded-aplicativo.firebaseapp.com",
     projectId: "ded-aplicativo",
     storageBucket: "ded-aplicativo.firebasestorage.app",
     messagingSenderId: "474119482441",
     appId: "1:474119482441:web:514be23e3de2349bcaa398",
-  });
+  };
 
   let fsdb = null, ok = false;
   try {
@@ -61,10 +58,6 @@
 
   window.RT = {
     ativo: () => ok,
-    // Fase 16.1: promessa de login partilhada — o storage.js reutiliza para
-    // subir imagens autenticado (mesmo token do backend). Resolve false se o
-    // Auth não estiver disponível (degradação suave).
-    garantirAuth: () => autenticar(),
     // Escuta o documento da campanha; chama cb(estado) a cada mudança.
     ouvir(cb) {
       if (!ok) return false;

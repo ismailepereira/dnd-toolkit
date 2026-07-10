@@ -194,7 +194,7 @@ Detalhe completo (objetivo/estrutura/ficheiros/passos) em `docs/ROADMAP-FUTURO.m
 8. 🟡 **M4** — Banco de NPCs partilhado entre utilizadores (guardar no meu banco / trazer p/ campanha)
 9. 🟢 **K1** — Aviso de combate em tempo real p/ jogadores (banner + som + salto p/ aba Combate)
 10. 🟢 **Fase 12** — Lojas geridas por NPC (inventário/preços próprios)
-11. 🟢 **K2** — Árvore narrativa da campanha (mapa mental de decisões, só o Mestre)
+11. ✅ **K2** — ~~Árvore narrativa da campanha (mapa mental de decisões, só o Mestre)~~ (entregue 09/07/2026: editor de aventuras ganhou **vista canvas / mapa mental** estilo MindMeister — nós como caixas arrastáveis, saídas como setas curvas com rótulo, arrastar-para-ligar, layout automático em camadas, **zoom (roda/botões/ajustar) + pan + renomear inline**; alternador 🗺️ Mapa / 📋 Lista, coexistindo com o editor de cartões. Posições em `no.x/y`.)
 12. ✅ **U1** — ~~Loja com visual interativo~~ (entregue 08/07/2026: loja do jogador — Criador e Modo de Jogo — vira grade de cartões com ícone por categoria, hover e bolha "−X po" ao comprar; só CSS + emoji, dados intactos)
 13. ✅ **U2** — ~~Integração com IA~~ (entregue 08/07/2026, v1: endpoint `POST /api/ia/gerar` no servidor com a chave em env — Anthropic/Claude —, gate de assinatura + quota diária, botão "✨ Gerar com IA" na história do Criador; degrada suave sem chave. Falta só o Mestre pôr `ANTHROPIC_API_KEY` no `.env`/Render)
 14. 💤 **Fase 14** — Grid Virtual / mapa de combate — **DORMENTE** (14.1–14.4 entregues 08/07/2026, mas o grid foi **substituído pelo Tabuleiro-imagem** — ver Fase 16 e `docs/ARQUITETURA.md`). `grid.js`/`mapa-ui.js` continuam no repo, fora do fluxo principal.
@@ -208,6 +208,8 @@ Detalhe completo (objetivo/estrutura/ficheiros/passos) em `docs/ROADMAP-FUTURO.m
 Virada: o grid virtual sai, entra o **Tabuleiro-imagem sem grelha**. Web-first + PWA; preparação offline × mesa ao vivo com sync; imagens no Firebase Storage.
 
 17. 🎲 **Fase 16 — Tabuleiro-imagem** (novo sistema de batalha): imagem no nó da aventura → o Mestre "abre o mapa" pros jogadores → tokens (miniatura da ficha ou símbolo da classe; monstros depois) que movem **livremente** sobre a imagem, em tempo real. Sub-fases 16.1–16.5 no `docs/ARQUITETURA.md`. **Storage:** Firebase Storage.
+    - ✅ **16.1** (09/07/2026) — helper de upload p/ Firebase Storage (`storage.js`) + `storage.rules` + campo **miniatura** na ficha (upload no passo 3 do Criador, preview e fallback ao símbolo da classe; avatar nos cards). ⚠️ Falta (manual): ativar o Storage no Console + publicar `storage.rules`.
+    - ⏳ **16.2** — imagem no nó da aventura + botão do Mestre "Abrir mapa para os jogadores".
 18. 🎨 **Fase 17 — UX & PWA**: reorganizar o Mestre em 3 modos (🎲 Jogar / 📝 Preparar / 📖 Consultar), enxugar a tela do jogador, e virar PWA (instalável + preparação offline).
 
 ---

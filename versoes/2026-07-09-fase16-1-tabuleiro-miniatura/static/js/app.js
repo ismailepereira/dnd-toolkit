@@ -65,13 +65,8 @@ function renderFichas() {
     const card = document.createElement('div');
     card.className = 'ficha-card' + (morto ? ' ficha-morta' : '');
     card.innerHTML = `
-      <div class="ficha-card-topo">
-        ${(typeof miniaturaFichaHtml === 'function') ? miniaturaFichaHtml(f, 44) : ''}
-        <div>
-          <h3>${morto ? '🪦 ' : ''}${escapeHtml(f.nome) || 'Sem nome'}</h3>
-          <div class="sub">${escapeHtml(f.raca) || ''} ${escapeHtml(f.classe) || ''} - Nível ${f.nivel}${morto ? ' · falecido' : ''}</div>
-        </div>
-      </div>
+      <h3>${morto ? '🪦 ' : ''}${escapeHtml(f.nome) || 'Sem nome'}</h3>
+      <div class="sub">${escapeHtml(f.raca) || ''} ${escapeHtml(f.classe) || ''} - Nível ${f.nivel}${morto ? ' · falecido' : ''}</div>
       <div>HP: ${f.hpAtual} / ${f.hpMax} | CA: ${f.ca}</div>
       <div class="hp-bar"><div class="hp-bar-fill" style="width:${pct}%"></div></div>
       <label class="check-chip loja-especial-toggle ${f.lojaEspecialLiberada ? 'on' : ''}" title="Libera a Loja Especial (itens mágicos) só para este personagem">

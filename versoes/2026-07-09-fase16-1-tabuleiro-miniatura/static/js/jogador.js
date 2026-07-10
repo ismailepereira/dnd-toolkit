@@ -75,13 +75,8 @@ function renderFichas() {
     card.className = 'ficha-card' + (ehMinha ? ' minha' : '') + (morto ? ' ficha-morta' : '');
     card.innerHTML = `
       <button class="ficha-estrela" data-estrela="${f.id}" title="${ehMinha ? 'Esta é a minha ficha' : 'Marcar como minha ficha'}">${ehMinha ? '⭐' : '☆'}</button>
-      <div class="ficha-card-topo">
-        ${(typeof miniaturaFichaHtml === 'function') ? miniaturaFichaHtml(f, 44) : ''}
-        <div>
-          <h3>${morto ? '🪦 ' : ''}${escapeHtml(f.nome) || 'Sem nome'}</h3>
-          <div class="sub">${escapeHtml(f.raca) || ''} ${escapeHtml(f.classe) || ''} - Nível ${f.nivel}${morto ? ' · falecido' : ''}${!souDono ? ' · de outro jogador' : ''}</div>
-        </div>
-      </div>
+      <h3>${morto ? '🪦 ' : ''}${escapeHtml(f.nome) || 'Sem nome'}</h3>
+      <div class="sub">${escapeHtml(f.raca) || ''} ${escapeHtml(f.classe) || ''} - Nível ${f.nivel}${morto ? ' · falecido' : ''}${!souDono ? ' · de outro jogador' : ''}</div>
       <div>HP: ${f.hpAtual} / ${f.hpMax} | CA: ${f.ca}</div>
       <div class="hp-bar"><div class="hp-bar-fill" style="width:${pct}%"></div></div>
       <div class="ficha-card-acoes">

@@ -1,0 +1,63 @@
+rules_version = '2';
+
+// =====================================================
+// REGRAS DO FIREBASE STORAGE — D&D Toolkit (Fase 16.1)
+// -----------------------------------------------------
+// Publicar no Console do Firebase: Storage → Regras → colar → Publicar.
+// PRÉ-REQUISITO: ativar o Storage (Console → Storage → Começar) e fazer o
+// deploy do código (storage.js + firebase-storage-compat.js nos templates)
+// ANTES de publicar estas regras.
+//
+// Modelo (v1, propositalmente simples — ver docs/ARQUITETURA.md §7):
+//   - Só utilizadores autenticados leem/escrevem (mesmo token personalizado
+//     do backend Flask que o Firestore já usa — /api/firebase_token).
+//   - Miniaturas de personagem vivem em campanhas/{cid}/miniaturas/{uid}/... e
+//     só o DONO (uid) pode escrever a sua; qualquer autenticado lê (a mesa
+//     precisa ver o token do colega no tabuleiro).
+//   - Mapas/imagens de nó vivem em campanhas/{cid}/mapas/... — qualquer
+//     autenticado escreve por agora (o refino "só o Mestre" fica para depois;
+//     a UI de subir mapa só aparece ao Mestre — Fase 16.2).
+//   - Validação de tipo/tamanho aqui é a última linha; o cliente (storage.js)
+//     já valida antes de subir.
+// TODO (refino futuro): amarrar escrita à membresia da campanha via
+//   firestore.get(/databases/(default)/documents/campanhas_meta/$(cid)),
+//   no mesmo espírito de firestore.rules.
+// =====================================================
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function autenticado() {
+      return request.auth != null;
+    }
+    // PNG/WebP (miniaturas sem fundo) e JPEG (mapas); teto de 5 MB.
+    function imagemValida() {
+      return request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/(png|webp|jpeg)');
+    }
+
+    // Miniatura de personagem: só o dono escreve a sua pasta; todos leem.
+    match /campanhas/{cid}/miniaturas/{uid}/{arquivo} {
+      allow read: if autenticado();
+      allow write: if autenticado()
+        && request.auth.uid == uid
+        && imagemValida();
+    }
+
+    // Mapas / imagens de nó da aventura (tabuleiro): todos autenticados.
+    match /campanhas/{cid}/mapas/{arquivo=**} {
+      allow read: if autenticado();
+      allow write: if autenticado() && imagemValida();
+    }
+
+    // Imagens de monstro (Fase 16.4): todos autenticados.
+    match /campanhas/{cid}/monstros/{arquivo=**} {
+      allow read: if autenticado();
+      allow write: if autenticado() && imagemValida();
+    }
+
+    // Qualquer outro caminho: negado.
+    match /{caminho=**} {
+      allow read, write: if false;
+    }
+  }
+}

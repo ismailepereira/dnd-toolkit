@@ -103,9 +103,6 @@ if (typeof module !== 'undefined' && module.exports) {
   let aventuras = [];
   let ativa = null;
   let avEdit = null; // cópia em edição (só grava no Salvar)
-  let vistaEditor = 'mapa'; // 'mapa' (canvas/mind-map) | 'lista' (cartões)
-  let noSel = null;         // id do nó selecionado no canvas
-  let canvasZoom = 1;       // zoom da vista mapa
 
   async function carregarTudo() {
     try { aventuras = await (await fetch('/api/aventuras')).json(); } catch (e) { aventuras = []; }
@@ -168,7 +165,6 @@ if (typeof module !== 'undefined' && module.exports) {
       id: uidAv('av'), titulo: '', limites: { jogadoresMax: 5, nivelMin: 1, nivelMax: 4 },
       noInicial: null, nos: [],
     };
-    canvasZoom = 1; noSel = null;
     editor.classList.remove('hidden');
     renderEditor();
     editor.scrollIntoView({ behavior: 'smooth' });
@@ -187,7 +183,7 @@ if (typeof module !== 'undefined' && module.exports) {
 
   function renderEditor() {
     if (!avEdit) return;
-    autoLayout(); // garante x/y em todo nó (posições do canvas)
+    const monstroOps = (typeof MONSTROS !== 'undefined') ? MONSTROS.map(m => `<option>${esc(m.nome)}</option>`).join('') : '';
     editor.innerHTML = `
       <div class="panel-header"><h2>${avEdit.titulo ? '✎ ' + esc(avEdit.titulo) : '➕ Nova aventura'}</h2></div>
       <div class="form-grid">
@@ -197,12 +193,7 @@ if (typeof module !== 'undefined' && module.exports) {
         <label>Nível máx <input type="number" id="aeNivMax" value="${avEdit.limites.nivelMax}" min="1" max="20"></label>
         <label>Nó inicial <select id="aeInicial">${avEdit.nos.length ? opcoesNos(avEdit.noInicial) : '<option value="">(crie um nó)</option>'}</select></label>
       </div>
-      <div class="ae-vista-toggle">
-        <button type="button" class="btn-mini" data-vista="mapa">🗺️ Mapa</button>
-        <button type="button" class="btn-mini" data-vista="lista">📋 Lista</button>
-        <span class="criador-hint-inline">Mapa mental: arraste os nós; puxe da bolinha <b>●</b> de um nó até outro para ligar; clique numa seta remove; duplo-clique edita os detalhes.</span>
-      </div>
-      <div id="aeCorpo"></div>
+      <div id="aeNos">${avEdit.nos.map((n, i) => cardNoEditor(n, i, monstroOps)).join('')}</div>
       <div class="ficha-card-acoes">
         <button class="btn-secondary" id="aeAddNo">➕ Nó</button>
         <button class="btn-secondary" id="aeValidar">🔍 Verificar grafo</button>
@@ -216,52 +207,9 @@ if (typeof module !== 'undefined' && module.exports) {
     $('aeJogMax').addEventListener('change', () => { avEdit.limites.jogadoresMax = Math.max(1, +$('aeJogMax').value || 5); });
     $('aeNivMin').addEventListener('change', () => { avEdit.limites.nivelMin = Math.max(1, +$('aeNivMin').value || 1); });
     $('aeNivMax').addEventListener('change', () => { avEdit.limites.nivelMax = Math.max(1, +$('aeNivMax').value || 20); });
-    $('aeInicial').addEventListener('change', () => { avEdit.noInicial = $('aeInicial').value || null; mostrarVista(); });
+    $('aeInicial').addEventListener('change', () => { avEdit.noInicial = $('aeInicial').value || null; });
 
-    $('aeAddNo').addEventListener('click', () => {
-      const novo = { id: uidAv('n'), titulo: `Cena ${avEdit.nos.length + 1}`, tipo: 'narracao', narracao: '', notasMestre: '', encontro: [], saidas: [], npcs: [] };
-      posicionarNovo(novo);
-      avEdit.nos.push(novo);
-      if (!avEdit.noInicial) avEdit.noInicial = novo.id;
-      renderEditor();
-    });
-    $('aeValidar').addEventListener('click', () => {
-      const v = validarAventura(avEdit);
-      $('aeValidacao').innerHTML = `
-        ${v.erros.length ? `<div class="aviso-mestre" style="border-color:var(--danger,#e94560)">⛔ <b>Erros:</b><br>${v.erros.map(esc).join('<br>')}</div>` : ''}
-        ${v.avisos.length ? `<div class="aviso-mestre">⚠️ <b>Avisos:</b><br>${v.avisos.map(esc).join('<br>')}</div>` : ''}
-        ${!v.erros.length && !v.avisos.length ? '<div class="aviso-mestre" style="border-color:#3fb950">✓ Grafo válido: sem erros nem avisos.</div>' : ''}`;
-    });
-    $('aeSalvar').addEventListener('click', () => {
-      if (!avEdit.titulo.trim()) { alert('Dê um título à aventura.'); return; }
-      if (!avEdit.nos.length) { alert('Crie pelo menos um nó.'); return; }
-      const i = aventuras.findIndex(a => a.id === avEdit.id);
-      if (i >= 0) aventuras[i] = avEdit; else aventuras.push(avEdit);
-      salvarBiblioteca();
-      fecharEditor(); renderLib();
-    });
-    $('aeCancelar').addEventListener('click', fecharEditor);
-
-    editor.querySelectorAll('[data-vista]').forEach(b => b.addEventListener('click', () => { vistaEditor = b.dataset.vista; mostrarVista(); }));
-    mostrarVista();
-  }
-
-  function mostrarVista() {
-    if (!$('aeCorpo')) return;
-    editor.querySelectorAll('[data-vista]').forEach(b => b.classList.toggle('on', b.dataset.vista === vistaEditor));
-    if (vistaEditor === 'lista') renderListaNos(); else renderCanvas();
-  }
-
-  // ---------- Vista LISTA (cartões — comportamento original) ----------
-  function renderListaNos() {
-    const monstroOps = (typeof MONSTROS !== 'undefined') ? MONSTROS.map(m => `<option>${esc(m.nome)}</option>`).join('') : '';
-    $('aeCorpo').innerHTML = avEdit.nos.length
-      ? avEdit.nos.map((n, i) => cardNoEditor(n, i, monstroOps)).join('')
-      : '<p style="color:var(--text-dim)">Nenhum nó ainda — clique em "➕ Nó".</p>';
-    bindListaNos();
-  }
-
-  function bindListaNos() {
+    // campos por nó (delegação simples via data-attrs)
     editor.querySelectorAll('[data-no-campo]').forEach(inp => inp.addEventListener('input', () => {
       const n = avEdit.nos[+inp.dataset.noIdx];
       n[inp.dataset.noCampo] = inp.value;
@@ -270,7 +218,6 @@ if (typeof module !== 'undefined' && module.exports) {
       const n = avEdit.nos[+b.dataset.noRem];
       if (!confirm(`Remover o nó "${n.titulo || n.id}"? (saídas que apontam para ele ficam inválidas até corrigir)`)) return;
       avEdit.nos.splice(+b.dataset.noRem, 1);
-      avEdit.nos.forEach(m => { m.saidas = (m.saidas || []).filter(s => s.para !== n.id); });
       if (avEdit.noInicial === n.id) avEdit.noInicial = avEdit.nos.length ? avEdit.nos[0].id : null;
       renderEditor();
     }));
@@ -322,315 +269,29 @@ if (typeof module !== 'undefined' && module.exports) {
     editor.querySelectorAll('[data-no-resultado]').forEach(sel => sel.addEventListener('change', () => {
       avEdit.nos[+sel.dataset.noResultado].resultado = sel.value;
     }));
-  }
 
-  // ---------- Vista MAPA (canvas / mapa mental) ----------
-  const NODE_W = 168; // largura fixa do nó no canvas (px) — casa com o CSS .ae-node
-
-  // Atribui x/y aos nós que ainda não têm — layout em camadas (esq→dir) a
-  // partir do nó inicial; nós órfãos ficam numa faixa abaixo. Posições
-  // manuais (já com x/y) são preservadas.
-  function autoLayout() {
-    if (!avEdit || !avEdit.nos.length) return;
-    const faltam = avEdit.nos.some(n => typeof n.x !== 'number' || typeof n.y !== 'number');
-    if (!faltam) return;
-    const byId = {}; avEdit.nos.forEach(n => { byId[n.id] = n; });
-    const prof = {}; const fila = [];
-    const inicial = (avEdit.noInicial && byId[avEdit.noInicial]) ? avEdit.noInicial : avEdit.nos[0].id;
-    prof[inicial] = 0; fila.push(inicial);
-    while (fila.length) {
-      const id = fila.shift();
-      (byId[id].saidas || []).forEach(s => {
-        if (byId[s.para] && prof[s.para] == null) { prof[s.para] = prof[id] + 1; fila.push(s.para); }
-      });
-    }
-    const porCol = {};
-    avEdit.nos.forEach(n => {
-      if (typeof n.x === 'number' && typeof n.y === 'number') return;
-      const orfao = prof[n.id] == null;
-      const col = orfao ? 0 : prof[n.id];
-      const linha = porCol[col] || 0; porCol[col] = linha + 1;
-      n.x = 30 + col * 210;
-      n.y = 30 + linha * 118 + (orfao ? 470 : 0);
+    $('aeAddNo').addEventListener('click', () => {
+      const novo = { id: uidAv('n'), titulo: `Cena ${avEdit.nos.length + 1}`, tipo: 'narracao', narracao: '', notasMestre: '', encontro: [], saidas: [] };
+      avEdit.nos.push(novo);
+      if (!avEdit.noInicial) avEdit.noInicial = novo.id;
+      renderEditor();
     });
-  }
-
-  function posicionarNovo(novo) {
-    let maxX = 0;
-    avEdit.nos.forEach(n => { if ((n.x || 0) > maxX) maxX = n.x || 0; });
-    novo.x = avEdit.nos.length ? maxX + 210 : 30;
-    novo.y = 30 + (avEdit.nos.length % 5) * 118;
-  }
-
-  const tipoIcone = t => (rotuloTipo(t) || '').split(' ')[0] || '📜';
-  const SVGNS = 'http://www.w3.org/2000/svg';
-
-  function renderCanvas() {
-    const corpo = $('aeCorpo');
-    let maxX = 420, maxY = 320;
-    avEdit.nos.forEach(n => { maxX = Math.max(maxX, (n.x || 0) + NODE_W + 80); maxY = Math.max(maxY, (n.y || 0) + 160); });
-    corpo.innerHTML = `
-      <div class="ae-canvas-topo">
-        <button type="button" class="btn-mini" data-zoom="out" title="Diminuir zoom">−</button>
-        <span id="aeZoomPct" class="ae-zoom-pct">100%</span>
-        <button type="button" class="btn-mini" data-zoom="in" title="Aumentar zoom">＋</button>
-        <button type="button" class="btn-mini" data-zoom="fit" title="Enquadrar tudo">⤢ Ajustar</button>
-        <span class="criador-hint-inline">Roda do mouse dá zoom · arraste o fundo para deslocar · duplo-clique no título renomeia</span>
-      </div>
-      <div class="ae-canvas-wrap" id="aeCanvasWrap">
-        <div class="ae-canvas-scroll" id="aeCanvasScroll" style="width:${maxX}px;height:${maxY}px">
-          <div class="ae-canvas" id="aeCanvas" style="width:${maxX}px;height:${maxY}px;transform-origin:0 0">
-            <svg class="ae-edges" id="aeEdges" width="${maxX}" height="${maxY}">
-              <defs><marker id="aeSeta" markerWidth="12" markerHeight="12" refX="9" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
-                <path d="M0,0 L9,3.5 L0,7 Z" fill="var(--accent,#e94560)"></path></marker></defs>
-            </svg>
-          </div>
-        </div>
-      </div>
-      ${avEdit.nos.length ? '' : '<p style="color:var(--text-dim);margin-top:8px">Canvas vazio — clique em "➕ Nó" para criar a primeira cena.</p>'}`;
-    const canvas = $('aeCanvas');
-    avEdit.nos.forEach(n => canvas.appendChild(nodeEl(n)));
-    aplicarZoom(canvasZoom);
-    desenharEdges();
-    ligarCanvas(canvas);
-  }
-
-  function nodeEl(n) {
-    const el = document.createElement('div');
-    el.className = 'ae-node ae-tipo-' + (n.tipo || 'narracao') + (n.id === noSel ? ' selected' : '');
-    el.style.left = (n.x || 0) + 'px';
-    el.style.top = (n.y || 0) + 'px';
-    el.dataset.id = n.id;
-    const inicial = n.id === avEdit.noInicial;
-    const meta = [
-      (n.encontro || []).length ? '⚔️' + n.encontro.length : '',
-      (n.npcs || []).length ? '🧑' + n.npcs.length : '',
-      '➡️' + (n.saidas || []).length,
-      n.tipo === 'final' ? '🏁' + (n.resultado ? ' ' + esc(n.resultado) : '') : '',
-    ].filter(Boolean).join(' · ');
-    el.innerHTML = `
-      <div class="ae-node-cab">
-        <span class="ae-node-ic" data-setinicial title="${inicial ? 'Nó inicial' : 'Marcar como nó inicial'}">${inicial ? '⭐' : tipoIcone(n.tipo)}</span>
-        <span class="ae-node-tit" title="Duplo-clique renomeia">${esc(n.titulo) || '(sem título)'}</span>
-        <button class="ae-node-x" title="Remover nó" data-nodex>✕</button>
-      </div>
-      <div class="ae-node-meta">${meta}</div>
-      <div class="ae-node-handle" data-handle title="Arraste até outro nó para criar uma saída"></div>`;
-    return el;
-  }
-
-  // Zoom aplicado por transform no #aeCanvas; o #aeCanvasScroll fica com o
-  // tamanho JÁ escalado para as barras de rolagem baterem certo.
-  function aplicarZoom(z) {
-    canvasZoom = Math.max(0.4, Math.min(1.8, z));
-    const canvas = $('aeCanvas'), scroll = $('aeCanvasScroll'), pct = $('aeZoomPct');
-    if (!canvas || !scroll) return;
-    const w = canvas.offsetWidth, h = canvas.offsetHeight; // base (pré-transform)
-    canvas.style.transform = `scale(${canvasZoom})`;
-    scroll.style.width = (w * canvasZoom) + 'px';
-    scroll.style.height = (h * canvasZoom) + 'px';
-    if (pct) pct.textContent = Math.round(canvasZoom * 100) + '%';
-  }
-
-  // Converte coordenadas de ecrã → coordenadas do canvas (independente do zoom).
-  function pontoCanvas(clientX, clientY) {
-    const r = $('aeCanvas').getBoundingClientRect();
-    return { x: (clientX - r.left) / canvasZoom, y: (clientY - r.top) / canvasZoom };
-  }
-
-  function desenharEdges() {
-    const svg = $('aeEdges'), canvas = $('aeCanvas');
-    if (!svg || !canvas) return;
-    [...svg.querySelectorAll('.ae-edge, .ae-edge-lbl')].forEach(p => p.remove());
-    // geometria em coordenadas do canvas (offset*), imune ao zoom
-    avEdit.nos.forEach(n => {
-      const a = canvas.querySelector(`.ae-node[data-id="${n.id}"]`);
-      if (!a) return;
-      const x1 = a.offsetLeft + a.offsetWidth, y1 = a.offsetTop + a.offsetHeight / 2;
-      (n.saidas || []).forEach((s, j) => {
-        const b = canvas.querySelector(`.ae-node[data-id="${s.para}"]`);
-        if (!b) return;
-        const x2 = b.offsetLeft, y2 = b.offsetTop + b.offsetHeight / 2;
-        const mx = (x1 + x2) / 2;
-        const path = document.createElementNS(SVGNS, 'path');
-        path.setAttribute('d', `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`);
-        path.setAttribute('class', 'ae-edge' + (s.aviso === 'mortal' ? ' ae-edge-mortal' : ''));
-        path.setAttribute('data-edge', n.id + '|' + j);
-        path.setAttribute('marker-end', 'url(#aeSeta)');
-        svg.appendChild(path);
-        const rot = (s.rotulo || '').trim();
-        if (rot) {
-          const txt = document.createElementNS(SVGNS, 'text');
-          txt.setAttribute('class', 'ae-edge-lbl');
-          txt.setAttribute('x', (x1 + x2) / 2);
-          txt.setAttribute('y', (y1 + y2) / 2 - 5);
-          txt.setAttribute('text-anchor', 'middle');
-          txt.textContent = rot.length > 22 ? rot.slice(0, 21) + '…' : rot;
-          svg.appendChild(txt);
-        }
-      });
+    $('aeValidar').addEventListener('click', () => {
+      const v = validarAventura(avEdit);
+      $('aeValidacao').innerHTML = `
+        ${v.erros.length ? `<div class="aviso-mestre" style="border-color:var(--danger,#e94560)">⛔ <b>Erros:</b><br>${v.erros.map(esc).join('<br>')}</div>` : ''}
+        ${v.avisos.length ? `<div class="aviso-mestre">⚠️ <b>Avisos:</b><br>${v.avisos.map(esc).join('<br>')}</div>` : ''}
+        ${!v.erros.length && !v.avisos.length ? '<div class="aviso-mestre" style="border-color:#3fb950">✓ Grafo válido: sem erros nem avisos.</div>' : ''}`;
     });
-  }
-
-  function renomearInline(node, n) {
-    const tit = node.querySelector('.ae-node-tit');
-    if (!tit || tit.querySelector('input')) return;
-    const inp = document.createElement('input');
-    inp.type = 'text'; inp.className = 'ae-node-tit-input'; inp.value = n.titulo || '';
-    tit.replaceChildren(inp); inp.focus(); inp.select();
-    let feito = false;
-    const commit = () => { if (feito) return; feito = true; n.titulo = inp.value.trim(); if ($('aeInicial')) mostrarVista(); renderCanvas(); };
-    inp.addEventListener('keydown', ev => {
-      if (ev.key === 'Enter') { ev.preventDefault(); commit(); }
-      else if (ev.key === 'Escape') { feito = true; renderCanvas(); }
+    $('aeSalvar').addEventListener('click', () => {
+      if (!avEdit.titulo.trim()) { alert('Dê um título à aventura.'); return; }
+      if (!avEdit.nos.length) { alert('Crie pelo menos um nó.'); return; }
+      const i = aventuras.findIndex(a => a.id === avEdit.id);
+      if (i >= 0) aventuras[i] = avEdit; else aventuras.push(avEdit);
+      salvarBiblioteca();
+      fecharEditor(); renderLib();
     });
-    inp.addEventListener('blur', commit);
-    inp.addEventListener('mousedown', ev => ev.stopPropagation());
-    inp.addEventListener('dblclick', ev => ev.stopPropagation());
-  }
-
-  function ligarCanvas(canvas) {
-    const wrap = $('aeCanvasWrap');
-    let modo = null, alvo = null, origem = null, tempLine = null;
-    const off = { x: 0, y: 0 };       // agarrar nó (coords canvas)
-    const pan = { x: 0, y: 0, sl: 0, st: 0 };
-
-    function onMove(e) {
-      if (modo === 'move' && alvo) {
-        const p = pontoCanvas(e.clientX, e.clientY);
-        const x = Math.max(0, p.x - off.x), y = Math.max(0, p.y - off.y);
-        alvo.style.left = x + 'px'; alvo.style.top = y + 'px';
-        const n = avEdit.nos.find(z => z.id === alvo.dataset.id);
-        if (n) { n.x = x; n.y = y; }
-        desenharEdges();
-      } else if (modo === 'connect' && tempLine) {
-        const a = canvas.querySelector(`.ae-node[data-id="${origem}"]`);
-        if (!a) return;
-        const p = pontoCanvas(e.clientX, e.clientY);
-        tempLine.setAttribute('d', `M${a.offsetLeft + a.offsetWidth},${a.offsetTop + a.offsetHeight / 2} L${p.x},${p.y}`);
-      } else if (modo === 'pan') {
-        wrap.scrollLeft = pan.sl - (e.clientX - pan.x);
-        wrap.scrollTop = pan.st - (e.clientY - pan.y);
-      }
-    }
-    function onUp(e) {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-      if (modo === 'connect') {
-        const sob = document.elementFromPoint(e.clientX, e.clientY);
-        const destino = sob && sob.closest ? sob.closest('.ae-node') : null;
-        if (tempLine) tempLine.remove();
-        if (destino && destino.dataset.id !== origem) {
-          const src = avEdit.nos.find(z => z.id === origem);
-          if (src && !(src.saidas || []).some(s => s.para === destino.dataset.id)) {
-            (src.saidas = src.saidas || []).push({ para: destino.dataset.id, rotulo: '', aviso: '' });
-          }
-        }
-        renderCanvas();
-      } else if (modo === 'move' && alvo) {
-        alvo.classList.remove('dragging');
-      } else if (modo === 'pan') {
-        wrap.classList.remove('ae-panning');
-      }
-      modo = null; alvo = null; origem = null; tempLine = null;
-    }
-
-    canvas.addEventListener('mousedown', e => {
-      const node = e.target.closest('.ae-node');
-      if (!node) { // fundo → pan
-        modo = 'pan'; pan.x = e.clientX; pan.y = e.clientY; pan.sl = wrap.scrollLeft; pan.st = wrap.scrollTop;
-        wrap.classList.add('ae-panning');
-        window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onUp);
-        return;
-      }
-      if (e.target.closest('.ae-node-tit-input')) return; // editando título
-      if (e.target.closest('[data-nodex]')) { // remover nó
-        const id = node.dataset.id;
-        const n = avEdit.nos.find(x => x.id === id);
-        if (n && confirm(`Remover o nó "${n.titulo || n.id}"?`)) {
-          avEdit.nos = avEdit.nos.filter(x => x.id !== id);
-          avEdit.nos.forEach(m => { m.saidas = (m.saidas || []).filter(s => s.para !== id); });
-          if (avEdit.noInicial === id) avEdit.noInicial = avEdit.nos[0] ? avEdit.nos[0].id : null;
-          renderCanvas();
-        }
-        return;
-      }
-      if (e.target.closest('[data-setinicial]')) { // marcar como inicial
-        avEdit.noInicial = node.dataset.id;
-        const sel = $('aeInicial'); if (sel) sel.value = node.dataset.id;
-        renderCanvas();
-        return;
-      }
-      noSel = node.dataset.id;
-      canvas.querySelectorAll('.ae-node.selected').forEach(x => x.classList.remove('selected'));
-      node.classList.add('selected');
-      if (e.target.closest('[data-handle]')) { // iniciar ligação
-        e.preventDefault();
-        modo = 'connect'; origem = node.dataset.id;
-        tempLine = document.createElementNS(SVGNS, 'path');
-        tempLine.setAttribute('class', 'ae-edge ae-edge-temp');
-        tempLine.setAttribute('marker-end', 'url(#aeSeta)');
-        $('aeEdges').appendChild(tempLine);
-      } else { // mover nó
-        modo = 'move'; alvo = node;
-        const p = pontoCanvas(e.clientX, e.clientY);
-        const n = avEdit.nos.find(z => z.id === node.dataset.id);
-        off.x = p.x - (n ? n.x : node.offsetLeft); off.y = p.y - (n ? n.y : node.offsetTop);
-        node.classList.add('dragging');
-      }
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', onUp);
-    });
-
-    canvas.addEventListener('dblclick', e => {
-      const node = e.target.closest('.ae-node'); if (!node) return;
-      const n = avEdit.nos.find(x => x.id === node.dataset.id); if (!n) return;
-      if (e.target.closest('.ae-node-tit')) { renomearInline(node, n); return; } // renomear no título
-      // resto do nó → abre a vista Lista com os campos completos
-      const idx = avEdit.nos.findIndex(x => x.id === node.dataset.id);
-      vistaEditor = 'lista'; mostrarVista();
-      const card = editor.querySelectorAll('#aeCorpo .av-no')[idx];
-      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-
-    $('aeEdges').addEventListener('click', e => {
-      const p = e.target.closest('.ae-edge'); if (!p || !p.dataset.edge) return;
-      const [nid, j] = p.dataset.edge.split('|');
-      const n = avEdit.nos.find(x => x.id === nid);
-      if (n && confirm('Remover esta ligação (saída)?')) { n.saidas.splice(+j, 1); renderCanvas(); }
-    });
-
-    // zoom pela roda do mouse (mantém o ponto sob o cursor)
-    wrap.addEventListener('wheel', e => {
-      e.preventDefault();
-      const p = pontoCanvas(e.clientX, e.clientY);
-      aplicarZoom(canvasZoom * (e.deltaY < 0 ? 1.12 : 1 / 1.12));
-      const wr = wrap.getBoundingClientRect();
-      wrap.scrollLeft = p.x * canvasZoom - (e.clientX - wr.left);
-      wrap.scrollTop = p.y * canvasZoom - (e.clientY - wr.top);
-    }, { passive: false });
-
-    editor.querySelectorAll('[data-zoom]').forEach(b => b.addEventListener('click', () => {
-      if (b.dataset.zoom === 'in') aplicarZoom(canvasZoom * 1.15);
-      else if (b.dataset.zoom === 'out') aplicarZoom(canvasZoom / 1.15);
-      else ajustarCanvas();
-    }));
-  }
-
-  // Enquadra todos os nós na área visível.
-  function ajustarCanvas() {
-    const wrap = $('aeCanvasWrap'), canvas = $('aeCanvas');
-    if (!wrap || !canvas || !avEdit.nos.length) { aplicarZoom(1); return; }
-    let minX = 1e9, minY = 1e9, maxX = 0, maxY = 0;
-    avEdit.nos.forEach(n => {
-      const el = canvas.querySelector(`.ae-node[data-id="${n.id}"]`); if (!el) return;
-      minX = Math.min(minX, el.offsetLeft); minY = Math.min(minY, el.offsetTop);
-      maxX = Math.max(maxX, el.offsetLeft + el.offsetWidth); maxY = Math.max(maxY, el.offsetTop + el.offsetHeight);
-    });
-    const w = (maxX - minX) + 80, h = (maxY - minY) + 80;
-    aplicarZoom(Math.min(wrap.clientWidth / w, wrap.clientHeight / h));
-    wrap.scrollLeft = (minX - 40) * canvasZoom;
-    wrap.scrollTop = (minY - 40) * canvasZoom;
+    $('aeCancelar').addEventListener('click', fecharEditor);
   }
 
   function cardNoEditor(n, i, monstroOps) {

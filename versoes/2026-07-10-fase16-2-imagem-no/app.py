@@ -45,7 +45,6 @@ ESTADO_PADRAO = {
     'npcs': [],  # Fase 11: NPCs persistentes da campanha (lojista/aliado/inimigo/neutro)
     'lojas': [],  # Fase 12: lojas geridas por NPC lojista (estoque/preços próprios)
     'aventura_ativa': None,  # K2: progresso da aventura em curso (snapshot da definição + nó atual)
-    'tabuleiro': {'aberto': False, 'imagemUrl': None, 'atualizadoEm': None},  # Fase 16.2: mapa/imagem aberto aos jogadores
 }
 
 # ---------------------------------------------------------------
@@ -1339,36 +1338,6 @@ def api_post_aventura_ativa():
             ativa['votos'] = {}
     salvar_estado(estado)
     return jsonify({'ok': True, 'noAtual': ativa['noAtual']})
-
-
-# ----- FASE 16.2: Tabuleiro-imagem — abrir/fechar o mapa aos jogadores -----
-# O estado vive no doc da campanha ('tabuleiro'), então flui aos jogadores pelo
-# tempo real (firebase-rt.js) junto com o resto do estado. O render ao vivo dos
-# tokens sobre a imagem é a Fase 16.3; aqui só guardamos aberto/imagemUrl.
-@app.route('/api/tabuleiro', methods=['GET'])
-@login_obrigatorio()
-def api_get_tabuleiro():
-    tab = carregar_estado().get('tabuleiro') or {'aberto': False, 'imagemUrl': None}
-    return jsonify(tab)
-
-
-@app.route('/api/tabuleiro', methods=['POST'])
-@login_obrigatorio(papeis=['mestre'])
-def api_post_tabuleiro():
-    data = request.get_json(force=True) or {}
-    estado = carregar_estado()
-    tab = dict(estado.get('tabuleiro') or {})
-    if 'aberto' in data:
-        tab['aberto'] = bool(data['aberto'])
-    if 'imagemUrl' in data:
-        url = data['imagemUrl']
-        tab['imagemUrl'] = str(url) if url else None
-    if not tab.get('imagemUrl'):
-        tab['aberto'] = False  # sem imagem não há o que abrir
-    tab['atualizadoEm'] = _agora()
-    estado['tabuleiro'] = tab
-    salvar_estado(estado)
-    return jsonify({'ok': True, 'tabuleiro': tab})
 
 
 # ----- FASE 10.8: token do Firebase Auth para o tempo real seguro -----

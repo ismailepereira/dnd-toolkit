@@ -102,7 +102,6 @@ if (typeof module !== 'undefined' && module.exports) {
 
   let aventuras = [];
   let ativa = null;
-  let tabuleiro = null; // Fase 16.2: estado do mapa aberto aos jogadores { aberto, imagemUrl }
   let avEdit = null; // cópia em edição (só grava no Salvar)
   let vistaEditor = 'mapa'; // 'mapa' (canvas/mind-map) | 'lista' (cartões)
   let noSel = null;         // id do nó selecionado no canvas
@@ -112,7 +111,6 @@ if (typeof module !== 'undefined' && module.exports) {
     try { aventuras = await (await fetch('/api/aventuras')).json(); } catch (e) { aventuras = []; }
     if (!Array.isArray(aventuras)) aventuras = [];
     try { ativa = await (await fetch('/api/aventura_ativa')).json(); } catch (e) { ativa = null; }
-    try { tabuleiro = await (await fetch('/api/tabuleiro')).json(); } catch (e) { tabuleiro = null; }
     renderLib(); renderConducao();
   }
 
@@ -221,7 +219,7 @@ if (typeof module !== 'undefined' && module.exports) {
     $('aeInicial').addEventListener('change', () => { avEdit.noInicial = $('aeInicial').value || null; mostrarVista(); });
 
     $('aeAddNo').addEventListener('click', () => {
-      const novo = { id: uidAv('n'), titulo: `Cena ${avEdit.nos.length + 1}`, tipo: 'narracao', narracao: '', notasMestre: '', encontro: [], saidas: [], npcs: [], imagemUrl: null };
+      const novo = { id: uidAv('n'), titulo: `Cena ${avEdit.nos.length + 1}`, tipo: 'narracao', narracao: '', notasMestre: '', encontro: [], saidas: [], npcs: [] };
       posicionarNovo(novo);
       avEdit.nos.push(novo);
       if (!avEdit.noInicial) avEdit.noInicial = novo.id;
@@ -317,35 +315,6 @@ if (typeof module !== 'undefined' && module.exports) {
       const [i, j] = inp.dataset.npcnodeIdx.split(':').map(Number);
       avEdit.nos[i].npcs[j][inp.dataset.npcnodeCampo] = inp.value;
     }));
-    // Fase 16.2: imagem do nó — upload (Firebase Storage) ou colar URL.
-    editor.querySelectorAll('[data-noimg-idx]').forEach(inp => inp.addEventListener('change', async () => {
-      const i = +inp.dataset.noimgIdx, n = avEdit.nos[i];
-      const file = inp.files && inp.files[0];
-      inp.value = ''; // permite reenviar o mesmo ficheiro
-      if (!file) return;
-      const msg = editor.querySelector(`[data-noimg-msg="${i}"]`);
-      if (!(window.Armazenamento && window.Armazenamento.disponivel())) {
-        if (msg) msg.textContent = '⚠ Upload indisponível aqui (ative o Storage no Firebase). Você pode colar uma URL.';
-        return;
-      }
-      if (msg) msg.textContent = '⏳ Enviando… 0%';
-      try {
-        const url = await window.Armazenamento.enviarMapa(file, { onProgress: p => { if (msg) msg.textContent = `⏳ Enviando… ${p}%`; } });
-        n.imagemUrl = url;
-        renderListaNos();
-      } catch (e) {
-        if (msg) msg.textContent = '⚠ ' + ((e && e.message) || 'Falha ao enviar.');
-      }
-    }));
-    editor.querySelectorAll('[data-noimg-url]').forEach(inp => inp.addEventListener('change', () => {
-      const n = avEdit.nos[+inp.dataset.noimgUrl];
-      n.imagemUrl = inp.value.trim() || null;
-      renderListaNos();
-    }));
-    editor.querySelectorAll('[data-noimg-rem]').forEach(b => b.addEventListener('click', () => {
-      avEdit.nos[+b.dataset.noimgRem].imagemUrl = null;
-      renderListaNos();
-    }));
     editor.querySelectorAll('[data-no-tipo]').forEach(sel => sel.addEventListener('change', () => {
       avEdit.nos[+sel.dataset.noTipo].tipo = sel.value;
       renderEditor(); // o campo "resultado" aparece/some conforme o tipo
@@ -436,7 +405,6 @@ if (typeof module !== 'undefined' && module.exports) {
     const meta = [
       (n.encontro || []).length ? '⚔️' + n.encontro.length : '',
       (n.npcs || []).length ? '🧑' + n.npcs.length : '',
-      n.imagemUrl ? '🗺️' : '',
       '➡️' + (n.saidas || []).length,
       n.tipo === 'final' ? '🏁' + (n.resultado ? ' ' + esc(n.resultado) : '') : '',
     ].filter(Boolean).join(' · ');
@@ -447,7 +415,6 @@ if (typeof module !== 'undefined' && module.exports) {
         <button class="ae-node-x" title="Remover nó" data-nodex>✕</button>
       </div>
       <div class="ae-node-meta">${meta}</div>
-      ${n.imagemUrl ? `<div class="ae-node-thumb"><img src="${esc(n.imagemUrl)}" alt=""></div>` : ''}
       <div class="ae-node-handle" data-handle title="Arraste até outro nó para criar uma saída"></div>`;
     return el;
   }
@@ -682,19 +649,6 @@ if (typeof module !== 'undefined' && module.exports) {
         <textarea rows="2" data-no-campo="narracao" data-no-idx="${i}">${esc(n.narracao)}</textarea></label>
       <label class="full">🔒 Notas do Mestre (dicas de condução)
         <textarea rows="2" data-no-campo="notasMestre" data-no-idx="${i}">${esc(n.notasMestre)}</textarea></label>
-      <div class="av-sub"><b>🗺️ Imagem do nó (mapa/cena)</b> <span class="criador-hint-inline">(mostrável aos jogadores durante a condução)</span>
-        <div class="av-img-wrap">
-          <div class="av-img-preview">${n.imagemUrl ? `<img src="${esc(n.imagemUrl)}" alt="imagem do nó">` : '<span class="av-img-vazia">sem imagem</span>'}</div>
-          <div class="av-img-acoes">
-            <label class="btn-secondary btn-mini" for="aeImg-${i}">🖼️ Enviar imagem</label>
-            <input type="file" id="aeImg-${i}" accept="image/png,image/webp,image/jpeg" style="display:none" data-noimg-idx="${i}">
-            ${n.imagemUrl ? `<button class="btn-danger btn-mini" data-noimg-rem="${i}">Remover</button>` : ''}
-            <input type="text" placeholder="ou cole a URL de uma imagem" value="${esc(n.imagemUrl)}" data-noimg-url="${i}" style="flex:1 1 100%">
-            <div class="criador-hint">PNG/WebP/JPG, até 5 MB. O upload precisa do Firebase Storage ativo; a URL funciona sempre.</div>
-            <div class="criador-hint" data-noimg-msg="${i}"></div>
-          </div>
-        </div>
-      </div>
       <div class="av-sub"><b>⚔️ Encontro do nó</b>
         <span class="add-monstro"><select data-enc-sel="${i}">${monstroOps}</select>
         <input type="number" data-enc-qtd="${i}" value="1" min="1" style="width:54px">
@@ -746,10 +700,6 @@ if (typeof module !== 'undefined' && module.exports) {
         <h3>${rotuloTipo(no.tipo)} — ${esc(no.titulo)}${completado ? ' ✓' : ''}${no.tipo === 'final' ? ` (${esc(no.resultado || 'neutro')})` : ''}</h3>
         ${no.narracao ? `<div class="npc-desc">📜 ${esc(no.narracao)}</div>` : ''}
         ${no.notasMestre ? `<div class="npc-notas-privadas">🔒 ${esc(no.notasMestre)}</div>` : ''}
-        ${no.imagemUrl ? `<div class="av-sub"><b>🗺️ Mapa do nó:</b>${(tabuleiro && tabuleiro.aberto && tabuleiro.imagemUrl === no.imagemUrl) ? ' <span class="chip-em-combate">🗺️ aberto aos jogadores</span>' : ''}<br>
-          <img class="av-cond-mapa" src="${esc(no.imagemUrl)}" alt="mapa do nó">
-          <button class="btn-secondary btn-mini" id="acMapa">${(tabuleiro && tabuleiro.aberto && tabuleiro.imagemUrl === no.imagemUrl) ? '🔒 Fechar mapa dos jogadores' : '🗺️ Abrir mapa para os jogadores'}</button>
-        </div>` : ''}
         ${(no.npcs || []).length ? `<div class="av-sub"><b>🧑‍🌾 NPCs desta cena:</b>
           ${no.npcs.map((p, j) => {
             const jaExiste = (window.NPCS_CAMPANHA || []).some(n => (n.nome || '').trim().toLowerCase() === (p.nome || '').trim().toLowerCase());
@@ -782,16 +732,6 @@ if (typeof module !== 'undefined' && module.exports) {
       ativa.escolhasAbertas = !ativa.escolhasAbertas;
       if (ativa.escolhasAbertas) ativa.votos = {};
       renderConducao();
-    });
-
-    const bMapa = $('acMapa');
-    if (bMapa) bMapa.addEventListener('click', async () => {
-      const abrir = !(tabuleiro && tabuleiro.aberto && tabuleiro.imagemUrl === no.imagemUrl);
-      const body = abrir ? { aberto: true, imagemUrl: no.imagemUrl } : { aberto: false };
-      const r = await fetch('/api/tabuleiro', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      const d = await r.json().catch(() => ({}));
-      if (r.ok && d.ok) { tabuleiro = d.tabuleiro; renderConducao(); }
-      else alert((d && d.erro) || 'Não foi possível atualizar o mapa.');
     });
 
     $('acEncerrar').addEventListener('click', async () => {

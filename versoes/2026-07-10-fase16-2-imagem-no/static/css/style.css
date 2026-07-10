@@ -1949,20 +1949,3 @@ body.alto-contraste a { color: #ffd400; }
   background: var(--accent, #e94560); border: 2px solid var(--bg-card); cursor: crosshair;
 }
 .ae-node-handle:hover { transform: translateY(-50%) scale(1.28); }
-/* ===== Fase 16.2: imagem do nó (editor + canvas + condução) ===== */
-.ae-node-thumb { margin-top: 6px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
-.ae-node-thumb img { display: block; width: 100%; height: 62px; object-fit: cover; }
-.av-img-wrap { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-top: 6px; }
-.av-img-preview {
-  flex: 0 0 auto; width: 132px; height: 88px; border-radius: 8px; overflow: hidden;
-  border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; background: var(--bg-card);
-}
-.av-img-preview img { width: 100%; height: 100%; object-fit: cover; }
-.av-img-vazia { font-size: 0.74rem; color: var(--text-dim); }
-.av-img-acoes { flex: 1 1 220px; display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
-.av-img-acoes .btn-mini { display: inline-block; cursor: pointer; }
-.av-img-acoes [data-noimg-msg] { min-height: 1em; flex: 1 1 100%; }
-.av-cond-mapa {
-  display: block; max-width: 100%; max-height: 320px; margin: 6px 0; border-radius: 8px;
-  border: 1px solid var(--border); object-fit: contain;
-}

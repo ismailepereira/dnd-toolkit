@@ -209,7 +209,8 @@ Virada: o grid virtual sai, entra o **Tabuleiro-imagem sem grelha**. Web-first +
 
 17. 🎲 **Fase 16 — Tabuleiro-imagem** (novo sistema de batalha): imagem no nó da aventura → o Mestre "abre o mapa" pros jogadores → tokens (miniatura da ficha ou símbolo da classe; monstros depois) que movem **livremente** sobre a imagem, em tempo real. Sub-fases 16.1–16.5 no `docs/ARQUITETURA.md`. **Storage:** Firebase Storage.
     - ✅ **16.1** (09/07/2026) — helper de upload p/ Firebase Storage (`storage.js`) + `storage.rules` + campo **miniatura** na ficha (upload no passo 3 do Criador, preview e fallback ao símbolo da classe; avatar nos cards). ⚠️ Falta (manual): ativar o Storage no Console + publicar `storage.rules`.
-    - ⏳ **16.2** — imagem no nó da aventura + botão do Mestre "Abrir mapa para os jogadores".
+    - ✅ **16.2** (10/07/2026) — campo **imagem** no nó da aventura (upload p/ Storage reusando `enviarMapa`, ou colar URL; preview na Lista, miniatura + 🗺️ na caixa do canvas) + botão do Mestre **"Abrir mapa para os jogadores"** na condução, que grava `tabuleiro.aberto/imagemUrl` no estado da campanha (flui aos jogadores pelo tempo real). Render ao vivo com tokens = 16.3. ⚠️ Upload depende do Storage ativo (o caminho por URL já funciona).
+    - ⏳ **16.3** — Tabuleiro ao vivo: render da imagem + tokens dos PJs (em %) arrastáveis, sincronizados; jogador vê no `jogador.html`.
 18. 🎨 **Fase 17 — UX & PWA**: reorganizar o Mestre em 3 modos (🎲 Jogar / 📝 Preparar / 📖 Consultar), enxugar a tela do jogador, e virar PWA (instalável + preparação offline).
 
 ---

@@ -4,6 +4,36 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-10 — Fase 16.2: imagem no nó da aventura + "Abrir mapa para os jogadores"
+
+**Backup antes da alteração:** `versoes/2026-07-10-fase16-2-imagem-no/` (HEAD de `app.py`, `aventura.js`, `style.css`).
+
+**Resumo:** Segunda sub-fase do Tabuleiro-imagem. Cada **nó da aventura** ganha um campo **imagem** (mapa/cena) e o Mestre passa a poder **abrir esse mapa para os jogadores** durante a condução.
+- **No editor (vista Lista):** bloco "🗺️ Imagem do nó" com **preview**, **🖼️ Enviar imagem** (upload pro Firebase Storage, reusa `Armazenamento.enviarMapa` da Fase 16.1) **ou colar URL** (a URL funciona já; o upload passa a funcionar quando o Storage for ativado), e **Remover**.
+- **No editor (vista Mapa/canvas):** a caixa do nó mostra uma **miniatura** da imagem + um marcador **🗺️** entre os contadores.
+- **Na condução (mesa ao vivo):** se o nó atual tem imagem, aparece o mapa + botão **🗺️ Abrir mapa para os jogadores** / **🔒 Fechar**, que grava `tabuleiro.aberto`/`tabuleiro.imagemUrl` no estado da campanha (indicador "🗺️ aberto aos jogadores"). O **render ao vivo com tokens** sobre a imagem é a Fase 16.3; aqui só publicamos o estado.
+
+**Modelo de dados:** aditivo — `no.imagemUrl` (string/URL ou null) e um novo objeto `tabuleiro:{aberto,imagemUrl,atualizadoEm}` no estado da campanha. Retrocompatível: nós/aventuras antigos sem `imagemUrl` simplesmente não mostram imagem.
+
+**Ficheiros:**
+- `app.py` — `ESTADO_PADRAO.tabuleiro`; novos endpoints **`GET /api/tabuleiro`** (qualquer membro) e **`POST /api/tabuleiro`** (só Mestre) que atualiza `aberto`/`imagemUrl` (sem imagem força `aberto=false`). Como o estado vive no doc da campanha, flui aos jogadores pelo tempo real junto do resto.
+- `static/js/aventura.js` — campo imagem no `cardNoEditor` + binds de upload/URL/remover em `bindListaNos`; miniatura + marcador 🗺️ em `nodeEl`; botão "Abrir/Fechar mapa" na condução (`renderConducao`) + handler; carrega o estado do tabuleiro no `carregarTudo`.
+- `static/css/style.css` — `.av-img-wrap/.av-img-preview/.av-img-acoes`, `.ae-node-thumb`, `.av-cond-mapa`.
+- `.claude/launch.json` — nova config **`dnd-toolkit-local`** (boot com `USE_LOCAL_DB=1`) para verificação no browser sem tocar o Firestore real.
+- `ROADMAP.md` — Fase 16.2 marcada como entregue.
+
+**Backend do nó:** o `imagemUrl` no nó persiste sem tocar no servidor — o PUT `/api/aventuras` guarda a lista inteira (passthrough) e o snapshot de `aventura_ativa` copia a definição completa.
+
+**Verificação:** `node --check` (aventura.js) + parse do `app.py` (ok). Boot local (`USE_LOCAL_DB=1`, `data/estado.json` restaurado do backup ao fim — 0 alterações). **Endpoints (curl):** GET default = fechado; POST abrir com URL → aberto+timestamp; GET confirma; POST fechar mantém a URL; POST sem imagem força `aberto=false`; **jogador é barrado no POST** (mesmo guard dos outros endpoints de Mestre). **Browser (Mestre, 0 erros de console):** o bloco de imagem rende na Lista; colar URL mostra preview + botão Remover; a caixa do canvas mostra miniatura + 🗺️; na condução, "Abrir mapa" → botão vira "Fechar", chip "🗺️ aberto aos jogadores", e `GET /api/tabuleiro` confirma `aberto:true` com a imagem. Estado de teste (tabuleiro/aventura_ativa) encerrado via API depois.
+
+**⚠️ Pré-requisito manual (Ismaile):** o **upload** de imagem só funciona em produção depois de **ativar o Firebase Storage** e publicar `storage.rules` (mesmo pendente da Fase 16.1). O caminho por **URL** já funciona sem isso.
+
+**Como reverter:** restaurar `versoes/2026-07-10-fase16-2-imagem-no/` ou `git revert`. Nós com `imagemUrl` e o campo `tabuleiro` seguem válidos (ignorados sem esta versão).
+
+**Próximo:** Fase 16.3 — Tabuleiro ao vivo (render da imagem + tokens dos PJs em %, arrastar livre, sincronizado; jogador vê no `jogador.html`).
+
+---
+
 ## 2026-07-09 — Editor de aventuras: canvas / mapa mental (estilo MindMeister)
 
 **Backup antes da alteração:** `versoes/2026-07-09-editor-canvas-mapa-mental/` (versões do HEAD de `aventura.js` e `style.css`).

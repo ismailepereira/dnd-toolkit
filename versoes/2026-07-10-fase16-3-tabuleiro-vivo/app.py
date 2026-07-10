@@ -45,7 +45,7 @@ ESTADO_PADRAO = {
     'npcs': [],  # Fase 11: NPCs persistentes da campanha (lojista/aliado/inimigo/neutro)
     'lojas': [],  # Fase 12: lojas geridas por NPC lojista (estoque/preços próprios)
     'aventura_ativa': None,  # K2: progresso da aventura em curso (snapshot da definição + nó atual)
-    'tabuleiro': {'aberto': False, 'imagemUrl': None, 'tokens': {}, 'atualizadoEm': None},  # Fase 16.2/16.3: mapa aberto + tokens dos PJs (posição em %)
+    'tabuleiro': {'aberto': False, 'imagemUrl': None, 'atualizadoEm': None},  # Fase 16.2: mapa/imagem aberto aos jogadores
 }
 
 # ---------------------------------------------------------------
@@ -1369,36 +1369,6 @@ def api_post_tabuleiro():
     estado['tabuleiro'] = tab
     salvar_estado(estado)
     return jsonify({'ok': True, 'tabuleiro': tab})
-
-
-# Fase 16.3: mover o token de um PJ no tabuleiro (posição em %, 0..100).
-# Qualquer membro chama, mas o Mestre move qualquer token e o jogador só o da
-# ficha PRÓPRIA (mesma regra de _pode_usar_ficha). O tempo real leva a posição
-# aos demais.
-@app.route('/api/tabuleiro/token', methods=['POST'])
-@login_obrigatorio()
-def api_post_tabuleiro_token():
-    data = request.get_json(force=True) or {}
-    fid = data.get('id')
-    estado = carregar_estado()
-    ficha = _ficha_por_id(estado, fid)
-    if not ficha:
-        return jsonify({'ok': False, 'erro': 'ficha não encontrada'}), 404
-    if not _pode_usar_ficha(ficha):
-        return jsonify({'ok': False, 'erro': 'sem permissão para mover este token'}), 403
-    try:
-        x = max(0.0, min(100.0, float(data.get('x'))))
-        y = max(0.0, min(100.0, float(data.get('y'))))
-    except (TypeError, ValueError):
-        return jsonify({'ok': False, 'erro': 'coordenadas inválidas'}), 400
-    tab = dict(estado.get('tabuleiro') or {})
-    tokens = dict(tab.get('tokens') or {})
-    tokens[fid] = {'x': round(x, 2), 'y': round(y, 2)}
-    tab['tokens'] = tokens
-    tab['atualizadoEm'] = _agora()
-    estado['tabuleiro'] = tab
-    salvar_estado(estado)
-    return jsonify({'ok': True})
 
 
 # ----- FASE 10.8: token do Firebase Auth para o tempo real seguro -----

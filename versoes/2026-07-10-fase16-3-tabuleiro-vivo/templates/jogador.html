@@ -23,7 +23,6 @@
       <button class="tab-btn active" data-tab="fichas">Minha Ficha</button>
       <button class="tab-btn" data-tab="combate">Combate</button>
       <button class="tab-btn" data-tab="historia">📖 História</button>
-      <button class="tab-btn" data-tab="mapa">🗺️ Mapa</button>
       <button class="tab-btn" data-tab="handouts">Handouts</button>
       <button class="tab-btn" data-tab="npcs">NPCs</button>
       <button class="tab-btn" data-tab="bestiario">Bestiário</button>
@@ -46,13 +45,6 @@
       <div class="panel-header"><h2>📖 A História</h2></div>
       <p class="aviso-mestre">Quando o Mestre conduz uma aventura, a cena atual aparece aqui. Nas encruzilhadas, ele abre a votação: escolham o caminho do grupo — a palavra final é sempre do Mestre.</p>
       <div id="historiaJog"></div>
-    </section>
-
-    <!-- MAPA (Fase 16.3: tabuleiro-imagem ao vivo — tokens dos PJs) -->
-    <section id="mapa" class="tab-content">
-      <div class="panel-header"><h2>🗺️ Mapa da Mesa</h2></div>
-      <p class="aviso-mestre">Quando o Mestre abre um mapa, ele aparece aqui com o token de cada personagem. Arraste o SEU token pela imagem — os outros jogadores e o Mestre veem o movimento na hora.</p>
-      <div id="tabuleiroJogador"></div>
     </section>
 
     <!-- COMBATE (somente leitura) -->
@@ -137,7 +129,6 @@
   <script src="{{ url_for('static', filename='js/firebase-rt.js') }}"></script>
   <script src="{{ url_for('static', filename='js/storage.js') }}"></script>
   {% endif %}
-  <script src="{{ url_for('static', filename='js/tabuleiro.js') }}"></script>
   <script src="{{ url_for('static', filename='js/jogador.js') }}"></script>
   <script src="{{ url_for('static', filename='js/a11y.js') }}"></script>
   <footer class="footer-attribuicao">

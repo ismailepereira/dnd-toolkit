@@ -4,6 +4,36 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-10 — Fase 16.3: Tabuleiro-imagem AO VIVO (tokens dos PJs)
+
+**Backup antes da alteração:** `versoes/2026-07-10-fase16-3-tabuleiro-vivo/` (HEAD 16.2 de `app.py`, `aventura.js`, `app.js`, `jogador.js`, `style.css`, `mestre.html`, `jogador.html`).
+
+**Resumo:** O mapa aberto pelo Mestre (Fase 16.2) agora é um **tabuleiro ao vivo**: renderiza a imagem e um **token por PJ** posicionado em **%**, que se move **livremente** sobre a imagem, **sincronizado em tempo real**.
+- **Mestre** (aba 📖 Aventura, abaixo da condução): board aparece quando o mapa está aberto; **arrasta qualquer token**.
+- **Jogador** (nova aba **🗺️ Mapa**): vê o mesmo board; **arrasta só o token da própria ficha** (donoUid); os demais ficam travados. Sem mapa aberto, mostra "O Mestre ainda não abriu nenhum mapa."
+- **Token** = `miniaturaFichaHtml` (miniatura por URL ou **símbolo da classe** como fallback) + nome. Sem grelha (posição livre). **Sem depender do Firebase Storage** (decisão do Ismaile 10/07): miniatura só se já houver URL; senão símbolo.
+- **Sincronização:** posições vivem em `tabuleiro.tokens[fichaId] = {x,y}` no estado da campanha → o tempo real (Firestore) leva a todos. Sem RT (local/LAN), o módulo faz um **poll leve** (3 s) de fallback. Ao soltar o token, um único POST grava a posição (não durante o arrasto).
+
+**Modelo de dados:** aditivo — `tabuleiro.tokens` (mapa fichaId→{x,y} em %). Retrocompatível.
+
+**Ficheiros:**
+- **Novo** `static/js/tabuleiro.js` — `window.Tabuleiro` (init/sync/refresh/render), usado nas duas telas; desenha imagem+tokens, arrasto com trava por posse, POST no fim, poll de fallback sem RT.
+- `app.py` — `ESTADO_PADRAO.tabuleiro.tokens`; novo endpoint **`POST /api/tabuleiro/token`** (qualquer membro; Mestre move qualquer, jogador só a ficha própria via `_pode_usar_ficha`; valida coords 0..100).
+- `templates/mestre.html` — `<div id="tabuleiroMestre">` na aba Aventura + carrega `tabuleiro.js` antes do `app.js`.
+- `templates/jogador.html` — aba **🗺️ Mapa** + `<section id="mapa">` com `#tabuleiroJogador` + carrega `tabuleiro.js` antes do `jogador.js`.
+- `static/js/app.js` e `static/js/jogador.js` — slice `tabuleiro` no `RT.ouvir` (sync ao vivo) + `Tabuleiro.init` (Mestre move tudo; jogador respeita `EH_MESTRE`/`MEU_UID`).
+- `static/js/aventura.js` — ao Abrir/Fechar mapa, chama `Tabuleiro.sync` para atualizar o board na hora (inclusive sem RT).
+- `static/css/style.css` — `.tab-board/.tab-img/.tab-token/.tab-token-nome/.tab-vazio`.
+- `ROADMAP.md` — Fase 16.3 marcada como entregue.
+
+**Verificação:** `node --check` (4 JS) + parse do `app.py` (ok). Boot local (`USE_LOCAL_DB=1`, `data/estado.json` restaurado do backup ao fim). **Endpoint (fetch/curl):** Mestre move token → grava `{x,y}`; coords inválidas → 400; ficha inexistente → 404; **jogador move a própria ficha → 200, mas a de outro → 403** (não persiste). **Browser (0 erros de console):** Mestre vê board com 2 tokens (ambos móveis); render posiciona o token na % do servidor (prova o caminho de sync/exibição); Jogador (login real `jogador`) vê a aba Mapa, o token da própria ficha **móvel** na posição que ele gravou e o do Mestre **travado**. O arrasto usa mouse (mousedown/move/up) padrão; a persistência e o render-a-partir-do-estado foram exercitados ponta a ponta.
+
+**Como reverter:** restaurar `versoes/2026-07-10-fase16-3-tabuleiro-vivo/` + apagar `static/js/tabuleiro.js`, ou `git revert`. `tabuleiro.tokens` fica ignorado sem esta versão.
+
+**Próximo:** Fase 16.4 — imagens/tokens de **monstro** no tabuleiro (fallback: ícone do tipo). Depois 16.5 (refinos: redimensionar token, travar movimento, medir distância; e suporte a toque para celular).
+
+---
+
 ## 2026-07-10 — Fase 16.2: imagem no nó da aventura + "Abrir mapa para os jogadores"
 
 **Backup antes da alteração:** `versoes/2026-07-10-fase16-2-imagem-no/` (HEAD de `app.py`, `aventura.js`, `style.css`).

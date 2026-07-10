@@ -487,13 +487,11 @@ atualizarLojaEspecialItens();
 // TEMPO REAL (Firestore) - atualiza ficha/bestiário/combate na hora
 // =====================================================
 if (window.RT && RT.ativo()) {
-  let _lf = '', _lv = '', _lc = '', _ln = '', _lim = '', _lnp = '', _ltb = '';
+  let _lf = '', _lv = '', _lc = '', _ln = '', _lim = '', _lnp = '';
   RT.ouvir(estado => {
     ultimoRT = Date.now();
     const sf = JSON.stringify(estado.fichas || []);
-    if (sf !== _lf) { _lf = sf; fichas = estado.fichas || []; renderFichas(); if (window.Tabuleiro) Tabuleiro.render(); }
-    const stb = JSON.stringify(estado.tabuleiro || {});
-    if (stb !== _ltb) { _ltb = stb; if (window.Tabuleiro) Tabuleiro.sync(estado.tabuleiro || {}); }
+    if (sf !== _lf) { _lf = sf; fichas = estado.fichas || []; renderFichas(); }
     const sv = JSON.stringify(estado.monstros_visiveis || []);
     if (sv !== _lv) { _lv = sv; monstrosVisiveis = estado.monstros_visiveis || []; popularTipoJogador(); renderMonstros(); }
     const sc = JSON.stringify(estado.combate || {});
@@ -510,9 +508,3 @@ if (window.RT && RT.ativo()) {
 }
 // polling de fallback (auto-suprimido quando o tempo real está entregando dados)
 setInterval(() => { if (!rtRecente()) atualizarCombateJog(); }, 6000);
-
-// Fase 16.3: tabuleiro ao vivo (o jogador move só o token da ficha própria).
-// Sem RT (local/LAN), o próprio módulo faz poll de fallback.
-if (window.Tabuleiro) {
-  Tabuleiro.init({ containerId: 'tabuleiroJogador', ehMestre: !!window.EH_MESTRE, meuUid: window.MEU_UID, getFichas: () => fichas });
-}

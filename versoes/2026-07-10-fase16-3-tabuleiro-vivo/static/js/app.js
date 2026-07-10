@@ -1497,10 +1497,8 @@ document.getElementById('rolarDado').addEventListener('click', () => {
 // TEMPO REAL (Firestore) - atualiza as telas quando o estado muda
 // =====================================================
 if (window.RT && RT.ativo()) {
-  let _lf = '', _lc = '', _lv = '', _ln = '', _lim = '', _lle = '', _lnp = '', _ltb = '';
+  let _lf = '', _lc = '', _lv = '', _ln = '', _lim = '', _lle = '', _lnp = '';
   RT.ouvir(estado => {
-    const stb = JSON.stringify(estado.tabuleiro || {});
-    if (stb !== _ltb) { _ltb = stb; if (window.Tabuleiro) Tabuleiro.sync(estado.tabuleiro || {}); }
     const sf = JSON.stringify(estado.fichas || []);
     if (sf !== _lf) { _lf = sf; fichas = estado.fichas || []; renderFichas(); }
     const sc = JSON.stringify(estado.combate || {});
@@ -1530,10 +1528,4 @@ if (window.RT && RT.ativo()) {
       atualizarToggleLojaEspecialCampanha();
     }
   });
-}
-
-// Fase 16.3: tabuleiro ao vivo (o Mestre move qualquer token). Sem RT (local/
-// LAN), o próprio módulo faz poll de fallback.
-if (window.Tabuleiro) {
-  Tabuleiro.init({ containerId: 'tabuleiroMestre', ehMestre: true, meuUid: window.MEU_UID, getFichas: () => fichas });
 }

@@ -790,10 +790,8 @@ if (typeof module !== 'undefined' && module.exports) {
       const body = abrir ? { aberto: true, imagemUrl: no.imagemUrl } : { aberto: false };
       const r = await fetch('/api/tabuleiro', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const d = await r.json().catch(() => ({}));
-      if (r.ok && d.ok) {
-        tabuleiro = d.tabuleiro; renderConducao();
-        if (window.Tabuleiro) Tabuleiro.sync(d.tabuleiro); // atualiza o board ao vivo na hora
-      } else alert((d && d.erro) || 'Não foi possível atualizar o mapa.');
+      if (r.ok && d.ok) { tabuleiro = d.tabuleiro; renderConducao(); }
+      else alert((d && d.erro) || 'Não foi possível atualizar o mapa.');
     });
 
     $('acEncerrar').addEventListener('click', async () => {

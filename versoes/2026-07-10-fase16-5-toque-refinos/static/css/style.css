@@ -2002,11 +2002,3 @@ body.alto-contraste a { color: #ffd400; }
 }
 .tab-token-monstro.movivel { cursor: grab; }
 .tab-token-monstro.arrastando { cursor: grabbing; }
-/* Fase 16.5: toque + seleção + travar + redimensionar */
-.tab-token { touch-action: none; } /* o arrasto por toque não rola a página */
-.tab-token.selecionado .ficha-mini,
-.tab-token.selecionado .tab-mon-ic,
-.tab-token.selecionado .tab-mon-img { outline: 3px solid #ffd54a; outline-offset: 2px; }
-.tab-mestre-barra .btn-mini.on { background: var(--accent-grad); color: #fff; border-color: transparent; }
-.tab-sel-info { display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem; padding-left: 6px; border-left: 1px solid var(--border); }
-.tab-aviso { margin: 4px 0; font-size: 0.82rem; color: #d29922; }

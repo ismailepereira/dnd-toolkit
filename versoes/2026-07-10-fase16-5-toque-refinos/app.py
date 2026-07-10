@@ -45,7 +45,7 @@ ESTADO_PADRAO = {
     'npcs': [],  # Fase 11: NPCs persistentes da campanha (lojista/aliado/inimigo/neutro)
     'lojas': [],  # Fase 12: lojas geridas por NPC lojista (estoque/preços próprios)
     'aventura_ativa': None,  # K2: progresso da aventura em curso (snapshot da definição + nó atual)
-    'tabuleiro': {'aberto': False, 'imagemUrl': None, 'tokens': {}, 'monstros': {}, 'travado': False, 'atualizadoEm': None},  # Fase 16.2–16.5: mapa + tokens (PJ/monstro, pos %, tam) + trava dos jogadores
+    'tabuleiro': {'aberto': False, 'imagemUrl': None, 'tokens': {}, 'monstros': {}, 'atualizadoEm': None},  # Fase 16.2/16.3/16.4: mapa + tokens dos PJs + monstros (posição em %)
 }
 
 # ---------------------------------------------------------------
@@ -1363,8 +1363,6 @@ def api_post_tabuleiro():
     if 'imagemUrl' in data:
         url = data['imagemUrl']
         tab['imagemUrl'] = str(url) if url else None
-    if 'travado' in data:  # Fase 16.5: trava o movimento dos jogadores
-        tab['travado'] = bool(data['travado'])
     if not tab.get('imagemUrl'):
         tab['aberto'] = False  # sem imagem não há o que abrir
     tab['atualizadoEm'] = _agora()
@@ -1373,10 +1371,10 @@ def api_post_tabuleiro():
     return jsonify({'ok': True, 'tabuleiro': tab})
 
 
-# Fase 16.3/16.5: mover (x,y em %) e/ou redimensionar (tam) o token de um PJ.
-# Qualquer membro chama, mas: o Mestre mexe em qualquer token; o jogador só na
-# ficha PRÓPRIA (_pode_usar_ficha) e SÓ SE o mapa não estiver travado; e o
-# tamanho (tam) só o Mestre altera. Devolve o tabuleiro para render imediato.
+# Fase 16.3: mover o token de um PJ no tabuleiro (posição em %, 0..100).
+# Qualquer membro chama, mas o Mestre move qualquer token e o jogador só o da
+# ficha PRÓPRIA (mesma regra de _pode_usar_ficha). O tempo real leva a posição
+# aos demais.
 @app.route('/api/tabuleiro/token', methods=['POST'])
 @login_obrigatorio()
 def api_post_tabuleiro_token():
@@ -1388,34 +1386,19 @@ def api_post_tabuleiro_token():
         return jsonify({'ok': False, 'erro': 'ficha não encontrada'}), 404
     if not _pode_usar_ficha(ficha):
         return jsonify({'ok': False, 'erro': 'sem permissão para mover este token'}), 403
-    eh_mestre = session.get('papel') == 'mestre'
+    try:
+        x = max(0.0, min(100.0, float(data.get('x'))))
+        y = max(0.0, min(100.0, float(data.get('y'))))
+    except (TypeError, ValueError):
+        return jsonify({'ok': False, 'erro': 'coordenadas inválidas'}), 400
     tab = dict(estado.get('tabuleiro') or {})
     tokens = dict(tab.get('tokens') or {})
-    entry = dict(tokens.get(fid) or {})
-    mexeu = False
-    if data.get('x') is not None and data.get('y') is not None:  # mover
-        if not eh_mestre and tab.get('travado'):
-            return jsonify({'ok': False, 'erro': 'o mapa está travado pelo Mestre'}), 403
-        try:
-            entry['x'] = round(max(0.0, min(100.0, float(data['x']))), 2)
-            entry['y'] = round(max(0.0, min(100.0, float(data['y']))), 2)
-        except (TypeError, ValueError):
-            return jsonify({'ok': False, 'erro': 'coordenadas inválidas'}), 400
-        mexeu = True
-    if 'tam' in data and eh_mestre:  # redimensionar: só o Mestre
-        try:
-            entry['tam'] = round(max(0.3, min(3.0, float(data['tam']))), 2)
-        except (TypeError, ValueError):
-            return jsonify({'ok': False, 'erro': 'tamanho inválido'}), 400
-        mexeu = True
-    if not mexeu:
-        return jsonify({'ok': False, 'erro': 'nada a atualizar'}), 400
-    tokens[fid] = entry
+    tokens[fid] = {'x': round(x, 2), 'y': round(y, 2)}
     tab['tokens'] = tokens
     tab['atualizadoEm'] = _agora()
     estado['tabuleiro'] = tab
     salvar_estado(estado)
-    return jsonify({'ok': True, 'tabuleiro': tab})
+    return jsonify({'ok': True})
 
 
 # Fase 16.4: tokens de MONSTRO no tabuleiro — só o Mestre adiciona/move/remove.
@@ -1433,21 +1416,15 @@ def api_post_tabuleiro_monstro():
     if data.get('remover'):
         if mid:
             monstros.pop(str(mid), None)
-    elif mid:  # editar instância existente (mover e/ou redimensionar)
+    elif mid:  # mover instância existente
         m = dict(monstros.get(str(mid)) or {})
         if not m:
             return jsonify({'ok': False, 'erro': 'monstro não está no mapa'}), 404
-        if data.get('x') is not None and data.get('y') is not None:
-            try:
-                m['x'] = round(max(0.0, min(100.0, float(data['x']))), 2)
-                m['y'] = round(max(0.0, min(100.0, float(data['y']))), 2)
-            except (TypeError, ValueError):
-                return jsonify({'ok': False, 'erro': 'coordenadas inválidas'}), 400
-        if 'tam' in data:  # Fase 16.5: redimensionar
-            try:
-                m['tam'] = round(max(0.3, min(3.0, float(data['tam']))), 2)
-            except (TypeError, ValueError):
-                return jsonify({'ok': False, 'erro': 'tamanho inválido'}), 400
+        try:
+            m['x'] = round(max(0.0, min(100.0, float(data.get('x')))), 2)
+            m['y'] = round(max(0.0, min(100.0, float(data.get('y')))), 2)
+        except (TypeError, ValueError):
+            return jsonify({'ok': False, 'erro': 'coordenadas inválidas'}), 400
         monstros[str(mid)] = m
     else:  # adicionar nova instância
         nome = str(data.get('nome') or 'Monstro')[:60]

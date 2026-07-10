@@ -4,6 +4,33 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-10 — Fase 16.5: tabuleiro com toque + travar + redimensionar
+
+**Backup antes da alteração:** `versoes/2026-07-10-fase16-5-toque-refinos/` (HEAD 16.4 de `app.py`, `tabuleiro.js`, `style.css`).
+
+**Resumo:** Refinos do tabuleiro ao vivo, focados em uso real na mesa/celular:
+- **Toque (Pointer Events):** o arrasto foi reescrito de `mouse*` para `pointer*` + `setPointerCapture` e os tokens ganharam `touch-action:none`. Agora **funciona com dedo no celular** e com mouse/caneta — o mesmo código para todos. (Bônus: o arrasto ficou mais robusto — o Playwright consegue arrastar de ponta a ponta, o que antes travava.)
+- **Travar jogadores:** botão do Mestre **🔓 Travar / 🔒 Travado** (`tabuleiro.travado`). Travado, os jogadores não movem os próprios tokens (o servidor rejeita e a UI mostra "🔒 …travou o movimento"); o Mestre continua movendo tudo.
+- **Redimensionar token:** o Mestre **toca/clica num token para selecioná-lo** (destaque amarelo + barra "Selecionado: <nome>") e usa **🔎− / 🔎＋** para mudar o tamanho (passos 0.7→2.0, via `transform: scale`). Vale para PJ e monstro. Da barra do selecionado o Mestre também **🗑 Remove** um monstro (jeito de remover amigável ao toque, além do duplo-clique).
+
+**Modelo de dados:** aditivo — `tabuleiro.travado` (bool) e `tam` por token (`tokens[fid].tam`, `monstros[id].tam`). Retrocompatível (sem `tam` = 1×).
+
+**Ficheiros:**
+- `static/js/tabuleiro.js` — arrasto em **Pointer Events** com detecção de toque-vs-arrasto (tap seleciona, arraste move); estado `travado` + `selecionado`; barra do Mestre com travar + controles do selecionado; `passoTam`/`tamDe`; `salvarToken` agora envia move e/ou `tam`; `render` aplica `scale(tam)` e destaque da seleção (assinatura inclui travado/selecionado).
+- `app.py` — `ESTADO_PADRAO.tabuleiro.travado`; `POST /api/tabuleiro` aceita `travado`; `POST /api/tabuleiro/token` reescrito: move (com **bloqueio se travado** para não-Mestre) e/ou `tam` (**só Mestre**), devolve o `tabuleiro`; `POST /api/tabuleiro/monstro` aceita `tam`.
+- `static/css/style.css` — `touch-action:none` no token, destaque `.selecionado`, `.tab-sel-info`, `.tab-aviso`, `.btn-mini.on` na barra.
+- `ROADMAP.md` — Fase 16.5 marcada como entregue.
+
+**Verificação (Playwright — browser real, 0 erros de console):** boot local (`USE_LOCAL_DB=1`, `data/estado.json` restaurado do backup ao fim). Selecionar PJ (clique sem arrastar → seleção + barra, sem "Remover"); **redimensionar** (🔎＋ → servidor `tam:1.25`, DOM `scale(1.25)`); **travar** (servidor `travado:true`, botão muda); **arrasto real com Pointer Events** move e persiste (Gandalf → x50, y85.94); jogador com mapa **travado → 403**, **destravado → 200**, e tentativa de `tam` por jogador → 400 (ignorado, só Mestre); selecionar **monstro** mostra "🗑 Remover".
+
+**Como reverter:** restaurar `versoes/2026-07-10-fase16-5-toque-refinos/` ou `git revert`. `travado`/`tam` ficam ignorados sem esta versão.
+
+**Fase 16 (Tabuleiro-imagem) concluída** — 16.1 miniatura, 16.2 imagem no nó + abrir mapa, 16.3 tabuleiro ao vivo (PJs), 16.4 monstros, 16.5 toque/travar/redimensionar. Refinos opcionais que ficaram de fora (dependem de zoom/pan no board, hoje inexistente): **centralizar/seguir** e **medir distância por escala** — podem virar 16.6 se fizerem falta.
+
+**Próximo sugerido:** Fase 17 — UX & PWA (reorganizar o Mestre em 3 modos, enxugar a tela do jogador, virar PWA instalável/offline).
+
+---
+
 ## 2026-07-10 — Fase 16.4: tokens de MONSTRO no tabuleiro + no-flicker
 
 **Backup antes da alteração:** `versoes/2026-07-10-fase16-4-monstros/` (HEAD 16.3 de `app.py`, `tabuleiro.js`, `style.css`).

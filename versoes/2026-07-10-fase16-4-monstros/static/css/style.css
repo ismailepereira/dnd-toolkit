@@ -1987,18 +1987,3 @@ body.alto-contraste a { color: #ffd400; }
 }
 .tab-vazio { color: var(--text-dim); padding: 22px; text-align: center; }
 #tabuleiroMestre { margin: 6px 0 16px; }
-/* Fase 16.4: barra do Mestre + tokens de monstro */
-.tab-mestre-barra { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 4px 0 8px; }
-.tab-mestre-barra label { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; }
-.tab-mestre-barra select { max-width: 220px; }
-.tab-token-monstro .tab-mon-ic {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 44px; height: 44px; font-size: 26px; border-radius: 8px;
-  background: rgba(20, 20, 28, 0.9); box-shadow: 0 0 0 2px var(--danger, #e94560), 0 2px 6px rgba(0, 0, 0, 0.55);
-}
-.tab-token-monstro .tab-mon-img {
-  width: 46px; height: 46px; object-fit: cover; border-radius: 8px;
-  box-shadow: 0 0 0 2px var(--danger, #e94560), 0 2px 6px rgba(0, 0, 0, 0.55);
-}
-.tab-token-monstro.movivel { cursor: grab; }
-.tab-token-monstro.arrastando { cursor: grabbing; }

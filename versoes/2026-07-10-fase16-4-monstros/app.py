@@ -45,7 +45,7 @@ ESTADO_PADRAO = {
     'npcs': [],  # Fase 11: NPCs persistentes da campanha (lojista/aliado/inimigo/neutro)
     'lojas': [],  # Fase 12: lojas geridas por NPC lojista (estoque/preços próprios)
     'aventura_ativa': None,  # K2: progresso da aventura em curso (snapshot da definição + nó atual)
-    'tabuleiro': {'aberto': False, 'imagemUrl': None, 'tokens': {}, 'monstros': {}, 'atualizadoEm': None},  # Fase 16.2/16.3/16.4: mapa + tokens dos PJs + monstros (posição em %)
+    'tabuleiro': {'aberto': False, 'imagemUrl': None, 'tokens': {}, 'atualizadoEm': None},  # Fase 16.2/16.3: mapa aberto + tokens dos PJs (posição em %)
 }
 
 # ---------------------------------------------------------------
@@ -1399,49 +1399,6 @@ def api_post_tabuleiro_token():
     estado['tabuleiro'] = tab
     salvar_estado(estado)
     return jsonify({'ok': True})
-
-
-# Fase 16.4: tokens de MONSTRO no tabuleiro — só o Mestre adiciona/move/remove.
-# Um POST faz uma das três coisas: adicionar (sem id → cria instância), mover
-# (id + x,y) ou remover (id + remover:true). Sem imagem, o cliente usa o ícone
-# da categoria como fallback.
-@app.route('/api/tabuleiro/monstro', methods=['POST'])
-@login_obrigatorio(papeis=['mestre'])
-def api_post_tabuleiro_monstro():
-    data = request.get_json(force=True) or {}
-    estado = carregar_estado()
-    tab = dict(estado.get('tabuleiro') or {})
-    monstros = dict(tab.get('monstros') or {})
-    mid = data.get('id')
-    if data.get('remover'):
-        if mid:
-            monstros.pop(str(mid), None)
-    elif mid:  # mover instância existente
-        m = dict(monstros.get(str(mid)) or {})
-        if not m:
-            return jsonify({'ok': False, 'erro': 'monstro não está no mapa'}), 404
-        try:
-            m['x'] = round(max(0.0, min(100.0, float(data.get('x')))), 2)
-            m['y'] = round(max(0.0, min(100.0, float(data.get('y')))), 2)
-        except (TypeError, ValueError):
-            return jsonify({'ok': False, 'erro': 'coordenadas inválidas'}), 400
-        monstros[str(mid)] = m
-    else:  # adicionar nova instância
-        nome = str(data.get('nome') or 'Monstro')[:60]
-        novo_id = 'm_' + uuid.uuid4().hex[:8]
-        idx = len(monstros)
-        monstros[novo_id] = {
-            'nome': nome,
-            'categoria': str(data.get('categoria') or '')[:40],
-            'imagemUrl': (str(data['imagemUrl']) if data.get('imagemUrl') else None),
-            'x': round(8 + (idx * 11) % 84, 2),
-            'y': 14.0,
-        }
-    tab['monstros'] = monstros
-    tab['atualizadoEm'] = _agora()
-    estado['tabuleiro'] = tab
-    salvar_estado(estado)
-    return jsonify({'ok': True, 'tabuleiro': tab})
 
 
 # ----- FASE 10.8: token do Firebase Auth para o tempo real seguro -----

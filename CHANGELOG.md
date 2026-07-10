@@ -4,6 +4,33 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-10 — Fase 16.4: tokens de MONSTRO no tabuleiro + no-flicker
+
+**Backup antes da alteração:** `versoes/2026-07-10-fase16-4-monstros/` (HEAD 16.3 de `app.py`, `tabuleiro.js`, `style.css`).
+
+**Resumo:** O tabuleiro ao vivo (16.3) ganhou **tokens de monstro**. O Mestre coloca monstros do bestiário no mapa; eles se movem como os PJs, sincronizados em tempo real. E o board deixou de "piscar" com o poll.
+- **Barra do Mestre** (acima do board): select do bestiário (`window.MONSTROS`) + **➕ Colocar**. Cada clique cria uma **instância** com id próprio (dá pra colocar vários goblins).
+- **Token de monstro:** quadrado com borda vermelha (distinto do PJ, redondo). Mostra a **imagem** (se houver URL) ou, como fallback, o **ícone da categoria** (👺 Goblinoide, 🐉 Dragão, 💀 Morto-vivo, 🗿 Gigante, 🧑 Humanoide…). Só o **Mestre arrasta** monstros; **duplo-clique** remove.
+- **Sincronização:** instâncias vivem em `tabuleiro.monstros[id] = {nome, categoria, imagemUrl, x, y}` → tempo real / poll de fallback, igual aos PJs. Jogador vê os monstros (sem poder mover).
+- **No-flicker (correção de qualidade):** o `render()` agora só reconstrói o DOM quando o estado relevante muda (assinatura). Antes, o poll de 3 s reconstruía o board ocioso — causava flicker e chegava a "soltar" um token durante o arrasto. Agora o poll ocioso é no-op e o arrasto fica estável.
+
+**Modelo de dados:** aditivo — `tabuleiro.monstros`. Retrocompatível.
+
+**Ficheiros:**
+- `static/js/tabuleiro.js` — `CATEGORIA_ICONE` + `monstrosNoTabuleiro`; `render` desenha a barra do Mestre + tokens de monstro; arrasto generalizado (`data-kind` pj|monstro, `data-id`) com POST por tipo; `salvarMonstro` (add/mover/remover) + duplo-clique remove; **detecção de mudança** (`ultimaChave`) evita reconstruir sem mudança.
+- `app.py` — `ESTADO_PADRAO.tabuleiro.monstros`; novo endpoint **`POST /api/tabuleiro/monstro`** (só Mestre): sem id → adiciona (id `m_<hex>`, default no topo); id+x,y → move (clamp 0..100); id+`remover` → remove. Devolve o `tabuleiro` atualizado.
+- `static/css/style.css` — `.tab-mestre-barra`, `.tab-token-monstro`/`.tab-mon-ic`/`.tab-mon-img` (quadrado, borda de perigo).
+- `.gitignore` — ignora `.playwright-mcp/` (artefatos de teste do browser).
+- `ROADMAP.md` — Fase 16.4 marcada como entregue.
+
+**Verificação (Playwright — browser real, 0 erros de console):** boot local (`USE_LOCAL_DB=1`, `data/estado.json` restaurado do backup ao fim). Mestre coloca monstro (1 clique = **exatamente 1** token — medido; sem duplicação), ícone de categoria como fallback; **arrasto com mouse real** move o token e **persiste no servidor** (Goblin → x 46.28, y 33.84) — o que valida também o arrasto de PJ da 16.3 (mesmo handler); **duplo-clique remove** (some do servidor e do DOM); endpoint é **só do Mestre** (jogador barrado). Com a detecção de mudança, o `mousedown` não destaca mais o token (o poll ocioso virou no-op).
+
+**Como reverter:** restaurar `versoes/2026-07-10-fase16-4-monstros/` ou `git revert`. `tabuleiro.monstros` fica ignorado sem esta versão.
+
+**Próximo:** Fase 16.5 — refinos: redimensionar token, "travar" movimento do jogador, centralizar/seguir, medir distância, e **suporte a toque** (o arrasto hoje é só mouse).
+
+---
+
 ## 2026-07-10 — Fase 16.3: Tabuleiro-imagem AO VIVO (tokens dos PJs)
 
 **Backup antes da alteração:** `versoes/2026-07-10-fase16-3-tabuleiro-vivo/` (HEAD 16.2 de `app.py`, `aventura.js`, `app.js`, `jogador.js`, `style.css`, `mestre.html`, `jogador.html`).

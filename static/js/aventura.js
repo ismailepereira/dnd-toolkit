@@ -82,9 +82,38 @@ function noDaAventura(definicao, noId) {
   return ((definicao && definicao.nos) || []).find(n => n.id === noId) || null;
 }
 
+// P6: resolver de monstro por nome. No browser usa MONSTROS (global);
+// nos testes em Node aceita um `resolver` injetado.
+function resolverMonstroP6(resolver) {
+  if (resolver) return resolver;
+  return (nome) => (typeof MONSTROS !== 'undefined') ? MONSTROS.find(x => x.nome === nome) : null;
+}
+
+// P6: expande o encontro do nó [{nome,qtd}] numa lista de entradas de
+// monstro (uma por criatura abatida), para alimentar rolarLootEncontro.
+// Monstros ausentes do bestiário são ignorados.
+function entradasDoEncontro(encontro, resolver) {
+  const achar = resolverMonstroP6(resolver);
+  const out = [];
+  (encontro || []).forEach(e => {
+    const m = achar(e.nome);
+    if (m) for (let k = 0; k < (e.qtd || 1); k++) out.push(m);
+  });
+  return out;
+}
+
+// P6: XP bruto do encontro = soma de (pe × qtd). 0 para monstros ausentes.
+function xpDoEncontro(encontro, resolver) {
+  const achar = resolverMonstroP6(resolver);
+  return (encontro || []).reduce((s, e) => {
+    const m = achar(e.nome);
+    return s + ((m && m.pe) || 0) * (e.qtd || 1);
+  }, 0);
+}
+
 // Export para o harness de testes em Node (no browser é ignorado)
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { AVENTURA_TIPOS, AVENTURA_AVISOS, validarAventura, noDaAventura };
+  module.exports = { AVENTURA_TIPOS, AVENTURA_AVISOS, validarAventura, noDaAventura, entradasDoEncontro, xpDoEncontro };
 }
 
 // ---------- UI (só na tela do Mestre) ----------
@@ -754,6 +783,7 @@ if (typeof module !== 'undefined' && module.exports) {
     const no = noDaAventura(def, ativa.noAtual);
     if (!no) { conducao.innerHTML = ''; return; }
     const completado = !!(ativa.nosCompletados || {})[no.id];
+    const xpEncontro = (no.encontro || []).length ? xpDoEncontro(no.encontro) : 0; // P6
     const trilha = (ativa.historico || []).map(id => {
       const x = noDaAventura(def, id);
       return esc(x ? x.titulo || x.id : id);
@@ -781,8 +811,11 @@ if (typeof module !== 'undefined' && module.exports) {
               <button class="btn-secondary btn-mini" data-ac-npc="${j}" ${jaExiste ? 'disabled title="já está na lista de NPCs da campanha"' : ''}>${jaExiste ? '✓ apresentado' : '👁️ Apresentar aos jogadores'}</button>
             </div>`;
           }).join('')}</div>` : ''}
-        ${(no.encontro || []).length ? `<div class="av-sub"><b>⚔️ Encontro:</b> ${no.encontro.map(e => `${e.qtd}× ${esc(e.nome)}`).join(', ')}
-          <button class="btn-secondary btn-mini" id="acLancarEncontro">⚔️ Lançar no combate</button></div>` : ''}
+        ${(no.encontro || []).length ? `<div class="av-sub"><b>⚔️ Encontro:</b> ${no.encontro.map(e => `${e.qtd}× ${esc(e.nome)}`).join(', ')}${xpEncontro ? ` <span class="sub">· 🏅 ${xpEncontro} PE</span>` : ''}
+          <button class="btn-secondary btn-mini" id="acLancarEncontro">⚔️ Lançar no combate</button>
+          <button class="btn-secondary btn-mini" id="acLootNo">🎲 Loot do nó</button>
+          ${xpEncontro ? `<button class="btn-secondary btn-mini" id="acXpGrupo">🏅 Enviar XP ao grupo</button>` : ''}
+          <div id="acRecompensaBox" class="av-sub hidden" style="margin-top:6px"></div></div>` : ''}
         ${!completado && no.tipo !== 'final' ? '<button class="btn-secondary btn-mini" id="acCompletar">✓ Marcar nó como vencido</button>' : ''}
         ${no.tipo !== 'final' && (no.saidas || []).length ? `<button class="btn-secondary btn-mini" id="acVotacao">${ativa.escolhasAbertas ? '🔒 Fechar votação' : '🗳️ Abrir escolhas aos jogadores'}</button>` : ''}
         ${no.tipo !== 'final' ? `<div class="av-sub"><b>➡️ Escolhas do grupo:</b>${ativa.escolhasAbertas ? ' <span class="chip-em-combate">🗳️ votação aberta</span>' : ''}<br>
@@ -842,6 +875,50 @@ if (typeof module !== 'undefined' && module.exports) {
       (no.encontro || []).forEach(e => addMonstro(e.nome, e.qtd));
       const tab = document.querySelector('[data-tab="combate"]');
       if (tab) tab.click();
+    });
+
+    // P6: Loot do nó — rola o tesouro dos monstros do encontro (Fase 13)
+    const bLoot = $('acLootNo');
+    if (bLoot) bLoot.addEventListener('click', () => {
+      const box = $('acRecompensaBox');
+      if (!box) return;
+      box.classList.remove('hidden');
+      const entradas = entradasDoEncontro(no.encontro);
+      if (!entradas.length) { box.innerHTML = '<p>Nenhum monstro deste encontro está no bestiário — nada para saquear.</p>'; return; }
+      if (typeof rolarLootEncontro !== 'function') { box.innerHTML = '<p>Módulo de loot indisponível.</p>'; return; }
+      const r = rolarLootEncontro(entradas);
+      const linhas = r.itens.length ? r.itens.map(i => `<li>${i.qtd}× ${esc(i.nome)}</li>`).join('') : '<li><i>nenhum item — só moedas</i></li>';
+      box.innerHTML = `<h4>🎲 Loot de ${entradas.length} criatura(s)</h4><p><b>💰 ${r.ouro} po</b></p><ul>${linhas}</ul>
+        <p class="criador-hint">Itens: distribua com "📦 Enviar à ficha" na aba Fichas.</p>
+        <button class="btn-secondary btn-mini" id="acLootDividir">💰 Dividir ouro pelo grupo</button>
+        <span id="acLootMsg" class="envio-msg"></span>`;
+      const bDiv = $('acLootDividir');
+      if (bDiv) bDiv.addEventListener('click', () => {
+        const vivos = (typeof fichas !== 'undefined' ? fichas : []).filter(f => f.status !== 'morto');
+        const msg = $('acLootMsg');
+        if (!r.ouro) { if (msg) msg.textContent = 'Sem ouro para dividir.'; return; }
+        if (!vivos.length) { if (msg) msg.textContent = 'Sem personagens vivos na mesa.'; return; }
+        const quota = Math.floor(r.ouro / vivos.length);
+        vivos.forEach(f => { f.ouro = (f.ouro || 0) + quota; });
+        if (typeof salvarFichas === 'function') salvarFichas();
+        if (typeof renderFichas === 'function') renderFichas();
+        if (msg) msg.textContent = `✓ ${quota} po para cada um de ${vivos.length}` + (r.ouro % vivos.length ? ` (${r.ouro % vivos.length} po de troco ficam com o Mestre)` : '');
+        bDiv.disabled = true;
+      });
+    });
+
+    // P6: XP do nó — soma dos PE do encontro, dividida pela mesa (só Mestre)
+    const bXp = $('acXpGrupo');
+    if (bXp) bXp.addEventListener('click', () => {
+      const vivos = (typeof fichas !== 'undefined' ? fichas : []).filter(f => f.status !== 'morto');
+      if (!vivos.length) { alert('Sem personagens vivos na mesa para receber XP.'); return; }
+      const quota = Math.floor(xpEncontro / vivos.length);
+      if (!quota) { alert('XP insuficiente para dividir pelo grupo.'); return; }
+      if (!confirm(`Enviar ${quota} XP a cada um de ${vivos.length} personagem(ns) vivo(s)? (XP total do encontro: ${xpEncontro})`)) return;
+      vivos.forEach(f => { f.xp = (f.xp || 0) + quota; });
+      if (typeof salvarFichas === 'function') salvarFichas();
+      if (typeof renderFichas === 'function') renderFichas();
+      bXp.disabled = true; bXp.textContent = `✓ +${quota} XP a cada`;
     });
     conducao.querySelectorAll('[data-ac-avancar]').forEach(b => b.addEventListener('click', async () => {
       const destino = noDaAventura(def, b.dataset.acAvancar);

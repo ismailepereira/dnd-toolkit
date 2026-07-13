@@ -4,6 +4,30 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-13 — Livro-jogo P6: Loot e XP integrados à condução
+
+**Backup antes da alteração:** `versoes/2026-07-13-p6-loot-xp-conducao/` (HEAD de `aventura.js`).
+
+**Resumo:** Último passo pendente do motor de livro-jogo (P6 do `docs/LIVRO-JOGO.md`): ao conduzir um nó de **encontro**, o Mestre agora fecha o ciclo de recompensa sem sair da aba Aventura.
+- **🎲 Loot do nó:** rola o tesouro dos monstros do encontro reusando a Fase 13 (`rolarLootEncontro`). Expande `encontro: [{nome,qtd}]` numa entrada por criatura, resolve pelo bestiário (`MONSTROS`), mostra ouro + itens e traz o botão **💰 Dividir ouro pelo grupo** (quota inteira por ficha viva; troco fica com o Mestre) — mesmo comportamento do "🎲 Gerar Loot" do Combate.
+- **🏅 XP sugerido + Enviar XP ao grupo:** o cabeçalho do encontro mostra o XP bruto (`soma de pe × qtd`); o botão divide esse total pelas fichas vivas e soma a `ficha.xp` (respeita **B2** — só o Mestre dá XP; a condução é tela do Mestre). Confirmação antes de aplicar.
+- Itens continuam a ser distribuídos manualmente com "📦 Enviar à ficha" (aba Fichas), como o loot do Combate.
+
+**Ficheiros:**
+- `static/js/aventura.js` — funções puras testáveis `entradasDoEncontro(encontro, resolver)` e `xpDoEncontro(encontro, resolver)` (exportadas p/ Node); em `renderConducao`, cálculo de `xpEncontro`, botões `#acLootNo`/`#acXpGrupo` + caixa `#acRecompensaBox` no bloco de encontro, e os handlers (loot com divisão de ouro; XP dividido pelas fichas vivas).
+- `test-p6.js` — harness Node das funções puras (XP somado, expansão por criatura, monstro ausente ignorado, integração com `rolarLootEncontro`).
+- `docs/LIVRO-JOGO.md` — P6 marcado como entregue.
+
+**Modelo de dados:** nenhum novo (reusa `no.encontro`, `MONSTROS.pe`, `loot.js`, `fichas`). Retrocompatível.
+
+**Verificação (Node + browser real, 0 erros de console):** `node --check` + `node test-p6.js` (8/8 verdes: 4 Goblins = 200 PE, 7 entradas p/ 4+2+1 criaturas, monstro ausente = 0 XP e 0 entradas, 4 Adagas garantidas via loot próprio). No browser (login Mestre, `USE_LOCAL_DB=1`): aventura "Ninho da Rainha Dragão" iniciada no nó **A família Swift** (4 Kobolds), a condução renderizou 🎲 Loot do nó, 🏅 Enviar XP ao grupo e "100 PE". Clique em **Loot do nó** → 16 po; **Dividir ouro** → 8 po para cada uma de 2 fichas; **Enviar XP** → 50 XP para cada (100/2). Lido de volta em `/api/fichas`: `ouro:8, xp:50` nas duas — persistido. Console sem erros. (Achado à parte: `data/estado.json` local estava corrompido por uma escrita parcial anterior — reparado pegando o 1º objeto JSON válido; ficheiro é gitignored/dev, produção usa Firestore.)
+
+**Como reverter:** restaurar `versoes/2026-07-13-p6-loot-xp-conducao/` ou `git revert`.
+
+**Livro-jogo:** P1–P3 e P6 entregues. Restam P4 (canvas SVG v2 do editor — parcialmente coberto pelo mapa mental do K2), P5 (grid por nó, dependente da Fase 14 dormente) e P7 (mais aventuras prontas — Phandelver no formato de livro-jogo).
+
+---
+
 ## 2026-07-10 — Livro-jogo P3: partilha de aventuras entre membros + limites ao iniciar
 
 **Backup antes da alteração:** `versoes/2026-07-10-p3-partilha-limites/` (HEAD de `app.py`, `aventura.js`, `mestre.html`).

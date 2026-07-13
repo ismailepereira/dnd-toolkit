@@ -116,7 +116,15 @@ Campo `gridId` no nó: cada cena de combate/assalto abre já com o seu
 mapa (posições iniciais, obstáculos). O grafo não sabe de mapas — só
 aponta. É o que falta para "cada nó com o seu tabuleiro".
 
-### P6. Loot e XP integrados à condução
+### P6. Loot e XP integrados à condução ✅
+> **✅ Entregue em 13/07/2026** — no nó de encontro da condução: botão
+> **🎲 Loot do nó** (reusa `rolarLootEncontro` da Fase 13; expande o
+> encontro numa entrada por criatura via `entradasDoEncontro`, mostra
+> ouro + itens e **💰 Dividir ouro pelo grupo**) e **🏅 Enviar XP ao
+> grupo** (XP bruto = `xpDoEncontro` = soma de `pe × qtd`, dividido
+> pelas fichas vivas → `ficha.xp`, respeitando **B2**). Itens seguem
+> distribuídos por "📦 Enviar à ficha". Ver `CHANGELOG.md`.
+
 Ao completar nó de encontro: botão "🎲 Loot do nó" (Fase 13 já cobre os
 monstros abatidos) + sugestão de XP (soma dos `pe` do encontro) com
 envio via "📦 Enviar à ficha" (respeitando a regra B2: só o Mestre dá

@@ -4,6 +4,34 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-10 — Fase 17.2: tela do Jogador enxuta (2 modos) — Fase 17 concluída
+
+**Backup antes da alteração:** `versoes/2026-07-10-fase17-2-jogador-enxuto/` (HEAD 17.1 de `jogador.html`, `jogador.js`).
+
+**Resumo:** Mesma ideia da 17.1, aplicada à tela do **jogador** (que é mais simples): as 8 abas viraram **2 modos por tarefa**:
+- **🎲 Mesa:** Minha Ficha, Combate, História, Mapa, Handouts.
+- **📖 Consultar:** NPCs, Bestiário, Progressão.
+
+Só as abas do modo atual aparecem; a barra de modos fica acima das abas. **Nada removido** — reusa o CSS de modos (`.modos/.modo-btn/.tab-oculta`) e a mesma lógica da 17.1. Cliques de aba — inclusive o **programático** ao entrar em combate (o app pula pra aba Combate) — **trazem o modo Mesa junto**.
+
+**Ficheiros:**
+- `templates/jogador.html` — `<nav class="modos">` (2 botões) + `data-mode` em cada `.tab-btn`.
+- `static/js/jogador.js` — bloco "Tabs" reescrito para "Tabs + Modos" (mesma implementação da 17.1; inicial = modo da aba ativa = Minha Ficha → Mesa).
+- (Sem mudança de CSS — reaproveita a Fase 17.1.)
+- `ROADMAP.md` — Fase 17.2 marcada como entregue.
+
+**Modelo de dados:** nenhum (só UI). Retrocompatível.
+
+**Verificação (browser real, 0 erros de console):** boot local (`USE_LOCAL_DB=1`), login do jogador. Estado inicial = **Mesa** com Minha Ficha ativa (5 abas: fichas/combate/historia/mapa/handouts). **Consultar** → 3 abas (npcs/bestiario/progressao), NPCs ativa. **Clique programático** em `[data-tab="combate"]` a partir do Consultar → voltou pro modo Mesa com Combate ativa (garante que o salto automático ao entrar em combate funciona). 2 botões de modo.
+
+**Como reverter:** restaurar `versoes/2026-07-10-fase17-2-jogador-enxuto/` ou `git revert`.
+
+**Fase 17 (UX & PWA) concluída** — 17.1 Mestre em 3 modos, 17.2 Jogador em 2 modos, 17.3 PWA instalável.
+
+**Próximo sugerido:** fora do épico de UX/Tabuleiro — P3+ do livro-jogo (partilha de aventuras, loot/XP na condução) ou segurança (loja base validada no servidor). Ou refinos opcionais 16.6 (centralizar/seguir, medir distância no tabuleiro).
+
+---
+
 ## 2026-07-10 — Fase 17.1: tela do Mestre em 3 modos (Jogar / Preparar / Consultar)
 
 **Backup antes da alteração:** `versoes/2026-07-10-fase17-1-tres-modos/` (HEAD 17.3 de `mestre.html`, `app.js`, `style.css`).

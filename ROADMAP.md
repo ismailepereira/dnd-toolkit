@@ -216,7 +216,7 @@ Virada: o grid virtual sai, entra o **Tabuleiro-imagem sem grelha**. Web-first +
 18. 🎨 **Fase 17 — UX & PWA**: reorganizar o Mestre em 3 modos (🎲 Jogar / 📝 Preparar / 📖 Consultar), enxugar a tela do jogador, e virar PWA (instalável + preparação offline).
     - ✅ **17.3** (10/07/2026) — **PWA**: `manifest.webmanifest` + ícones (192/512/maskable, 🐉) + Service Worker no escopo raiz (network-first + fallback ao cache + `offline.html`); rotas `/sw.js` e `/manifest.webmanifest`; link/registro nos templates. Instalável no celular/desktop; código sempre fresco online.
     - ✅ **17.1** (10/07/2026) — **três modos no Mestre** (🎲 Jogar / 📝 Preparar / 📖 Consultar): barra de modos + `data-mode` por aba; só as abas do modo aparecem. Jogar = aventura/combate/npcs/notas; Preparar = fichas/encontros/loja/itens/membros/geradores; Consultar = bestiário/progressão. Cliques (inclusive programáticos) trazem o modo junto; nada removido.
-    - ⏳ **17.2** — tela do jogador enxuta (ficha, mapa, handouts, dados).
+    - ✅ **17.2** (10/07/2026) — **tela do jogador enxuta** (2 modos): 🎲 Mesa (ficha/combate/história/mapa/handouts) · 📖 Consultar (npcs/bestiário/progressão). Reusa a camada de modos da 17.1. **Fase 17 concluída.**
 
 ---
 

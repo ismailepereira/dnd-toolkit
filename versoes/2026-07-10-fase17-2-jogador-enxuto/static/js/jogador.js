@@ -5,42 +5,15 @@ function escapeHtml(str) {
   return str.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-// ===== Tabs + Modos (Fase 17.2) =====
-// As abas do jogador foram agrupadas em 2 MODOS por tarefa (data-mode): só as
-// abas do modo atual aparecem. Um clique de aba — inclusive os programáticos
-// (ex.: entrar em combate → aba Combate) — traz o modo dela junto.
-(function () {
-  function ativarTab(btn) {
-    if (!btn) return;
+// ===== Tabs =====
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
     btn.classList.add('active');
-    const sec = document.getElementById(btn.dataset.tab);
-    if (sec) sec.classList.add('active');
-  }
-
-  function mostrarModo(modo) {
-    if (!modo) return;
-    document.querySelectorAll('[data-modo]').forEach(m => m.classList.toggle('on', m.dataset.modo === modo));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('tab-oculta', b.dataset.mode !== modo));
-  }
-
-  document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => {
-    if (btn.dataset.mode) mostrarModo(btn.dataset.mode);
-    ativarTab(btn);
-  }));
-
-  document.querySelectorAll('[data-modo]').forEach(m => m.addEventListener('click', () => {
-    const modo = m.dataset.modo;
-    mostrarModo(modo);
-    const ativa = document.querySelector('.tab-btn.active');
-    if (!ativa || ativa.dataset.mode !== modo) ativarTab(document.querySelector('.tab-btn[data-mode="' + modo + '"]'));
-  }));
-
-  // Estado inicial: o modo da aba marcada como ativa no HTML (Minha Ficha → Mesa).
-  const ativaInicial = document.querySelector('.tab-btn.active');
-  mostrarModo(ativaInicial && ativaInicial.dataset.mode ? ativaInicial.dataset.mode : 'mesa');
-})();
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
 
 // marca do último dado recebido em tempo real (suprime o polling quando o RT funciona)
 let ultimoRT = 0;

@@ -120,22 +120,6 @@ if (typeof module !== 'undefined' && module.exports) {
     return fetch('/api/aventuras', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(aventuras) }).catch(() => {});
   }
 
-  // P3: avisos NÃO-bloqueantes de limites ao iniciar (compara as fichas da
-  // mesa com limites.jogadoresMax / nivelMin / nivelMax da aventura).
-  async function avisosLimites(a) {
-    const lim = (a && a.limites) || {};
-    let fichas = [];
-    try { fichas = await (await fetch('/api/fichas')).json(); } catch (e) { return []; }
-    if (!Array.isArray(fichas) || !fichas.length) return [];
-    const avisos = [];
-    const n = fichas.length;
-    if (lim.jogadoresMax && n > lim.jogadoresMax) avisos.push(`A mesa tem ${n} fichas; o modelo sugere até ${lim.jogadoresMax} jogadores.`);
-    const niveis = fichas.map(f => +f.nivel || 1); // ficha.nivel = nível total do PJ
-    if (lim.nivelMin && niveis.some(v => v < lim.nivelMin)) avisos.push(`Há ficha(s) abaixo do nível mínimo sugerido (${lim.nivelMin}).`);
-    if (lim.nivelMax && niveis.some(v => v > lim.nivelMax)) avisos.push(`Há ficha(s) acima do nível máximo sugerido (${lim.nivelMax}).`);
-    return avisos;
-  }
-
   // ----- Biblioteca -----
   function renderLib() {
     lib.innerHTML = aventuras.length ? aventuras.map(a => {
@@ -171,11 +155,7 @@ if (typeof module !== 'undefined' && module.exports) {
     }));
     lib.querySelectorAll('[data-av-iniciar]').forEach(b => b.addEventListener('click', async () => {
       const a = aventuras.find(x => x.id === b.dataset.avIniciar);
-      if (!a) return;
-      const avisos = await avisosLimites(a); // P3: aviso NÃO-bloqueante de limites
-      const msg = `Iniciar "${a.titulo}" nesta campanha? (a definição é copiada — editar a biblioteca depois não muda a mesa)`
-        + (avisos.length ? `\n\n⚠️ ${avisos.join('\n⚠️ ')}\n\nIniciar mesmo assim?` : '');
-      if (!confirm(msg)) return;
+      if (!a || !confirm(`Iniciar "${a.titulo}" nesta campanha? (a definição é copiada — editar a biblioteca depois não muda a mesa)`)) return;
       const r = await fetch('/api/aventura_ativa', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ definicao: a }) });
       const d = await r.json();
       if (!r.ok || !d.ok) { alert(d.erro || 'Não foi possível iniciar.'); return; }
@@ -887,32 +867,6 @@ if (typeof module !== 'undefined' && module.exports) {
     aventuras.push(copia);
     salvarBiblioteca(); renderLib();
     alert(`"${copia.titulo}" importada para a sua biblioteca — edite à vontade, o modelo original não muda.`);
-  });
-
-  // P3: importar uma aventura da biblioteca de OUTRO MEMBRO da campanha.
-  const btnMembro = $('avImportarMembro');
-  if (btnMembro) btnMembro.addEventListener('click', async () => {
-    let info;
-    try { info = await (await fetch('/api/campanha_info')).json(); } catch (e) { alert('Não foi possível carregar os membros da campanha.'); return; }
-    const membros = (info && info.membros) || [];
-    if (!membros.length) { alert('Esta campanha não tem membros geridos (ou é legada). A partilha precisa de contas registadas na mesma campanha.'); return; }
-    const lista = membros.map((m, i) => `${i + 1}. ${m.nome} (${m.papel})`).join('\n');
-    const resp = prompt(`Importar aventura de qual membro?\n${lista}\n\nDigite o número:`, '1');
-    if (resp === null) return;
-    const membro = membros[Math.max(1, Math.min(membros.length, parseInt(resp, 10) || 1)) - 1];
-    let avs;
-    try { avs = await (await fetch('/api/aventuras/' + encodeURIComponent(membro.uid))).json(); } catch (e) { alert('Não foi possível ler a biblioteca desse membro.'); return; }
-    if (!Array.isArray(avs) || !avs.length) { alert(`${membro.nome} não tem aventuras na biblioteca.`); return; }
-    const lista2 = avs.map((a, i) => `${i + 1}. ${a.titulo || '(sem título)'} — ${(a.nos || []).length} nó(s)`).join('\n');
-    const resp2 = prompt(`Qual aventura de ${membro.nome} importar?\n${lista2}\n\nDigite o número:`, '1');
-    if (resp2 === null) return;
-    const escolhida = avs[Math.max(1, Math.min(avs.length, parseInt(resp2, 10) || 1)) - 1];
-    const copia = JSON.parse(JSON.stringify(escolhida));
-    copia.id = uidAv('av'); // id novo na SUA biblioteca (independente do original do membro)
-    copia.titulo = `${copia.titulo || 'Aventura'} (de ${membro.nome})`;
-    aventuras.push(copia);
-    salvarBiblioteca(); renderLib();
-    alert(`"${copia.titulo}" importada para a sua biblioteca — pode adaptar à vontade.`);
   });
 
   carregarTudo();

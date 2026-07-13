@@ -97,11 +97,15 @@ jogadores. (Espelhado na secção K2 do `ROADMAP-FUTURO.md`.)
 > aventura pronta do Ninho traz 6 nós com o elenco (Nighthill, Linan,
 > Cyanwrath, Leosin, Mondath, Nesim). Ver `CHANGELOG.md`.
 
-### P3. Partilha e limites
-- Mestre importa aventuras da biblioteca de MEMBROS da campanha (mesmo
-  padrão do `GET /api/banco_npc/<uid>`).
-- Validar `limites` (nº de jogadores e nível das fichas) ao iniciar,
-  com aviso não-bloqueante ("a mesa tem 6 jogadores; o modelo sugere 5").
+### P3. Partilha e limites ✅
+> **✅ Entregue em 10/07/2026** — botão **📥 De um membro** na aba Aventura:
+> `GET /api/aventuras/<uid>` (só-Mestre, valida membresia como o
+> `banco_npc/<uid>`) lê a biblioteca de um membro e o Mestre copia uma
+> aventura para a sua (id novo). E `avisosLimites` compara as fichas da
+> mesa (`ficha.nivel`) com `limites` ao **Iniciar**, mostrando avisos
+> NÃO-bloqueantes no confirm. Ver `CHANGELOG.md`.
+> Nota: a partilha precisa de campanha REGISTADA (contas com meta); em
+> campanha legada degrada com aviso "sem membros geridos".
 
 ### P4. Canvas visual (editor v2)
 Grafo desenhado em SVG puro (nós arrastáveis, setas, nó atual destacado,

@@ -1261,23 +1261,6 @@ def api_put_aventuras():
     return jsonify({'ok': True, 'total': len(lista)})
 
 
-# P3 (livro-jogo): PARTILHA — o Mestre lê a biblioteca de aventuras de um
-# MEMBRO da campanha ativa para importar (copiar) uma. Mesmo princípio de
-# validação de membresia do /api/banco_npc/<uid>: só-Mestre e só de quem
-# participa desta campanha.
-@app.route('/api/aventuras/<uid_alvo>', methods=['GET'])
-@login_obrigatorio(papeis=['mestre'])
-def api_get_aventuras_membro(uid_alvo):
-    cid = campanha_atual()
-    meta = carregar_campanhas_meta().get(cid)
-    if not meta:
-        return jsonify({'ok': False, 'erro': 'campanha legada não tem membros geridos'}), 400
-    permitidos = set((meta.get('membros') or {}).keys()) | {meta.get('mestreUid')}
-    if uid_alvo not in permitidos:
-        return jsonify({'ok': False, 'erro': 'esse utilizador não é membro desta campanha'}), 403
-    return jsonify(carregar_aventuras(uid_alvo))
-
-
 def _no_da_aventura(definicao, no_id):
     return next((n for n in (definicao or {}).get('nos', []) if n.get('id') == no_id), None)
 

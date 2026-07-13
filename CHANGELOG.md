@@ -4,6 +4,30 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-10 — Livro-jogo P3: partilha de aventuras entre membros + limites ao iniciar
+
+**Backup antes da alteração:** `versoes/2026-07-10-p3-partilha-limites/` (HEAD de `app.py`, `aventura.js`, `mestre.html`).
+
+**Resumo:** Dois refinos do motor de livro-jogo (P3 do `docs/LIVRO-JOGO.md`):
+- **Partilha:** o Mestre pode **importar uma aventura da biblioteca de outro membro** da campanha. Botão **📥 De um membro** na aba Aventura → escolhe o membro → escolhe a aventura dele → copia para a própria biblioteca (id novo, título "… (de Fulano)"), independente do original. Mesma validação de membresia do `GET /api/banco_npc/<uid>` (só-Mestre, só membros da campanha ativa).
+- **Limites ao iniciar (aviso NÃO-bloqueante):** ao clicar **▶ Iniciar**, o app compara as fichas da mesa com `limites` da aventura e, se houver divergência, mostra os avisos no confirm ("A mesa tem 3 fichas; o modelo sugere até 2 jogadores.", "Há ficha(s) abaixo/acima do nível sugerido") + "Iniciar mesmo assim?". O Mestre decide — nada é bloqueado.
+
+**Ficheiros:**
+- `app.py` — novo endpoint **`GET /api/aventuras/<uid_alvo>`** (só-Mestre; valida que o alvo é membro da campanha ativa; espelha `banco_npc/<uid>`).
+- `static/js/aventura.js` — `avisosLimites(a)` (compara `/api/fichas` com `limites`; usa `ficha.nivel` = nível total) chamado no handler de Iniciar; handler do botão **📥 De um membro** (`campanha_info` → membros → `aventuras/<uid>` → copiar).
+- `templates/mestre.html` — botão `#avImportarMembro` ao lado de "📚 Importar modelo".
+- `docs/LIVRO-JOGO.md` — P3 marcado como entregue.
+
+**Modelo de dados:** nenhum novo (usa `aventuras/<uid>`, `limites` e `ficha.nivel` existentes). Retrocompatível.
+
+**Verificação (browser real + curl, 0 erros de console):** boot local (`USE_LOCAL_DB=1`, estado restaurado do backup). **Endpoint:** Mestre legado → 400 "campanha legada" (sem meta); jogador → barrado (mestre-only). **Limites:** com 3 fichas (níveis 1/7/3) e uma aventura `limites:{jogadoresMax:2,nivelMin:3,nivelMax:5}`, o confirm de Iniciar trouxe os **3 avisos** corretos + "Iniciar mesmo assim?" (capturado sobrescrevendo `window.confirm`). **Partilha:** o botão 📥 existe e, em campanha legada, degrada com alerta "sem membros geridos". O happy-path (importar de um membro real) exige campanha **registrada** com membros — não exercível no modo legado local, mas o endpoint espelha o `banco_npc/<uid>` já testado.
+
+**Como reverter:** restaurar `versoes/2026-07-10-p3-partilha-limites/` ou `git revert`.
+
+**Próximo (livro-jogo):** P6 — Loot e XP integrados à condução (botão "🎲 Loot do nó" + sugestão de XP pela soma dos `pe` do encontro, enviada via "📦 Enviar à ficha").
+
+---
+
 ## 2026-07-10 — Fase 17.2: tela do Jogador enxuta (2 modos) — Fase 17 concluída
 
 **Backup antes da alteração:** `versoes/2026-07-10-fase17-2-jogador-enxuto/` (HEAD 17.1 de `jogador.html`, `jogador.js`).

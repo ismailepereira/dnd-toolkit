@@ -4,6 +4,28 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-13 — Fase 13 (contínuo): tabelas de loot em +12 monstros
+
+**Backup antes da alteração:** `versoes/2026-07-13-fase13-loot-monstros/` (HEAD de `monstros.js`).
+
+**Resumo:** Trabalho contínuo da Fase 13 (loot por monstro), reforçando o P6 recém-entregue (🎲 Loot do nó) — agora mais encontros deixam tesouro temático em vez de só cair na tabela genérica por ND. **12 monstros** ganharam `loot` próprio (de 20 → **32 de 59** com loot):
+- **Humanoides de combate:** Guarda, Batedor (Scout), Veterano, Berserker, Sacerdote (Priest), Mago (Mage), Gnoll — moedas + equipamento/pergaminhos/gemas coerentes com o papel.
+- **Chefe de Phandelver:** Mago Drow (Nezznar) com `itensGarantidos` (Mapa para a Caverna do Eco das Ondas + Bastão de aranhas) — sempre soltos, servem de gancho.
+- **Mortos-vivos:** Wight, Múmia — bens funerários (anéis, objetos de arte, escaravelhos).
+- **Icônicos:** Ursaco (Owlbear) e Trol (Troll) — bugigangas/gemas "engolidas" no ninho/estômago.
+
+**Ficheiros:** `static/js/monstros.js` (campo `loot` em 12 entradas; só dados, nada de lógica).
+
+**Modelo de dados:** nenhum novo (usa o `loot` já consumido por `loot.js`/`rolarLoot`). Retrocompatível.
+
+**Verificação (Node):** `node --check` OK; rolagens de amostra com `rolarLoot`/`rolarLootEncontro` — Nezznar solta os 2 itens garantidos de forma confiável; Veterano/Mago/Múmia/Wight dão ouro+itens dentro da faixa; encontro misto (Kobold+Cultista+Gnoll) soma corretamente.
+
+**Como reverter:** restaurar `versoes/2026-07-13-fase13-loot-monstros/` ou `git revert`.
+
+**Restam sem loot próprio:** 27 monstros (sobretudo feras e alguns elementais/constructos) — seguem na tabela genérica por ND; ir preenchendo conforme aparecem nas mesas.
+
+---
+
 ## 2026-07-13 — Livro-jogo P6: Loot e XP integrados à condução
 
 **Backup antes da alteração:** `versoes/2026-07-13-p6-loot-xp-conducao/` (HEAD de `aventura.js`).

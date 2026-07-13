@@ -111,6 +111,7 @@ const MONSTROS = [
   },
   {
     nome: 'Guarda', categoria: 'Humanoide',
+    loot: { ouroFormula: '2d6', tabela: [{ item: null, peso: 45 }, { item: 'Lança', peso: 20, qtd: 1 }, { item: 'Ração de viagem', peso: 15, qtd: 1 }, { item: 'Insígnia da guarda', peso: 12, qtd: 1 }, { item: 'Chave de ferro (de algum portão?)', peso: 8, qtd: 1 }] },
     tipo: 'Humanoide médio (qualquer raça), qualquer alinhamento',
     ca: '16 (cota de malha, escudo)', hp: '11 (2d8+2)', velocidade: '9m',
     atributos: { for: 13, des: 12, con: 12, int: 10, sab: 11, car: 10 },
@@ -120,6 +121,7 @@ const MONSTROS = [
   },
   {
     nome: 'Batedor (Scout)', categoria: 'Humanoide',
+    loot: { ouroFormula: '3d6', tabela: [{ item: null, peso: 40 }, { item: 'Flechas (10)', peso: 20, qtd: 1 }, { item: 'Ração de viagem', peso: 15, qtd: 2 }, { item: 'Mapa rabiscado da região', peso: 15, qtd: 1 }, { item: 'Pedra semipreciosa (10 po)', peso: 10, qtd: 1 }] },
     tipo: 'Humanoide médio (qualquer raça), qualquer alinhamento',
     ca: '13 (armadura de couro)', hp: '16 (3d8+3)', velocidade: '9m',
     atributos: { for: 11, des: 14, con: 12, int: 11, sab: 13, car: 11 },
@@ -134,6 +136,7 @@ const MONSTROS = [
   },
   {
     nome: 'Veterano', categoria: 'Humanoide',
+    loot: { ouroFormula: '4d6+10', tabela: [{ item: null, peso: 35 }, { item: 'Espada longa', peso: 18, qtd: 1 }, { item: 'Poção de Cura', peso: 15, qtd: 1 }, { item: 'Gema (50 po)', peso: 12, qtd: 1 }, { item: 'Estatueta de marfim (25 po)', peso: 12, qtd: 1 }, { item: 'Insígnia de mercenário', peso: 8, qtd: 1 }] },
     tipo: 'Humanoide médio (qualquer raça), qualquer alinhamento',
     ca: '17 (cota de placas)', hp: '58 (9d8+18)', velocidade: '9m',
     atributos: { for: 16, des: 13, con: 14, int: 10, sab: 11, car: 10 },
@@ -147,6 +150,7 @@ const MONSTROS = [
   },
   {
     nome: 'Berserker', categoria: 'Humanoide',
+    loot: { ouroFormula: '2d6', tabela: [{ item: null, peso: 45 }, { item: 'Machado grande', peso: 20, qtd: 1 }, { item: 'Amuleto tribal de osso', peso: 18, qtd: 1 }, { item: 'Pele de urso (troféu)', peso: 12, qtd: 1 }, { item: 'Pedra semipreciosa (10 po)', peso: 5, qtd: 1 }] },
     tipo: 'Humanoide médio (qualquer raça), qualquer alinhamento caótico',
     ca: '13 (peles)', hp: '67 (9d8+27)', velocidade: '9m',
     atributos: { for: 16, des: 12, con: 17, int: 9, sab: 11, car: 9 },
@@ -168,6 +172,7 @@ const MONSTROS = [
   },
   {
     nome: 'Sacerdote (Priest)', categoria: 'Humanoide',
+    loot: { ouroFormula: '3d6+10', tabela: [{ item: null, peso: 35 }, { item: 'Símbolo sagrado (prata)', peso: 18, qtd: 1 }, { item: 'Poção de Cura', peso: 16, qtd: 1 }, { item: 'Incenso e vela ritual', peso: 12, qtd: 1 }, { item: 'Pergaminho de magia (1º círculo)', peso: 10, qtd: 1 }, { item: 'Objeto de arte (25 po)', peso: 9, qtd: 1 }] },
     tipo: 'Humanoide médio (qualquer raça), qualquer alinhamento',
     ca: '13 (camisão de malha)', hp: '27 (5d8+5)', velocidade: '7,5m',
     atributos: { for: 10, des: 10, con: 12, int: 13, sab: 16, car: 13 },
@@ -179,6 +184,7 @@ const MONSTROS = [
   },
   {
     nome: 'Mago (Mage)', categoria: 'Humanoide',
+    loot: { ouroFormula: '4d6+20', tabela: [{ item: null, peso: 30 }, { item: 'Pergaminho de magia (2º círculo)', peso: 18, qtd: 1 }, { item: 'Componentes de magia (bolsa)', peso: 15, qtd: 1 }, { item: 'Poção de Cura', peso: 12, qtd: 1 }, { item: 'Gema (50 po)', peso: 12, qtd: 1 }, { item: 'Pergaminho de magia (3º círculo)', peso: 8, qtd: 1 }, { item: 'Livro de anotações arcanas', peso: 5, qtd: 1 }] },
     tipo: 'Humanoide médio (qualquer raça), qualquer alinhamento',
     ca: '12 (15 com Armadura do Mago)', hp: '40 (9d8)', velocidade: '9m',
     atributos: { for: 9, des: 14, con: 11, int: 17, sab: 12, car: 11 },
@@ -222,6 +228,7 @@ const MONSTROS = [
   },
   {
     nome: 'Gnoll', categoria: 'Humanoide',
+    loot: { ouroFormula: '2d6', tabela: [{ item: null, peso: 45 }, { item: 'Lança', peso: 20, qtd: 1 }, { item: 'Colar macabro de dentes', peso: 18, qtd: 1 }, { item: 'Carne seca (duvidosa)', peso: 12, qtd: 1 }, { item: 'Pedra semipreciosa (10 po)', peso: 5, qtd: 1 }] },
     tipo: 'Humanoide médio (gnoll), caótico e mau',
     ca: '15 (armadura de peles, escudo)', hp: '22 (5d8)', velocidade: '9m',
     atributos: { for: 14, des: 12, con: 11, int: 6, sab: 10, car: 7 },
@@ -236,6 +243,7 @@ const MONSTROS = [
   },
   {
     nome: 'Mago Drow (Nezznar - chefe de Phandelver)', categoria: 'Humanoide',
+    loot: { ouroFormula: '2d8+50', itensGarantidos: ['Mapa para a Caverna do Eco das Ondas', 'Bastão de aranhas (foco arcano)'], tabela: [{ item: 'Gema (50 po)', peso: 30, qtd: 2 }, { item: 'Poção de Cura', peso: 22, qtd: 1 }, { item: 'Pergaminho de magia (3º círculo)', peso: 18, qtd: 1 }, { item: 'Anotações do Culto do Dragão / Aranha Negra', peso: 18, qtd: 1 }, { item: 'Objeto de arte (250 po)', peso: 12, qtd: 1 }] },
     tipo: 'Humanoide médio (elfo), neutro e mau',
     ca: '12 (15 com Armadura Mágica)', hp: '49 (9d8+9)', velocidade: '9m',
     atributos: { for: 9, des: 14, con: 13, int: 17, sab: 12, car: 11 },
@@ -308,6 +316,7 @@ const MONSTROS = [
   },
   {
     nome: 'Ursaco (Owlbear)', categoria: 'Monstruosidade',
+    loot: { ouroFormula: '1d6', tabela: [{ item: null, peso: 55 }, { item: 'Pena/garra de ursaco (troféu)', peso: 22, qtd: 1 }, { item: 'Gema (50 po) — engolida no ninho', peso: 13, qtd: 1 }, { item: 'Restos de aventureiro anterior', peso: 10, qtd: 1 }] },
     tipo: 'Monstruosidade grande, sem alinhamento',
     ca: '13 (armadura natural)', hp: '59 (7d10+21)', velocidade: '12m',
     atributos: { for: 20, des: 12, con: 17, int: 3, sab: 12, car: 7 },
@@ -390,6 +399,7 @@ const MONSTROS = [
   },
   {
     nome: 'Wight', categoria: 'Morto-vivo',
+    loot: { ouroFormula: '3d6+10', tabela: [{ item: null, peso: 35 }, { item: 'Anel antigo (25 po)', peso: 18, qtd: 1 }, { item: 'Arma enferrujada mas afiada', peso: 15, qtd: 1 }, { item: 'Gema (50 po)', peso: 14, qtd: 1 }, { item: 'Objeto de arte funerário (250 po)', peso: 10, qtd: 1 }, { item: 'Chave-relíquia da tumba', peso: 8, qtd: 1 }] },
     tipo: 'Morto-vivo médio, neutro e mau',
     ca: '14 (armadura de couro batido)', hp: '45 (6d8+18)', velocidade: '9m',
     atributos: { for: 15, des: 14, con: 16, int: 10, sab: 13, car: 15 },
@@ -403,6 +413,7 @@ const MONSTROS = [
   },
   {
     nome: 'Múmia', categoria: 'Morto-vivo',
+    loot: { ouroFormula: '4d6+20', tabela: [{ item: null, peso: 30 }, { item: 'Amuleto cerimonial (100 po)', peso: 18, qtd: 1 }, { item: 'Objeto de arte funerário (250 po)', peso: 16, qtd: 1 }, { item: 'Poção de Cura Maior', peso: 12, qtd: 1 }, { item: 'Escaravelho de gema (50 po)', peso: 14, qtd: 2 }, { item: 'Papiro com maldição/oração antiga', peso: 10, qtd: 1 }] },
     tipo: 'Morto-vivo médio, leal e mau',
     ca: '11 (armadura natural)', hp: '58 (9d8+18)', velocidade: '6m',
     atributos: { for: 16, des: 8, con: 15, int: 6, sab: 10, car: 12 },
@@ -444,6 +455,7 @@ const MONSTROS = [
   },
   {
     nome: 'Trol (Troll)', categoria: 'Gigante',
+    loot: { ouroFormula: '4d6+20', tabela: [{ item: null, peso: 35 }, { item: 'Bugigangas engolidas (fivelas, botões)', peso: 20, qtd: 1 }, { item: 'Gema (50 po) — no estômago', peso: 15, qtd: 1 }, { item: 'Poção de Cura', peso: 14, qtd: 1 }, { item: 'Objeto de arte (250 po)', peso: 10, qtd: 1 }, { item: 'Poção de Cura Maior', peso: 6, qtd: 1 }] },
     tipo: 'Gigante grande, caótico e mau',
     ca: '15 (armadura natural)', hp: '84 (8d10+40)', velocidade: '9m',
     atributos: { for: 18, des: 13, con: 20, int: 7, sab: 9, car: 7 },

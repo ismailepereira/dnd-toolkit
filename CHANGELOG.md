@@ -4,6 +4,32 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-10 — Fase 17.1: tela do Mestre em 3 modos (Jogar / Preparar / Consultar)
+
+**Backup antes da alteração:** `versoes/2026-07-10-fase17-1-tres-modos/` (HEAD 17.3 de `mestre.html`, `app.js`, `style.css`).
+
+**Resumo:** As **~12 abas** lado a lado do Mestre viraram **3 modos por tarefa**, reduzindo o que aparece de uma vez:
+- **🎲 Jogar (Mesa):** Aventura (condução + tabuleiro), Combate, NPCs, Notas.
+- **📝 Preparar:** Fichas, Encontros, Loja, Itens Mágicos, Membros, Geradores.
+- **📖 Consultar:** Bestiário, Progressão.
+
+Uma barra de modos aparece acima das abas; ao escolher um modo, só as abas dele ficam visíveis e a primeira é ativada. **Nada foi removido** — todas as seções e a lógica de abas continuam iguais; só ganharam uma camada de filtro. Um clique de aba — **inclusive os programáticos** (ex.: "lançar encontro do ambiente" → Combate; "lançar encontro" da condução → Combate) — **traz o modo dela junto**, então a navegação existente não quebra.
+
+**Ficheiros:**
+- `templates/mestre.html` — nova `<nav class="modos">` (3 botões) + `data-mode` em cada `.tab-btn` (mapeando aba→modo).
+- `static/js/app.js` — bloco "Tabs" reescrito para "Tabs + Modos": `ativarTab`/`mostrarModo`; clique de aba aplica o modo dela; clique de modo mostra o grupo e ativa a 1ª aba; estado inicial = modo da aba ativa no HTML (Fichas → Preparar).
+- `static/css/style.css` — `.modos`/`.modo-btn`/`.modo-btn.on` (controle segmentado) + `.tab-oculta { display:none }`.
+
+**Modelo de dados:** nenhum (só UI). Retrocompatível.
+
+**Verificação (browser real, 0 erros de console):** boot local (`USE_LOCAL_DB=1`). Estado inicial = **Preparar** com Fichas ativa (6 abas visíveis: fichas/encontros/loja/itensMagicos/membros/geradores; 6 ocultas). **Jogar** → 4 abas (combate/npcs/aventura/notas), Combate ativa. **Consultar** → 2 abas (progressão/bestiário). **Clique programático** em `[data-tab="bestiario"]` a partir de outro modo → o modo Consultar veio junto e a aba ficou visível/ativa (garante que os `.click()` automáticos não deixam aba escondida). 3 botões de modo.
+
+**Como reverter:** restaurar `versoes/2026-07-10-fase17-1-tres-modos/` ou `git revert`.
+
+**Próximo (Fase 17):** 17.2 — enxugar a tela do jogador (ficha, mapa, handouts, dados). Depois disso a Fase 17 fecha (17.3 PWA já entregue).
+
+---
+
 ## 2026-07-10 — Fase 17.3: PWA (instalável + offline básico)
 
 **Backup antes da alteração:** `versoes/2026-07-10-fase17-3-pwa/` (HEAD 16.5 de `app.py` + templates `mestre/jogador/login/campanhas`).

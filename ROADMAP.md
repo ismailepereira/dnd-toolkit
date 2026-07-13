@@ -215,7 +215,7 @@ Virada: o grid virtual sai, entra o **Tabuleiro-imagem sem grelha**. Web-first +
     - ✅ **16.5** (10/07/2026) — **toque** (arrasto reescrito em Pointer Events + `touch-action`, funciona no celular), **travar jogadores** (`tabuleiro.travado`, servidor bloqueia move de não-Mestre), **redimensionar token** (Mestre seleciona e usa 🔎−/🔎＋; `tam` por token, só-Mestre) e **remover** monstro pela barra do selecionado. Ficaram de fora (dependem de zoom/pan): centralizar/seguir e medir distância → viram 16.6 se precisar. **Fase 16 concluída.**
 18. 🎨 **Fase 17 — UX & PWA**: reorganizar o Mestre em 3 modos (🎲 Jogar / 📝 Preparar / 📖 Consultar), enxugar a tela do jogador, e virar PWA (instalável + preparação offline).
     - ✅ **17.3** (10/07/2026) — **PWA**: `manifest.webmanifest` + ícones (192/512/maskable, 🐉) + Service Worker no escopo raiz (network-first + fallback ao cache + `offline.html`); rotas `/sw.js` e `/manifest.webmanifest`; link/registro nos templates. Instalável no celular/desktop; código sempre fresco online.
-    - ⏳ **17.1** — três modos no Mestre (🎲 Jogar / 📝 Preparar / 📖 Consultar) — as ~12 abas viram sub-itens por tarefa.
+    - ✅ **17.1** (10/07/2026) — **três modos no Mestre** (🎲 Jogar / 📝 Preparar / 📖 Consultar): barra de modos + `data-mode` por aba; só as abas do modo aparecem. Jogar = aventura/combate/npcs/notas; Preparar = fichas/encontros/loja/itens/membros/geradores; Consultar = bestiário/progressão. Cliques (inclusive programáticos) trazem o modo junto; nada removido.
     - ⏳ **17.2** — tela do jogador enxuta (ficha, mapa, handouts, dados).
 
 ---

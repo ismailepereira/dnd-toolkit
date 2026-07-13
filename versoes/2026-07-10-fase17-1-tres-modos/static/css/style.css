@@ -96,26 +96,12 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 2px 8px rgba(233, 69, 96, 0.3);
 }
 
-/* Fase 17.1: barra de MODOS (agrupa as abas por tarefa) */
-.modos { display: flex; gap: 6px; margin-top: 12px; }
-.modo-btn {
-  flex: 1 1 0; max-width: 240px; text-align: center;
-  background: var(--bg-card); color: var(--text-dim);
-  border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 9px 14px; cursor: pointer; font-size: 1rem; font-weight: 600;
-  font-family: var(--font-body); transition: var(--transition);
-}
-.modo-btn:hover { color: var(--text); border-color: rgba(255, 255, 255, 0.2); }
-.modo-btn.on { background: var(--accent-grad); color: #fff; border-color: transparent; box-shadow: var(--shadow-glow); }
-.tab-oculta { display: none !important; }
-
 .tabs {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 12px;
 }
-.modos + .tabs { margin-top: 8px; }
 
 .tab-btn {
   background: var(--bg-card);

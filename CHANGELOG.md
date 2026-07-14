@@ -4,6 +4,24 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-13 — Livro-jogo P7: 2ª one-shot original ("O Comboio de Sal")
+
+**Backup antes da alteração:** `versoes/2026-07-13-p7-oneshot-comboio/` (HEAD de `aventurasprontas.js`, já com a 1ª one-shot).
+
+**Resumo:** Segunda aventura pronta original (P7), de **tom deliberadamente diferente** da Cripta para dar variedade ao material de demonstração: uma aventura SELVAGEM de escolta/emboscada, sem mortos-vivos. **O Comboio de Sal** (`modelo_comboio_de_sal`): 13 nós, nível 1-3, até 5 jogadores.
+- Escoltar a carroça de sal do mercador ganancioso Halden pela estrada da Fenda; 4 aberturas de tom (batedores / dia cauteloso / noite mortal 💀 / recusar a rota 🚧).
+- **Escolha moral sem resposta certa:** os "bandidos" são refugiados famintos liderados pelo ex-soldado Bram — partilhar o sal dá guia seguro + aliados mas reduz a paga; entregá-los agrada a Halden mas tira o aviso do ninho (os PJs entram na garganta em desvantagem).
+- Clímax na garganta cheia de teias (Aranha Gigante) até o guardião do ninho (Ursaco/Owlbear); 1 vitória, 1 derrota clemente e 2 becos/mortes sinalizados.
+- **Monstros:** só nomes exatos do bestiário (Bandido, Lobo, Aranha Gigante, Ursaco) — todos com `loot` (Fase 13).
+
+**Ficheiros:** `static/js/aventurasprontas.js` (2ª entrada nova); `docs/LIVRO-JOGO.md` (P7 com as duas one-shots). Biblioteca de modelos: agora **4** (Ninho, Phandelver Cap.1, Cripta, Comboio).
+
+**Verificação (Node):** `node --check` OK; `validarAventura` das duas one-shots → **0 erros, 0 avisos**; todos os monstros de encontro existem em `MONSTROS`; 0 caracteres não-latinos.
+
+**Como reverter:** restaurar `versoes/2026-07-13-p7-oneshot-comboio/` ou `git revert`.
+
+---
+
 ## 2026-07-13 — Livro-jogo P7: 1ª one-shot original ("A Cripta do Sino Silencioso")
 
 **Backup antes da alteração:** `versoes/2026-07-13-p7-oneshot-cripta/` (HEAD de `aventurasprontas.js`).

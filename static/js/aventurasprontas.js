@@ -560,6 +560,128 @@ const AVENTURAS_PRONTAS = [
       },
     ],
   },
+  // =====================================================================
+  // ONE-SHOT ORIGINAL Nº2 (P7) — aventura SELVAGEM de escolta/emboscada,
+  // sem mortos-vivos, para variar o tom do material de demonstração.
+  // Conteúdo próprio. 14 nós, nível 1-3. Escolha moral: os "bandidos"
+  // são refugiados desesperados. Monstros: nomes exatos do bestiário.
+  // =====================================================================
+  {
+    id: 'modelo_comboio_de_sal',
+    titulo: 'O Comboio de Sal (one-shot)',
+    limites: { jogadoresMax: 5, nivelMin: 1, nivelMax: 3 },
+    noInicial: 'cs_inicio',
+    nos: [
+      {
+        id: 'cs_inicio', titulo: 'A estrada da Fenda', tipo: 'narracao',
+        narracao: 'O mercador Halden contrata-vos para escoltar a sua carroça de sal pela estrada da Fenda, um desfiladeiro estreito entre penhascos. "Poucas moedas, mas a viagem é curta", diz ele, contando o cofre com olhos gulosos. Ao longe, urubus giram sobre a garganta do desfiladeiro.',
+        notasMestre: 'Gancho de escolta. Halden é ganancioso e trata mal quem cruza o caminho dele — plantar isso agora paga na escolha moral. Todos os caminhos convergem para a Fenda; os urubus antecipam o ninho.',
+        encontro: [], saidas: [
+          { para: 'cs_batedor', rotulo: 'Enviar batedores à frente', aviso: '' },
+          { para: 'cs_dia', rotulo: 'Viajar de dia, com cautela', aviso: '' },
+          { para: 'cs_noite', rotulo: 'Atravessar a Fenda à noite para ganhar tempo', aviso: 'mortal' },
+          { para: 'cs_recusar', rotulo: 'Recusar a Fenda e pegar a estrada longa e segura', aviso: 'beco' },
+        ],
+      },
+      {
+        id: 'cs_batedor', titulo: 'Sinais na trilha', tipo: 'social',
+        narracao: 'Adiante, rastros contam duas histórias: pegadas humanas magras e descalças convergindo para um acampamento improvisado — e, mais fundo na garganta, fios de teia grossa cobrindo as pedras. Percepção CD 12 revela ambos.',
+        notasMestre: 'Recompensa a cautela: quem batedor sabe que a "emboscada" é gente faminta e que a Fenda tem um ninho de aranhas. Isso permite escolher a rota com informação.',
+        encontro: [], saidas: [
+          { para: 'cs_emboscada', rotulo: 'Ir ao acampamento dos suspeitos', aviso: '' },
+          { para: 'cs_ravina', rotulo: 'Evitar o acampamento e cruzar a garganta', aviso: '' },
+        ],
+      },
+      {
+        id: 'cs_dia', titulo: 'Marcha cautelosa', tipo: 'narracao',
+        narracao: 'A carroça range pela estrada sob o sol. Halden resmunga a cada parada. Ao dobrar uma curva de pedra, figuras esfarrapadas bloqueiam o caminho com paus e uma velha espada.',
+        notasMestre: 'Leva à emboscada em condições justas (dia, PJs alertas). Deixe claro que os assaltantes tremem de fome, não de fúria.',
+        encontro: [], saidas: [
+          { para: 'cs_emboscada', rotulo: 'Encarar os que bloqueiam a estrada', aviso: '' },
+        ],
+      },
+      {
+        id: 'cs_noite', titulo: 'A garganta às escuras', tipo: 'final', resultado: 'derrota',
+        narracao: 'À noite, a Fenda é uma armadilha. As rodas prendem nas teias que vocês não veem, e da escuridão descem as patas. Cercados sem luz nem espaço, a carroça de sal vira um túmulo.',
+        notasMestre: 'Beco mortal sinalizado. Clemência opcional: em vez de TPK, os PJs perdem a carroça e acordam feridos ao amanhecer, presos na garganta — podem recomeçar do nó inicial, agora respeitando o desfiladeiro.',
+        encontro: [], saidas: [],
+      },
+      {
+        id: 'cs_emboscada', titulo: 'Os que bloqueiam a estrada', tipo: 'encontro',
+        narracao: 'Eles atacam mal, com armas improvisadas e dois cães magros ao lado. Não lutam como bandidos treinados — lutam como quem não tem mais nada a perder.',
+        notasMestre: 'Combate propositalmente vencível. Ao primeiro ferido grave (ou moral CD 10), um deles ergue as mãos e implora — leva ao nó do parlamento. Se os PJs abaterem todos sem piedade, saltam direto para a garganta, sem o aviso do ninho.',
+        encontro: [{ nome: 'Bandido', qtd: 3 }, { nome: 'Lobo', qtd: 2 }],
+        saidas: [
+          { para: 'cs_parlei', rotulo: 'Aceitar a rendição e ouvir', aviso: '' },
+          { para: 'cs_ravina', rotulo: 'Terminar a luta e seguir para a garganta', aviso: '' },
+        ],
+      },
+      {
+        id: 'cs_parlei', titulo: 'Fome, não malícia', tipo: 'social',
+        npcs: [{ nome: 'Sargento Bram', tipo: 'neutro', descricao: 'Ex-soldado de ombros largos que lidera um punhado de camponeses expulsos da própria aldeia pela seca.', notasPrivadas: 'Sabe o caminho seguro pela borda da garganta e avisa do ninho de aranhas — se tratado com dignidade. Se humilhado ou entregue a Halden, essa ajuda se perde.' }],
+        narracao: 'O líder, um ex-soldado chamado Bram, larga a espada: "Não queremos a vossa vida, só comida. A aldeia expulsou-nos na seca. O gordo da carroça? Foi ele quem comprou as nossas terras por um punhado de sal." Halden cospe: "Ladrões! Matem-nos e sigam!"',
+        notasMestre: 'ESCOLHA MORAL sem resposta certa: dividir o sal/comida enfurece Halden (menos paga), mas Bram guia-vos com segurança e avisa do ninho; entregar os refugiados agrada ao mercador, mas vocês entram na garganta às cegas. Não recompense nem puna — deixe a mesa carregar a decisão.',
+        encontro: [], saidas: [
+          { para: 'cs_ajudar', rotulo: 'Partilhar o sal e a comida com os refugiados', aviso: '' },
+          { para: 'cs_entregar', rotulo: 'Expulsá-los e agradar a Halden', aviso: '' },
+          { para: 'cs_ravina', rotulo: 'Ignorar tudo e apenas cruzar a garganta', aviso: '' },
+        ],
+      },
+      {
+        id: 'cs_ajudar', titulo: 'Pão partido', tipo: 'narracao',
+        narracao: 'Vocês abrem um saco de sal e o pouco que têm. Halden esperneia, mas Bram aperta-vos o braço: "Há uma borda alta que passa por cima do ninho. Sigam-me — e cuidado com as teias." Dois dos refugiados pegam em lanças para ajudar.',
+        notasMestre: 'Recompensa narrativa: vantagem na garganta (aproximação pela borda) e 1-2 aliados fracos no combate seguinte. Halden reduz a paga, mas a mesa ganhou uma comunidade grata (gancho de campanha).',
+        encontro: [], saidas: [
+          { para: 'cs_ravina', rotulo: 'Seguir Bram até a garganta', aviso: '' },
+        ],
+      },
+      {
+        id: 'cs_entregar', titulo: 'O sorriso de Halden', tipo: 'narracao',
+        narracao: 'Vocês afugentam os refugiados a golpes de cabo. Halden ri e promete uma moeda extra. Bram, ao recuar, apenas diz: "Que a garganta seja mais piedosa que vocês." Só ao entrar nas sombras da Fenda percebem que ninguém vos avisou do que espera lá dentro.',
+        notasMestre: 'Custo escondido: sem o aviso de Bram, a garganta começa em desvantagem (surpresa das aranhas). Halden paga mais — se sobreviverem para receber.',
+        encontro: [], saidas: [
+          { para: 'cs_ravina', rotulo: 'Entrar na garganta sem guia', aviso: '' },
+        ],
+      },
+      {
+        id: 'cs_ravina', titulo: 'A garganta das teias', tipo: 'encontro',
+        narracao: 'As paredes do desfiladeiro se fecham e o sol some atrás de um teto de teias. Formas peludas do tamanho de cães descem pelos fios, patas testando o ar em vossa direção.',
+        notasMestre: 'Quem veio pela borda (ajudou Bram) ataca de posição alta (vantagem); quem entrou às cegas (entregou os refugiados) pode ser surpreendido na 1ª rodada. Após a luta, um rugido ecoa do fundo — o guardião do ninho.',
+        encontro: [{ nome: 'Aranha Gigante', qtd: 2 }],
+        saidas: [
+          { para: 'cs_ninho', rotulo: 'Avançar até o fundo da garganta', aviso: '' },
+        ],
+      },
+      {
+        id: 'cs_ninho', titulo: 'O dono da Fenda', tipo: 'encontro',
+        narracao: 'No fundo, entre casulos e ossos, ergue-se a fera que reina na garganta: um ursaco de olhos redondos e bico manchado, faminto e territorial. Entre vocês e a saída do desfiladeiro, só ele.',
+        notasMestre: 'Combate-clímax. O ursaco é bruto mas burro — terreno e flanqueamento decidem. Se os PJs têm aliados de Bram, agora fazem diferença. Vencer aqui abre a saída e conclui a escolta.',
+        encontro: [{ nome: 'Ursaco (Owlbear)', qtd: 1 }],
+        saidas: [
+          { para: 'cs_vitoria', rotulo: 'Derrubar a fera e furar a garganta', aviso: '' },
+          { para: 'cs_derrota', rotulo: 'Ser esmagado no fundo do desfiladeiro', aviso: 'mortal' },
+        ],
+      },
+      {
+        id: 'cs_vitoria', titulo: 'Do outro lado da Fenda', tipo: 'final', resultado: 'vitoria',
+        narracao: 'A carroça de sal emerge da garganta sob o sol do fim de tarde, intacta. Halden paga o combinado a contragosto. Se vocês pouparam os refugiados, Bram e a sua gente esperam na saída com água e pão — e a promessa de um lar amigo na estrada. Se não, seguem sozinhos, mais ricos e mais frios.',
+        notasMestre: 'Vitória. Recompensas: paga de Halden (mais alta se entregaram os refugiados, mais baixa se os ajudaram) + loot das aranhas e do ursaco (Fase 13). XP sugerido: subir de nível. A comunidade de Bram vira base amiga se merecida.',
+        encontro: [], saidas: [],
+      },
+      {
+        id: 'cs_derrota', titulo: 'Sal e ossos', tipo: 'final', resultado: 'derrota',
+        narracao: 'A fera é rápida demais no espaço apertado. Um a um vocês caem entre os casulos, e a garganta reclama mais uma carroça para os seus ossos.',
+        notasMestre: 'Alternativa clemente: em vez de morte, os PJs são arrastados inconscientes para um casulo e acordam à noite — podem cortar-se para fora (Ladinagem/Força) e escapar sem a carga, retomando do nó inicial mais sábios.',
+        encontro: [], saidas: [],
+      },
+      {
+        id: 'cs_recusar', titulo: 'A estrada longa', tipo: 'final', resultado: 'neutro',
+        narracao: 'Vocês recusam a Fenda e aconselham a estrada longa. Halden, furioso com a demora, contrata outros e parte sem vocês pela garganta. Semanas depois, ninguém em lugar nenhum voltou a ver o mercador de sal — nem a carroça.',
+        notasMestre: 'Beco de prudência excessiva: sem risco, sem recompensa nem história. Ofereça recomeçar do nó inicial se a mesa quiser a aventura de verdade.',
+        encontro: [], saidas: [],
+      },
+    ],
+  },
 ];
 
 // Export para o harness de testes em Node (no browser é ignorado)

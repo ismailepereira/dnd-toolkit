@@ -142,6 +142,14 @@ nós) como material de demonstração para Mestres novos.
 > Lodo Cinzento, Carniçal, Cultista, Wight — todos com loot da Fase 13).
 > `validarAventura` → 0 erros / 0 avisos. Próximos: mais capítulos de
 > Phandelver e outros one-shots.
+>
+> **2ª one-shot original entregue em 13/07/2026** — **O Comboio de Sal**
+> (`modelo_comboio_de_sal`): 13 nós, nível 1-3, tom SELVAGEM (escolta/
+> emboscada, sem mortos-vivos) para variar o material. Escolha moral: os
+> "bandidos" são refugiados famintos liderados por um ex-soldado —
+> ajudá-los dá guia/aliados e reduz a paga; entregá-los agrada ao
+> mercador e tira o aviso do ninho. Monstros só do bestiário (Bandido,
+> Lobo, Aranha Gigante, Ursaco). `validarAventura` → 0/0.
 
 ---
 

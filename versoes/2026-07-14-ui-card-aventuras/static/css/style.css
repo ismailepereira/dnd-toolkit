@@ -1084,7 +1084,7 @@ input:focus, textarea:focus, select:focus {
 /* =====================================================
    MODO DE JOGO (ficha viva)
    ===================================================== */
-.ficha-card-acoes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.ficha-card-acoes { display: flex; gap: 6px; margin-top: 10px; }
 .btn-jogar, .btn-editar {
   flex: 1; border: 1px solid var(--border); border-radius: 6px;
   padding: 6px; font-size: 0.82rem; cursor: pointer;
@@ -2020,13 +2020,6 @@ body.alto-contraste a { color: #ffd400; }
 #lcVenda h4 { margin: 14px 0 6px 0; }
 
 /* ===== K2: livro-jogo (editor e conducao de aventuras) ===== */
-/* Biblioteca: cards mais largos (títulos longos) e ações que não estouram */
-#aventuraLib.card-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
-#aventuraLib .ficha-card h3 { font-size: 1.05rem; line-height: 1.3; }
-#aventuraLib .ficha-card-acoes button {
-  flex: 1 1 calc(50% - 6px); min-width: 0; padding: 7px 8px;
-  font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
 .av-no { margin-bottom: 14px; }
 .av-sub { margin: 10px 0; padding-top: 8px; border-top: 1px solid var(--border); }
 .av-sub .cond-tag { margin: 2px 4px 2px 0; display: inline-block; }

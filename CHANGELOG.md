@@ -4,6 +4,20 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-14 — UI: cards de "Minhas Aventuras" sem estouro de botões
+
+**Backup antes da alteração:** `versoes/2026-07-14-ui-card-aventuras/` (style.css).
+
+**Resumo:** No grid de 260px, os 4 botões do card de aventura (Iniciar/Editar/Duplicar/Excluir) estouravam a largura e o `overflow:hidden` do card **cortava o Excluir** (reporte do Ismaile com screenshot). Correções: `.ficha-card-acoes` ganhou `flex-wrap: wrap` (global — cards de ficha não mudam, só quebram quando precisa); a biblioteca `#aventuraLib` ganhou cards mais largos (`minmax(320px,1fr)`), título com fonte/line-height ajustados e botões em grade fluida 2×2 (`flex: 1 1 calc(50% - 6px)` + ellipsis).
+
+**Ficheiros:** `static/css/style.css` (só CSS).
+
+**Verificação (browser real, 0 erros de console):** boot local, importado o modelo Ninho; card com 320px, **4 botões visíveis em 2 linhas, nenhum estourando** (medido por getBoundingClientRect vs. o card).
+
+**Como reverter:** restaurar `versoes/2026-07-14-ui-card-aventuras/` ou `git revert`.
+
+---
+
 ## 2026-07-14 — Fase 20.4 (addendum): corrige overflow na vista Lista do editor de aventuras
 
 **Nota de concorrência:** esta entrada foi escrita em paralelo à entrada

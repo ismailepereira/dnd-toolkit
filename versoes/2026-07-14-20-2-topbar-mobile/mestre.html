@@ -18,20 +18,14 @@
       <h1>🐉 Mestre's Toolkit</h1>
       <div class="user-info">
         <span>Mestre: {{ usuario }}</span>
-        <!-- Fase 20.2: no celular, os botões abaixo colapsam num drawer "⋯"
-             (achado da 20.1: sem isso, .user-info estoura a largura em 375px).
-             No desktop, .user-info-extra vira display:contents e nada muda. -->
-        <button type="button" id="userInfoToggle" class="btn-secondary user-info-toggle" aria-expanded="false" aria-controls="userInfoExtra" aria-label="Mais opções">⋯</button>
-        <div class="user-info-extra" id="userInfoExtra">
-          <form action="{{ url_for('trocar_campanha') }}" method="post" class="campanha-form" title="Trocar/criar mesa (multi-campanha)">
-            <span class="campanha-rotulo">🗺️</span>
-            <input type="text" name="campanha" value="{{ campanha }}" aria-label="Campanha ativa" pattern="[A-Za-z0-9_-]+" maxlength="32">
-            <button type="submit" class="btn-secondary">Trocar</button>
-          </form>
-          <button id="btnBackup" class="btn-secondary" title="Exportar/importar backup">💾 Backup</button>
-          <a href="{{ url_for('jogador') }}" class="btn-secondary">Ver como Jogador</a>
-          <a href="{{ url_for('logout') }}" class="btn-danger">Sair</a>
-        </div>
+        <form action="{{ url_for('trocar_campanha') }}" method="post" class="campanha-form" title="Trocar/criar mesa (multi-campanha)">
+          <span class="campanha-rotulo">🗺️</span>
+          <input type="text" name="campanha" value="{{ campanha }}" aria-label="Campanha ativa" pattern="[A-Za-z0-9_-]+" maxlength="32">
+          <button type="submit" class="btn-secondary">Trocar</button>
+        </form>
+        <button id="btnBackup" class="btn-secondary" title="Exportar/importar backup">💾 Backup</button>
+        <a href="{{ url_for('jogador') }}" class="btn-secondary">Ver como Jogador</a>
+        <a href="{{ url_for('logout') }}" class="btn-danger">Sair</a>
       </div>
     </div>
     <!-- Fase 17.1: 3 modos por tarefa; cada aba pertence a um modo (data-mode) -->
@@ -429,7 +423,6 @@
   {% endif %}
   <script src="{{ url_for('static', filename='js/tabuleiro.js') }}"></script>
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/navegacao.js') }}"></script>
   <script src="{{ url_for('static', filename='js/a11y.js') }}"></script>
   <footer class="footer-attribuicao">
     Desenvolvido por <a href="https://ismailepereira.github.io/" target="_blank" rel="noopener">ismailepereira</a>

@@ -18,15 +18,11 @@
       <h1>🎲 Área do Jogador</h1>
       <div class="user-info">
         <span>{{ usuario }}</span>
-        <!-- Fase 20.2: mesmo drawer "⋯" do Mestre, por consistência -->
-        <button type="button" id="userInfoToggle" class="btn-secondary user-info-toggle" aria-expanded="false" aria-controls="userInfoExtra" aria-label="Mais opções">⋯</button>
-        <div class="user-info-extra" id="userInfoExtra">
-          {% if eh_mestre %}
-          <a href="{{ url_for('mestre') }}" class="btn-secondary">Voltar ao Mestre</a>
-          {% endif %}
-          <a href="{{ url_for('pagina_campanhas') }}" class="btn-secondary" title="Trocar de mesa">🗺️ Campanhas</a>
-          <a href="{{ url_for('logout') }}" class="btn-danger">Sair</a>
-        </div>
+        {% if eh_mestre %}
+        <a href="{{ url_for('mestre') }}" class="btn-secondary">Voltar ao Mestre</a>
+        {% endif %}
+        <a href="{{ url_for('pagina_campanhas') }}" class="btn-secondary" title="Trocar de mesa">🗺️ Campanhas</a>
+        <a href="{{ url_for('logout') }}" class="btn-danger">Sair</a>
       </div>
     </div>
     <!-- Fase 17.2: 2 modos por tarefa; cada aba pertence a um modo (data-mode) -->
@@ -154,7 +150,6 @@
   {% endif %}
   <script src="{{ url_for('static', filename='js/tabuleiro.js') }}"></script>
   <script src="{{ url_for('static', filename='js/jogador.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/navegacao.js') }}"></script>
   <script src="{{ url_for('static', filename='js/a11y.js') }}"></script>
   <footer class="footer-attribuicao">
     Desenvolvido por <a href="https://ismailepereira.github.io/" target="_blank" rel="noopener">ismailepereira</a>

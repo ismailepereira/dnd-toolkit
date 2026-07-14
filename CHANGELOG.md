@@ -4,6 +4,48 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-14 — Fase 20.2: topbar enxuta no celular (drawer "⋯")
+
+**Backup antes da alteração:** `versoes/2026-07-14-20-2-topbar-mobile/` (`templates/mestre.html`, `templates/jogador.html`, `static/css/style.css`).
+
+**Resumo:** fecha o achado da 20.1 — em 375px, `.user-info` do Mestre
+(campanha + 💾 Backup + Ver como Jogador + Sair, tudo numa linha) estourava a
+largura do `body` (~185px de overflow horizontal). Os botões secundários
+passam a viver num **drawer** atrás de um botão único "⋯"; no desktop nada
+muda visualmente (mesmo truque de `display: contents` da 20.1).
+- `templates/mestre.html` / `templates/jogador.html`: os botões de
+  `.user-info` (exceto o nome do usuário) movidos para dentro de
+  `<div class="user-info-extra" id="userInfoExtra">`, com um novo
+  `<button id="userInfoToggle">⋯</button>` antes dele. Novo
+  `<script src=".../navegacao.js">` incluído em ambos.
+- `static/js/navegacao.js` (novo arquivo): abre/fecha o drawer no clique do
+  "⋯", fecha ao clicar fora ou pressionar Esc. Só age quando os elementos
+  existem — não faz nada no desktop (o toggle fica `display:none` lá).
+- `static/css/style.css`: `.user-info-toggle{display:none}` +
+  `.user-info-extra{display:contents}` como padrão (base, todas as larguras —
+  no desktop os botões continuam soltos na `.user-info` como sempre). Dentro
+  do bloco `@media (max-width: 767px)` (já criado na 20.1): toggle vira
+  botão quadrado 36×36, `.user-info-extra` vira painel dropdown
+  `position:absolute` **ancorado no `.topbar-row`** (não no `.user-info` —
+  tentativa inicial ancorada no `.user-info`/`right:16px` ainda vazava pra
+  fora da tela porque esse elemento quebra de linha e fica estreito;
+  `.topbar-row` sempre ocupa a largura toda, então `left:16px; right:16px`
+  nele garante que o drawer cabe em qualquer largura).
+
+**Verificação (local, `USE_LOCAL_DB=1`, porta 5300, backup/restauro de
+`data/estado.json`):** `node --check static/js/navegacao.js` OK. Em 1280px:
+toggle `display:none`, `.user-info-extra` `display:contents`, botão de
+Backup visível e no lugar de sempre (sem mudança visual). Em 375px: overflow
+horizontal do `body` foi de ~185px para **0px**; clique no "⋯" abre o drawer
+(`display:flex`, dentro da viewport, 4 botões presentes — Trocar/Backup/Ver
+como Jogador/Sair); clique fora fecha. Repetido em 500px (achei e corrigi um
+bug de ancoragem nessa faixa antes de confirmar) e em `/jogador` (3 botões:
+Voltar ao Mestre condicional/Campanhas/Sair) — sem erros de console.
+
+**Como reverter:** restaurar os 3 arquivos de `versoes/2026-07-14-20-2-topbar-mobile/` e apagar `static/js/navegacao.js`, ou `git revert`.
+
+---
+
 ## 2026-07-14 — Fase 20.1: navegação híbrida (sidebar desktop / bottom-nav celular)
 
 **Backup antes da alteração:** `versoes/2026-07-14-20-1-navegacao-hibrida/` (`static/css/style.css`).

@@ -96,12 +96,6 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 2px 8px rgba(233, 69, 96, 0.3);
 }
 
-/* Fase 20.2: menu "⋯" no celular (drawer dos botões secundários). No
-   desktop .user-info-extra vira "contents" — os botões ficam soltos na
-   .user-info exatamente como antes, e o toggle nem aparece. */
-.user-info-toggle { display: none; }
-.user-info-extra { display: contents; }
-
 /* Fase 17.1: barra de MODOS (agrupa as abas por tarefa) */
 .modos { display: flex; gap: 6px; margin-top: 12px; }
 .modo-btn {
@@ -222,28 +216,6 @@ main {
 
   /* espaço pro conteúdo não ficar embaixo do bottom-nav fixo */
   main { padding-bottom: 88px; }
-
-  /* Fase 20.2: topbar enxuta — só o essencial fica visível; o resto entra
-     no drawer "⋯" (evita o overflow horizontal achado na 20.1). */
-  .user-info-toggle {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 36px; height: 36px; padding: 0; font-size: 1.1rem; flex: 0 0 auto;
-  }
-  /* âncora no .topbar-row (não no .user-info): a linha ocupa a largura toda
-     e não muda de lado quando quebra — o drawer fica sempre dentro da tela,
-     ao contrário de ancorar num elemento pequeno que pode ficar perto da borda. */
-  .topbar-row { position: relative; }
-  .user-info-extra {
-    display: none;
-    position: absolute; top: 100%; left: 16px; right: 16px; margin-top: 8px;
-    flex-direction: column; align-items: stretch; gap: 8px;
-    background: var(--bg-panel); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 12px;
-    box-shadow: var(--shadow-card); z-index: 40;
-  }
-  .user-info-extra.aberto { display: flex; }
-  .user-info-extra .campanha-form { flex-wrap: wrap; }
-  .user-info-extra a, .user-info-extra button { text-align: center; }
 }
 
 .tab-content { display: none; }

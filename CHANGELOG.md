@@ -4,6 +4,63 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-14 — Fase 20.4 (parcial): overflow horizontal em 375px + consolidação dos grids "→ 1 coluna"
+
+**Backup antes da alteração:** `versoes/2026-07-14-20-4-responsividade/` (`static/css/style.css`).
+
+**Resumo:** auditoria real em viewport 375px (script injetado no navegador
+que varre todo elemento e reporta quem ultrapassa a largura da tela,
+ignorando containers com `overflow-x` próprio) em TODAS as abas do Mestre
+(3 modos × todas as tabs) e do Jogador (2 modos × todas as tabs). Achados:
+- **Bug real confirmado**: `.combate-layout`, `.enc-layout`, `.criador-layout`,
+  `.notas-layout`, `.jg-cols`, `.sub-lista` e `.personalidade-grid` colapsam
+  para 1 coluna no mobile com `grid-template-columns: 1fr`. Sem `minmax(0, ...)`,
+  o CSS Grid usa o **min-content** dos filhos como piso da coluna — se algum
+  filho tiver conteúdo que não encolhe (ex.: `<select>` com `max-width`, texto
+  `white-space: nowrap`), a coluna (e o container) estoura a viewport mesmo
+  "colapsada". Confirmado ao vivo: aba Combate e Montador de Encontros
+  estouravam a tela em até 598px de largura útil numa viewport de 375px.
+  Corrigido nos 7 pontos trocando `1fr` por `minmax(0, 1fr)` — mesmo efeito
+  visual, mas a coluna agora pode encolher abaixo do conteúdo (o conteúdo
+  interno é que deve quebrar/rolar, não a coluna vazar).
+- **Causa raiz do estouro acima**: `.add-monstro` (select + input + botões,
+  usado no toolbar do Combate e no formulário "+ Adicionar" do Montador de
+  Encontros) é `inline-flex` sem `flex-wrap` — os 3-4 controles em linha não
+  cabem em 375px. Novo bloco `@media (max-width: 600px)` faz `.add-monstro`
+  quebrar linha e o `<select>` ocupar a largura disponível.
+- **Auditado e OK, sem mudança**: Fichas, Loja, Itens Mágicos, Membros,
+  Geradores, Bestiário, Progressão (Mestre); Minha Ficha, Combate, História,
+  Mapa, Handouts, NPCs, Bestiário, Progressão (Jogador) — zero overflow
+  encontrado nesses ecrãs com os dados de teste disponíveis.
+- `static/css/style.css`: os 7 `grid-template-columns: 1fr` → `minmax(0, 1fr)`
+  (linhas perto de `.notas-layout`, `.jg-cols`, `.enc-layout`,
+  `.combate-layout`, `.criador-layout`, `.sub-lista`, `.personalidade-grid`)
+  + novo bloco mobile para `.add-monstro`.
+
+**Verificação (local, `USE_LOCAL_DB=1`, porta 5300, backup/restauro de
+`data/estado.json`):** boot sem erros de console; scan de overflow
+automatizado (JS injetado via browser tool) em todas as abas do Mestre e do
+Jogador a 375px — 0 ocorrências após a correção (Combate e Encontros
+zeraram, antes tinham 4 e 15 elementos estourando a tela); reteste a
+1280px confirmou que os grids continuam com o layout multi-coluna normal
+no desktop (`.combate-layout` → `682px 300px`) e `.add-monstro` continua
+`nowrap` (compacto) acima de 600px — nenhuma regressão.
+
+**Falta para fechar a 20.4** (entrega parcial, coesa e funcional — o que
+falta fica para a próxima execução): a auditoria não cobriu telas que
+exigem uma ficha de personagem já criada (Modo de Jogo completo com
+PV/slots/inventário, `.pv-attrs`/`.jg-attrs`/`.jg-turno-grid`) nem o editor
+de aventuras em canvas (`.ae-canvas-wrap`) — nenhum dado de teste local
+tinha ficha pronta para abrir essas telas sem construir uma pelo Criador
+completo. Recomenda-se rodar o mesmo script de auditoria (documentado
+acima) nessas telas específicas antes de marcar 20.4 como 100% concluída.
+Os 8 breakpoints "avulsos" (700/767/820×4/560/720/900/pointer:coarse)
+continuam como estavam — cada um já vive junto do componente que afeta
+(prática válida), a consolidação nesta entrega foi a correção do bug de
+overflow, não a redução do número de valores de breakpoint.
+
+**Como reverter:** restaurar `versoes/2026-07-14-20-4-responsividade/style.css` ou `git revert`.
+
 ## 2026-07-14 — Fase 20.3: alvos de toque ≥44px
 
 **Backup antes da alteração:** `versoes/2026-07-14-20-3-alvos-toque/` (`static/css/style.css`).

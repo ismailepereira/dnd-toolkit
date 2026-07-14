@@ -914,7 +914,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 @media (max-width: 700px) {
-  .notas-layout { grid-template-columns: minmax(0, 1fr); }
+  .notas-layout { grid-template-columns: 1fr; }
   .combat-item { grid-template-columns: 50px 1fr; }
   .form-grid.attrs { grid-template-columns: repeat(3, 1fr); }
 }
@@ -1226,7 +1226,7 @@ input:focus, textarea:focus, select:focus {
 .jg-log li { border-bottom: 1px dashed var(--border); padding: 2px 0; }
 
 @media (max-width: 820px) {
-  .jg-cols { grid-template-columns: minmax(0, 1fr); }
+  .jg-cols { grid-template-columns: 1fr; }
   .jg-attrs { grid-template-columns: repeat(3, 1fr); }
 }
 
@@ -1238,14 +1238,6 @@ input:focus, textarea:focus, select:focus {
 .add-monstro { display: inline-flex; gap: 4px; align-items: center; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 3px; }
 .add-monstro select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 5px; padding: 5px; max-width: 220px; }
 .add-monstro input { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 5px; padding: 5px; }
-/* Fase 20.4: no celular, select+input+botões do .add-monstro não cabem numa
-   linha só (achado real: estourava a viewport em 375px no Combate e no
-   Montador de Encontros) — quebra em várias linhas dentro do próprio card. */
-@media (max-width: 600px) {
-  .add-monstro { flex-wrap: wrap; width: 100%; }
-  .add-monstro select { max-width: 100%; flex: 1 1 140px; }
-  .add-monstro input { flex: 0 1 70px; }
-}
 
 .combate-layout { display: grid; grid-template-columns: 1fr 300px; gap: 14px; align-items: start; }
 
@@ -1403,7 +1395,7 @@ input:focus, textarea:focus, select:focus {
 .enc-salvos h4 { margin: 0 0 8px; }
 .enc-salvo { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 5px; font-size: 0.86rem; }
 .enc-salvo-btns { display: flex; gap: 2px; white-space: nowrap; }
-@media (max-width: 820px) { .enc-layout { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 820px) { .enc-layout { grid-template-columns: 1fr; } }
 
 /* Subir de nível por XP (Fase 4.5) */
 .jg-subir-ok { color: #3fb950; font-weight: bold; }
@@ -1446,7 +1438,7 @@ body.alto-contraste a { color: #ffd400; }
 .campanha-rotulo { font-size: 1rem; }
 
 @media (max-width: 820px) {
-  .combate-layout { grid-template-columns: minmax(0, 1fr); }
+  .combate-layout { grid-template-columns: 1fr; }
   .combate-log-box { position: static; max-height: none; }
 }
 
@@ -1609,7 +1601,7 @@ body.alto-contraste a { color: #ffd400; }
 .pv-pericia.prof span:first-child { color: var(--accent); }
 
 @media (max-width: 820px) {
-  .criador-layout { grid-template-columns: minmax(0, 1fr); }
+  .criador-layout { grid-template-columns: 1fr; }
   .criador-preview { position: static; max-height: none; }
   .atributos-grid { grid-template-columns: repeat(3, 1fr); }
   .pv-destaques { grid-template-columns: repeat(5, 1fr); }
@@ -1719,7 +1711,7 @@ body.alto-contraste a { color: #ffd400; }
   .status-grid { grid-template-columns: repeat(3, 1fr); }
   .galeria-minis { grid-template-columns: repeat(3, 1fr); }
   .galeria-simbolo { width: 84px; height: 84px; font-size: 3.2rem; }
-  .sub-lista { grid-template-columns: minmax(0, 1fr); }
+  .sub-lista { grid-template-columns: 1fr; }
   .slots-grid { grid-template-columns: 1fr 1fr; }
   .loja-item {
     grid-template-columns: 1fr auto;
@@ -1948,7 +1940,7 @@ body.alto-contraste a { color: #ffd400; }
 }
 .item-memoria-wrap .criador-hint { margin-top: 0; }
 @media (max-width: 720px) {
-  .personalidade-grid { grid-template-columns: minmax(0, 1fr); }
+  .personalidade-grid { grid-template-columns: 1fr; }
 }
 
 /* ===== Fase 8A: painel "O teu turno" (ajuda tática) ===== */

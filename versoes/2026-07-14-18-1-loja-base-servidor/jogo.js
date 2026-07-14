@@ -989,28 +989,25 @@ const Jogo = (function () {
     };
     if ($('jgPDF')) $('jgPDF').onclick = () => exportarFichaPDF(ficha);
 
-    // inventário — Fase 18.1: compra/venda da loja do Modo de Jogo validadas no
-    // servidor (POST /api/loja_base/comprar|vender) — o cliente só mostra o
-    // preço esperado (para feedback e trava otimista); quem decide é o backend.
-    document.querySelectorAll('[data-lojaadd]').forEach(b => b.onclick = async () => {
+    // inventário — Fase 9b/9c: comprar debita o ouro da ficha; Loja Especial usa o
+    // preço definido pelo Mestre na curadoria (data-lojapreco), Básica usa o catálogo.
+    document.querySelectorAll('[data-lojaadd]').forEach(b => b.onclick = () => {
       const v = b.dataset.lojaadd;
-      const precoEsperado = b.dataset.lojapreco != null ? Number(b.dataset.lojapreco) : ((typeof precoItemPO === 'function') ? precoItemPO(v) : 0);
-      if (precoEsperado > (ficha.ouro || 0)) { log(`Ouro insuficiente para ${v} (${precoEsperado} po).`); render(); return; }
-      b.disabled = true;
-      try {
-        const r = await fetch('/api/loja_base/comprar', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fichaId: ficha.id, itemNome: v }),
-        });
-        const d = await r.json();
-        if (!r.ok || d.erro) { log(`✗ ${d.erro || 'Compra falhou.'}`); render(); return; }
-        ficha.ouro = d.ouroRestante;
-        ficha.itens = d.itens;
-        if (d.municao) ficha.municao = d.municao;
-        log(`💰 Comprou ${v} (restam ${ficha.ouro} po)`);
-        if (typeof lojaFeedbackCompra === 'function') lojaFeedbackCompra(b, `−${precoEsperado} po`);
-        render();
-      } catch (e) { log('✗ Erro de rede na compra.'); render(); }
+      const preco = b.dataset.lojapreco != null ? Number(b.dataset.lojapreco) : ((typeof precoItemPO === 'function') ? precoItemPO(v) : 0);
+      if (preco > (ficha.ouro || 0)) { log(`Ouro insuficiente para ${v} (${preco} po).`); render(); return; }
+      ficha.itens = ficha.itens || [];
+      const it = (typeof itemCatalogo === 'function') ? itemCatalogo(v) : null;
+      // packs de munição viram contador do slot
+      if (it && it.cat === 'municao' && (!ficha.municao.nome || ficha.municao.nome === it.municaoNome)) {
+        ficha.municao.nome = it.municaoNome;
+        ficha.municao.qtd += it.qtdPack;
+      } else {
+        ficha.itens.push(v);
+      }
+      ficha.ouro = Math.round(((ficha.ouro || 0) - preco) * 100) / 100;
+      log(`💰 Comprou ${v} por ${preco} po (restam ${ficha.ouro} po)`);
+      if (typeof lojaFeedbackCompra === 'function') lojaFeedbackCompra(b, `−${preco} po`);
+      salvar(); render();
     });
     document.querySelectorAll('[data-jglojaaba]').forEach(b => b.onclick = () => {
       const aba = b.dataset.jglojaaba;
@@ -1046,25 +1043,20 @@ const Jogo = (function () {
       log(`🧪 Bebeu ${b.dataset.beber}: curou ${r.total} PV (${r.txt})`);
       curar(r.total); // curar() já salva e re-renderiza
     });
-    // vender item: metade do preço do catálogo (validado no servidor), remove 1 unidade
-    document.querySelectorAll('[data-vender]').forEach(b => b.onclick = async () => {
+    // vender item: metade do preço do catálogo, remove 1 unidade
+    document.querySelectorAll('[data-vender]').forEach(b => b.onclick = () => {
       const n = b.dataset.vender;
-      if ((ficha.itens || []).indexOf(n) < 0) return;
-      b.disabled = true;
-      try {
-        const r = await fetch('/api/loja_base/vender', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fichaId: ficha.id, itemNome: n }),
-        });
-        const d = await r.json();
-        if (!r.ok || d.erro) { log(`✗ ${d.erro || 'Venda falhou.'}`); render(); return; }
-        ficha.itens = d.itens;
-        ficha.equipado = d.equipado;
-        ficha.ouro = d.ouroRestante;
-        sincronizarSlots();
-        log(`💰 Vendeu ${n} por ${d.valor} po`);
-        render();
-      } catch (e) { log('✗ Erro de rede na venda.'); render(); }
+      const valor = Math.floor(precoItemPO(n) / 2 * 100) / 100;
+      const i = (ficha.itens || []).indexOf(n);
+      if (i < 0) return;
+      ficha.itens.splice(i, 1);
+      ['maoPrincipal', 'maoSecundaria', 'armadura', 'foco'].forEach(k => {
+        if (ficha.equipado && ficha.equipado[k] === n && !ficha.itens.includes(n)) ficha.equipado[k] = '';
+      });
+      ficha.ouro = Math.round(((ficha.ouro || 0) + valor) * 100) / 100;
+      sincronizarSlots();
+      log(`💰 Vendeu ${n} por ${valor} po`);
+      salvar();
     });
     // slots de equipar: mudar recalcula CA e salva na hora
     document.querySelectorAll('[data-slot-jogo]').forEach(sel => sel.onchange = () => {

@@ -1,5 +1,4 @@
 import json
-import math
 import os
 import re
 import secrets
@@ -651,11 +650,12 @@ def _sanitizar_fichas_jogador(recebidas, armazenadas, meu_uid):
     posse eram apenas do lado do cliente. Agora o servidor decide:
     - o jogador só altera fichas PRÓPRIAS (donoUid dele, ou legadas sem dono);
       fichas de outros são preservadas do estado gravado, ignorando o payload;
-    - `xp` e `ouro` são sempre preservados do valor gravado (B2: XP só via
-      Mestre; ouro só via Mestre ou pelos endpoints validados
-      /api/loja_base/comprar|vender e /api/lojas/comprar|vender — Fase 18.1);
+    - `xp` é sempre preservado do valor gravado (B2: XP só via Mestre);
     - `donoUid` não pode ser reatribuído (evita roubo/troca de dono);
-    - revivência (morto->vivo) fica com o Mestre; morrer (vivo->morto) é livre."""
+    - revivência (morto->vivo) fica com o Mestre; morrer (vivo->morto) é livre.
+    NOTA: `ouro` continua editável na ficha própria porque a loja base do Modo
+    de Jogo debita no cliente — travá-lo aqui quebraria a compra. O fix
+    definitivo é validar a loja base no servidor (como as lojas de NPC)."""
     por_id = {f.get('id'): f for f in armazenadas if isinstance(f, dict) and f.get('id')}
     vistos = set()
     saida = []
@@ -675,10 +675,8 @@ def _sanitizar_fichas_jogador(recebidas, armazenadas, meu_uid):
             saida.append(antiga)
             continue
         # ficha própria (ou legada sem dono): preserva os campos protegidos
-        # (esta função só roda para o papel jogador — ver api_put_fichas)
         f['donoUid'] = antiga.get('donoUid')
         f['xp'] = antiga.get('xp', 0)
-        f['ouro'] = antiga.get('ouro', 0)
         if antiga.get('status') == 'morto':
             f['status'] = 'morto'
         saida.append(f)
@@ -1222,129 +1220,6 @@ def api_loja_vender():
         entrada['qtd'] = int(entrada['qtd']) + 1
     salvar_estado(estado)
     return jsonify({'ok': True, 'valor': valor, 'ouroRestante': ficha['ouro']})
-
-
-# ----- Fase 18.1: Loja Básica/Especial do Modo de Jogo, validada no servidor -----
-# Espelho em Python do catálogo de `static/js/equipamento.js` (CATALOGO) — só o
-# preço em PO é necessário aqui para validar. Ao adicionar item novo na loja do
-# cliente, replicar o preço aqui também (ou a compra passa a ser recusada).
-LOJA_BASICA_PRECOS = {
-    'Adaga': 2, 'Azagaia': 0.5, 'Bastão': 0.2, 'Clava': 0.1, 'Clava Grande': 0.2,
-    'Foice Curta': 1, 'Lança': 1, 'Maça': 5, 'Machadinha': 5, 'Martelo Leve': 2,
-    'Arco Curto': 25, 'Besta Leve': 25, 'Dardo': 0.05, 'Funda': 0.1,
-    'Alabarda': 20, 'Chicote': 2, 'Cimitarra': 25, 'Espada Curta': 10, 'Espada Grande': 50,
-    'Espada Longa': 15, 'Glaive': 20, 'Lança de Cavalaria': 10, 'Lança Longa (Pique)': 5,
-    'Maça Estrela': 15, 'Machado de Batalha': 10, 'Machado Grande': 30, 'Malho': 10,
-    'Mangual': 10, 'Martelo de Guerra': 15, 'Picareta de Guerra': 5, 'Rapieira': 25, 'Tridente': 5,
-    'Arco Longo': 50, 'Besta de Mão': 75, 'Besta Pesada': 50, 'Zarabatana': 10, 'Rede': 1,
-    'Flechas (20)': 1, 'Virotes (20)': 1, 'Pedras de Funda (20)': 0.04, 'Agulhas (50)': 1,
-    'Armadura Acolchoada': 5, 'Armadura de Couro': 10, 'Couro Batido': 45, 'Gibão de Peles': 10,
-    'Camisão de Malha': 50, 'Brunea (Cota de Escamas)': 50, 'Peitoral': 400, 'Meia Armadura': 750,
-    'Cota de Malha': 75, 'Cota de Bandas': 200, 'Cota de Placas': 1500, 'Escudo': 10,
-    'Foco Arcano (varinha)': 10, 'Foco Arcano (cajado)': 5, 'Foco Arcano (orbe)': 20,
-    'Foco Druídico (galho de visco)': 1, 'Símbolo Sagrado (amuleto)': 5, 'Símbolo Sagrado (emblema)': 5,
-    'Bolsa de Componentes': 25, 'Grimório': 50, 'Livro de Conhecimento': 25, 'Tinta e Pena': 10,
-    'Pergaminhos (10)': 1, 'Vestes de Mago': 1, 'Vestes Sacerdotais': 5,
-    'Mochila': 2, 'Saco de Dormir': 1, 'Corda de Cânhamo (15m)': 1, 'Corda de Seda (15m)': 10,
-    'Tocha': 0.01, 'Tochas (10)': 0.1, 'Lanterna Coberta': 5, 'Óleo (frasco)': 0.1,
-    'Isqueiro (pederneira)': 0.5, 'Rações (1 dia)': 0.5, 'Rações (10 dias)': 5, 'Cantil': 0.2,
-    'Kit de Cura': 5, 'Kit de Escalada': 25, 'Ferramentas de Ladrão': 25, 'Kit de Herbalismo': 5,
-    'Pé de Cabra': 2, 'Martelo': 1, 'Pitons (10)': 0.5, 'Grappling Hook (arpéu)': 2,
-    'Espelho de Aço': 5, 'Água Benta (frasco)': 25, 'Antitoxina (frasco)': 50, 'Velas (5)': 0.05,
-    'Giz (10)': 0.1, 'Sino': 1, 'Balde': 0.05, 'Tenda (2 pessoas)': 2, 'Algemas': 2,
-    'Corrente (3m)': 5, 'Bálsamo de Cura (pote c/ 3 usos)': 60,
-    'Poção de Cura (2d4+2)': 50, 'Poção de Cura Maior (4d4+4)': 150,
-    'Frasco de Fogo Alquímico (1d4 fogo)': 50, 'Frasco de Ácido (2d6 ácido)': 25,
-    # extras que só existem em ITENS_PADRAO (montarias/instrumentos/nomes legados)
-    'Espadão': 50, 'Kit de Suprimentos de Cura': 5, 'Lanterna (Capuz)': 5,
-    'Ração de Viagem (1 dia)': 0.5, 'Poção de Cura': 50, 'Bestas Virotes (20)': 1,
-    'Kit de Disfarce': 25, 'Suprimentos de Curandeiro': 5, 'Ferramentas de Falsificador': 15,
-    'Cavalo de Montaria': 75, 'Pônei': 30, 'Mula': 8, 'Carroça': 35, 'Barco a Remo': 50,
-    'Sela': 10, 'Alforje (par)': 4, 'Alaúde': 30, 'Lira': 30, 'Viola': 30, 'Flauta': 2,
-    'Corneta': 5, 'Gaita de Foles': 30, 'Tambor': 6, 'Sinos (Instrumento)': 35,
-}
-# pacotes de munição: nome do item comprado -> (nome que entra em ficha.municao, unidades por pacote)
-LOJA_BASICA_MUNICAO = {
-    'Flechas (20)': ('Flechas', 20),
-    'Virotes (20)': ('Virotes', 20),
-    'Pedras de Funda (20)': ('Pedras de Funda', 20),
-    'Agulhas (50)': ('Agulhas', 50),
-}
-
-
-def _preco_loja_jogo(estado, ficha, nome):
-    """Preço validado no servidor: Loja Básica (catálogo fixo) ou Loja Especial
-    (itens curados pelo Mestre em `loja_especial_itens`, só se liberada para
-    esta ficha/campanha) — nunca confia no preço que o cliente mandar."""
-    if nome in LOJA_BASICA_PRECOS:
-        return LOJA_BASICA_PRECOS[nome]
-    liberada = bool(estado.get('loja_especial_campanha')) or bool(ficha.get('lojaEspecialLiberada'))
-    if liberada:
-        entrada = next((e for e in estado.get('loja_especial_itens', []) if e.get('nome') == nome), None)
-        if entrada:
-            return max(0, float(entrada.get('precoPO', 0) or 0))
-    return None
-
-
-@app.route('/api/loja_base/comprar', methods=['POST'])
-@login_obrigatorio()
-def api_loja_base_comprar():
-    data = request.get_json(force=True) or {}
-    nome = data.get('itemNome')
-    estado = carregar_estado()
-    ficha = _ficha_por_id(estado, data.get('fichaId'))
-    if not ficha:
-        return jsonify({'erro': 'Ficha não encontrada.'}), 404
-    if not _pode_usar_ficha(ficha):
-        return jsonify({'erro': 'Essa ficha não é sua.'}), 403
-    preco = _preco_loja_jogo(estado, ficha, nome)
-    if preco is None:
-        return jsonify({'erro': 'Item não encontrado na loja.'}), 404
-    ouro = float(ficha.get('ouro', 0) or 0)
-    if ouro < preco:
-        return jsonify({'erro': f'Ouro insuficiente: custa {preco} po e a ficha tem {ouro} po.'}), 400
-    ficha['ouro'] = round(ouro - preco, 2)
-    pack = LOJA_BASICA_MUNICAO.get(nome)
-    municao = ficha.get('municao') or {'nome': '', 'qtd': 0}
-    if pack and (not municao.get('nome') or municao.get('nome') == pack[0]):
-        municao['nome'] = pack[0]
-        municao['qtd'] = int(municao.get('qtd', 0) or 0) + pack[1]
-        ficha['municao'] = municao
-    else:
-        ficha.setdefault('itens', []).append(nome)
-    salvar_estado(estado)
-    return jsonify({'ok': True, 'ouroRestante': ficha['ouro'], 'itens': ficha.get('itens', []),
-                    'municao': ficha.get('municao')})
-
-
-@app.route('/api/loja_base/vender', methods=['POST'])
-@login_obrigatorio()
-def api_loja_base_vender():
-    data = request.get_json(force=True) or {}
-    nome = data.get('itemNome')
-    estado = carregar_estado()
-    ficha = _ficha_por_id(estado, data.get('fichaId'))
-    if not ficha:
-        return jsonify({'erro': 'Ficha não encontrada.'}), 404
-    if not _pode_usar_ficha(ficha):
-        return jsonify({'erro': 'Essa ficha não é sua.'}), 403
-    itens = ficha.get('itens', [])
-    if nome not in itens:
-        return jsonify({'erro': 'A ficha não tem esse item.'}), 400
-    preco = _preco_loja_jogo(estado, ficha, nome)
-    if preco is None:
-        return jsonify({'erro': 'Esse item não pode ser vendido aqui.'}), 400
-    valor = math.floor(preco / 2 * 100) / 100
-    itens.remove(nome)
-    ficha['itens'] = itens
-    equipado = ficha.get('equipado') or {}
-    for slot in ('maoPrincipal', 'maoSecundaria', 'armadura', 'foco'):
-        if equipado.get(slot) == nome and nome not in itens:
-            equipado[slot] = ''
-    ficha['equipado'] = equipado
-    ficha['ouro'] = round(float(ficha.get('ouro', 0) or 0) + valor, 2)
-    salvar_estado(estado)
-    return jsonify({'ok': True, 'valor': valor, 'ouroRestante': ficha['ouro'], 'itens': itens, 'equipado': equipado})
 
 
 # ----- K2 (livro-jogo): biblioteca PESSOAL de aventuras + aventura ativa -----

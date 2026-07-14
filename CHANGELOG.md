@@ -4,6 +4,55 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-14 — Fase 18.1: Loja do Modo de Jogo validada no servidor
+
+**Backup antes da alteração:** `versoes/2026-07-14-18-1-loja-base-servidor/` (`app.py`, `static/js/jogo.js`).
+
+**Resumo:** a Loja Básica/Especial do Modo de Jogo debitava e creditava `ficha.ouro`
+**no cliente** (o preço vinha do catálogo JS ou do atributo `data-lojapreco`) — um
+jogador com DevTools podia editar o preço antes do clique e comprar qualquer coisa
+de graça. Migrado para o mesmo padrão validado das lojas de NPC (Fase 12): o
+servidor decide o preço e debita/credita, o cliente só pede.
+- `app.py`: `LOJA_BASICA_PRECOS` (espelho em Python do catálogo mundano de
+  `equipamento.js`, ~110 itens + 24 extras só em `itens.js` — montarias,
+  instrumentos, nomes legados) e `LOJA_BASICA_MUNICAO` (pacotes de flecha/virote/
+  pedra/agulha → incremento de `ficha.municao`); `_preco_loja_jogo()` resolve o
+  preço pela Loja Básica OU pelos itens curados da Loja Especial
+  (`estado['loja_especial_itens']`, só se liberada para a ficha/campanha).
+  Novos endpoints `POST /api/loja_base/comprar` e `POST /api/loja_base/vender`
+  (valida dono da ficha, estoque de ouro, existência do item; venda por metade
+  do preço, desequipa slot se o item vendido estava equipado).
+- `_sanitizar_fichas_jogador`: agora também preserva `ouro` do valor gravado
+  (como já fazia com `xp`) — com a loja validada no servidor, `PUT /api/fichas`
+  deixou de ser um caminho legítimo para o jogador alterar ouro; fecha o vetor
+  que o comentário da função já apontava como pendência.
+- `static/js/jogo.js`: os handlers `[data-lojaadd]` (comprar) e `[data-vender]`
+  (vender) do Modo de Jogo agora chamam os novos endpoints via `fetch` e
+  espelham a resposta do servidor na ficha local (mesmo padrão do `npc.js`),
+  em vez de mutar `ficha.ouro`/`ficha.itens` diretamente.
+
+**Verificação (local, `USE_LOCAL_DB=1`, porta 5300, backup/restauro de
+`data/estado.json`):** `python -c "import ast; ast.parse(...)"` e `node --check
+static/js/jogo.js` OK. Testes via `fetch` autenticado como jogador: comprar item
+comum (debita preço certo), comprar pacote de munição 2× (incrementa
+`ficha.municao.qtd` corretamente), comprar item inexistente (404), comprar sem
+ouro suficiente (400 com mensagem clara), vender item possuído (credita metade
+do preço, remove 1 unidade), vender item não possuído (400). Confirmado que um
+`PUT /api/fichas` do jogador com `ouro` adulterado manualmente é ignorado pelo
+servidor (preserva o valor gravado). Testado também pela **UI real** (criação de
+ficha via Criador → 🎲 Gerar Automático → Salvar → Modo de Jogo → 🛒 Loja): clique
+em comprar e vender debitam/creditam o ouro exibido corretamente, sem erros de
+console; `read_network_requests` confirmou as chamadas a `/api/loja_base/comprar`
+e `/api/loja_base/vender` com os status esperados (200/404/400 conforme o caso).
+
+**Pendente (para a próxima sub-fase 18.2/18.3, não coberto aqui):** tempo real
+sem vazamento de `notasMestre`/`notasPrivadas` no RT cru; limite de tamanho de
+payload nos PUTs.
+
+**Como reverter:** restaurar `versoes/2026-07-14-18-1-loja-base-servidor/` ou `git revert`.
+
+---
+
 ## 2026-07-13 — Livro-jogo P7: 2ª one-shot original ("O Comboio de Sal")
 
 **Backup antes da alteração:** `versoes/2026-07-13-p7-oneshot-comboio/` (HEAD de `aventurasprontas.js`, já com a 1ª one-shot).

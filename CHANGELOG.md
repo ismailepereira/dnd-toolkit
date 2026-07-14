@@ -4,6 +4,27 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-13 — Fase 13 COMPLETA: loot em 100% do bestiário (59/59)
+
+**Backup antes da alteração:** `versoes/2026-07-13-fase13-loot-completo/` (HEAD de `monstros.js`, já com os +12 anteriores).
+
+**Resumo:** Fecha o trabalho contínuo da Fase 13 — os **27 monstros restantes** ganharam `loot` próprio, levando o bestiário a **59/59 com tabela de tesouro**. Nada mais cai só na tabela genérica por ND. Loot temático por natureza da criatura:
+- **Feras/constructos** (Lobo Atroz, Urso-Pardo, Rato Gigante, Worg, Grifo, Estirge, Armadura Animada, Dríade…): `ouroFormula: '0'` (não carregam moedas) + despojos coerentes (peles, penas, a própria armadura recuperável, encantos naturais).
+- **Mortos-vivos** (Carniçal, Ghast, Espectro, Sombra, Flameskull): bens funerários e relíquias; incorpóreos (Espectro/Sombra) quase nada físico.
+- **Monstruosidades/aberrações** (Aranha Gigante, Harpia, Mantícora, Minotauro, Nothic, Espectador): glândula de veneno, ninhos com moedas de vítimas, o tesouro que guardavam.
+- **Limos** (Lodo Cinzento, Cubo Gelatinoso): itens engolidos/indigestos — o clássico saque de dentro do cubo.
+- **Gigante da Colina, corruptores (Diabrete, Cão Infernal) e dragões filhotes (Vermelho/Branco):** despojos e pequenos covis com gemas/arte/poções.
+
+**Ficheiros:** `static/js/monstros.js` (campo `loot` em 27 entradas; só dados).
+
+**Modelo de dados:** nenhum novo. Retrocompatível.
+
+**Verificação (Node):** `node --check` OK; **59/59** com `loot` (lista de "sem loot" vazia); amostras de `rolarLoot` — `ouroFormula:'0'` das feras rende 0 po (só despojo), dragão filhote e cubo dão ouro+item dentro da faixa. Reforça diretamente o P6 (🎲 Loot do nó) entregue hoje.
+
+**Como reverter:** restaurar `versoes/2026-07-13-fase13-loot-completo/` ou `git revert`.
+
+---
+
 ## 2026-07-13 — Fase 13 (contínuo): tabelas de loot em +12 monstros
 
 **Backup antes da alteração:** `versoes/2026-07-13-fase13-loot-monstros/` (HEAD de `monstros.js`).

@@ -580,7 +580,8 @@ filtrado desses catálogos + preços próprios + estoque limitado — reaproveit
 > **✅ Entregue em 05/07/2026** — `static/js/loot.js` (tabelas genéricas por
 > ND + rolagem), `loot` próprio em 14 monstros comuns, botão "🎲 Gerar Loot"
 > no Combate com "💰 Dividir ouro pelo grupo" (ver `CHANGELOG.md`).
-> Trabalho contínuo: ir adicionando `loot` aos restantes monstros/chefes.
+> **✅ Concluída em 13/07/2026** — loot próprio em **100% do bestiário
+> (59/59)** + integração à condução do livro-jogo (P6: "🎲 Loot do nó").
 
 ### Objetivo
 Hoje o bestiário (`static/js/monstros.js`) só tem stats de combate — não tem

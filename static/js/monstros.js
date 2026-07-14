@@ -273,6 +273,7 @@ const MONSTROS = [
   },
   {
     nome: 'Lobo Atroz (Dire Wolf)', categoria: 'Animal',
+    loot: { ouroFormula: '0', tabela: [{ item: null, peso: 55 }, { item: 'Pele de lobo atroz (troféu)', peso: 30, qtd: 1 }, { item: 'Presa grande (entalhe, ~5 po)', peso: 15, qtd: 1 }] },
     tipo: 'Animal grande, sem alinhamento',
     ca: '14 (armadura natural)', hp: '37 (5d10+10)', velocidade: '15m',
     atributos: { for: 17, des: 15, con: 15, int: 3, sab: 12, car: 7 },
@@ -282,6 +283,7 @@ const MONSTROS = [
   },
   {
     nome: 'Urso-Pardo', categoria: 'Animal',
+    loot: { ouroFormula: '0', tabela: [{ item: null, peso: 55 }, { item: 'Pele de urso', peso: 28, qtd: 1 }, { item: 'Garras de urso (troféu)', peso: 17, qtd: 1 }] },
     tipo: 'Animal grande, sem alinhamento',
     ca: '11 (armadura natural)', hp: '34 (4d10+12)', velocidade: '12m, escalar 9m',
     atributos: { for: 19, des: 10, con: 16, int: 2, sab: 13, car: 7 },
@@ -295,6 +297,7 @@ const MONSTROS = [
   },
   {
     nome: 'Rato Gigante', categoria: 'Animal',
+    loot: { ouroFormula: '0', tabela: [{ item: null, peso: 78 }, { item: 'Bugiganga roída no ninho', peso: 16, qtd: 1 }, { item: 'Moedas de cobre no ninho', peso: 6, qtd: 1 }] },
     tipo: 'Animal pequeno, sem alinhamento',
     ca: '12', hp: '7 (2d6)', velocidade: '9m',
     atributos: { for: 7, des: 15, con: 11, int: 2, sab: 10, car: 4 },
@@ -304,6 +307,7 @@ const MONSTROS = [
   },
   {
     nome: 'Aranha Gigante', categoria: 'Monstruosidade',
+    loot: { ouroFormula: '1d6', tabela: [{ item: null, peso: 45 }, { item: 'Glândula de veneno (1 dose de veneno de aranha)', peso: 25, qtd: 1 }, { item: 'Seda de aranha resistente', peso: 18, qtd: 1 }, { item: 'Bolsa de uma presa antiga (na teia)', peso: 12, qtd: 1 }] },
     tipo: 'Monstruosidade grande, sem alinhamento',
     ca: '14', hp: '26 (4d10+4)', velocidade: '9m, escalar 9m',
     atributos: { for: 14, des: 16, con: 12, int: 2, sab: 11, car: 4 },
@@ -357,6 +361,7 @@ const MONSTROS = [
   },
   {
     nome: 'Carniçal (Ghoul)', categoria: 'Morto-vivo',
+    loot: { ouroFormula: '2d6', tabela: [{ item: null, peso: 45 }, { item: 'Anel corroído (10 po)', peso: 20, qtd: 1 }, { item: 'Bugigangas das vítimas', peso: 20, qtd: 1 }, { item: 'Pedra semipreciosa (10 po)', peso: 15, qtd: 1 }] },
     tipo: 'Morto-vivo médio, caótico e mau',
     ca: '12', hp: '22 (5d8)', velocidade: '9m',
     atributos: { for: 13, des: 15, con: 10, int: 7, sab: 10, car: 6 },
@@ -369,6 +374,7 @@ const MONSTROS = [
   },
   {
     nome: 'Carniçal Voraz (Ghast)', categoria: 'Morto-vivo',
+    loot: { ouroFormula: '3d6', tabela: [{ item: null, peso: 40 }, { item: 'Objeto de arte funerário (25 po)', peso: 22, qtd: 1 }, { item: 'Anel antigo (25 po)', peso: 20, qtd: 1 }, { item: 'Gema (50 po)', peso: 18, qtd: 1 }] },
     tipo: 'Morto-vivo médio, caótico e mau',
     ca: '13', hp: '36 (8d8)', velocidade: '9m',
     atributos: { for: 16, des: 17, con: 10, int: 11, sab: 10, car: 8 },
@@ -381,6 +387,7 @@ const MONSTROS = [
   },
   {
     nome: 'Espectro (Specter)', categoria: 'Morto-vivo',
+    loot: { ouroFormula: '0', tabela: [{ item: null, peso: 68 }, { item: 'Relíquia do falecido a que se prende', peso: 32, qtd: 1 }] },
     tipo: 'Morto-vivo médio, caótico e mau',
     ca: '12', hp: '22 (5d8)', velocidade: '0m, voo 15m (flutuação)',
     atributos: { for: 1, des: 14, con: 11, int: 10, sab: 10, car: 11 },
@@ -390,6 +397,7 @@ const MONSTROS = [
   },
   {
     nome: 'Sombra (Shadow)', categoria: 'Morto-vivo',
+    loot: { ouroFormula: '0', tabela: [{ item: null, peso: 80 }, { item: 'Essência de sombra (dissipa em 1 min — inútil)', peso: 20, qtd: 1 }] },
     tipo: 'Morto-vivo médio, caótico e mau',
     ca: '12', hp: '16 (3d8+3)', velocidade: '12m',
     atributos: { for: 6, des: 14, con: 13, int: 6, sab: 10, car: 8 },
@@ -427,6 +435,7 @@ const MONSTROS = [
   },
   {
     nome: 'Caveira Flamejante (Flameskull)', categoria: 'Morto-vivo',
+    loot: { ouroFormula: '2d6+20', tabela: [{ item: null, peso: 30 }, { item: 'Pergaminho de magia (2º círculo)', peso: 22, qtd: 1 }, { item: 'Gema (50 po)', peso: 20, qtd: 2 }, { item: 'Componente arcano raro', peso: 16, qtd: 1 }, { item: 'Poção de Cura', peso: 12, qtd: 1 }] },
     tipo: 'Morto-vivo pequeno, neutro e mau',
     ca: '13', hp: '40 (9d6+9)', velocidade: '0m, voo 12m (flutuação)',
     atributos: { for: 1, des: 17, con: 12, int: 16, sab: 11, car: 14 },
@@ -469,6 +478,7 @@ const MONSTROS = [
   },
   {
     nome: 'Gigante da Colina (Hill Giant)', categoria: 'Gigante',
+    loot: { ouroFormula: '4d6+20', tabela: [{ item: null, peso: 35 }, { item: 'Saco de despojos (bugigangas)', peso: 22, qtd: 1 }, { item: 'Gema (50 po)', peso: 18, qtd: 2 }, { item: 'Objeto de arte (250 po)', peso: 15, qtd: 1 }, { item: 'Poção de Cura Maior', peso: 10, qtd: 1 }] },
     tipo: 'Gigante enorme, caótico e mau',
     ca: '13 (armadura natural)', hp: '105 (10d12+40)', velocidade: '12m',
     atributos: { for: 21, des: 8, con: 19, int: 5, sab: 9, car: 6 },
@@ -483,6 +493,7 @@ const MONSTROS = [
   // ---------- MONSTRUOSIDADES ----------
   {
     nome: 'Estirge (Stirge)', categoria: 'Monstruosidade',
+    loot: { ouroFormula: '0', tabela: [{ item: null, peso: 88 }, { item: 'Nada de valor — só sangue', peso: 12, qtd: 1 }] },
     tipo: 'Monstruosidade minúscula, sem alinhamento',
     ca: '14', hp: '2 (1d4)', velocidade: '4,5m, voo 12m',
     atributos: { for: 4, des: 16, con: 11, int: 2, sab: 8, car: 6 },
@@ -491,6 +502,7 @@ const MONSTROS = [
   },
   {
     nome: 'Worg', categoria: 'Monstruosidade',
+    loot: { ouroFormula: '0', tabela: [{ item: null, peso: 55 }, { item: 'Pele de worg', peso: 28, qtd: 1 }, { item: 'Coleira goblin (com bugiganga)', peso: 17, qtd: 1 }] },
     tipo: 'Monstruosidade grande, neutro e mau',
     ca: '13 (armadura natural)', hp: '26 (4d10+4)', velocidade: '15m',
     atributos: { for: 16, des: 13, con: 13, int: 7, sab: 11, car: 8 },
@@ -500,6 +512,7 @@ const MONSTROS = [
   },
   {
     nome: 'Harpia', categoria: 'Monstruosidade',
+    loot: { ouroFormula: '2d6', tabela: [{ item: null, peso: 45 }, { item: 'Bugigangas brilhantes do ninho', peso: 22, qtd: 1 }, { item: 'Gema (50 po) no ninho', peso: 18, qtd: 1 }, { item: 'Bolsa de uma vítima anterior', peso: 15, qtd: 1 }] },
     tipo: 'Monstruosidade média, caótico e mau',
     ca: '11', hp: '38 (7d8+7)', velocidade: '6m, voo 12m',
     atributos: { for: 12, des: 13, con: 12, int: 7, sab: 10, car: 13 },
@@ -512,6 +525,7 @@ const MONSTROS = [
   },
   {
     nome: 'Grifo (Griffon)', categoria: 'Monstruosidade',
+    loot: { ouroFormula: '1d6', tabela: [{ item: null, peso: 55 }, { item: 'Pena de grifo (valiosa a colecionadores)', peso: 25, qtd: 1 }, { item: 'Gema (50 po) no ninho', peso: 20, qtd: 1 }] },
     tipo: 'Monstruosidade grande, sem alinhamento',
     ca: '12', hp: '59 (7d10+21)', velocidade: '9m, voo 24m',
     atributos: { for: 18, des: 15, con: 16, int: 2, sab: 13, car: 8 },
@@ -525,6 +539,7 @@ const MONSTROS = [
   },
   {
     nome: 'Mantícora', categoria: 'Monstruosidade',
+    loot: { ouroFormula: '3d6+10', tabela: [{ item: null, peso: 35 }, { item: 'Espinhos de cauda (munição improvisada)', peso: 22, qtd: 1 }, { item: 'Bolsa de moedas de vítimas', peso: 20, qtd: 1 }, { item: 'Gema (50 po)', peso: 15, qtd: 1 }, { item: 'Objeto de arte (250 po)', peso: 8, qtd: 1 }] },
     tipo: 'Monstruosidade grande, leal e mau',
     ca: '14 (armadura natural)', hp: '68 (8d10+24)', velocidade: '9m, voo 15m',
     atributos: { for: 17, des: 16, con: 17, int: 7, sab: 12, car: 8 },
@@ -539,6 +554,7 @@ const MONSTROS = [
   },
   {
     nome: 'Minotauro', categoria: 'Monstruosidade',
+    loot: { ouroFormula: '3d6', tabela: [{ item: null, peso: 40 }, { item: 'Machado grande', peso: 20, qtd: 1 }, { item: 'Chifre de minotauro (troféu)', peso: 20, qtd: 1 }, { item: 'Amuleto do labirinto', peso: 12, qtd: 1 }, { item: 'Gema (50 po)', peso: 8, qtd: 1 }] },
     tipo: 'Monstruosidade grande, caótico e mau',
     ca: '14 (armadura natural)', hp: '76 (9d10+27)', velocidade: '12m',
     atributos: { for: 18, des: 11, con: 16, int: 6, sab: 16, car: 9 },
@@ -551,6 +567,7 @@ const MONSTROS = [
   },
   {
     nome: 'Nothic', categoria: 'Aberração',
+    loot: { ouroFormula: '2d6+10', tabela: [{ item: null, peso: 35 }, { item: 'Bugigangas empilhadas (o tesouro do Nothic)', peso: 22, qtd: 1 }, { item: 'Gema (50 po)', peso: 20, qtd: 1 }, { item: 'Pergaminho de magia (1º círculo)', peso: 14, qtd: 1 }, { item: 'Objeto de arte (25 po)', peso: 9, qtd: 1 }] },
     tipo: 'Aberração média, neutro e mau',
     ca: '15 (armadura natural)', hp: '45 (6d8+18)', velocidade: '9m',
     atributos: { for: 12, des: 16, con: 17, int: 8, sab: 12, car: 8 },
@@ -563,6 +580,7 @@ const MONSTROS = [
   },
   {
     nome: 'Espectador (Spectator)', categoria: 'Aberração',
+    loot: { ouroFormula: '3d6+10', tabela: [{ item: null, peso: 35 }, { item: 'O item que protegia (tesouro guardado)', peso: 24, qtd: 1 }, { item: 'Gema (100 po)', peso: 20, qtd: 1 }, { item: 'Poção de Cura', peso: 12, qtd: 1 }, { item: 'Pergaminho de magia (2º círculo)', peso: 9, qtd: 1 }] },
     tipo: 'Aberração média, leal e neutro',
     ca: '15 (armadura natural)', hp: '39 (6d8+12)', velocidade: '0m, voo 9m (flutuação)',
     atributos: { for: 10, des: 14, con: 14, int: 13, sab: 14, car: 11 },
@@ -577,6 +595,7 @@ const MONSTROS = [
   // ---------- LIMOS ----------
   {
     nome: 'Lodo Cinzento (Gray Ooze)', categoria: 'Limo',
+    loot: { ouroFormula: '2d6', tabela: [{ item: null, peso: 45 }, { item: 'Objeto metálico corroído', peso: 25, qtd: 1 }, { item: 'Gema indigesta (50 po)', peso: 18, qtd: 1 }, { item: 'Moedas semi-dissolvidas', peso: 12, qtd: 1 }] },
     tipo: 'Limo médio, sem alinhamento',
     ca: '8', hp: '22 (3d8+9)', velocidade: '3m, escalar 3m',
     atributos: { for: 12, des: 6, con: 16, int: 1, sab: 6, car: 2 },
@@ -586,6 +605,7 @@ const MONSTROS = [
   },
   {
     nome: 'Cubo Gelatinoso', categoria: 'Limo',
+    loot: { ouroFormula: '3d6+10', tabela: [{ item: null, peso: 25 }, { item: 'Item engolido (arma ou armadura)', peso: 25, qtd: 1 }, { item: 'Gema (50 po)', peso: 22, qtd: 2 }, { item: 'Objeto de arte (25 po)', peso: 16, qtd: 1 }, { item: 'Poção (rótulo dissolvido)', peso: 12, qtd: 1 }] },
     tipo: 'Limo grande, sem alinhamento',
     ca: '6', hp: '84 (8d10+40)', velocidade: '4,5m',
     atributos: { for: 14, des: 3, con: 20, int: 1, sab: 6, car: 1 },
@@ -597,6 +617,7 @@ const MONSTROS = [
   // ---------- ELEMENTAIS / CONSTRUCTOS ----------
   {
     nome: 'Gárgula', categoria: 'Elemental',
+    loot: { ouroFormula: '2d6+10', tabela: [{ item: null, peso: 45 }, { item: 'Fragmento de pedra rúnica', peso: 22, qtd: 1 }, { item: 'Gema (50 po) incrustada', peso: 20, qtd: 1 }, { item: 'Tesouro que guardava (bolsa)', peso: 13, qtd: 1 }] },
     tipo: 'Elemental médio, caótico e mau',
     ca: '15 (armadura natural)', hp: '52 (7d8+21)', velocidade: '9m, voo 18m',
     atributos: { for: 15, des: 11, con: 16, int: 6, sab: 11, car: 7 },
@@ -610,6 +631,7 @@ const MONSTROS = [
   },
   {
     nome: 'Armadura Animada', categoria: 'Constructo',
+    loot: { ouroFormula: '0', tabela: [{ item: null, peso: 30 }, { item: 'Armadura de placas (recuperável)', peso: 45, qtd: 1 }, { item: 'Espada longa', peso: 25, qtd: 1 }] },
     tipo: 'Constructo médio, sem alinhamento',
     ca: '18 (armadura natural)', hp: '33 (6d8+6)', velocidade: '7,5m',
     atributos: { for: 14, des: 11, con: 13, int: 1, sab: 3, car: 1 },
@@ -622,6 +644,7 @@ const MONSTROS = [
   },
   {
     nome: 'Diabrete (Imp)', categoria: 'Corruptor',
+    loot: { ouroFormula: '2d6', tabela: [{ item: null, peso: 45 }, { item: 'Contrato infernal (rabiscado)', peso: 22, qtd: 1 }, { item: 'Gema (50 po)', peso: 20, qtd: 1 }, { item: 'Frasco de veneno', peso: 13, qtd: 1 }] },
     tipo: 'Corruptor minúsculo (diabo, metamorfo), leal e mau',
     ca: '13', hp: '10 (3d4+3)', velocidade: '6m, voo 12m',
     atributos: { for: 6, des: 17, con: 13, int: 11, sab: 12, car: 14 },
@@ -631,6 +654,7 @@ const MONSTROS = [
   },
   {
     nome: 'Cão Infernal (Hell Hound)', categoria: 'Corruptor',
+    loot: { ouroFormula: '2d6', tabela: [{ item: null, peso: 55 }, { item: 'Brasa que não se apaga (curiosidade)', peso: 25, qtd: 1 }, { item: 'Bolsa chamuscada de moedas', peso: 20, qtd: 1 }] },
     tipo: 'Corruptor médio (diabo), leal e mau',
     ca: '15 (armadura natural)', hp: '45 (7d8+14)', velocidade: '15m',
     atributos: { for: 17, des: 12, con: 14, int: 6, sab: 13, car: 6 },
@@ -645,6 +669,7 @@ const MONSTROS = [
   // ---------- FEY ----------
   {
     nome: 'Dríade', categoria: 'Fey',
+    loot: { ouroFormula: '0', tabela: [{ item: null, peso: 40 }, { item: 'Semente encantada (planta mágica)', peso: 25, qtd: 1 }, { item: 'Flor que nunca murcha', peso: 20, qtd: 1 }, { item: 'Gema de âmbar (50 po)', peso: 15, qtd: 1 }] },
     tipo: 'Feérico médio, neutro',
     ca: '11 (16 com Escudo de Carvalho)', hp: '22 (5d8)', velocidade: '9m',
     atributos: { for: 10, des: 12, con: 11, int: 14, sab: 15, car: 18 },
@@ -656,6 +681,7 @@ const MONSTROS = [
   // ---------- DRAGÕES ----------
   {
     nome: 'Dragão Vermelho Filhote (Wyrmling)', categoria: 'Dragão',
+    loot: { ouroFormula: '4d6+20', tabela: [{ item: null, peso: 30 }, { item: 'Moedas do pequeno covil', peso: 22, qtd: 1 }, { item: 'Gema (50 po)', peso: 20, qtd: 2 }, { item: 'Objeto de arte (250 po)', peso: 16, qtd: 1 }, { item: 'Poção de Cura', peso: 12, qtd: 1 }] },
     tipo: 'Dragão médio, caótico e mau',
     ca: '17 (armadura natural)', hp: '75 (10d8+30)', velocidade: '9m, escalar 9m, voo 18m',
     atributos: { for: 19, des: 10, con: 17, int: 12, sab: 11, car: 15 },
@@ -668,6 +694,7 @@ const MONSTROS = [
   },
   {
     nome: 'Dragão Branco Filhote (Wyrmling)', categoria: 'Dragão',
+    loot: { ouroFormula: '3d6+10', tabela: [{ item: null, peso: 35 }, { item: 'Objeto congelado no covil', peso: 22, qtd: 1 }, { item: 'Gema (50 po)', peso: 20, qtd: 1 }, { item: 'Moedas geladas', peso: 15, qtd: 1 }, { item: 'Poção de Cura', peso: 8, qtd: 1 }] },
     tipo: 'Dragão médio, caótico e mau',
     ca: '16 (armadura natural)', hp: '32 (5d8+10)', velocidade: '9m, escavar 4,5m, nadar 9m, voo 18m',
     atributos: { for: 14, des: 10, con: 14, int: 5, sab: 10, car: 11 },

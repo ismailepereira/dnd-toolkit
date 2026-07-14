@@ -22,17 +22,22 @@ Mapa de tarefas do projeto, organizado por fases. Marque `[x]` conforme for conc
 | # | O quê | Por quê agora | Tamanho |
 |---|---|---|---|
 | 🔴 1 | **Fase 18 — Segurança & Integridade** (loja base validada no servidor; RT sem vazar notas do Mestre; limite de payload) | Último vetor de trapaça de ouro + notas privadas legíveis no DevTools; **pré-requisito para escalar assinantes** | M |
-| 🟠 2 | **Fase 19 — Conteúdo contínuo (P7)**: Phandelver Cap. 2 (Phandalin + Mantos Vermelhos) e mais one-shots | É o que os Mestres novos consomem; o motor está pronto, falta biblioteca | M (por capítulo) |
-| 🟡 3 | **16.6 — Tabuleiro: zoom/pan** + centralizar/seguir token + medir distância por escala | Mapas grandes no celular pedem zoom; fecha o que ficou da 16.5 | M |
-| 🟡 4 | **P4b — Canvas na condução**: mini-mapa do grafo com nó atual destacado e caminho percorrido pintado (o canvas do EDITOR já existe) | Visão de progresso da sessão para o Mestre; reusa o desenho do editor | P/M |
-| 🟡 5 | **QoL da mesa (ex-P5 re-escopado)**: ao avançar para nó com imagem, oferecer "abrir o mapa já"; posições iniciais de tokens por nó | O "grid por nó" antigo virou isto com o Tabuleiro-imagem; cola a condução ao tabuleiro | P |
-| 🟢 6 | **Fase 12 — pendências**: reabastecimento periódico da loja do NPC + abrir a loja direto do Modo de Jogo | Fecha a v1 de 05/07; pequeno e contido | P |
-| 🟢 7 | **U2 — expansão da IA**: botões ✨ nos NPCs (perfil/gancho/ambiente) e "gerar nó de aventura" no editor do livro-jogo | O endpoint e a quota já existem; só front + 1 tipo novo | P/M |
-| 🟢 8 | **11.6 — retrato do NPC por URL** (mesmo padrão do tabuleiro: URL agora, upload quando o Storage ativar) | Ficou pendente na Fase 11 por falta de hospedagem — o padrão URL resolveu isso | P |
-| 🟢 9 | **17.4 — PWA: preparação offline de verdade**: precache dos dados estáticos (`classes/compendio/monstros/itens…`) no service worker | Hoje o offline cobre só páginas visitadas; precache cumpre a promessa "preparar sem internet" da arquitetura | P |
-| 🔵 10 | **Futuro maior**: recuperação de senha / Firebase Auth; pagamento automatizado (a assinatura 10.9 é 100% manual); 3+ classes na multiclasse | Só quando houver usuários pagantes de verdade | G |
+| 🟠 2 | **Fase 20 — Navegação & Mobile**: sidebar (desktop) + bottom-nav (celular), topbar enxuta, passe de responsividade, ficha mobile estilo D&D Beyond | Pedido direto do Ismaile (13/07) + pesquisa UX: é a maior mudança de percepção de qualidade; a camada de modos (17.1/17.2) já preparou o terreno | M/G |
+| 🟠 3 | **Fase 19 — Conteúdo contínuo (P7)**: Phandelver Cap. 2 (Phandalin + Mantos Vermelhos) e mais one-shots | É o que os Mestres novos consomem; o motor está pronto, falta biblioteca | M (por capítulo) |
+| 🟡 4 | **Fase 21 — Mesa Viva**: log da mesa compartilhado, condições nos tokens, fog of war simples, iniciativa pelo jogador, descanso em grupo | Faz a mesa remota "sentir" presença (padrão Game Log do D&D Beyond); liga combate ↔ tabuleiro | M |
+| 🟡 5 | **Fase 22 — Campanhas & Acolhimento**: cards de campanha ricos, renomear/arquivar, onboarding de campanha vazia | Primeira tela que todos veem; renomear/arquivar hoje NÃO existem | P/M |
+| 🟡 6 | **16.6 — Tabuleiro: zoom/pan** + centralizar/seguir token + medir distância por escala | Mapas grandes no celular pedem zoom; fecha o que ficou da 16.5 (casa com 20.7 fullscreen) | M |
+| 🟡 7 | **P4b — Canvas na condução**: mini-mapa do grafo com nó atual destacado e caminho percorrido pintado (o canvas do EDITOR já existe) | Visão de progresso da sessão para o Mestre; reusa o desenho do editor | P/M |
+| 🟡 8 | **QoL da mesa (ex-P5 re-escopado)**: ao avançar para nó com imagem, oferecer "abrir o mapa já"; posições iniciais de tokens por nó | O "grid por nó" antigo virou isto com o Tabuleiro-imagem; cola a condução ao tabuleiro | P |
+| 🟢 9 | **Fase 12 — pendências**: reabastecimento periódico da loja do NPC + abrir a loja direto do Modo de Jogo | Fecha a v1 de 05/07; pequeno e contido | P |
+| 🟢 10 | **U2 — expansão da IA**: botões ✨ nos NPCs (perfil/gancho/ambiente) e "gerar nó de aventura" no editor do livro-jogo | O endpoint e a quota já existem; só front + 1 tipo novo | P/M |
+| 🟢 11 | **11.6 — retrato do NPC por URL** (mesmo padrão do tabuleiro: URL agora, upload quando o Storage ativar) | Ficou pendente na Fase 11 por falta de hospedagem — o padrão URL resolveu isso | P |
+| 🟢 12 | **17.4 — PWA: preparação offline de verdade**: precache dos dados estáticos (`classes/compendio/monstros/itens…`) no service worker | Hoje o offline cobre só páginas visitadas; precache cumpre a promessa "preparar sem internet" da arquitetura | P |
+| 🔵 13 | **Futuro maior**: recuperação de senha / Firebase Auth; pagamento automatizado (a assinatura 10.9 é 100% manual); 3+ classes na multiclasse | Só quando houver usuários pagantes de verdade | G |
 
-**Recomendação:** 1 → 2 → 3, intercalando os 🟢 (são pequenos) quando quiser uma sessão leve. Detalhe da Fase 18 na seção 🔒 do `docs/ROADMAP-FUTURO.md`; do P4b/P5/P7 no `docs/LIVRO-JOGO.md`.
+**Recomendação:** 1 (segurança) → 2 (navegação) → 3 (conteúdo), intercalando os 🟢 (são pequenos) quando quiser uma sessão leve. Se quiser resultado **visível** primeiro, inverta: 2 → 5 → 1. Detalhe das Fases 20–22 nos itens 22–24 da seção DIREÇÃO NOVA abaixo; da Fase 18 na seção 🔒 do `docs/ROADMAP-FUTURO.md`; do P4b/P5/P7 no `docs/LIVRO-JOGO.md`.
+
+**🧭 Princípio de design (pesquisa 13/07/2026):** o VTT mais amado do mercado (Owlbear Rodeo) é o MAIS SIMPLES — "mapa + tokens e sai da frente". Manter o modo 🎲 Jogar minimalista; enxugar > adicionar. No celular, navegação principal na **zona do polegar** (bottom-nav, 3–5 itens, alvos ≥44px); sidebar só no desktop.
 
 ---
 
@@ -255,6 +260,25 @@ Virada: o grid virtual sai, entra o **Tabuleiro-imagem sem grelha**. Web-first +
     - ⏳ **18.3** — **limites de payload + sanidade** nos PUTs (fichas, aventuras, lojas, notas) e quota de tamanho por doc.
 20. 📦 **Fase 19 — Conteúdo contínuo (P7 do livro-jogo)**: Phandelver Cap. 2 (Phandalin + Mantos Vermelhos) → Cap. 3 (Castelo Cragmaw) → Cap. 4 (Caverna do Eco das Ondas); one-shots originais curtos (3-5 nós) como demos para Mestres novos. Pipeline no `docs/LIVRO-JOGO.md` Parte 1.
 21. 🗺️ **16.6 — Tabuleiro (refinos opcionais)**: zoom/pan no board (pré-requisito dos demais), centralizar/seguir token, medir distância por escala definida à mão (m por % da imagem).
+22. 🧭 **Fase 20 — Navegação & Mobile** (proposta 13/07/2026, a partir de pesquisa UX — sidebar não funciona <768px; bottom-nav de 3–5 itens na zona do polegar é o padrão; alvos ≥44px):
+    - ⏳ **20.1** — **Navegação híbrida**: desktop = **sidebar fixa** à esquerda com os 3 modos como grupos expansíveis (🎲 Jogar / 📝 Preparar / 📖 Consultar → abas viram sub-itens); celular = **bottom-nav** com os modos (jogador: 2 + 🎲 dados) e as abas do modo em **linha rolável horizontal** (scroll-snap) no topo. Reusa o `data-mode` da 17.1/17.2 — muda a apresentação, não a estrutura.
+    - ⏳ **20.2** — **Topbar enxuta no celular**: campanha ativa/💾 Backup/Ver como Jogador/Sair colapsam num menu **⋯** (drawer); fica logo + campanha + ⋯.
+    - ⏳ **20.3** — **Alvos de toque ≥44px**: passe `@media (pointer: coarse)` nos `btn-mini`/controles pequenos (zoom do canvas, ✕, ➕ da loja).
+    - ⏳ **20.4** — **Passe único de responsividade**: auditoria de todas as telas a 375px; consolidar os 8 breakpoints avulsos (tabelas com overflow próprio, `form-grid`/`combate-layout` → 1 coluna, toolbars com wrap).
+    - ⏳ **20.5** — **Ficha mobile estilo D&D Beyond**: tocar no modificador **rola** (perícias/salvaguardas/atributos — hoje só ataques) e seções colapsáveis (accordion) no Modo de Jogo (PV/slots/ações abertos; inventário/magias/história fechados).
+    - ⏳ **20.6** — **FAB 🎲**: botão flutuante de rolagem rápida (d20/vantagem/desvantagem) em qualquer tela, zona do polegar.
+    - ⏳ **20.7** — **Tabuleiro fullscreen** (⛶, API Fullscreen) — casa com o zoom/pan da 16.6.
+23. 🔥 **Fase 21 — Mesa Viva** (proposta 13/07/2026 — o que faz a mesa remota "sentir" presença; padrão Game Log do D&D Beyond):
+    - ⏳ **21.1** — **📜 Log da mesa compartilhado**: feed em tempo real que TODOS veem — rolagens de todos, compras, avanços de nó, loot distribuído (hoje o log é só do combate). Infra pronta (estado + RT); maior impacto/esforço da fase.
+    - ⏳ **21.2** — **Condições visuais nos tokens**: 🩸 borda <50% PV, 💀 inconsciente, ☠️ morto — liga combate ↔ tabuleiro sem sync novo (mesmo doc).
+    - ⏳ **21.3** — **Fog of war simples**: `tabuleiro.nevoa` (retângulos em %) que o Mestre revela aos poucos; v1 sem linha de visão — é o recurso que consagrou o Owlbear.
+    - ⏳ **21.4** — **Iniciativa pelo jogador**: quando o combate abre (banner K1), o jogador rola a própria iniciativa da tela dele.
+    - ⏳ **21.5** — **Descanso em grupo**: botão do Mestre "🏕️ Descanso curto/longo para todos" (aplica PV/slots/recursos de uma vez).
+24. 🚪 **Fase 22 — Campanhas & Acolhimento** (proposta 13/07/2026 — a primeira tela que todos veem):
+    - ⏳ **22.1** — **Cards de campanha ricos**: nº de fichas/jogadores, status ao vivo ("⚔️ em combate", "📖 aventura em curso: <título>"), última atividade (`atualizadoEm` já existe), botão **📋 copiar convite**, emoji/cor escolhível por campanha, card inteiro clicável.
+    - ⏳ **22.2** — **Renomear + arquivar campanha** (hoje não existe nenhum dos dois — campanha velha fica na lista para sempre).
+    - ⏳ **22.3** — **Onboarding de campanha vazia**: checklist "1️⃣ Importe uma aventura pronta · 2️⃣ Fichas dos jogadores · 3️⃣ Abra um mapa" no lugar das abas vazias.
+    - ⏳ **22.4** — **Toolbars enxutas**: 3–4 botões primários + "⚙️ mais" (dropdown) no Combate e no editor de aventuras.
 
 ---
 

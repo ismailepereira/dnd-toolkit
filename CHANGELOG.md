@@ -4,6 +4,43 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-14 — Fase 20.3: alvos de toque ≥44px
+
+**Backup antes da alteração:** `versoes/2026-07-14-20-3-alvos-toque/` (`static/css/style.css`).
+
+**Resumo:** vários controles pequenos (zoom do canvas do editor de aventuras,
+✕ de remover nó/combatente, "➕ à loja", fechar do Modo de Jogo, chips de
+magia preparada) tinham alvo de toque bem abaixo dos 44px recomendados —
+fáceis de errar com o dedo, mesmo já com a navegação híbrida da 20.1/20.2.
+- `static/css/style.css`: novo bloco `@media (pointer: coarse)` no final do
+  arquivo — `pointer: coarse` detecta **toque**, não largura de tela (um
+  notebook touchscreen também ganha os alvos maiores; mouse/trackpad mantém
+  o tamanho compacto de sempre nas telas do Mestre). Eleva `.btn-mini`
+  (zoom do canvas — `aeZoomPct`/±/ajustar —, "➕ à loja" em
+  `itensmestre.js`, remoções de saída/NPC no editor de nó), `.comb-rem`/
+  `.comb-alvo` (rastreador de combate), `.ae-node-x` (✕ do nó no canvas),
+  `.jogo-fechar` (✕ dos modais de Jogo/Subida de Nível), `.jg-prep-chip`
+  (chips de magia preparada) e `.banner-combate .banner-fechar` para
+  `min-height`/`min-width: 44px`.
+- **Exceção deliberada:** `.chefe-track .btn-mini` (contador denso de
+  Resistência Lendária) continua compacto — seletor mais específico
+  (`0,2,0` vs `0,1,0` do novo bloco) vence por especificidade CSS
+  independente da media query, e essa densidade é intencional ali.
+
+**Verificação (local, `USE_LOCAL_DB=1`, porta 5300, backup/restauro de
+`data/estado.json`):** boot sem erros de console. Como o navegador de
+automação usa mouse real (`pointer: fine`), não dá pra simular
+`pointer: coarse` fisicamente aqui — validado direto no CSSOM
+(`document.styleSheets`): a regra `@media (pointer: coarse)` existe com os
+6 grupos de seletores esperados, sintaxe válida (o parser do navegador só
+aceita `cssRules` bem formadas). O comportamento em toque real é garantido
+pela media query padrão do CSS; a exceção do `.chefe-track` é garantida por
+especificidade (determinístico, não depende de ambiente).
+
+**Como reverter:** restaurar `versoes/2026-07-14-20-3-alvos-toque/style.css` ou `git revert`.
+
+---
+
 ## 2026-07-14 — Fase 20.2: topbar enxuta no celular (drawer "⋯")
 
 **Backup antes da alteração:** `versoes/2026-07-14-20-2-topbar-mobile/` (`templates/mestre.html`, `templates/jogador.html`, `static/css/style.css`).

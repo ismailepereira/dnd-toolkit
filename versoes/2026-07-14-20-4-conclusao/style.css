@@ -561,16 +561,6 @@ button:active {
   border-radius: 4px;
   padding: 6px 8px;
 }
-/* Fase 20.4: linhas de campo com input+selects+botão (ex.: saídas do nó da
-   aventura em .ae-canvas-wrap/Lista, linhas de NPC) não cabiam numa linha só
-   em 375px — mesma causa do .add-monstro: sem flex-wrap, os <select> mantêm
-   a largura natural e a linha estoura a viewport (conteúdo cortado, sem
-   scroll, porque o pai não tem overflow-x próprio). */
-@media (max-width: 600px) {
-  .dado-row { flex-wrap: wrap; }
-  .dado-row select { flex: 1 1 120px; min-width: 0; max-width: 100%; }
-  .dado-row input { flex: 1 1 100%; }
-}
 
 /* Modal */
 .modal {
@@ -616,14 +606,6 @@ button:active {
   font-size: 0.85rem;
   color: var(--text-dim);
   gap: 4px;
-  min-width: 0; /* Fase 20.4: <select> mede o min-content pela opção mais
-    larga (ex.: "Assalto / Infiltração" no editor de nó da aventura) —
-    sem isso o item do grid nunca encolhe abaixo desse texto e a coluna
-    estoura a viewport no celular, mesmo com minmax(120px, 1fr) na faixa. */
-}
-.form-grid select, .form-grid input {
-  min-width: 0;
-  max-width: 100%;
 }
 
 label.full {

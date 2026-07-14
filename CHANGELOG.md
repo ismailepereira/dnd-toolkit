@@ -4,6 +4,52 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-14 — Fase 20.4 (addendum): corrige overflow na vista Lista do editor de aventuras
+
+**Nota de concorrência:** esta entrada foi escrita em paralelo à entrada
+"Fase 20.4 (conclusão)" logo abaixo — outra execução da rotina horária
+auditou Modo de Jogo e o editor em vista **canvas** (🗺️ Mapa) e concluiu
+(corretamente) que ambos já estavam limpos. Esta entrada complementa: audita
+também a vista **Lista** (📋 Lista) do mesmo editor, que a outra execução não
+teve chance de cobrir, e corrige um bug real encontrado nela.
+
+**Backup antes da alteração:** `versoes/2026-07-14-20-4-conclusao/` (`static/css/style.css`, capturado antes desta correção).
+
+**Resumo:** com a mesma ficha de teste (Mago nível 5) e a aventura
+importada ("Mina Perdida de Phandelver" via `avImportarModelo`, local,
+USE_LOCAL_DB=1 — nada tocou o Firestore), a vista **📋 Lista** do editor de
+aventuras (alternativa ao canvas, mesmos dados) mostrou overflow real a
+375px — mesma causa-raiz da 20.4 parcial (CSS Grid/Flex usa o min-content
+dos filhos como piso, mesmo com faixa `minmax`/`flex` definida):
+- `.dado-row` (linha de "Saídas (escolhas)" do nó: rótulo + 2 `<select>` +
+  botão remover, também usada em `npc.js`) não tinha `flex-wrap` — conteúdo
+  cortado (sem scroll, porque o pai não tem `overflow-x` próprio) a partir
+  de 611px de largura numa viewport de 375px.
+- `.form-grid` (grid `auto-fill, minmax(120px, 1fr)` dos campos do nó —
+  Título/Tipo/etc.) estourava até 639px porque o `<select>` mede seu
+  min-content pela opção mais larga (ex. "Assalto / Infiltração") e o item
+  do grid, sem `min-width: 0`, nunca encolhe abaixo disso — a faixa
+  `minmax(120px, 1fr)` só define um piso da FAIXA, não do item dentro dela.
+- `static/css/style.css`: novo bloco `@media (max-width: 600px)` para
+  `.dado-row` (`flex-wrap: wrap`, selects/`input` com `flex-basis`
+  ajustado) + `.form-grid label`/`select`/`input` com `min-width: 0` e
+  `max-width: 100%` (sem media query — seguro em qualquer largura, só
+  permite o item encolher quando a faixa do grid mandar).
+
+**Verificação (local, `USE_LOCAL_DB=1`, porta 5300, backup/restauro de
+`data/estado.json`; `data/aventuras.json` criado pelo teste foi apagado ao
+final):** scan de overflow automatizado (JS injetado via browser tool,
+mesmo método da 20.4 parcial) em 375px na vista Lista — 0 ocorrências após
+a correção (eram 94, depois 34 num fix intermediário, depois 0); reconferi
+também Modo de Jogo (Mestre e Jogador `jogador`/`dnd2024`) e a vista canvas
+para não regredir — 0 ocorrências nas duas, confirmando o achado da outra
+execução. Reteste a 1280px: `.form-grid` mantém `auto-fill` multi-coluna
+normal no desktop (7 colunas de ~131px) — nenhuma regressão.
+
+**Como reverter:** restaurar `versoes/2026-07-14-20-4-conclusao/style.css` ou `git revert`.
+
+---
+
 ## 2026-07-14 — Fase 20.4 (conclusão): auditoria das telas pendentes — Modo de Jogo com ficha completa e editor canvas
 
 **Backup:** nenhum — **zero alterações de código** nesta entrega; é a

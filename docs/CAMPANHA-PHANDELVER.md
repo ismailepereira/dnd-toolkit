@@ -171,7 +171,7 @@ validada e anotar o ponto de continuação AQUI.
 **Progresso:**
 - [x] Cap. 1 — Emboscada Goblin (08/07/2026, CT1)
 - [x] PH0 — bestiário & itens (14/07/2026: 9 criaturas — as 8 planejadas + Rei Grol — e 9 itens mágicos; Anel de Proteção e Varinha de Mísseis já existiam)
-- [ ] PH1 — Phandalin
+- [x] PH1 — Phandalin (14/07/2026: `modelo_phandelver_phandalin`, 14 nós — chegada, hub da praça com 8 locais/missões, confronto de rua, decisão pré-assalto, finais vitória+neutro; NPCs com segredos embutidos)
 - [ ] PH2 — Esconderijo Marcarrubra
 - [ ] PH3 — Teia da Aranha
 - [ ] PH4 — Castelo Dentefino

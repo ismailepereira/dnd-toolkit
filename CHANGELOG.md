@@ -4,6 +4,27 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-14 — PH1 (Campanha Phandelver): Cap. 2A — Phandalin (vila-hub)
+
+**Backup antes da alteração:** `versoes/2026-07-14-ph1-phandalin/` (aventurasprontas.js).
+
+**Resumo:** Segunda sub-fase da campanha (plano em `docs/CAMPANHA-PHANDELVER.md`). Nova aventura pronta **`modelo_phandelver_phandalin`** ("Mina Perdida de Phandelver — Cap. 2: Phandalin", nível 2-3, **14 nós**), adaptação própria e condensada:
+- **Chegada** (entrega no Barthen, 10 po) → **hub da praça** com 8 locais, cada um com NPC embutido (P2) e um gancho: Stonehill (Toblen + 4 rumores), **Sildar** (500 po Gundren/castelo + 200 po Iarno), Leão Escudo (Linene, 50 po caixas), Câmbio (**Halia** — 100 po pela cabeça do Cajavidro; `notasPrivadas`: Zhentarim), Pomar (Daran → Velha Coruja), Fazenda (Qelline/Reidoth + **túnel do Carp**), Salão (Harbin covarde, 100 po orcs), Santuário (Garaele → Agatha + pente de prata).
+- **Confronto de rua** (4× Bandido; o último foge pra mansão; prisioneiro entrega a senha "Illefarn") → **decisão pré-assalto** (recap das vantagens) → finais **vitória** (rumo à mansão; aponta o Cap. 2B) e **neutro** (partir da vila, retomável).
+- Ganchos do Cap. 3 semeados em 4 nós (Velha Coruja, Agatha, orcs do Cume, Reidoth).
+
+**Nota de coordenação:** uma run da rotina horária havia escrito uma versão própria do capítulo (13 nós) no working tree sem commitar (a run morreu no meio; o servidor dela ficou órfão na porta 5300). As duas versões foram comparadas e a mais completa (14 nós, com decisão pré-assalto, final neutro e segredos mais profundos) ficou; a duplicata foi removida — o validador agora acusa **0 ids duplicados**.
+
+**Ficheiros:** `static/js/aventurasprontas.js` (+1 modelo).
+
+**Verificação:** `node --check` (ok); harness Node com `validarAventura` nas **5 aventuras prontas**: todas 0 erros / 0 avisos, encontros com nomes EXATOS do bestiário, NPCs bem-formados, 0 ids duplicados. **Teste de mesa no preview** (porta alternativa 5399, Mestre, 0 erros de console): importar → iniciar → condução renderiza a chegada com o cartão do Barthen → avançar pro hub mostra as **10 saídas** → editor canvas com autolayout limpo (**14 nós, 23 setas + 23 rótulos, 0 sobreposições**). Dados locais restaurados após o teste.
+
+**Como reverter:** restaurar `versoes/2026-07-14-ph1-phandalin/` ou `git revert`.
+
+**Próximo:** PH2 — Cap. 2B: Esconderijo Marcarrubra (~13 nós, 2 entradas, Iarno/Cajavidro).
+
+---
+
 ## 2026-07-14 — PH0 (Campanha Phandelver): bestiário + itens mágicos
 
 **Backup antes da alteração:** `versoes/2026-07-14-ph0-bestiario-itens/` (monstros.js, itens.js, tabuleiro.js).

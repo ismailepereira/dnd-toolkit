@@ -4,6 +4,25 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-13 — Livro-jogo P7: 1ª one-shot original ("A Cripta do Sino Silencioso")
+
+**Backup antes da alteração:** `versoes/2026-07-13-p7-oneshot-cripta/` (HEAD de `aventurasprontas.js`).
+
+**Resumo:** Primeiro passo do P7 (mais aventuras prontas) com uma **one-shot original** — conteúdo próprio, sem reproduzir módulo publicado — como material de demonstração para Mestres novos. **A Cripta do Sino Silencioso** (`modelo_cripta_sino_silencioso`): 14 nós, nível 1-3, até 5 jogadores.
+- **Estrutura de livro-jogo exemplar:** abertura com 4 escolhas de tom → hub de investigação (coveiro / cemitério / descida direta) → cripta (ossuário opcional com mais loot/risco → câmara dos festins) → **escolha moral sem resposta certa** (o pacto sob o sino: matar o cultista e devolver a mortalidade à vila, ou aceitar a vida eterna ao custo das almas) → clímax contra Cultista + Wight.
+- **Finais múltiplos:** 1 vitória, 2 derrotas jogáveis (ambas com alternativa clemente à morte — captura/exaustão em vez de TPK) e 2 neutros/becos sinalizados (inação, pacto ambíguo).
+- **Monstros:** só nomes exatos do bestiário (Esqueleto, Rato Gigante, Lodo Cinzento, Carniçal, Cultista, Wight) — todos já com `loot` (Fase 13), então o "🎲 Loot do nó" (P6) funciona de imediato nesta aventura.
+
+**Ficheiros:** `static/js/aventurasprontas.js` (nova entrada no fim de `AVENTURAS_PRONTAS`); `docs/LIVRO-JOGO.md` (P7 com o one-shot registado).
+
+**Modelo de dados:** nenhum novo (formato de livro-jogo existente). Importável pelo botão "📚 Importar modelo".
+
+**Verificação (Node):** `node --check` OK; `validarAventura` → **0 erros, 0 avisos** (sem órfãos, becos não-finais, e há caminho de vitória alcançável); **todos** os monstros de encontro existem em `MONSTROS`; 0 caracteres não-latinos residuais (checado após corrigir um nome digitado com script misto).
+
+**Como reverter:** restaurar `versoes/2026-07-13-p7-oneshot-cripta/` ou `git revert`.
+
+---
+
 ## 2026-07-13 — Fase 13 COMPLETA: loot em 100% do bestiário (59/59)
 
 **Backup antes da alteração:** `versoes/2026-07-13-fase13-loot-completo/` (HEAD de `monstros.js`, já com os +12 anteriores).

@@ -130,9 +130,18 @@ monstros abatidos) + sugestão de XP (soma dos `pe` do encontro) com
 envio via "📦 Enviar à ficha" (respeitando a regra B2: só o Mestre dá
 XP/ouro).
 
-### P7. Mais aventuras prontas
+### P7. Mais aventuras prontas 🔄
 Phandelver (CT1) escrito neste formato; depois, one-shots curtos (3-5
 nós) como material de demonstração para Mestres novos.
+> **1º one-shot original entregue em 13/07/2026** — **A Cripta do Sino
+> Silencioso** (`modelo_cripta_sino_silencioso` em `aventurasprontas.js`):
+> 14 nós, nível 1-3, conteúdo próprio (não reproduz módulo publicado).
+> Hub + escolha moral sem resposta certa (o pacto sob o sino) + becos/
+> mortes sinalizados com alternativa clemente + finais múltiplos (vitória/
+> derrota/neutro). Monstros só do bestiário (Esqueleto, Rato Gigante,
+> Lodo Cinzento, Carniçal, Cultista, Wight — todos com loot da Fase 13).
+> `validarAventura` → 0 erros / 0 avisos. Próximos: mais capítulos de
+> Phandelver e outros one-shots.
 
 ---
 

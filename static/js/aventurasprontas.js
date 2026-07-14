@@ -426,6 +426,140 @@ const AVENTURAS_PRONTAS = [
       },
     ],
   },
+  // =====================================================================
+  // ONE-SHOT ORIGINAL (material de demonstração — P7). Conteúdo próprio,
+  // não reproduz módulo publicado. 13 nós, nível 1-3, hub + escolha moral
+  // sem resposta certa + becos/mortes sinalizados + finais múltiplos.
+  // Monstros: nomes EXATOS do bestiário (todos com loot na Fase 13).
+  // =====================================================================
+  {
+    id: 'modelo_cripta_sino_silencioso',
+    titulo: 'A Cripta do Sino Silencioso (one-shot)',
+    limites: { jogadoresMax: 5, nivelMin: 1, nivelMax: 3 },
+    noInicial: 'c_inicio',
+    nos: [
+      {
+        id: 'c_inicio', titulo: 'O sino que emudeceu', tipo: 'narracao',
+        narracao: 'Na vila de Marcabru, o velho sino da capela tocava a cada amanhecer há cem anos. Há três noites, emudeceu. Desde então, dois moradores desapareceram das camas sem deixar rasto. O padre Anselmo, de mãos trémulas, oferece a bolsa da paróquia a quem descobrir o que se esconde sob a igreja.',
+        notasMestre: 'Gancho social simples. O sino silenciou quando um cultista reabriu a cripta selada e começou a erguer os mortos. Deixe os PJs escolherem a abordagem; todas convergem para a cripta.',
+        encontro: [], saidas: [
+          { para: 'c_coveiro', rotulo: 'Interrogar o coveiro antes de descer', aviso: '' },
+          { para: 'c_cemiterio', rotulo: 'Vigiar o cemitério à noite', aviso: '' },
+          { para: 'c_entrada', rotulo: 'Descer já pela cripta sob a capela', aviso: '' },
+          { para: 'c_ignorar', rotulo: 'Recusar e seguir viagem', aviso: 'beco' },
+        ],
+      },
+      {
+        id: 'c_coveiro', titulo: 'O coveiro Orin', tipo: 'social',
+        npcs: [{ nome: 'Orin, o Coveiro', tipo: 'neutro', descricao: 'Homem magro de olhos fundos que cava as covas de Marcabru há trinta anos.', notasPrivadas: 'Sabe que a laje da cripta inferior foi arrombada por dentro. Está aterrorizado; um teste de Persuasão CD 12 (ou uma moeda) solta a informação e um mapa rabiscado que dá vantagem na descida.' }],
+        narracao: 'Orin range os dentes: "A laje selada lá em baixo... alguém a abriu por DENTRO. Ouço cânticos quando o vento vira. Não desçam desarmados." Ele hesita, depois estende um mapa rabiscado dos túneis.',
+        notasMestre: 'Persuasão CD 12 (ou sub­orno) entrega o mapa: descreva-o como vantagem narrativa na descida (os PJs evitam a emboscada do ossuário se quiserem). Orin não desce de forma alguma.',
+        encontro: [], saidas: [
+          { para: 'c_cemiterio', rotulo: 'Vigiar o cemitério primeiro', aviso: '' },
+          { para: 'c_entrada', rotulo: 'Seguir o mapa até a cripta', aviso: '' },
+        ],
+      },
+      {
+        id: 'c_cemiterio', titulo: 'Vigília no cemitério', tipo: 'encontro',
+        narracao: 'A meia-noite, a terra fofa de três covas recentes começa a mexer. Mãos de osso rompem o solo: esqueletos erguem-se com os olhos acesos por uma luz fria e avançam em silêncio de rebanho.',
+        notasMestre: 'Combate de aquecimento. Se os PJs recuarem para a capela, os esqueletos não os seguem para dentro (solo sagrado). Vencer aqui revela a escada da cripta escondida atrás do altar.',
+        encontro: [{ nome: 'Esqueleto', qtd: 3 }],
+        saidas: [
+          { para: 'c_entrada', rotulo: 'Entrar na cripta pela escada do altar', aviso: '' },
+          { para: 'c_fuga_noturna', rotulo: 'Perseguir a luz fria noite adentro', aviso: 'mortal' },
+        ],
+      },
+      {
+        id: 'c_entrada', titulo: 'A boca da cripta', tipo: 'narracao',
+        narracao: 'Ar gelado sobe da escada em espiral. Lá no alto, o sino de bronze pende imóvel, amarrado com trapos escuros para não soar. Dois caminhos se abrem: a escada principal que mergulha na treva e um arco lateral cheio de nichos de ossos.',
+        notasMestre: 'Nó de bifurcação. Quem trouxe o mapa de Orin pode ir direto pela escada e pular o ossuário. O ossuário é opcional: mais loot, mais risco.',
+        encontro: [], saidas: [
+          { para: 'c_ossuario', rotulo: 'Explorar o ossuário lateral', aviso: '' },
+          { para: 'c_descida', rotulo: 'Descer direto pela escada principal', aviso: '' },
+        ],
+      },
+      {
+        id: 'c_ossuario', titulo: 'O ossuário', tipo: 'encontro',
+        narracao: 'Prateleiras de crânios se perdem no escuro. Algo escorre entre os nichos — um lodo cinzento e faminto que já comeu o brilho de várias moedas — enquanto ratos do tamanho de cães disputam os restos.',
+        notasMestre: 'Encontro opcional com boa recompensa (o lodo guarda uma gema indigesta; ver loot). Cuidado com a armadura dos PJs contra o Lodo Cinzento (corrói metal). Daqui só se segue para a escada.',
+        encontro: [{ nome: 'Rato Gigante', qtd: 3 }, { nome: 'Lodo Cinzento (Gray Ooze)', qtd: 1 }],
+        saidas: [
+          { para: 'c_descida', rotulo: 'Voltar e descer a escada principal', aviso: '' },
+        ],
+      },
+      {
+        id: 'c_descida', titulo: 'A câmara dos festins', tipo: 'encontro',
+        narracao: 'A escada desemboca numa câmara funerária profanada. Sarcófagos foram arrombados e, agachados sobre um deles, dois carniçais banqueteiam-se com algo que é melhor não olhar de perto. Erguem os focinhos ensanguentados na vossa direção.',
+        notasMestre: 'Os carniçais podem paralisar com as garras (salva de Constituição). Após a luta, um gemido humano vem da câmara seguinte — leva ao nó moral.',
+        encontro: [{ nome: 'Carniçal (Ghoul)', qtd: 2 }],
+        saidas: [
+          { para: 'c_moral', rotulo: 'Seguir o gemido até a câmara do sino', aviso: '' },
+        ],
+      },
+      {
+        id: 'c_moral', titulo: 'O pacto sob o sino', tipo: 'social',
+        npcs: [
+          { nome: 'Vespero, o Cultista', tipo: 'inimigo', descricao: 'Cultista pálido que ergueu os mortos para "poupar Marcabru de morrer de velhice".', notasPrivadas: 'Sincero no seu delírio. Se aceito o pacto, ele PARA de erguer mortos, mas os dois desaparecidos ficam presos como servos e a vila vive sob toque de recolher eterno.' },
+          { nome: 'Doralin, o morador', tipo: 'aliado', descricao: 'Um dos desaparecidos, amarrado e vivo — por enquanto.', notasPrivadas: 'Libertá-lo antes do combate dá vantagem ao grupo (mais um par de mãos), mas o cultista aproveita a distração para chamar o guardião Wight.' },
+        ],
+        narracao: 'Sob o sino silenciado, um cultista de véspere pálida ergue as mãos: "Não sou vosso inimigo. Enquanto o sino não tocar, ninguém em Marcabru envelhece, ninguém morre. Deixem-me terminar e a vila viverá para sempre." Atrás dele, amarrado, um morador ainda respira.',
+        notasMestre: 'DECISÃO MORAL sem resposta certa: matar o cultista quebra o feitiço mas condena Marcabru à mortalidade comum (e liberta os mortos-vivos numa última investida); aceitar o pacto salva corpos ao custo de almas. Não recompense nem puna — deixe a mesa decidir e conviver.',
+        encontro: [], saidas: [
+          { para: 'c_libertar', rotulo: 'Libertar o morador primeiro', aviso: '' },
+          { para: 'c_chefe', rotulo: 'Atacar o cultista de imediato', aviso: '' },
+          { para: 'c_pacto', rotulo: 'Aceitar o pacto e recuar', aviso: '' },
+        ],
+      },
+      {
+        id: 'c_libertar', titulo: 'As cordas cortadas', tipo: 'narracao',
+        narracao: 'Vocês cortam as cordas de Doralin — mas o cultista aproveita o segundo de distração para bradar uma palavra morta. A laje de um sarcófago maior desliza: um guardião de olhos frios se ergue para proteger o mestre.',
+        notasMestre: 'Recompensa e custo: Doralin salvo (aliado, +1 combatente fraco), mas o combate seguinte começa com o Wight já desperto e adjacente ao cultista.',
+        encontro: [], saidas: [
+          { para: 'c_chefe', rotulo: 'Enfrentar o cultista e o guardião', aviso: '' },
+        ],
+      },
+      {
+        id: 'c_chefe', titulo: 'O guardião do sino', tipo: 'encontro',
+        narracao: 'O cultista recua para trás de um vulto encouraçado de podridão antiga — um Wight, o primeiro senhor desta cripta, erguido para servir de escudo. O ar cheira a terra e ferro. É agora.',
+        notasMestre: 'Combate-clímax. O Wight drena vida (perda de PV máximo em acerto crítico) e o cultista lança magia da retaguarda — foquem o conjurador para encurtar a luta. Ao cair o cultista, os mortos-vivos remanescentes desabam inertes.',
+        encontro: [{ nome: 'Cultista', qtd: 1 }, { nome: 'Wight', qtd: 1 }],
+        saidas: [
+          { para: 'c_vitoria', rotulo: 'Derrotar o cultista e o guardião', aviso: '' },
+          { para: 'c_derrota', rotulo: 'Sucumbir na câmara do sino', aviso: 'mortal' },
+        ],
+      },
+      {
+        id: 'c_pacto', titulo: 'O preço da vida eterna', tipo: 'final', resultado: 'neutro',
+        narracao: 'Vocês recuam e deixam o cultista terminar. O sino nunca mais toca — e Marcabru nunca mais enterra ninguém. Os desaparecidos regressam com os olhos frios, obedientes, e a vila vive num crepúsculo sem fim onde ninguém morre... nem realmente vive. Vocês partem com a bolsa da paróquia e um silêncio no peito.',
+        notasMestre: 'Final ambíguo intencional. Ótimo gancho: anos depois, Marcabru pode virar uma cidade inteira de servos do culto — semente de campanha.',
+        encontro: [], saidas: [],
+      },
+      {
+        id: 'c_vitoria', titulo: 'O sino volta a soar', tipo: 'final', resultado: 'vitoria',
+        narracao: 'Com o cultista caído, os trapos que amordaçavam o sino desfazem-se e, ao amanhecer, o bronze volta a cantar sobre Marcabru. Os mortos descansam de novo, Doralin abraça a família e o padre Anselmo cumpre a bolsa prometida. A vila envelhecerá — como deve ser — mas viva e livre.',
+        notasMestre: 'Vitória. Recompensas: bolsa da paróquia (2d6×10 po ao grupo), o loot do cultista e do Wight (Fase 13) + a gratidão de Marcabru como base amiga. XP sugerido: subir para o nível seguinte.',
+        encontro: [], saidas: [],
+      },
+      {
+        id: 'c_derrota', titulo: 'Sob o sino mudo', tipo: 'final', resultado: 'derrota',
+        narracao: 'O frio do Wight rouba-vos o calor golpe a golpe até que a câmara escurece. O sino permanece amarrado, e Marcabru acorda para mais um dia sem badalada — agora com novos rostos entre os desaparecidos.',
+        notasMestre: 'Alternativa clemente ao TPK: em vez de morte, os PJs acordam AMARRADOS junto de Doralin, poupados para servir de material ao ritual — podem escapar (Ladinagem/Atletismo) e retomar do nó do pacto, transformando a derrota em segunda chance.',
+        encontro: [], saidas: [],
+      },
+      {
+        id: 'c_fuga_noturna', titulo: 'A luz fria no ermo', tipo: 'final', resultado: 'derrota',
+        narracao: 'Vocês perseguem a luz fria para longe das luzes da vila. Ela sempre parece a dez passos — até que, cercados pela treva e sem terreno conhecido, percebem tarde demais que eram a caça, não os caçadores.',
+        notasMestre: 'Beco mortal sinalizado. Clemência opcional: em vez de morte, os PJs perdem a noite (exaustão) e acordam à beira do bosque — podem recomeçar do nó inicial, sabendo agora que a resposta está SOB a igreja, não fora.',
+        encontro: [], saidas: [],
+      },
+      {
+        id: 'c_ignorar', titulo: 'Estrada afora', tipo: 'final', resultado: 'neutro',
+        narracao: 'Não é o vosso problema. Vocês seguem viagem ao raiar do dia — e semanas depois, numa taverna distante, ouvem que Marcabru foi abandonada: um vilarejo fantasma onde, dizem, um sino nunca toca e ninguém que entra volta a sair.',
+        notasMestre: 'Beco de inação: mostre o custo de virar as costas e ofereça recomeçar do nó inicial se a mesa se arrepender.',
+        encontro: [], saidas: [],
+      },
+    ],
+  },
 ];
 
 // Export para o harness de testes em Node (no browser é ignorado)

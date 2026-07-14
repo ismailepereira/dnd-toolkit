@@ -8,6 +8,34 @@ Mapa de tarefas do projeto, organizado por fases. Marque `[x]` conforme for conc
 
 ---
 
+## 🧭 AGORA (13/07/2026) — onde estamos e para onde ir
+
+**Estado:** o núcleo do produto está completo — 12 classes até o nível 20, combate com alvos/defesas/loot, livro-jogo (editor canvas + condução com votação, NPCs, loot e XP), **Tabuleiro-imagem ao vivo** (tokens de PJ e monstro, toque, travar, redimensionar), **PWA instalável** e telas reorganizadas por modo (Mestre 3 / Jogador 2). Conteúdo: 59 monstros (100% com loot), 3 aventuras prontas (Ninho 29 nós, Phandelver Cap. 1, + 2 one-shots originais).
+
+**⚠️ Pendências manuais do Ismaile** (destravam recursos já codificados):
+1. **Ativar o Firebase Storage** + publicar `storage.rules` → liga o upload de imagens (miniatura da ficha e mapa do nó). Até lá: URL funciona.
+2. **`ANTHROPIC_API_KEY` no Render** → liga a IA (U2).
+3. **Publicar `firestore.rules` no Console** (Authentication → Começar) → fecha a leitura crua do RT (Fase 10.8 / item de segurança).
+
+**Próximos candidatos, por prioridade sugerida** (regra de sempre: integridade primeiro, mesa depois, conteúdo contínuo, visual por último):
+
+| # | O quê | Por quê agora | Tamanho |
+|---|---|---|---|
+| 🔴 1 | **Fase 18 — Segurança & Integridade** (loja base validada no servidor; RT sem vazar notas do Mestre; limite de payload) | Último vetor de trapaça de ouro + notas privadas legíveis no DevTools; **pré-requisito para escalar assinantes** | M |
+| 🟠 2 | **Fase 19 — Conteúdo contínuo (P7)**: Phandelver Cap. 2 (Phandalin + Mantos Vermelhos) e mais one-shots | É o que os Mestres novos consomem; o motor está pronto, falta biblioteca | M (por capítulo) |
+| 🟡 3 | **16.6 — Tabuleiro: zoom/pan** + centralizar/seguir token + medir distância por escala | Mapas grandes no celular pedem zoom; fecha o que ficou da 16.5 | M |
+| 🟡 4 | **P4b — Canvas na condução**: mini-mapa do grafo com nó atual destacado e caminho percorrido pintado (o canvas do EDITOR já existe) | Visão de progresso da sessão para o Mestre; reusa o desenho do editor | P/M |
+| 🟡 5 | **QoL da mesa (ex-P5 re-escopado)**: ao avançar para nó com imagem, oferecer "abrir o mapa já"; posições iniciais de tokens por nó | O "grid por nó" antigo virou isto com o Tabuleiro-imagem; cola a condução ao tabuleiro | P |
+| 🟢 6 | **Fase 12 — pendências**: reabastecimento periódico da loja do NPC + abrir a loja direto do Modo de Jogo | Fecha a v1 de 05/07; pequeno e contido | P |
+| 🟢 7 | **U2 — expansão da IA**: botões ✨ nos NPCs (perfil/gancho/ambiente) e "gerar nó de aventura" no editor do livro-jogo | O endpoint e a quota já existem; só front + 1 tipo novo | P/M |
+| 🟢 8 | **11.6 — retrato do NPC por URL** (mesmo padrão do tabuleiro: URL agora, upload quando o Storage ativar) | Ficou pendente na Fase 11 por falta de hospedagem — o padrão URL resolveu isso | P |
+| 🟢 9 | **17.4 — PWA: preparação offline de verdade**: precache dos dados estáticos (`classes/compendio/monstros/itens…`) no service worker | Hoje o offline cobre só páginas visitadas; precache cumpre a promessa "preparar sem internet" da arquitetura | P |
+| 🔵 10 | **Futuro maior**: recuperação de senha / Firebase Auth; pagamento automatizado (a assinatura 10.9 é 100% manual); 3+ classes na multiclasse | Só quando houver usuários pagantes de verdade | G |
+
+**Recomendação:** 1 → 2 → 3, intercalando os 🟢 (são pequenos) quando quiser uma sessão leve. Detalhe da Fase 18 na seção 🔒 do `docs/ROADMAP-FUTURO.md`; do P4b/P5/P7 no `docs/LIVRO-JOGO.md`.
+
+---
+
 ## ✅ FASE 0 — Fundação (entregue)
 - [x] Login Mestre/Jogador + estado compartilhado
 - [x] Firestore (persistência + tempo real)
@@ -193,7 +221,7 @@ Detalhe completo (objetivo/estrutura/ficheiros/passos) em `docs/ROADMAP-FUTURO.m
 7. ✅ **Fase 13** — ~~Monstros & Loot~~ (entregue 05/07 + **concluída 13/07/2026**: `loot.js` com tabelas por ND, `loot` próprio em **100% do bestiário — 59/59** monstros, "🎲 Gerar Loot" no Combate e "🎲 Loot do nó" na condução do livro-jogo)
 8. 🟡 **M4** — Banco de NPCs partilhado entre utilizadores (guardar no meu banco / trazer p/ campanha)
 9. 🟢 **K1** — Aviso de combate em tempo real p/ jogadores (banner + som + salto p/ aba Combate)
-10. 🟢 **Fase 12** — Lojas geridas por NPC (inventário/preços próprios)
+10. ✅ **Fase 12** — ~~Lojas geridas por NPC~~ (v1 entregue 05/07/2026: estoque/preços por NPC lojista, compra/venda validadas no servidor. **Pendências** → item 🟢 6 da seção 🧭 AGORA: reabastecimento periódico + abrir a loja do Modo de Jogo)
 11. ✅ **K2** — ~~Árvore narrativa da campanha (mapa mental de decisões, só o Mestre)~~ (entregue 09/07/2026: editor de aventuras ganhou **vista canvas / mapa mental** estilo MindMeister — nós como caixas arrastáveis, saídas como setas curvas com rótulo, arrastar-para-ligar, layout automático em camadas, **zoom (roda/botões/ajustar) + pan + renomear inline**; alternador 🗺️ Mapa / 📋 Lista, coexistindo com o editor de cartões. Posições em `no.x/y`.)
 12. ✅ **U1** — ~~Loja com visual interativo~~ (entregue 08/07/2026: loja do jogador — Criador e Modo de Jogo — vira grade de cartões com ícone por categoria, hover e bolha "−X po" ao comprar; só CSS + emoji, dados intactos)
 13. ✅ **U2** — ~~Integração com IA~~ (entregue 08/07/2026, v1: endpoint `POST /api/ia/gerar` no servidor com a chave em env — Anthropic/Claude —, gate de assinatura + quota diária, botão "✨ Gerar com IA" na história do Criador; degrada suave sem chave. Falta só o Mestre pôr `ANTHROPIC_API_KEY` no `.env`/Render)
@@ -201,7 +229,8 @@ Detalhe completo (objetivo/estrutura/ficheiros/passos) em `docs/ROADMAP-FUTURO.m
 15. ✅ **CT1** — ~~Campanha pronta: Mina Perdida de Phandelver~~ (entregue 08/07/2026: Capítulo 1 "Emboscada Goblin" como livro-jogo — grafo de 14 nós, nível 1-2, na biblioteca de aventuras prontas)
 16. 💤 **Fase 15** — Editor de Mapas (grid) — **DORMENTE** (15.1 entregue 08/07/2026; substituído pelo Tabuleiro-imagem — ver Fase 16).
 
-> **Atualização 13/07/2026:** livro-jogo **P6** (Loot e XP integrados à condução — 🎲 Loot do nó + 🏅 XP dividido pelo grupo) e **Fase 13 concluída** (loot em 59/59 monstros); **P7** iniciado com a 1ª one-shot original **A Cripta do Sino Silencioso** (14 nós, validada). Ver `CHANGELOG.md` e `docs/LIVRO-JOGO.md`. **Próximos candidatos:** segurança (loja base validada no servidor — precisa de teste de fluxo de ouro no browser), mais capítulos de Phandelver / one-shots, e refinos opcionais do Tabuleiro (16.6).
+> **Atualização 13/07/2026:** livro-jogo **P6** entregue (🎲 Loot do nó + 🏅 XP dividido pelo grupo na condução), **Fase 13 concluída** (loot em 59/59 monstros) e **P7 em curso** (2 one-shots originais: A Cripta do Sino Silencioso, 14 nós; O Comboio de Sal, 13 nós). Ver `CHANGELOG.md` e `docs/LIVRO-JOGO.md`.
+> **➡️ A priorização do que vem a seguir vive na seção [🧭 AGORA](#-agora-13072026--onde-estamos-e-para-onde-ir) no topo deste ficheiro.**
 
 ---
 
@@ -219,6 +248,13 @@ Virada: o grid virtual sai, entra o **Tabuleiro-imagem sem grelha**. Web-first +
     - ✅ **17.3** (10/07/2026) — **PWA**: `manifest.webmanifest` + ícones (192/512/maskable, 🐉) + Service Worker no escopo raiz (network-first + fallback ao cache + `offline.html`); rotas `/sw.js` e `/manifest.webmanifest`; link/registro nos templates. Instalável no celular/desktop; código sempre fresco online.
     - ✅ **17.1** (10/07/2026) — **três modos no Mestre** (🎲 Jogar / 📝 Preparar / 📖 Consultar): barra de modos + `data-mode` por aba; só as abas do modo aparecem. Jogar = aventura/combate/npcs/notas; Preparar = fichas/encontros/loja/itens/membros/geradores; Consultar = bestiário/progressão. Cliques (inclusive programáticos) trazem o modo junto; nada removido.
     - ✅ **17.2** (10/07/2026) — **tela do jogador enxuta** (2 modos): 🎲 Mesa (ficha/combate/história/mapa/handouts) · 📖 Consultar (npcs/bestiário/progressão). Reusa a camada de modos da 17.1. **Fase 17 concluída.**
+    - ⏳ **17.4** (proposta 13/07/2026) — **preparação offline de verdade**: precache dos dados estáticos no `sw.js` (`classes/compendio/monstros/itens/equipamento/dados5e…`) para Criador/Compêndio/Bestiário funcionarem sem internet na primeira visita — cumpre a meta "preparação offline" do `docs/ARQUITETURA.md` §6.
+19. 🔒 **Fase 18 — Segurança & Integridade** (proposta 13/07/2026; detalhe na seção 🔒 do `docs/ROADMAP-FUTURO.md`). Pré-requisito para escalar assinantes:
+    - ⏳ **18.1** — **loja base validada no servidor**: compra/venda do Modo de Jogo migra para endpoints tipo `POST /api/lojas/comprar` (Fase 12); fecha o último vetor de ouro editável no cliente (e permite travar `ouro` no `_sanitizar_fichas_jogador`).
+    - ⏳ **18.2** — **tempo real sem vazamento**: o RT entrega o estado cru (com `notasMestre`/`notasPrivadas`) e filtra só no cliente. Resolver com doc "público" separado por mesa (espelho filtrado escrito pelo servidor) ou regras por campo.
+    - ⏳ **18.3** — **limites de payload + sanidade** nos PUTs (fichas, aventuras, lojas, notas) e quota de tamanho por doc.
+20. 📦 **Fase 19 — Conteúdo contínuo (P7 do livro-jogo)**: Phandelver Cap. 2 (Phandalin + Mantos Vermelhos) → Cap. 3 (Castelo Cragmaw) → Cap. 4 (Caverna do Eco das Ondas); one-shots originais curtos (3-5 nós) como demos para Mestres novos. Pipeline no `docs/LIVRO-JOGO.md` Parte 1.
+21. 🗺️ **16.6 — Tabuleiro (refinos opcionais)**: zoom/pan no board (pré-requisito dos demais), centralizar/seguir token, medir distância por escala definida à mão (m por % da imagem).
 
 ---
 

@@ -254,6 +254,8 @@ já prepara metade do terreno.
 ## 🔒 Segurança / integridade (contínuo)
 
 > Trilha de endurecimento do backend antes de escalar utilizadores pagantes.
+> **13/07/2026:** promovida a **Fase 18** no `ROADMAP.md` (18.1 loja base
+> validada · 18.2 RT sem vazamento · 18.3 limites de payload).
 
 - ✅ **PUT /api/fichas validado** (06/07/2026) — jogador só altera fichas
   próprias; XP e revivência ficam com o Mestre (ver `CHANGELOG.md`).

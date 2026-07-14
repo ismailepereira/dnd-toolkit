@@ -107,14 +107,23 @@ jogadores. (Espelhado na secção K2 do `ROADMAP-FUTURO.md`.)
 > Nota: a partilha precisa de campanha REGISTADA (contas com meta); em
 > campanha legada degrada com aviso "sem membros geridos".
 
-### P4. Canvas visual (editor v2)
-Grafo desenhado em SVG puro (nós arrastáveis, setas, nó atual destacado,
-caminho percorrido pintado). A lista atual continua como modo compacto.
+### P4. Canvas visual (editor v2) ✅ (editor) / 🔄 P4b (condução)
+> **✅ Editor entregue em 09/07/2026** — vista 🗺️ Mapa no editor de
+> aventuras (caixas arrastáveis, setas com rótulo, arrastar-para-ligar,
+> zoom/pan, renomear inline), coexistindo com a 📋 Lista. Ver `CHANGELOG.md`.
+>
+> **🔄 O que sobrou vira P4b — canvas na CONDUÇÃO:** mini-mapa do grafo na
+> aventura em curso, com o **nó atual destacado** e o **caminho percorrido
+> pintado** (reusa `desenharEdges`/`autoLayout` do editor em modo
+> read-only). Dá ao Mestre a visão de progresso da sessão num relance.
 
-### P5. Grid por nó (depende da Fase 14)
-Campo `gridId` no nó: cada cena de combate/assalto abre já com o seu
-mapa (posições iniciais, obstáculos). O grafo não sabe de mapas — só
-aponta. É o que falta para "cada nó com o seu tabuleiro".
+### P5. Grid por nó — 💤 SUPERADO pelo Tabuleiro-imagem (Fase 16)
+> A Fase 14 (grid) ficou dormente; o espírito do P5 foi entregue pela
+> **16.2/16.3**: cada nó tem `imagemUrl` e o Mestre "abre o mapa" com
+> tokens livres. **Re-escopo (QoL da mesa, ver 🧭 AGORA no ROADMAP.md):**
+> (a) ao avançar para um nó com imagem, oferecer "abrir o mapa já";
+> (b) posições iniciais de tokens por nó (`no.posicoesIniciais`), para a
+> cena começar montada.
 
 ### P6. Loot e XP integrados à condução ✅
 > **✅ Entregue em 13/07/2026** — no nó de encontro da condução: botão

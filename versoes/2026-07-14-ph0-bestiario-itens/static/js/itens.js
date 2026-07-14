@@ -108,16 +108,6 @@ const ITENS_MAGICOS = [
   { nome: 'Cajado da Cura', raridade: 'Raro', sintonia: true, tipo: 'Cajado', peso: '2 kg', efeito: 'Cargas para conjurar Curar Ferimentos, Restauração Menor e Cura em Massa.' },
   // Pergaminhos
   { nome: 'Pergaminho de Proteção', raridade: 'Raro', sintonia: false, tipo: 'Pergaminho', peso: '-', efeito: 'Proteção contra um tipo de criatura (à escolha) por 5 minutos.' },
-  // PH0 (Campanha Phandelver) — itens do módulo
-  { nome: 'Talon (Espada Longa +1)', raridade: 'Incomum', sintonia: false, tipo: 'Arma', peso: '1,5 kg', efeito: '+1 em ataques e dano. Lâmina antiga de punho em forma de garra de águia.' },
-  { nome: 'Cajado da Defesa', raridade: 'Raro', sintonia: true, tipo: 'Cajado', peso: '2 kg', efeito: '+1 na CA. 10 cargas: Armadura Arcana (1) ou Escudo Arcano (1); recupera 1d6+4 ao amanhecer.' },
-  { nome: 'Hew (Machado de Batalha +1)', raridade: 'Incomum', sintonia: false, tipo: 'Arma', peso: '2 kg', efeito: '+1 em ataques e dano; dano MÁXIMO contra plantas e objetos de madeira.' },
-  { nome: 'Botas de Correr e Saltar', raridade: 'Incomum', sintonia: true, tipo: 'Maravilhoso', peso: '0,5 kg', efeito: 'Deslocamento vira 9m (armadura não reduz) e o salto triplica a distância normal.' },
-  { nome: 'Poção de Vitalidade', raridade: 'Muito raro', sintonia: false, tipo: 'Poção', peso: '0,25 kg', efeito: 'Remove exaustão, doenças e venenos; por 24h, Dados de Vida gastos curam o máximo.' },
-  { nome: 'Criadora da Luz (Lightbringer)', raridade: 'Incomum', sintonia: false, tipo: 'Arma', peso: '2 kg', efeito: 'Maça +1; sob comando brilha como tocha; +1d6 radiante contra mortos-vivos.' },
-  { nome: 'Guarda-Dragão (Dragonguard)', raridade: 'Raro', sintonia: false, tipo: 'Armadura', peso: '9 kg', efeito: 'Peitoral +1; vantagem em salvaguardas contra sopros de dragão.' },
-  { nome: 'Manoplas de Poder de Ogro', raridade: 'Incomum', sintonia: true, tipo: 'Maravilhoso', peso: '0,5 kg', efeito: 'Sua Força vira 19 enquanto as vestir.' },
-  { nome: 'Cajado da Aranha (Spider Staff)', raridade: 'Raro', sintonia: true, tipo: 'Cajado', peso: '2 kg', efeito: 'Bastão +1d6 de veneno no dano. 10 cargas: Teia (2) ou Patas de Aranha (1); recupera 1d6+4 ao amanhecer.' },
 ];
 
 // Adiciona os itens mágicos ao catálogo da loja/inventário (com a etiqueta de raridade no preço)

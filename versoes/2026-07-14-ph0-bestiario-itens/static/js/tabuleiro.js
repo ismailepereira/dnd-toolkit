@@ -36,7 +36,7 @@
     'Aberração': '👁️', 'Animal': '🐺', 'Constructo': '🗿', 'Corruptor': '😈',
     'Culto do Dragão': '🐲', 'Dragão': '🐉', 'Elemental': '🔥', 'Fey': '🧚',
     'Gigante': '🗿', 'Goblinoide': '👺', 'Humanoide': '🧑', 'Limo': '🫧',
-    'Monstruosidade': '🦎', 'Morto-vivo': '💀', 'Planta': '🌿',
+    'Monstruosidade': '🦎', 'Morto-vivo': '💀',
   };
   const iconeCategoria = c => CATEGORIA_ICONE[c] || '👹';
 

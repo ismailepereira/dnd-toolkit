@@ -170,7 +170,7 @@ validada e anotar o ponto de continuação AQUI.
 
 **Progresso:**
 - [x] Cap. 1 — Emboscada Goblin (08/07/2026, CT1)
-- [ ] PH0 — bestiário & itens
+- [x] PH0 — bestiário & itens (14/07/2026: 9 criaturas — as 8 planejadas + Rei Grol — e 9 itens mágicos; Anel de Proteção e Varinha de Mísseis já existiam)
 - [ ] PH1 — Phandalin
 - [ ] PH2 — Esconderijo Marcarrubra
 - [ ] PH3 — Teia da Aranha

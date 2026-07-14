@@ -4,6 +4,23 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-14 — PH0 (Campanha Phandelver): bestiário + itens mágicos
+
+**Backup antes da alteração:** `versoes/2026-07-14-ph0-bestiario-itens/` (monstros.js, itens.js, tabuleiro.js).
+
+**Resumo:** Primeira sub-fase da campanha Phandelver completa (plano em `docs/CAMPANHA-PHANDELVER.md`). O bestiário ganhou as **9 criaturas** que os Caps. 2-4 usam e o catálogo ganhou os **9 itens mágicos** do módulo. Stats padrão do jogo com textos de traços/ações em redação própria (estilo da casa), todos com `loot` (Fase 13) e notas de CONDUÇÃO onde importa.
+- **Criaturas** (`monstros.js`, 59→68): Grick (CR 2), Urso-Coruja (CR 3), Doppelganger (CR 3, nota: Vyerith/Vhalak), **Dragão Verde Jovem — Venomfang (CR 8, traço AVISO AO MESTRE: grupo nível 3-4 não enfrenta de frente)**, Gosma Ocre (CR 2, Dividir), Aparição/Wraith (CR 5, nota: Mormesk pode ser social), Ramo Seco (CR 1/8, vulnerável a fogo, nova categoria **Planta**), Zumbi das Cinzas (CR 1/4, nuvem de cinzas), Rei Grol (CR 2, chefe do Castelo Dentefino).
+- **Itens** (`itens.js`, ITENS_MAGICOS 26→35): Talon, Cajado da Defesa, Hew, Botas de Correr e Saltar, Poção de Vitalidade, Criadora da Luz (Lightbringer), Guarda-Dragão (Dragonguard), Manoplas de Poder de Ogro, Cajado da Aranha. (Anel de Proteção e Varinha de Mísseis Mágicos já existiam.)
+- `tabuleiro.js` — ícone 🌿 para a categoria Planta no `CATEGORIA_ICONE`.
+
+**Verificação:** `node --check` nos 3 JS (ok); avaliação dos módulos em Node: 68 monstros, **0 nomes duplicados, 0 sem loot**, os 9 novos presentes, categorias com Planta; 35 itens mágicos, 0 duplicados, os 9 novos presentes e **todos no catálogo da loja** (ITENS_PADRAO).
+
+**Como reverter:** restaurar `versoes/2026-07-14-ph0-bestiario-itens/` ou `git revert`.
+
+**Próximo:** PH1 — Cap. 2A: Phandalin (vila-hub, ~14 nós, as 8 missões) — ver `docs/CAMPANHA-PHANDELVER.md`.
+
+---
+
 ## 2026-07-14 — UI: cards de "Minhas Aventuras" sem estouro de botões
 
 **Backup antes da alteração:** `versoes/2026-07-14-ui-card-aventuras/` (style.css).

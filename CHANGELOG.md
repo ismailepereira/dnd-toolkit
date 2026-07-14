@@ -4,6 +4,56 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-14 — Fase 18.2: tempo real sem vazar notas privadas do Mestre
+
+**Backup antes da alteração:** `versoes/2026-07-14-18-2-rt-sem-vazamento/` (`app.py`, `static/js/firebase-rt.js`, `static/js/jogador.js`, `firestore.rules`).
+
+**Resumo:** o RT (Firestore `onSnapshot`) é lido **direto pelo cliente**, sem
+passar pelas rotas Flask — então o filtro que essas rotas já faziam (GET
+`/api/npcs` remove `notasPrivadas`; GET `/api/aventura_ativa` esconde
+`notasMestre` do jogador) nunca protegia o tempo real: qualquer membro da
+campanha recebia o **documento inteiro** via `onSnapshot`, incluindo
+`npcs[].notasPrivadas` e notas do Mestre com `compartilhada: false`, visíveis
+a quem abrisse o DevTools. `SEGURANCA.md` (linha 43) já documentava isso como
+lacuna conhecida.
+- `app.py`: `_estado_publico(estado)` gera uma cópia do estado sem esses dois
+  campos; `salvar_estado()` agora grava **dois documentos** no Firestore —
+  `campanha/<id>` (bruto, como antes) e `campanha_publica/<id>` (a projeção
+  filtrada); `carregar_estado()` semeia os dois na criação de uma campanha
+  nova. Sem Firestore (modo local), o comportamento não muda — o segundo
+  write só roda quando `db is not None`.
+- `firestore.rules`: `campanha/<id>` passa a ser legível **só pelo Mestre**
+  (mestre da mesa ou mestre fixo legado); novo `match /campanha_publica/<id>`
+  com a mesma regra ampla de antes (mestre, membro registado ou jogador fixo
+  legado) — é o documento que o jogador lê.
+- `static/js/firebase-rt.js`: `RT.ouvir()` continua a escutar `campanha`
+  (usado pelo Mestre em `app.js`); novo `RT.ouvirPublico()` escuta
+  `campanha_publica`.
+- `static/js/jogador.js`: o listener de tempo real troca `RT.ouvir` por
+  `RT.ouvirPublico` — o resto do handler não muda (mesmo formato de estado).
+
+**Verificação:** `python -c "import ast; ast.parse(...)"` e `node --check` nos
+3 arquivos JS tocados, OK. `_estado_publico()` testado isoladamente (script
+`python -c`): notas não-compartilhadas removidas, `notasPrivadas` removido de
+cada NPC, demais campos (fichas, etc.) preservados sem mutar o dict original.
+Boot local (`USE_LOCAL_DB=1`, porta 5300, backup/restauro de
+`data/estado.json`): login Mestre, `GET/PUT /api/notas` (nota privada +
+compartilhada), `GET /api/fichas` — tudo 200, sem erros de console. Como o
+modo local não usa Firestore, o par de documentos e as novas Regras só são
+exercitados em produção (ou com credencial Firebase local).
+
+**Pendência manual do Ismaile (não bloqueia — degradação suave):** o código já
+grava os dois documentos, mas o benefício de segurança só vale depois de
+publicar o `firestore.rules` atualizado no Console (Firestore Database →
+Regras → colar → Publicar) — mesma pendência #3 já listada em `ROADMAP.md`
+🧭 AGORA. Até lá, as regras antigas (mais permissivas) continuam valendo.
+
+**Pendente (para 18.3, não coberto aqui):** limite de tamanho de payload nos PUTs.
+
+**Como reverter:** restaurar `versoes/2026-07-14-18-2-rt-sem-vazamento/` ou `git revert`.
+
+---
+
 ## 2026-07-14 — Fase 18.1: Loja do Modo de Jogo validada no servidor
 
 **Backup antes da alteração:** `versoes/2026-07-14-18-1-loja-base-servidor/` (`app.py`, `static/js/jogo.js`).

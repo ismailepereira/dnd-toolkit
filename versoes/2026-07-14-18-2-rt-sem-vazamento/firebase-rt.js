@@ -65,32 +65,21 @@
     // subir imagens autenticado (mesmo token do backend). Resolve false se o
     // Auth não estiver disponível (degradação suave).
     garantirAuth: () => autenticar(),
-    // Escuta o documento BRUTO da campanha (só o Mestre tem permissão nas
-    // Regras — Fase 18.2); chama cb(estado) a cada mudança.
+    // Escuta o documento da campanha; chama cb(estado) a cada mudança.
     ouvir(cb) {
-      return _escutar('campanha', cb);
-    },
-    // Fase 18.2: escuta a projeção PÚBLICA (sem notasPrivadas de NPC nem
-    // notas do Mestre não-compartilhadas — ver _estado_publico em app.py).
-    // É o que o JOGADOR deve usar; o Mestre continua com ouvir() acima.
-    ouvirPublico(cb) {
-      return _escutar('campanha_publica', cb);
+      if (!ok) return false;
+      autenticar().then(() => {
+        try {
+          const docId = (window.CAMPANHA_ID || 'principal');
+          fsdb.collection('campanha').doc(docId).onSnapshot(
+            snap => { if (snap.exists) cb(snap.data() || {}); },
+            err => console.warn('[RT] onSnapshot erro (verifique as Regras do Firestore / firestore.rules):', err.code || err)
+          );
+        } catch (e) {
+          console.warn('[RT] Não foi possível escutar:', e);
+        }
+      });
+      return true;
     },
   };
-
-  function _escutar(colecao, cb) {
-    if (!ok) return false;
-    autenticar().then(() => {
-      try {
-        const docId = (window.CAMPANHA_ID || 'principal');
-        fsdb.collection(colecao).doc(docId).onSnapshot(
-          snap => { if (snap.exists) cb(snap.data() || {}); },
-          err => console.warn(`[RT] onSnapshot erro em ${colecao} (verifique as Regras do Firestore / firestore.rules):`, err.code || err)
-        );
-      } catch (e) {
-        console.warn('[RT] Não foi possível escutar:', e);
-      }
-    });
-    return true;
-  }
 })();

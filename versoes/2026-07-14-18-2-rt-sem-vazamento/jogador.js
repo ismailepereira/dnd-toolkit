@@ -515,9 +515,7 @@ atualizarLojaEspecialItens();
 // =====================================================
 if (window.RT && RT.ativo()) {
   let _lf = '', _lv = '', _lc = '', _ln = '', _lim = '', _lnp = '', _ltb = '';
-  // Fase 18.2: o jogador escuta a projeção PÚBLICA (sem notasPrivadas de NPC
-  // nem notas do Mestre não-compartilhadas) — nunca o doc bruto da campanha.
-  RT.ouvirPublico(estado => {
+  RT.ouvir(estado => {
     ultimoRT = Date.now();
     const sf = JSON.stringify(estado.fichas || []);
     if (sf !== _lf) { _lf = sf; fichas = estado.fichas || []; renderFichas(); if (window.Tabuleiro) Tabuleiro.render(); }

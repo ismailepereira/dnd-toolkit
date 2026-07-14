@@ -11,17 +11,12 @@ rules_version = '2';
 // as regras antigas (degradação suave), mas as regras novas SEM o código novo
 // derrubariam o tempo real dos jogadores.
 //
-// Modelo: o cliente só LÊ (onSnapshot); toda escrita passa pelo backend
-// Flask (Admin SDK, que ignora estas regras). A identidade vem de um token
-// personalizado emitido pelo Flask (/api/firebase_token) com o uid da sessão
-// e claims:
+// Modelo: o cliente só LÊ (onSnapshot) o documento da própria campanha; toda
+// escrita passa pelo backend Flask (Admin SDK, que ignora estas regras).
+// A identidade vem de um token personalizado emitido pelo Flask
+// (/api/firebase_token) com o uid da sessão e claims:
 //   legado: true        → conta fixa antiga (env)
 //   legadoMestre: true  → mestre fixo antigo (acesso a todas as campanhas)
-//
-// Fase 18.2: DOIS documentos por mesa — /campanha/{cid} (bruto, com
-// notasPrivadas de NPC e notas do Mestre não-compartilhadas) só o Mestre lê;
-// /campanha_publica/{cid} (projeção sem esses campos — ver _estado_publico
-// em app.py) é o que o JOGADOR escuta em tempo real.
 // =====================================================
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -33,33 +28,14 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/campanhas_meta/$(cid)).data;
     }
 
-    // Dados da campanha (fichas, combate, notas, encontros, lojas, NPCs com
-    // notasPrivadas...) — Fase 18.2: leitura do doc BRUTO agora é SÓ do
-    // Mestre (antes qualquer membro lia tudo, inclusive notasPrivadas/notas
-    // não-compartilhadas — o filtro das rotas Flask não protegia o RT, que
-    // lê o Firestore direto). O JOGADOR passa a escutar /campanha_publica/{cid}
-    // (abaixo), que o backend mantém sem esses campos (ver _estado_publico em
-    // app.py). Ordem de deploy continua a mesma do topo deste ficheiro.
+    // Dados da campanha (fichas, combate, notas, encontros, lojas...)
     match /campanha/{cid} {
       allow read: if request.auth != null && (
-        // mestre fixo antigo: acesso a qualquer mesa, incluindo legadas sem
-        // metadados (o claim legadoMestre só é emitido para quem logou como
-        // papelGlobal 'mestre' — ver /api/firebase_token). O jogador fixo
-        // antigo (claim legado, sem legadoMestre) NÃO cai em nenhum ramo
-        // abaixo, então só lê a projeção pública.
+        // mestre fixo antigo: acesso a qualquer mesa (comportamento de sempre)
         request.auth.token.legadoMestre == true
-        // campanhas novas: só o Mestre da mesa
-        || (temMeta(cid) && meta(cid).mestreUid == request.auth.uid)
-      );
-      allow write: if false;  // escrita SÓ pelo backend (Admin SDK)
-    }
-
-    // Projeção pública da mesma campanha (sem notasPrivadas de NPCs nem notas
-    // do Mestre não compartilhadas) — é o que o JOGADOR escuta em tempo real.
-    match /campanha_publica/{cid} {
-      allow read: if request.auth != null && (
-        request.auth.token.legadoMestre == true
+        // campanhas legadas (sem metadados, ex.: 'principal'): só contas fixas
         || (!temMeta(cid) && request.auth.token.legado == true)
+        // campanhas novas: mestre ou membro registado
         || (temMeta(cid) && (
               meta(cid).mestreUid == request.auth.uid
               || request.auth.uid in meta(cid).membros

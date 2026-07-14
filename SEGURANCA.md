@@ -36,11 +36,12 @@ As regras completas (com comentários) estão versionadas em **`firestore.rules`
 4. Testar: entrar como jogador registado e confirmar no console do navegador que não há erro `[RT] onSnapshot` (se houver `permission-denied`, o passo 2 ou o deploy ficou em falta).
 
 ### O que as regras garantem
-- `campanha/<id>`: leitura só para o mestre da campanha, membros registados (via `campanhas_meta`) e o mestre fixo legado; **escrita sempre negada** (só o Admin SDK escreve).
+- `campanha/<id>` (documento BRUTO — fichas, combate, notas, NPCs com `notasPrivadas`...): leitura só para o **Mestre** da campanha (ou o mestre fixo legado); **escrita sempre negada** (só o Admin SDK escreve).
+- `campanha_publica/<id>` (Fase 18.2 — projeção sem `notasPrivadas` de NPC nem notas do Mestre não compartilhadas, gerada por `_estado_publico()` em `app.py` a cada `salvar_estado`): leitura para o Mestre, membros registados e o jogador fixo legado — é isto que `jogador.js` escuta em tempo real (`RT.ouvirPublico`).
 - `usuarios` e `campanhas_meta`: **inacessíveis ao cliente** (contêm hashes de senha e a lista de membros); o `get()`/`exists()` usado pelas regras roda no servidor de regras e não expõe os documentos.
 - Qualquer outra coleção: negada por padrão.
 
-⚠️ **Notas privadas / handouts:** membros da campanha ainda recebem o documento INTEIRO dela via `onSnapshot` (incluindo notas não compartilhadas) — o filtro de "compartilhada" é do cliente/REST. As regras da 10.8 fecham o acesso a estranhos, mas não escondem segredos de enredo dos próprios jogadores da mesa; para isso seria preciso separar notas num documento à parte (evolução futura).
+✅ **Notas privadas / handouts (resolvido na Fase 18.2, 14/07/2026):** antes, membros da campanha recebiam o documento INTEIRO via `onSnapshot` (incluindo `notasPrivadas` de NPC e notas do Mestre não compartilhadas) — o filtro de "compartilhada" era só do cliente/REST, e um jogador com DevTools lia tudo. Agora o backend mantém DOIS documentos por mesa (`campanha` bruto + `campanha_publica` filtrado) e as regras acima restringem o bruto ao Mestre. **Efeito só vale depois de publicar o `firestore.rules` atualizado no Console** (pendência manual — passo 3 abaixo); até lá, o código já funciona (grava os dois documentos), mas a regra antiga ainda permite ao jogador ler o bruto se ele tentar diretamente.
 
 ## Multi-campanha
 

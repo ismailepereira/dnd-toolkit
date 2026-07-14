@@ -92,10 +92,6 @@ except Exception as e:  # pragma: no cover
     db = None
 
 COLECAO_CAMPANHA = 'campanha'
-# Fase 18.2: projeção pública (sem notasPrivadas/notas não-compartilhadas) que
-# o RT do JOGADOR escuta — ver _estado_publico(). O Mestre continua a ler o
-# doc completo (COLECAO_CAMPANHA) via RT; só ele tem acesso pelas Regras.
-COLECAO_CAMPANHA_PUBLICA = 'campanha_publica'
 
 
 def campanha_atual():
@@ -300,7 +296,6 @@ def carregar_estado():
             estado = snap.to_dict() or {}
         else:
             ref.set(ESTADO_PADRAO)
-            db.collection(COLECAO_CAMPANHA_PUBLICA).document(campanha_atual()).set(ESTADO_PADRAO)
             estado = dict(ESTADO_PADRAO)
         for chave, valor in ESTADO_PADRAO.items():
             estado.setdefault(chave, valor)
@@ -316,26 +311,9 @@ def carregar_estado():
     return estado
 
 
-def _estado_publico(estado):
-    """Fase 18.2: projeção do estado SEM os campos confidenciais do Mestre.
-    O tempo real (Firestore) é lido DIRETO pelo cliente via SDK — não passa
-    pelas rotas Flask, então o filtro que essas rotas já fazem (ver
-    /api/npcs e /api/aventura_ativa) nunca chegava a proteger o RT: um
-    jogador com o DevTools aberto lia `notasPrivadas` de NPCs e as notas
-    do Mestre não compartilhadas direto do snapshot do Firestore. Esta
-    função gera a cópia gravada em `campanha_publica/<id>` (ver
-    salvar_estado) — é ISSO que `firebase-rt.js`/`jogador.js` escutam."""
-    publico = dict(estado)
-    publico['notas'] = [n for n in (estado.get('notas') or []) if isinstance(n, dict) and n.get('compartilhada')]
-    publico['npcs'] = [{k: v for k, v in n.items() if k != 'notasPrivadas'}
-                        for n in (estado.get('npcs') or []) if isinstance(n, dict)]
-    return publico
-
-
 def salvar_estado(estado):
     if db is not None:
         db.collection(COLECAO_CAMPANHA).document(campanha_atual()).set(estado)
-        db.collection(COLECAO_CAMPANHA_PUBLICA).document(campanha_atual()).set(_estado_publico(estado))
         return
     caminho = _data_file()
     os.makedirs(os.path.dirname(caminho), exist_ok=True)

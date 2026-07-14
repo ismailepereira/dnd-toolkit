@@ -4,6 +4,38 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-14 — Fase 20.4 (conclusão): auditoria das telas pendentes — Modo de Jogo com ficha completa e editor canvas
+
+**Backup:** nenhum — **zero alterações de código** nesta entrega; é a
+auditoria que faltava para fechar a 20.4 (ver entrada anterior).
+
+**Resumo:** a entrega parcial da 20.4 deixou duas telas sem auditar por falta
+de dados de teste (exigiam ficha de personagem pronta). Auditadas agora, a
+375px, com o mesmo script de varredura de overflow da entrada anterior:
+- **Modo de Jogo com ficha completa** — Mago nível 5 com 122 magias e 11
+  itens (dados de teste locais), exercitando `.jg-attrs`, `.jg-cols`,
+  `.jg-turno`, `.jg-pv` e 14 blocos `.jg-bloco` (slots, recursos, inventário,
+  grimório/preparadas): **0 elementos estourando**; prova adicional — o
+  `.modal-content.jogo-content` tem `scrollWidth == clientWidth` (358 = 358),
+  ou seja, nada dentro dele é mais largo que ele.
+- **Editor de aventuras em vista canvas** — aventura de 14 nós aberta no
+  🗺️ Mapa: **0 elementos estourando** na página; o `.ae-canvas-wrap` contém o
+  canvas grande (scrollWidth 1748) dentro de si com `overflow: auto` — a
+  página não vaza, o mapa rola/paneia dentro do container (comportamento
+  desejado, é assim que zoom/pan do editor funciona).
+- `body.scrollWidth == 375` na viewport de 375px nas duas telas; 0 erros de
+  console. As correções da entrega parcial (os 7 `minmax(0, 1fr)`, incluindo
+  `.jg-cols`) já cobriam essas telas — nenhum ajuste novo foi necessário.
+  **Fase 20.4 concluída.**
+
+**Nota de infraestrutura:** `.claude/launch.json` ganhou a configuração
+`dnd-toolkit-local-5301` (mesmo boot local, porta 5301 via env `PORT`) — usada
+quando a porta 5300 está ocupada por outra sessão de trabalho.
+
+**Como reverter:** nada a reverter (só documentação + config de dev).
+
+---
+
 ## 2026-07-14 — Fase 20.4 (parcial): overflow horizontal em 375px + consolidação dos grids "→ 1 coluna"
 
 **Backup antes da alteração:** `versoes/2026-07-14-20-4-responsividade/` (`static/css/style.css`).

@@ -16,6 +16,13 @@
       "autoPort": false
     },
     {
+      "name": "dnd-toolkit-local-5301",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set USE_LOCAL_DB=1&& set PORT=5301&& python app.py"],
+      "port": 5301,
+      "autoPort": false
+    },
+    {
       "name": "alysson-site",
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8099", "--directory", "F:/Claude/clientes/Alysson-Fisioterapeuta/src"],

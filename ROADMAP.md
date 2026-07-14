@@ -190,7 +190,7 @@ Detalhe completo (objetivo/estrutura/ficheiros/passos) em `docs/ROADMAP-FUTURO.m
 4. 🟡 **M1** — NPC com ficha COMPLETA (raça/classe/antecedente/personalidade/história via Criador)
 5. 🟡 **M2** — Promover criatura do bestiário a NPC persistente (com opção aleatória)
 6. 🟡 **M3** — Gerador de ambientes urbanos (casa/taverna/estábulo/multidão → ocupantes; ~90% normal, raros com monstros)
-7. 🟡 **Fase 13** — Monstros & Loot (tabelas de tesouro por ND)
+7. ✅ **Fase 13** — ~~Monstros & Loot~~ (entregue 05/07 + **concluída 13/07/2026**: `loot.js` com tabelas por ND, `loot` próprio em **100% do bestiário — 59/59** monstros, "🎲 Gerar Loot" no Combate e "🎲 Loot do nó" na condução do livro-jogo)
 8. 🟡 **M4** — Banco de NPCs partilhado entre utilizadores (guardar no meu banco / trazer p/ campanha)
 9. 🟢 **K1** — Aviso de combate em tempo real p/ jogadores (banner + som + salto p/ aba Combate)
 10. 🟢 **Fase 12** — Lojas geridas por NPC (inventário/preços próprios)
@@ -200,6 +200,8 @@ Detalhe completo (objetivo/estrutura/ficheiros/passos) em `docs/ROADMAP-FUTURO.m
 14. 💤 **Fase 14** — Grid Virtual / mapa de combate — **DORMENTE** (14.1–14.4 entregues 08/07/2026, mas o grid foi **substituído pelo Tabuleiro-imagem** — ver Fase 16 e `docs/ARQUITETURA.md`). `grid.js`/`mapa-ui.js` continuam no repo, fora do fluxo principal.
 15. ✅ **CT1** — ~~Campanha pronta: Mina Perdida de Phandelver~~ (entregue 08/07/2026: Capítulo 1 "Emboscada Goblin" como livro-jogo — grafo de 14 nós, nível 1-2, na biblioteca de aventuras prontas)
 16. 💤 **Fase 15** — Editor de Mapas (grid) — **DORMENTE** (15.1 entregue 08/07/2026; substituído pelo Tabuleiro-imagem — ver Fase 16).
+
+> **Atualização 13/07/2026:** livro-jogo **P6** (Loot e XP integrados à condução — 🎲 Loot do nó + 🏅 XP dividido pelo grupo) e **Fase 13 concluída** (loot em 59/59 monstros); **P7** iniciado com a 1ª one-shot original **A Cripta do Sino Silencioso** (14 nós, validada). Ver `CHANGELOG.md` e `docs/LIVRO-JOGO.md`. **Próximos candidatos:** segurança (loja base validada no servidor — precisa de teste de fluxo de ouro no browser), mais capítulos de Phandelver / one-shots, e refinos opcionais do Tabuleiro (16.6).
 
 ---
 

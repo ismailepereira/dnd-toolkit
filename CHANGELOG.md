@@ -4,6 +4,45 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-14 — Fase 20.1: navegação híbrida (sidebar desktop / bottom-nav celular)
+
+**Backup antes da alteração:** `versoes/2026-07-14-20-1-navegacao-hibrida/` (`static/css/style.css`).
+
+**Resumo:** primeira sub-fase da pesquisa UX de 13/07 — "sidebar não funciona
+<768px; bottom-nav de 3–5 itens na zona do polegar é o padrão". Reaproveita o
+MESMO HTML e a MESMA lógica JS de troca de modo/aba (`app.js`/`jogador.js`,
+Fase 17.1/17.2) — muda só a apresentação via CSS, sem tocar templates nem JS.
+Como `.tabs` já esconde as abas fora do modo atual (`.tab-oculta`), empilhar
+`.modos` + `.tabs` na vertical já lê como "grupo do modo + suas abas".
+- `static/css/style.css`: bloco novo logo após as regras de `main` —
+  `@media (min-width: 768px)`: `.topbar` vira sidebar fixa (220px, altura
+  100vh, scroll próprio), `.modos`/`.tabs` empilham na vertical, `main` ganha
+  `margin-left: 220px`. `@media (max-width: 767px)`: `.modos` vira bottom-nav
+  fixo (`position: fixed; bottom: 0`, `env(safe-area-inset-bottom)`), `.tabs`
+  vira linha rolável horizontal (`overflow-x: auto` + `scroll-snap-type: x`),
+  `main` ganha `padding-bottom` para não ficar atrás do bottom-nav.
+- Nenhuma mudança em `templates/*.html` ou `static/js/*.js` — só CSS.
+
+**Verificação (local, `USE_LOCAL_DB=1`, porta 5300, backup/restauro de
+`data/estado.json`):** login Mestre; em 1280px, confirmado via
+`getBoundingClientRect`/`getComputedStyle` que `.topbar` fica `position:fixed`
+220px com `main` deslocado (`margin-left:220px`), clique num botão de modo
+troca as abas visíveis e clique numa aba troca a seção ativa (mesma lógica de
+sempre, só reposicionada). Em 375px, `.modos` fica `position:fixed;bottom:0`
+(altura de cada botão 61px, acima do alvo mínimo de 44px), `.tabs` com
+`overflow-x:auto` funcionando, clique em aba ainda troca a seção corretamente.
+Repetido em `/jogador` (Mestre + jogador têm o mesmo `.topbar`/`.modos`/`.tabs`).
+
+**Achado (não corrigido aqui, é o escopo da 20.2):** em 375px, `.user-info` do
+Mestre (campanha + 💾 Backup + Ver como Jogador + Sair, todos numa linha) não
+quebra e causa overflow horizontal do `body` (~185px) — bug pré-existente
+(CSS de `.user-info` não tocado por esta sub-fase; `/jogador` não tem esse
+problema, tem menos botões). Fica para a 20.2 ("topbar enxuta no celular").
+
+**Como reverter:** restaurar `versoes/2026-07-14-20-1-navegacao-hibrida/style.css` ou `git revert`.
+
+---
+
 ## 2026-07-14 — Fase 18.3: limite de tamanho de payload
 
 **Backup antes da alteração:** `versoes/2026-07-14-18-3-limite-payload/` (`app.py.bak`).

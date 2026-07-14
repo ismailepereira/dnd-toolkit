@@ -21,14 +21,6 @@ DATA_FILE = os.path.join(DATA_DIR, 'estado.json')
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'troque-esta-chave-em-producao')
-# Fase 18.3: trava o tamanho de qualquer corpo de requisição (fichas/aventuras/
-# lojas/etc. são só texto/JSON — 2 MB é generoso mesmo para o maior estado).
-app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
-
-
-@app.errorhandler(413)
-def payload_grande(_erro):
-    return jsonify({'erro': 'payload_grande', 'detalhe': 'Requisição maior que o limite permitido (2 MB).'}), 413
 
 # Credenciais
 USUARIOS = {

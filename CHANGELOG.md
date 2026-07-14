@@ -4,6 +4,27 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-14 — Fase 18.3: limite de tamanho de payload
+
+**Backup antes da alteração:** `versoes/2026-07-14-18-3-limite-payload/` (`app.py.bak`).
+
+**Resumo:** nenhuma rota tinha limite de tamanho de corpo — um cliente mal-
+intencionado (ou um bug no navegador) podia enviar um `PUT` gigante (fichas,
+aventuras, lojas, notas etc.) e estourar memória/banda sem qualquer bloqueio
+no servidor. Fecha o último item pendente da Fase 18 (segurança/integridade).
+- `app.py`: `app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024` (2 MB, generoso
+  para o maior estado de campanha — texto/JSON puro, sem upload de imagem)
+  aplica-se a **todas** as rotas automaticamente (Flask rejeita antes de
+  processar o corpo); `@app.errorhandler(413)` devolve JSON no mesmo padrão
+  `{'erro': ...}` das demais rotas, em vez da página HTML padrão do Werkzeug.
+- **Verificação:** boot local (`USE_LOCAL_DB=1`, porta 5301), backup/restauro
+  de `data/estado.json`; login como Mestre, `PUT /api/fichas` com corpo normal
+  → 200; `PUT /api/fichas` com corpo de 3 MB → 413 com
+  `{"erro":"payload_grande",...}`; log do servidor sem tracebacks. Servidor
+  encerrado ao final.
+- **Reverter:** copiar `versoes/2026-07-14-18-3-limite-payload/app.py.bak`
+  sobre `app.py`, ou remover as ~7 linhas adicionadas após `app.secret_key`.
+
 ## 2026-07-14 — Fase 18.2: tempo real sem vazar notas privadas do Mestre
 
 **Backup antes da alteração:** `versoes/2026-07-14-18-2-rt-sem-vazamento/` (`app.py`, `static/js/firebase-rt.js`, `static/js/jogador.js`, `firestore.rules`).

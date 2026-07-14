@@ -256,6 +256,7 @@ já prepara metade do terreno.
 > Trilha de endurecimento do backend antes de escalar utilizadores pagantes.
 > **13/07/2026:** promovida a **Fase 18** no `ROADMAP.md` (18.1 loja base
 > validada · 18.2 RT sem vazamento · 18.3 limites de payload).
+> **14/07/2026:** Fase 18 **concluída** — as 3 sub-fases entregues.
 
 - ✅ **PUT /api/fichas validado** (06/07/2026) — jogador só altera fichas
   próprias; XP e revivência ficam com o Mestre (ver `CHANGELOG.md`).
@@ -267,7 +268,10 @@ já prepara metade do terreno.
   estado cru da campanha (com `notasMestre`/`notasPrivadas`) e filtra no
   cliente; um jogador curioso lê tudo no DevTools. Resolver com
   `firestore.rules` por campo ou um documento "público" separado por mesa.
-- ⏳ **Limite de tamanho de payload** nos PUTs (fichas, aventuras, lojas).
+- ✅ **Limite de tamanho de payload** (14/07/2026) — `MAX_CONTENT_LENGTH` (2 MB)
+  no Flask cobre todos os PUTs (fichas, aventuras, lojas, notas, etc.) de uma
+  vez; `errorhandler(413)` devolve JSON no padrão `{'erro': ...}` (ver
+  `CHANGELOG.md`). **Fase 18 completa.**
 
 ## 📦 Conteúdo (depois das ferramentas)
 

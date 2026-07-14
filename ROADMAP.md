@@ -21,7 +21,7 @@ Mapa de tarefas do projeto, organizado por fases. Marque `[x]` conforme for conc
 
 | # | O quê | Por quê agora | Tamanho |
 |---|---|---|---|
-| 🔴 1 | **Fase 18 — Segurança & Integridade** (loja base validada no servidor; RT sem vazar notas do Mestre; limite de payload) | Último vetor de trapaça de ouro + notas privadas legíveis no DevTools; **pré-requisito para escalar assinantes** | M |
+| 🔴 1 | **Fase 18 — Segurança & Integridade** ✅ (loja base validada no servidor · RT sem vazar notas do Mestre · limite de payload — as 3 sub-fases entregues 14/07/2026) | Último vetor de trapaça de ouro + notas privadas legíveis no DevTools; **pré-requisito para escalar assinantes** | M |
 | 🟠 2 | **Fase 20 — Navegação & Mobile**: sidebar (desktop) + bottom-nav (celular), topbar enxuta, passe de responsividade, ficha mobile estilo D&D Beyond | Pedido direto do Ismaile (13/07) + pesquisa UX: é a maior mudança de percepção de qualidade; a camada de modos (17.1/17.2) já preparou o terreno | M/G |
 | 🟠 3 | **Fase 19 — Conteúdo contínuo (P7)**: Phandelver Cap. 2 (Phandalin + Mantos Vermelhos) e mais one-shots | É o que os Mestres novos consomem; o motor está pronto, falta biblioteca | M (por capítulo) |
 | 🟡 4 | **Fase 21 — Mesa Viva**: log da mesa compartilhado, condições nos tokens, fog of war simples, iniciativa pelo jogador, descanso em grupo | Faz a mesa remota "sentir" presença (padrão Game Log do D&D Beyond); liga combate ↔ tabuleiro | M |

@@ -4,6 +4,33 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — NR0 (Campanha Ninho da Rainha Dragão): bestiário dos Episódios 4-8
+
+**Backup antes da alteração:** `versoes/2026-07-15-nr0-bestiario-ninho/monstros.js`.
+
+**Contexto:** o Ismaile pediu a campanha "Ninho da Rainha Dragão" completa, os 8 episódios fielmente. Os Eps 1-3 já existem (`modelo_ninho_rainha_dragao`, 36 nós). Antes de escrever os Eps 4-8, é preciso preparar o bestiário — vários inimigos-chave não existiam. Plano completo em `docs/CAMPANHA-NINHO.md`.
+
+**Resumo:** **7 criaturas novas** em `monstros.js` (shape existente + `loot` próprio; descrições em palavras próprias, só fatos mecânicos padrão):
+- **Fanático do Culto (Cult Fanatic)** — CR 2, conjurador (Comando/Infligir Ferimentos); onipresente nos Eps 4-8.
+- **Homem-Lagarto (Lizardfolk)** — CR 1/2; pântano de Naerytar (Ep6).
+- **Bullywug** — CR 1/4; anfíbio/salto/camuflagem; aliado instável em Naerytar (Ep6).
+- **Rezmir (Meia-Dragã Negra)** — CR 6, chefe wyrmspeaker; sopro de ácido + espada Hazirawn; loot garantido **Máscara Dracônica Negra + Hazirawn** (Eps 6/8).
+- **Talis, a Branca (Meia-Dragã)** — CR 4; sopro de frio; dissidente negociável (Ep7).
+- **Gigante das Nuvens (Blagothkus)** — CR 9; magia inata; aliado potencial no castelo voador (Ep8).
+- **Dragão Branco Jovem (Glazhael)** — CR 6; sopro de frio; o dragão acorrentado do Skyreach (Ep8).
+
+Cada bloco traz um traço **CONDUÇÃO** com a intenção narrativa (quando negociar, quando é chefe, quando é aliado potencial) — o mesmo padrão dos monstros nomeados do Phandelver.
+
+**Ficheiros:** `static/js/monstros.js` (+7 criaturas), **novo** `docs/CAMPANHA-NINHO.md` (plano dos 8 episódios + progresso).
+
+**Verificação (harness Node/vm):** `node --check` OK; as 7 criaturas existem no `MONSTROS` com shape completo (loot/tipo/ca/hp/atributos/cr/pe/tracos/acoes); **75 monstros** no total; **sem nomes duplicados** (essencial: os encontros das aventuras casam por nome exato).
+
+**Como reverter:** restaurar `versoes/2026-07-15-nr0-bestiario-ninho/monstros.js`, ou `git revert`.
+
+**Próximo:** Ep4 — Na Estrada (`modelo_ninho_ep4_estrada`) → Ep5 Carnath → Ep6 Naerytar → Ep7 Refúgio de Caça → Ep8 Skyreach.
+
+---
+
 ## 2026-07-15 — Antecedentes de campanha (Ninho da Rainha Dragão): mais opções + exclusividade por campanha
 
 **Backup antes da alteração:** `versoes/2026-07-15-antecedentes-exclusivos/` (fontes.js, criador.js, app.js, app.py).

@@ -80,7 +80,7 @@ a carteira (23.1) é puramente aditiva e convive com a assinatura atual.
 - **23.8 (opcional) Pix automático** via gateway (conta + chaves do Ismaile).
 
 **Progresso:**
-- [x] 23.1 (14/07) · [x] 23.2+23.8 AbacatePay (14/07) · [x] 23.3 campanha=produto (15/07) · [ ] 23.4 · [ ] 23.5 · [ ] 23.6 · [ ] 23.7
+- [x] 23.1 (14/07) · [x] 23.2+23.8 AbacatePay (14/07) · [x] 23.3 campanha=produto (15/07) · [x] 23.4 limite 6 fichas (15/07) · [ ] 23.5 · [ ] 23.6 · [ ] 23.7
 
 ## Como o Ismaile liga o pagamento automático (AbacatePay)
 

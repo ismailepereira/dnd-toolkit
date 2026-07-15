@@ -72,6 +72,16 @@ function salvarFichas() {
   const body = JSON.stringify(fichas);
   _filaSalvarFichas = _filaSalvarFichas.then(() =>
     fetch('/api/fichas', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body })
+      .then(async res => {
+        if (res.status === 403) {
+          // Fase 23.4: limite de fichas (ou campanha inativa). Reverte o
+          // estado local recarregando do servidor e avisa o usuário.
+          const d = await res.json().catch(() => ({}));
+          if (d.erro === 'limite_fichas') alert('⚠️ ' + (d.detalhe || 'Limite de fichas atingido.') + '\nApague uma ficha para criar outra.');
+          else if (d.erro === 'campanha_inativa') alert('⚠️ Campanha sem pagamento em dia (só-leitura). Renove para editar.');
+          await carregarFichas();
+        }
+      })
   ).catch(() => {});
   return _filaSalvarFichas;
 }

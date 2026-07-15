@@ -224,13 +224,6 @@ def campanha_ativa_para_escrita(camp_id):
     return campanha_paga_em_dia(carregar_campanhas_meta().get(camp_id))
 
 
-def campanha_cobravel(camp_id):
-    """True se a campanha é um produto pago (tem meta e o dono NÃO é o mestre
-    legado). As legadas/'principal' ficam fora dos limites de produto (23.4)."""
-    meta = carregar_campanhas_meta().get(camp_id)
-    return bool(meta) and not str(meta.get('mestreUid', '')).startswith('legacy:')
-
-
 def eh_legado_mestre(uid):
     return isinstance(uid, str) and uid.startswith('legacy:') and session.get('papelGlobal') == 'mestre'
 
@@ -284,7 +277,6 @@ ABACATEPAY_WEBHOOK_SECRET = os.environ.get('ABACATEPAY_WEBHOOK_SECRET', '').stri
 # fica inativa (só-leitura). O mestre legado (admin) não é cobrado.
 CAMPANHA_CREDITOS = int(os.environ.get('CAMPANHA_CREDITOS', '20'))  # R$ 5,00/mês
 CAMPANHA_DIAS = int(os.environ.get('CAMPANHA_DIAS', '30'))
-MAX_FICHAS_PJ = int(os.environ.get('MAX_FICHAS_PJ', '6'))  # Fase 23.4: 6 PJs por campanha paga
 
 _abacate = None
 
@@ -1074,16 +1066,9 @@ def api_put_fichas():
     if not isinstance(recebidas, list):
         return jsonify({'ok': False, 'erro': 'esperava uma lista de fichas'}), 400
     if session.get('papel') == 'mestre':
-        novas = [f for f in recebidas if isinstance(f, dict)]
+        estado['fichas'] = [f for f in recebidas if isinstance(f, dict)]
     else:
-        novas = _sanitizar_fichas_jogador(recebidas, estado.get('fichas', []), uid_sessao())
-    # Fase 23.4: campanha paga tem no máx. MAX_FICHAS_PJ fichas de PJ. Só barra
-    # quando o total AUMENTA acima do teto (edições e remoções seguem livres,
-    # mesmo em dados legados que já passassem do limite).
-    if campanha_cobravel(campanha_atual()) and len(novas) > MAX_FICHAS_PJ and len(novas) > len(estado.get('fichas', [])):
-        return jsonify({'ok': False, 'erro': 'limite_fichas',
-                        'detalhe': f'esta campanha permite no máximo {MAX_FICHAS_PJ} fichas de personagem'}), 403
-    estado['fichas'] = novas
+        estado['fichas'] = _sanitizar_fichas_jogador(recebidas, estado.get('fichas', []), uid_sessao())
     salvar_estado(estado)
     return jsonify({'ok': True})
 

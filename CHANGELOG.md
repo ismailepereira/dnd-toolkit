@@ -4,6 +4,25 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — Fase 23.4: limite de 6 fichas de PJ por campanha paga
+
+**Backup antes da alteração:** `versoes/2026-07-15-fase23-4-limite-fichas/` (app.py).
+
+**Resumo:** Cada campanha paga aceita no máximo **6 fichas de personagem (PJ)** (modelo em `docs/MONETIZACAO.md`). O servidor rejeita a criação da **7ª** — a trava é do servidor, não só do cliente. As campanhas **legadas/'principal'** (mestre legado/admin) ficam **fora** do limite (podem ter dados de teste com muitas fichas).
+- **Servidor** (`PUT /api/fichas`): calcula a lista candidata (caminho do Mestre ou o `_sanitizar_fichas_jogador` do jogador) e, se a campanha é **cobrável** (`campanha_cobravel`) e o total **aumenta** acima de `MAX_FICHAS_PJ` (6), devolve **403 `limite_fichas`** sem gravar. Só barra quando o total **cresce** — editar as 6 ou remover fichas segue livre, mesmo em dados legados que já passassem do teto.
+- **Cliente** (`app.js` `salvarFichas`): passa a ler a resposta; num **403** reverte o estado local (recarrega do servidor) e mostra `alert` — "limite de fichas" ou "campanha inativa" (reaproveita a trava da 23.3). Antes o `PUT` era fire-and-forget e a 7ª sumiria em silêncio no próximo sync.
+- **Helper/const** (`app.py`): `MAX_FICHAS_PJ` (env, padrão 6) e `campanha_cobravel(cid)`.
+
+**Ficheiros:** `app.py` (`MAX_FICHAS_PJ`, `campanha_cobravel`, trava em `api_put_fichas`), `static/js/app.js` (`salvarFichas` trata 403).
+
+**Verificação (harness Flask com `DATA_DIR` temporário — dados reais intocados):** 6 fichas → 200; **7ª → 403 `limite_fichas`** e o estado mantém 6; editar as 6 (mesmo total) → 200; remover para 5 → 200; voltar a 6 → 200; **campanha legada 'principal' sem limite** (20 fichas → 200). **8/8 ✅.** `node --check app.js` + `ast.parse app.py` OK.
+
+**Como reverter:** restaurar `versoes/2026-07-15-fase23-4-limite-fichas/app.py` e reverter o `salvarFichas` de `static/js/app.js`, ou `git revert`.
+
+**Próximo:** 23.5 — jobs mensais (renovação automática + `inativaDesde` + retenção/exclusão aos 6 meses).
+
+---
+
 ## 2026-07-15 — Fase 23.3: a campanha é o produto (criar/renovar debita créditos + trava só-leitura)
 
 **Backup antes da alteração:** `versoes/2026-07-15-fase23-3-campanha-produto/` (app.py, campanhas.html).

@@ -301,33 +301,6 @@ def status_assinatura(u):
     return 'expirada'
 
 
-# ---------------------------------------------------------------
-# FASE 23.1 — Carteira de créditos (moeda do produto: 1 crédito = R$ 0,25).
-# Aditivo e retrocompatível: contas sem o campo têm saldo 0. O ledger guarda
-# cada lançamento para o painel de admin e o histórico do utilizador.
-# ---------------------------------------------------------------
-def saldo_creditos(u):
-    return int((u or {}).get('creditos') or 0)
-
-
-def lancar_creditos(uid, delta, motivo, por='sistema'):
-    """Credita/debita créditos de uma conta registada e regista no ledger.
-    Nunca deixa o saldo negativo. Devolve (ok, saldo_final)."""
-    u = carregar_usuario_reg(uid)
-    if not u:
-        return False, 0
-    atual = saldo_creditos(u)
-    novo = atual + int(delta)
-    if novo < 0:
-        return False, atual
-    u['creditos'] = novo
-    log = u.get('creditos_log') or []
-    log.insert(0, {'delta': int(delta), 'motivo': str(motivo)[:120], 'por': por, 'em': _agora(), 'saldo': novo})
-    u['creditos_log'] = log[:200]  # mantém os 200 lançamentos mais recentes
-    salvar_usuario_reg(uid, u)
-    return True, novo
-
-
 def _mais_dias(base_iso, dias):
     """agora (ou a data futura existente, o que for maior) + N dias, em ISO."""
     agora = datetime.now(timezone.utc)
@@ -576,17 +549,6 @@ def pagina_assinatura():
                            trial_dias=TRIAL_DIAS, msg=msg)
 
 
-# ----- FASE 23.1: saldo e histórico de créditos do próprio utilizador -----
-@app.route('/api/creditos', methods=['GET'])
-@login_obrigatorio(exigir_assinatura=False)
-def api_creditos():
-    uid = session.get('uid', '')
-    if not uid or uid.startswith('legacy:'):
-        return jsonify({'saldo': None, 'legado': True, 'historico': []})
-    u = carregar_usuario_reg(uid) or {}
-    return jsonify({'saldo': saldo_creditos(u), 'historico': (u.get('creditos_log') or [])[:50]})
-
-
 # ----- FASE 10.9: painel de administração de assinaturas (SÓ o mestre legado) -----
 @app.route('/admin/assinaturas', methods=['GET', 'POST'])
 @login_obrigatorio(exigir_assinatura=False)
@@ -614,18 +576,6 @@ def admin_assinaturas():
             elif acao == 'desbloquear':
                 u['bloqueado'] = False
                 msg = f"🔓 {u.get('usuario')} desbloqueado."
-            elif acao == 'creditos':  # Fase 23.1: ajuste manual de créditos
-                try:
-                    delta = int(request.form.get('delta', '0'))
-                except ValueError:
-                    delta = 0
-                if delta:
-                    ok, novo = lancar_creditos(alvo, delta, request.form.get('motivo') or 'ajuste manual do admin', por='admin')
-                    u = carregar_usuario_reg(alvo) or u  # recarrega p/ o save final não desfazer o lançamento
-                    msg = (f"💳 {u.get('usuario')}: {'+' if delta > 0 else ''}{delta} créditos (saldo {novo})."
-                           if ok else f"Saldo insuficiente para debitar {abs(delta)}.")
-                else:
-                    msg = 'Informe um número de créditos (positivo credita, negativo debita).'
             salvar_usuario_reg(alvo, u)
     usuarios = []
     for uid_u, u in sorted(carregar_usuarios_reg().items(), key=lambda kv: kv[1].get('criadoEm', ''), reverse=True):
@@ -635,7 +585,6 @@ def admin_assinaturas():
             'criadoEm': (u.get('criadoEm') or '')[:10], 'status': status_assinatura(u),
             'trialAte': (u.get('trialAte') or '')[:10], 'pagaAte': (u.get('pagaAte') or '')[:10],
             'pagamentoInfo': u.get('pagamentoInfo'),
-            'creditos': saldo_creditos(u),
         })
     return render_template('admin_assinaturas.html', usuarios=usuarios, msg=msg,
                            preco=ASSINATURA_PRECO, trial_dias=TRIAL_DIAS)
@@ -655,10 +604,9 @@ def pagina_campanhas():
                            'codigo': m.get('codigoConvite') if papel == 'mestre' else None,
                            'ativa': cid == campanha_atual()})
     minhas.sort(key=lambda c: c['nome'].lower())
-    creditos = None if (not uid or uid.startswith('legacy:')) else saldo_creditos(carregar_usuario_reg(uid))
     return render_template('campanhas.html', campanhas=minhas, erro=request.args.get('erro'),
                            usuario=session.get('nomeExibicao') or session.get('usuario'),
-                           legado_mestre=eh_legado_mestre(uid), creditos=creditos)
+                           legado_mestre=eh_legado_mestre(uid))
 
 
 @app.route('/campanha/nova', methods=['POST'])

@@ -4,6 +4,27 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-14 — Fase 23.1: carteira de créditos (fundação da monetização)
+
+**Backup antes da alteração:** `versoes/2026-07-14-fase23-1-carteira/` (app.py, admin_assinaturas.html, campanhas.html).
+
+**Resumo:** Primeira sub-fase da **Fase 23 — Monetização por créditos** (modelo completo em `docs/MONETIZACAO.md`: a campanha é o produto — R$5/mês = 20 créditos, inclui 6 fichas de PJ + controle total de Mestre; jogador grátis; crédito = R$0,25, mínimo R$2). Esta entrega é a **carteira**, puramente aditiva (convive com a assinatura atual da Fase 10.9):
+- **Modelo:** `usuarios/<uid>.creditos` (saldo inteiro) + `creditos_log[]` (ledger dos 200 lançamentos mais recentes: `{delta, motivo, por, em, saldo}`). Contas sem o campo têm saldo 0 (retrocompatível).
+- **Helpers** (`app.py`): `saldo_creditos(u)` e `lancar_creditos(uid, delta, motivo, por)` — credita/debita, **nunca deixa negativo**, regista no ledger; reusável pela compra (23.2) e pelo débito de campanha (23.3).
+- **Endpoint** `GET /api/creditos` — saldo + histórico do próprio utilizador (contas legadas devolvem `saldo: null`).
+- **Admin** (`/admin/assinaturas`, só mestre legado): coluna **💳 Créditos** com o saldo + mini-formulário de ajuste (±créditos com motivo, ação `creditos` → `lancar_creditos`).
+- **UI do utilizador:** a tela "Minhas Campanhas" mostra "💳 Seus créditos: N".
+
+**Ficheiros:** `app.py` (helpers + `/api/creditos` + ação `creditos` no admin + saldo em `pagina_campanhas`), `templates/admin_assinaturas.html` (coluna + form), `templates/campanhas.html` (linha do saldo).
+
+**Verificação (boot local, curl):** registar conta → saldo 0; admin **+8** → saldo 8 (com lançamento no ledger); **−20** (insuficiente) → **rejeitado, saldo fica 8**; **−3** → saldo 5 com histórico newest-first; **jogador comum no POST do admin → 302** (barrado, saldo intacto). Templates: coluna 💳 Créditos + form no admin, "Seus créditos: 5" na tela do utilizador, nada para o mestre legado (não tem carteira). Dados locais de teste restaurados ao fim.
+
+**Como reverter:** restaurar `versoes/2026-07-14-fase23-1-carteira/` ou `git revert`.
+
+**Próximo:** 23.2 — Comprar créditos (tela de compra, cobrança Pix pendente, confirmação do admin credita).
+
+---
+
 ## 2026-07-14 — Cache-busting dos estáticos (fim do "sumiu depois do deploy")
 
 **Backup antes da alteração:** `versoes/2026-07-14-cache-busting/` (app.py).

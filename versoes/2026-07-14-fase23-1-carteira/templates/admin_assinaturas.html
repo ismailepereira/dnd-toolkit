@@ -27,7 +27,7 @@
       <table class="admin-tabela">
         <thead><tr>
           <th>Usuário</th><th>Nome</th><th>Contato</th><th>CPF</th><th>Criada</th>
-          <th>Status</th><th>Teste até</th><th>Paga até</th><th>💳 Créditos</th><th>Aviso de pagamento</th><th>Ações</th>
+          <th>Status</th><th>Teste até</th><th>Paga até</th><th>Aviso de pagamento</th><th>Ações</th>
         </tr></thead>
         <tbody>
         {% for u in usuarios %}
@@ -40,15 +40,6 @@
             <td>{% if u.status == 'ativa' %}✅ ativa{% elif u.status == 'trial' %}🎁 teste{% elif u.status == 'aguardando' %}⏳ aguardando{% elif u.status == 'bloqueada' %}⛔ bloqueada{% else %}😴 expirada{% endif %}</td>
             <td>{{ u.trialAte or '—' }}</td>
             <td>{{ u.pagaAte or '—' }}</td>
-            <td>
-              <b>{{ u.creditos }}</b>
-              <form method="POST" style="margin-top:4px;display:flex;gap:3px;flex-wrap:wrap">
-                <input type="hidden" name="uid" value="{{ u.uid }}"><input type="hidden" name="acao" value="creditos">
-                <input type="number" name="delta" placeholder="±cr" title="Positivo credita, negativo debita" style="width:64px">
-                <input type="text" name="motivo" placeholder="motivo" style="width:90px" maxlength="120">
-                <button class="btn-mini" title="Ajustar créditos">✔</button>
-              </form>
-            </td>
             <td>{% if u.pagamentoInfo %}<small>{{ u.pagamentoInfo.em[:10] }}: {{ u.pagamentoInfo.texto }}</small>{% else %}—{% endif %}</td>
             <td class="admin-acoes">
               <form method="POST"><input type="hidden" name="uid" value="{{ u.uid }}"><input type="hidden" name="acao" value="aprovar30"><button class="btn-mini" title="Confirma o pagamento e libera 30 dias">💰 +30 dias</button></form>

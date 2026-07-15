@@ -4,6 +4,28 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — PH3 (Campanha Phandelver): Cap. 3A — A Teia da Aranha (16 nós)
+
+**Backup antes da alteração:** `versoes/2026-07-15-ph3-teia/aventurasprontas.js`.
+
+**Resumo:** Novo modelo importável **`modelo_phandelver_teia`** (Cap. 3A, nível 3-4, **16 nós**) — o sandbox das estradas ao redor de Phandalin, resolvendo os ganchos plantados no Cap. 2A. Escrita própria/condensada (repo público), mesmo padrão dos capítulos anteriores.
+- **Hub de viagem** com 4 destinos independentes + nó "Na Trilha Triboar" (encontro aleatório, tabela 1d8 nos notasMestre) e saída gated para o castelo.
+- **Conyberry/Agatha** (social puro, sem combate — a banshee não está no bestiário de propósito): uma pergunta com o pente de prata (missão de Garaele) = pista do Castelo Cragmaw.
+- **Poço da Velha Coruja:** Hamun Kost (Mago) — negociar paz OU enfrentar 12× Zumbi; loot Anel de Proteção; fecha o gancho de Daran.
+- **Árvore Trovão** (~6 nós internos): Ramos Secos + Zumbis das Cinzas → **Reidoth** (2ª fonte da pista, rede de segurança) → 2× Aranha Gigante → 6× Cultista/Favric (traição) → **Venomfang** (Dragão Verde Jovem, encontro de AVISO 💀 — espantar/negociar, não matar; foge a ~50% PV) → saque (colar dos Dendrar 200 po + machado Hew).
+- **Cume da Wyvern:** furtividade neutraliza a sentinela (surpresa) → 6× Orc + ogro Gog + chefe Brughor; missão de Harbin (100 po).
+- **Fecho:** a pista do castelo (Agatha OU Reidoth OU goblins interrogados) consolida em "Rumo ao Castelo Cragmaw" → final de vitória (segue ao Cap. 3B) + beco neutro "deixar a região".
+
+**Ficheiros:** `static/js/aventurasprontas.js` (+`modelo_phandelver_teia`), `docs/CAMPANHA-PHANDELVER.md` (PH3 ✅).
+
+**Verificação (harness Node):** `node --check` OK; `validarAventura` → **0 erros / 0 avisos**; **16 nós**; encontros com nomes exatos do bestiário (Estirge/Zumbi/Mago/Ramo Seco/Zumbi das Cinzas/Aranha Gigante/Cultista/Venomfang/Orc/Ogro); final de vitória alcançável; os **7 modelos** de `AVENTURAS_PRONTAS` seguem sem erros.
+
+**Como reverter:** restaurar `versoes/2026-07-15-ph3-teia/aventurasprontas.js`, ou `git revert`.
+
+**Próximo:** PH4 — Cap. 3B: Castelo Dentefino (fortaleza goblin; resgate de Gundren + o mapa) → PH5 (Caverna Onda Eco) → PH6 (finais/integração).
+
+---
+
 ## 2026-07-15 — PH2 (Campanha Phandelver): Cap. 2B — Esconderijo Marcarrubra (15 nós)
 
 **Backup antes da alteração:** `versoes/2026-07-15-ph2-marcarrubra/aventurasprontas.js`.

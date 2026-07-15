@@ -173,7 +173,7 @@ validada e anotar o ponto de continuação AQUI.
 - [x] PH0 — bestiário & itens (14/07/2026: 9 criaturas — as 8 planejadas + Rei Grol — e 9 itens mágicos; Anel de Proteção e Varinha de Mísseis já existiam)
 - [x] PH1 — Phandalin (14/07/2026: `modelo_phandelver_phandalin`, 14 nós — chegada, hub da praça com 8 locais/missões, confronto de rua, decisão pré-assalto, finais vitória+neutro; NPCs com segredos embutidos)
 - [x] PH2 — Esconderijo Marcarrubra (15/07/2026: `modelo_phandelver_marcarrubra`, 15 nós — 2 entradas (porta do porão / túnel do Carp), porão→alojamento→criptas (senha "Illefarn")→jaulas (resgate dos Dendrar, gancho colar de Árvore Trovão)→fresta (Nothic social + espada Talon)→quartel dos bugbears (Droop) / antro dos bêbados→oficina (familiar avisa)→Cajavidro (Mago; rende-se ≤8 PV; Cajado da Defesa + cartas do Aranha Negra), com ramo de fuga; finais "da lei" (Sildar) e "da sombra" (Halia), ambos vitória, + beco mortal "esconderijo desperta". 0 erros/0 avisos no validador; encontros exatos do bestiário)
-- [ ] PH3 — Teia da Aranha
+- [x] PH3 — Teia da Aranha (15/07/2026: `modelo_phandelver_teia`, 16 nós — hub das estradas + encontro de viagem (tabela Triboar), Agatha/Conyberry (social, pista do castelo, pente de prata), Poço da Velha Coruja (Hamun Kost social OU 12 Zumbi; Anel de Proteção), Árvore Trovão (Ramos Secos+Zumbis das Cinzas → Reidoth 2ª fonte da pista → aranhas → cultistas/Favric → Venomfang 💀 espantar não matar → saque: colar Dendrar+Hew), Cume da Wyvern (6 Orc + ogro Gog/Brughor, furtividade evita alarme; missão Harbin); pista consolidada → final vitória a leste + beco neutro. 0 erros/0 avisos; encontros exatos)
 - [ ] PH4 — Castelo Dentefino
 - [ ] PH5 — Caverna Onda Eco
 - [ ] PH6 — finais & integração

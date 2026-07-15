@@ -30,35 +30,6 @@ app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 def payload_grande(_erro):
     return jsonify({'erro': 'payload_grande', 'detalhe': 'Requisição maior que o limite permitido (2 MB).'}), 413
 
-
-# ---------------------------------------------------------------
-# Cache-busting dos estáticos: acrescenta ?v=<mtime> a TODO url_for('static').
-# Assim, sempre que um CSS/JS muda (deploy novo), o browser busca a versão
-# nova em vez de servir a cacheada — sem precisar de Ctrl+F5 nem tocar nos
-# templates. Cada ficheiro é versionado pela própria data de modificação,
-# então só o que mudou é rebaixado. Falha silenciosa se o ficheiro sumir.
-# ---------------------------------------------------------------
-_STATIC_V_CACHE = {}
-
-
-@app.url_defaults
-def _versionar_estaticos(endpoint, values):
-    if endpoint != 'static' or not values.get('filename'):
-        return
-    nome = values['filename']
-    v = _STATIC_V_CACHE.get(nome)
-    if v is None:
-        try:
-            v = int(os.path.getmtime(os.path.join(app.static_folder, nome)))
-        except OSError:
-            v = 0
-        # em produção o mtime não muda entre requisições; cacheia para não
-        # tocar o disco a cada url_for. (Local, um restart pega o novo valor.)
-        if not app.debug:
-            _STATIC_V_CACHE[nome] = v
-    if v:
-        values['v'] = v
-
 # Credenciais
 USUARIOS = {
     os.environ.get('MESTRE_USER', 'Ismaile'): {

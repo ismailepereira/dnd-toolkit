@@ -4,6 +4,22 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-14 — Cache-busting dos estáticos (fim do "sumiu depois do deploy")
+
+**Backup antes da alteração:** `versoes/2026-07-14-cache-busting/` (app.py).
+
+**Resumo:** Os `<script>`/`<link>` referenciavam os estáticos sem versão, então o browser servia CSS/JS **cacheados** após um deploy — foi por isso que a aventura nova (PH1) "não apareceu" para quem tinha o `aventurasprontas.js` velho em cache. Agora **`@app.url_defaults`** acrescenta `?v=<mtime>` a TODO `url_for('static', …)` automaticamente — sem tocar em nenhum template. Cada ficheiro é versionado pela própria data de modificação, então só o que muda é rebaixado; em produção o valor é cacheado em memória (não toca o disco por request), em modo debug recalcula.
+
+**Ficheiros:** `app.py` (função `_versionar_estaticos` + cache `_STATIC_V_CACHE`).
+
+**Verificação:** boot local; as tags saem versionadas (`style.css?v=1784043597`, `app.js?v=1783709791` — valores distintos por ficheiro) e a URL versionada serve **HTTP 200**. Interage bem com o Service Worker (network-first já busca a versão nova).
+
+**Efeito colateral positivo:** o Service Worker (17.3) e o cache do browser deixam de servir código velho após qualquer deploy — não precisa mais de Ctrl+F5.
+
+**Como reverter:** restaurar `versoes/2026-07-14-cache-busting/` ou `git revert`.
+
+---
+
 ## 2026-07-14 — PH1 (Campanha Phandelver): Cap. 2A — Phandalin (vila-hub)
 
 **Backup antes da alteração:** `versoes/2026-07-14-ph1-phandalin/` (aventurasprontas.js).

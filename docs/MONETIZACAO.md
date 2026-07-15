@@ -80,4 +80,20 @@ a carteira (23.1) é puramente aditiva e convive com a assinatura atual.
 - **23.8 (opcional) Pix automático** via gateway (conta + chaves do Ismaile).
 
 **Progresso:**
-- [x] 23.1 (14/07/2026) · [ ] 23.2 · [ ] 23.3 · [ ] 23.4 · [ ] 23.5 · [ ] 23.6 · [ ] 23.7 · [ ] 23.8
+- [x] 23.1 (14/07) · [x] 23.2+23.8 AbacatePay (14/07) · [ ] 23.3 · [ ] 23.4 · [ ] 23.5 · [ ] 23.6 · [ ] 23.7
+
+## Como o Ismaile liga o pagamento automático (AbacatePay)
+
+1. Criar conta na AbacatePay. Pegar a **API key** (comece pela de **DEV**:
+   `abc_dev_...` — permite o botão "🧪 Simular pagamento" sem dinheiro real).
+2. No Render, definir os envs: `ABACATEPAY_API_KEY=<sua chave>` e
+   `ABACATEPAY_WEBHOOK_SECRET=<um valor secreto seu>`.
+3. No painel da AbacatePay, cadastrar o **webhook** apontando para
+   `https://SEU-APP.onrender.com/api/pagamento/abacatepay/webhook?webhookSecret=<o mesmo valor>`
+   (eventos de Pix pago).
+4. Pronto: a tela `/creditos` gera o QR/copia-e-cola e credita sozinho.
+   **Sem a API key, tudo continua funcionando em Pix manual** (o admin confirma).
+
+**Segurança:** o app **nunca credita só pelo corpo do webhook** — ele valida o
+`webhookSecret` e re-confirma o pagamento com `pixQrCode.check(id)` antes de
+creditar; o crédito é **idempotente** (não dobra em webhook/polling repetidos).

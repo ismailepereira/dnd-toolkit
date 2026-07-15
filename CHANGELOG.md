@@ -4,6 +4,28 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-14 — Fase 23.2: comprar créditos com Pix (AbacatePay) + fallback manual
+
+**Backup antes da alteração:** `versoes/2026-07-14-fase23-2-abacatepay/` (app.py, requirements.txt, .gitignore, campanhas.html).
+
+**Resumo:** Tela de **comprar créditos** com Pix automático via **AbacatePay** (SDK oficial `abacatepay`), e degradação suave para **Pix manual** quando não há chave configurada. Modelo verificado na doc do SDK (não chutado): `POST /pixQrCode/create` (valor em **centavos**) → `{id, brcode, brcode_base64, status, dev_mode, expires_at}`; `check(id)` e `simulate(id)` (modo teste).
+- **Fluxo:** `/creditos` (pacotes 8/20/40/110 + valor livre, mín. 8) → `POST /api/creditos/comprar` cria a cobrança Pix e regista a compra (coleção `compras/<pixId>`) → a tela mostra **QR + copia-e-cola** e faz **polling** de `GET /api/creditos/status?id=` → ao pagar, credita a carteira (`lancar_creditos`). Chave de **dev** mostra o botão "🧪 Simular pagamento".
+- **Webhook** `POST /api/pagamento/abacatepay/webhook?webhookSecret=…`: valida o segredo do query string; extrai o id; **re-confirma com `check()`** antes de creditar. **Nunca confia só no corpo do webhook.**
+- **Segurança/idempotência:** crédito só se `check()==PAID` e se ainda não creditado (`creditadoEm`), então webhook + polling repetidos **não dobram** o saldo. Conta legada não compra.
+- **Sem chave** (`ABACATEPAY_API_KEY` vazio): a compra devolve instruções de **Pix manual** (chave + valor) e o admin credita no `/admin/assinaturas` (23.1).
+
+**Ficheiros:** `app.py` (config AbacatePay + `_abacate_client` + coleção `compras` + `_confirmar_compra_se_paga` idempotente + rotas `/creditos`, `/api/creditos/comprar|status|simular`, webhook), **novo** `templates/creditos.html`, `templates/campanhas.html` (link "+ Comprar créditos"), `requirements.txt` (`abacatepay>=1.0.9`), `.gitignore` (`data/compras.json`), `.env.example` (envs novas), `static/css/style.css` (estilos de créditos).
+
+**Verificação (harness Flask com `DATA_DIR` temporário, cliente AbacatePay mockado — sem tocar dados reais):** mínimo (<8 → 400); **sem gateway → Pix manual** (R$2); comprar auto → `pix_1` + brcode, saldo 0; status PENDING antes de pagar; **simular → PAID, saldo 20**; status de novo → **idempotente (segue 20)**; **webhook sem/segredo errado → 401**; webhook credita nova compra (saldo 28) e **repetido não dobra**; conta legada barrada. Template `creditos.html` renderiza com os pacotes e o aviso manual. 11 checagens ✅.
+
+**Como o Ismaile ativa** (em `docs/MONETIZACAO.md`): criar conta AbacatePay → pôr `ABACATEPAY_API_KEY` (dev `abc_dev_...` para testar com "Simular") e `ABACATEPAY_WEBHOOK_SECRET` no Render → cadastrar o webhook. Sem isso, o Pix manual já vende.
+
+**Como reverter:** restaurar `versoes/2026-07-14-fase23-2-abacatepay/`, remover `templates/creditos.html` e a linha do `requirements.txt`, ou `git revert`.
+
+**Próximo:** 23.3 — campanha como produto (criar/renovar debita 20 créditos + trava de campanha inativa).
+
+---
+
 ## 2026-07-14 — Fase 23.1: carteira de créditos (fundação da monetização)
 
 **Backup antes da alteração:** `versoes/2026-07-14-fase23-1-carteira/` (app.py, admin_assinaturas.html, campanhas.html).

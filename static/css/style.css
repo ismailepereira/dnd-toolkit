@@ -2199,3 +2199,21 @@ body.alto-contraste a { color: #ffd400; }
     justify-content: center;
   }
 }
+
+/* ===== Fase 23: créditos / compra ===== */
+.creditos-linha { margin: 6px 0; font-size: 0.95rem; }
+.creditos-box { max-width: 460px; }
+.creditos-pacotes { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin: 8px 0; }
+.pacote-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 10px; cursor: pointer; font-size: 0.82rem; line-height: 1.35; transition: var(--transition); }
+.pacote-btn small { display: block; color: var(--text-dim); font-size: 0.72rem; }
+.pacote-btn:hover { border-color: rgba(255,255,255,0.25); }
+.pacote-btn.on { border-color: transparent; background: var(--accent-grad); color: #fff; }
+.pacote-btn.on small { color: rgba(255,255,255,0.85); }
+.creditos-custom { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0 12px; }
+.creditos-valor { color: var(--text-dim); font-size: 0.9rem; }
+.creditos-qr { display: block; width: 220px; height: 220px; max-width: 100%; margin: 10px auto; border-radius: 10px; background: #fff; padding: 8px; }
+.creditos-copia { display: flex; gap: 6px; margin: 8px 0; }
+.creditos-copia input { flex: 1; min-width: 0; font-size: 0.72rem; padding: 6px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-2, #12121e); color: var(--text); }
+.creditos-status { color: #d29922; font-size: 0.9rem; }
+.creditos-ok { color: #3fb950; font-weight: 600; margin: 8px 0; }
+.creditos-pix-chave { background: var(--bg-card); border: 1px dashed var(--border); border-radius: 8px; padding: 8px 10px; word-break: break-all; }

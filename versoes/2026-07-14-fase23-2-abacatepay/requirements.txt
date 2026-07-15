@@ -3,4 +3,3 @@ python-dotenv>=1.0
 gunicorn>=21.2
 firebase-admin>=6.5
 anthropic>=0.40
-abacatepay>=1.0.9

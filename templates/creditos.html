@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comprar créditos - D&D Toolkit</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#e94560">
+<link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-box creditos-box">
+      <h1>💳 Comprar créditos</h1>
+      <p class="login-sub">Olá, {{ usuario }}! Saldo atual: <b id="saldoAtual">{{ saldo }}</b> créditos ·
+        1 crédito = R$ {{ '%.2f'|format(credito_centavos/100) }} · <a href="{{ url_for('pagina_campanhas') }}">← Minhas campanhas</a></p>
+
+      <div id="escolha">
+        <p class="login-sub">Escolha um pacote (mínimo {{ min_creditos }} créditos = R$ {{ '%.2f'|format(min_creditos*credito_centavos/100) }}):</p>
+        <div class="creditos-pacotes">
+          <button class="pacote-btn" data-cr="8">8 créditos<br><b>R$ 2,00</b></button>
+          <button class="pacote-btn" data-cr="20">20 créditos<br><b>R$ 5,00</b><small>1 campanha</small></button>
+          <button class="pacote-btn" data-cr="40">40 créditos<br><b>R$ 10,00</b></button>
+          <button class="pacote-btn" data-cr="110">110 créditos<br><b>R$ 25,00</b><small>+10 bônus</small></button>
+        </div>
+        <div class="creditos-custom">
+          <label>Ou quanto quiser: <input type="number" id="crQtd" min="{{ min_creditos }}" step="1" placeholder="nº de créditos" style="width:120px"></label>
+          <span id="crValor" class="creditos-valor"></span>
+        </div>
+        <button id="btnComprar" class="btn-primary" disabled>Comprar</button>
+        {% if not automatico %}
+        <p class="aviso-mestre" style="margin-top:12px">⏳ Pagamento automático ainda não configurado — a compra vai gerar as instruções de <b>Pix manual</b> e o admin confirma o crédito.</p>
+        {% endif %}
+      </div>
+
+      <div id="pagamento" class="hidden">
+        <h3 id="pgTitulo">Pague com Pix</h3>
+        <p class="login-sub" id="pgResumo"></p>
+        <div id="pgAuto" class="hidden">
+          <img id="pgQr" alt="QR Code Pix" class="creditos-qr">
+          <div class="creditos-copia">
+            <input type="text" id="pgBrcode" readonly>
+            <button id="btnCopiar" class="btn-secondary btn-mini">📋 Copiar</button>
+          </div>
+          <p id="pgStatus" class="creditos-status">⏳ Aguardando o pagamento… (a tela atualiza sozinha)</p>
+          <button id="btnSimular" class="btn-secondary btn-mini hidden">🧪 Simular pagamento (modo teste)</button>
+        </div>
+        <div id="pgManual" class="hidden">
+          <p class="login-sub">Faça um Pix de <b id="pgValorManual"></b> para a chave abaixo e avise o admin:</p>
+          <p class="creditos-pix-chave">🔑 <b>{{ pix_chave }}</b></p>
+          <p class="login-sub">📩 Contato: {{ contato }}</p>
+          <p class="login-sub">Os créditos entram assim que a confirmação manual for feita.</p>
+        </div>
+        <div id="pgOk" class="hidden">
+          <p class="creditos-ok">✅ Pagamento confirmado! Seu novo saldo é <b id="pgSaldoNovo"></b> créditos.</p>
+          <a href="{{ url_for('pagina_campanhas') }}" class="btn-primary">Ir para Minhas Campanhas</a>
+        </div>
+        <button id="btnVoltar" class="btn-secondary btn-mini" style="margin-top:10px">↺ Comprar outro valor</button>
+      </div>
+    </div>
+  </div>
+  <footer class="footer-attribuicao">Desenvolvido por <a href="https://ismailepereira.github.io/" target="_blank" rel="noopener">ismailepereira</a></footer>
+
+  <script>
+    const CENT = {{ credito_centavos }}, MIN = {{ min_creditos }};
+    const $ = id => document.getElementById(id);
+    let escolhido = 0, pixId = null, poll = null;
+
+    function fmt(reais) { return 'R$ ' + reais.toFixed(2).replace('.', ','); }
+    function setEscolha(cr) {
+      escolhido = cr;
+      document.querySelectorAll('.pacote-btn').forEach(b => b.classList.toggle('on', +b.dataset.cr === cr));
+      $('btnComprar').disabled = !(cr >= MIN);
+      $('crValor').textContent = cr >= MIN ? '= ' + fmt(cr * CENT / 100) : (cr ? 'mínimo ' + MIN : '');
+    }
+    document.querySelectorAll('.pacote-btn').forEach(b => b.addEventListener('click', () => { $('crQtd').value = b.dataset.cr; setEscolha(+b.dataset.cr); }));
+    $('crQtd').addEventListener('input', () => setEscolha(parseInt($('crQtd').value, 10) || 0));
+
+    $('btnComprar').addEventListener('click', async () => {
+      $('btnComprar').disabled = true; $('btnComprar').textContent = 'Gerando cobrança…';
+      try {
+        const r = await fetch('/api/creditos/comprar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ creditos: escolhido }) });
+        const d = await r.json();
+        if (!d.ok) { alert(d.erro === 'minimo' ? ('Mínimo de ' + d.min + ' créditos.') : ('Não foi possível gerar a cobrança (' + (d.detalhe || d.erro) + ').')); return; }
+        $('escolha').classList.add('hidden'); $('pagamento').classList.remove('hidden');
+        $('pgResumo').textContent = d.creditos + ' créditos por ' + fmt(d.valorReais);
+        if (d.automatico) {
+          pixId = d.id;
+          $('pgAuto').classList.remove('hidden'); $('pgManual').classList.add('hidden');
+          const img = d.brcodeBase64 || '';
+          $('pgQr').src = img.startsWith('data:') ? img : ('data:image/png;base64,' + img);
+          $('pgBrcode').value = d.brcode || '';
+          if (d.devMode) $('btnSimular').classList.remove('hidden');
+          poll = setInterval(checarStatus, 4000);
+        } else {
+          $('pgManual').classList.remove('hidden'); $('pgAuto').classList.add('hidden');
+          $('pgValorManual').textContent = fmt(d.valorReais);
+        }
+      } finally {
+        $('btnComprar').disabled = false; $('btnComprar').textContent = 'Comprar';
+      }
+    });
+
+    async function checarStatus() {
+      if (!pixId) return;
+      try {
+        const d = await (await fetch('/api/creditos/status?id=' + encodeURIComponent(pixId))).json();
+        if (d.ok && d.status === 'PAID') { clearInterval(poll); pago(d.saldo); }
+        else if (d.ok && (d.status === 'EXPIRED' || d.status === 'CANCELLED')) { clearInterval(poll); $('pgStatus').textContent = '⚠ Cobrança ' + d.status + '. Gere outra.'; }
+      } catch (e) {}
+    }
+    function pago(saldo) {
+      $('pgAuto').classList.add('hidden');
+      $('pgOk').classList.remove('hidden'); $('pgSaldoNovo').textContent = saldo;
+      $('saldoAtual').textContent = saldo;
+    }
+
+    $('btnSimular').addEventListener('click', async () => {
+      $('btnSimular').disabled = true;
+      const d = await (await fetch('/api/creditos/simular', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: pixId }) })).json();
+      if (d.ok && d.status === 'PAID') { clearInterval(poll); pago(d.saldo); }
+      else { alert('Simulação: ' + (d.detalhe || d.erro || d.status)); $('btnSimular').disabled = false; }
+    });
+    $('btnCopiar').addEventListener('click', () => { $('pgBrcode').select(); document.execCommand('copy'); $('btnCopiar').textContent = '✓ Copiado'; });
+    $('btnVoltar').addEventListener('click', () => { if (poll) clearInterval(poll); location.reload(); });
+  </script>
+</body>
+</html>

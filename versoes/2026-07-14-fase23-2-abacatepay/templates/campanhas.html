@@ -17,7 +17,7 @@
     <div class="login-box campanhas-box">
       <h1>🗺️ Minhas Campanhas</h1>
       <p class="login-sub">Olá, {{ usuario }}! Escolha a mesa onde vai jogar. {% if legado_mestre %}<a href="/admin/assinaturas">🔑 Admin</a> · {% endif %}<a href="{{ url_for('logout') }}">Sair</a></p>
-      {% if creditos is not none %}<p class="creditos-linha">💳 Seus créditos: <b>{{ creditos }}</b> <small>(1 crédito = R$ 0,25)</small> · <a href="{{ url_for('pagina_creditos') }}">+ Comprar créditos</a></p>{% endif %}
+      {% if creditos is not none %}<p class="creditos-linha">💳 Seus créditos: <b>{{ creditos }}</b> <small>(1 crédito = R$ 0,25)</small></p>{% endif %}
       {% if erro %}<div class="login-erro">{{ erro }}</div>{% endif %}
 
       {% if campanhas %}

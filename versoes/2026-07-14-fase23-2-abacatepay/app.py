@@ -242,33 +242,6 @@ ASSINATURA_PRECO = os.environ.get('ASSINATURA_PRECO', 'R$ 5,00/mês')
 PIX_CHAVE = os.environ.get('PIX_CHAVE', '(chave Pix por configurar — env PIX_CHAVE)')
 CONTATO_PAGAMENTO = os.environ.get('CONTATO_PAGAMENTO', '(contato por configurar — env CONTATO_PAGAMENTO)')
 
-# FASE 23.2: preço dos créditos + gateway Pix AbacatePay (opcional; sem chave,
-# a compra cai no Pix MANUAL). O Ismaile cria a conta e põe a chave no env —
-# o Claude nunca vê/insere a credencial. Chave de dev (abc_dev_...) usa o
-# sandbox e permite simular pagamento sem dinheiro real.
-CREDITO_CENTAVOS = int(os.environ.get('CREDITO_CENTAVOS', '25'))     # 1 crédito = R$ 0,25
-COMPRA_MIN_CREDITOS = int(os.environ.get('COMPRA_MIN_CREDITOS', '8'))  # mínimo R$ 2,00
-ABACATEPAY_API_KEY = os.environ.get('ABACATEPAY_API_KEY', '').strip()
-ABACATEPAY_WEBHOOK_SECRET = os.environ.get('ABACATEPAY_WEBHOOK_SECRET', '').strip()
-
-_abacate = None
-
-
-def _abacate_client():
-    """Cliente AbacatePay (lazy). Devolve None se não houver chave configurada
-    — nesse caso a compra usa o Pix manual (degradação suave)."""
-    global _abacate
-    if not ABACATEPAY_API_KEY:
-        return None
-    if _abacate is None:
-        try:
-            from abacatepay import AbacatePay
-            _abacate = AbacatePay(ABACATEPAY_API_KEY)
-        except Exception as e:  # pragma: no cover
-            print('[AbacatePay] falha ao iniciar o cliente:', e)
-            return None
-    return _abacate
-
 
 def carregar_usuario_reg(uid):
     """Um único utilizador (leitura barata por request, sem stream da coleção toda)."""
@@ -353,59 +326,6 @@ def lancar_creditos(uid, delta, motivo, por='sistema'):
     u['creditos_log'] = log[:200]  # mantém os 200 lançamentos mais recentes
     salvar_usuario_reg(uid, u)
     return True, novo
-
-
-# ----- FASE 23.2: compras de crédito (uma por cobrança Pix, keyed pelo id) -----
-COLECAO_COMPRAS = 'compras'
-COMPRAS_FILE = os.path.join(DATA_DIR, 'compras.json')
-
-
-def _carregar_compra(pix_id):
-    if not pix_id:
-        return None
-    if db is not None:
-        snap = db.collection(COLECAO_COMPRAS).document(pix_id).get()
-        return snap.to_dict() if snap.exists else None
-    return _carregar_docs(COLECAO_COMPRAS, COMPRAS_FILE).get(pix_id)
-
-
-def _salvar_compra(pix_id, dados):
-    _salvar_doc(COLECAO_COMPRAS, COMPRAS_FILE, pix_id, dados)
-
-
-def _extrair_pix_id(corpo):
-    """Acha o id da cobrança no corpo do webhook (defensivo: a AbacatePay
-    aninha os dados em 'data'; tentamos os caminhos conhecidos)."""
-    d = (corpo or {}).get('data') or corpo or {}
-    for cam in (d.get('pixQrCode'), d.get('billing'), d):
-        if isinstance(cam, dict) and cam.get('id'):
-            return cam['id']
-    return None
-
-
-def _confirmar_compra_se_paga(pix_id):
-    """Idempotente e SEGURO: só credita se a AbacatePay confirmar PAID pelo
-    check() (nunca confia só no corpo do webhook) e se ainda não foi creditado.
-    Devolve o status atual."""
-    compra = _carregar_compra(pix_id)
-    if not compra:
-        return 'desconhecida'
-    if compra.get('creditadoEm'):
-        return 'PAID'  # já creditado — não credita de novo
-    st = compra.get('status', 'PENDING')
-    cli = _abacate_client()
-    if cli:
-        try:
-            st = cli.pixQrCode.check(pix_id).status
-        except Exception as e:  # pragma: no cover
-            print('[AbacatePay] check falhou:', e)
-    compra['status'] = st
-    if st == 'PAID':
-        lancar_creditos(compra['uid'], int(compra['creditos']),
-                        f"compra de {compra['creditos']} créditos (Pix)", por='pagamento')
-        compra['creditadoEm'] = _agora()
-    _salvar_compra(pix_id, compra)
-    return st
 
 
 def _mais_dias(base_iso, dias):
@@ -665,102 +585,6 @@ def api_creditos():
         return jsonify({'saldo': None, 'legado': True, 'historico': []})
     u = carregar_usuario_reg(uid) or {}
     return jsonify({'saldo': saldo_creditos(u), 'historico': (u.get('creditos_log') or [])[:50]})
-
-
-# ----- FASE 23.2: comprar créditos (Pix via AbacatePay, com fallback manual) -----
-@app.route('/creditos')
-@login_obrigatorio(exigir_assinatura=False)
-def pagina_creditos():
-    uid = session.get('uid', '')
-    if not uid or uid.startswith('legacy:'):
-        return redirect(url_for('index'))
-    u = carregar_usuario_reg(uid) or {}
-    return render_template('creditos.html',
-                           usuario=session.get('nomeExibicao') or session.get('usuario'),
-                           saldo=saldo_creditos(u), automatico=bool(_abacate_client()),
-                           credito_centavos=CREDITO_CENTAVOS, min_creditos=COMPRA_MIN_CREDITOS,
-                           pix_chave=PIX_CHAVE, contato=CONTATO_PAGAMENTO)
-
-
-@app.route('/api/creditos/comprar', methods=['POST'])
-@login_obrigatorio(exigir_assinatura=False)
-def api_comprar_creditos():
-    uid = session.get('uid', '')
-    if not uid or uid.startswith('legacy:'):
-        return jsonify({'ok': False, 'erro': 'conta_legada'}), 400
-    data = request.get_json(force=True) or {}
-    try:
-        creditos = int(data.get('creditos'))
-    except (TypeError, ValueError):
-        return jsonify({'ok': False, 'erro': 'quantidade_invalida'}), 400
-    if creditos < COMPRA_MIN_CREDITOS:
-        return jsonify({'ok': False, 'erro': 'minimo', 'min': COMPRA_MIN_CREDITOS}), 400
-    if creditos > 100000:
-        return jsonify({'ok': False, 'erro': 'quantidade_invalida'}), 400
-    valor_cent = creditos * CREDITO_CENTAVOS
-    cli = _abacate_client()
-    if not cli:  # sem gateway: instrui o Pix manual (admin confirma → credita)
-        return jsonify({'ok': True, 'automatico': False, 'manual': True,
-                        'creditos': creditos, 'valorReais': valor_cent / 100})
-    try:
-        pix = cli.pixQrCode.create(amount=valor_cent, expires_in=3600,
-                                   description=f"{creditos} creditos - D&D Toolkit")
-    except Exception as e:  # pragma: no cover
-        print('[AbacatePay] create falhou:', e)
-        return jsonify({'ok': False, 'erro': 'gateway', 'detalhe': str(e)[:160]}), 502
-    _salvar_compra(pix.id, {'uid': uid, 'creditos': creditos, 'valorCentavos': valor_cent,
-                            'status': pix.status, 'devMode': pix.dev_mode,
-                            'criadoEm': _agora(), 'creditadoEm': None})
-    return jsonify({'ok': True, 'automatico': True, 'id': pix.id, 'brcode': pix.brcode,
-                    'brcodeBase64': pix.brcode_base64, 'creditos': creditos,
-                    'valorReais': valor_cent / 100, 'devMode': pix.dev_mode, 'expiraEm': pix.expires_at})
-
-
-@app.route('/api/creditos/status')
-@login_obrigatorio(exigir_assinatura=False)
-def api_creditos_status():
-    uid = session.get('uid', '')
-    pix_id = request.args.get('id', '')
-    compra = _carregar_compra(pix_id)
-    if not compra or compra.get('uid') != uid:
-        return jsonify({'ok': False, 'erro': 'nao_encontrada'}), 404
-    st = _confirmar_compra_se_paga(pix_id)  # credita se a AbacatePay confirmar (idempotente)
-    u = carregar_usuario_reg(uid) or {}
-    return jsonify({'ok': True, 'status': st, 'saldo': saldo_creditos(u)})
-
-
-@app.route('/api/creditos/simular', methods=['POST'])
-@login_obrigatorio(exigir_assinatura=False)
-def api_creditos_simular():
-    """Só no modo de teste (chave de dev): simula o pagamento p/ validar o
-    fluxo ponta a ponta sem dinheiro real. Em produção a AbacatePay rejeita."""
-    uid = session.get('uid', '')
-    pix_id = (request.get_json(force=True) or {}).get('id', '')
-    compra = _carregar_compra(pix_id)
-    if not compra or compra.get('uid') != uid:
-        return jsonify({'ok': False, 'erro': 'nao_encontrada'}), 404
-    cli = _abacate_client()
-    if not cli:
-        return jsonify({'ok': False, 'erro': 'sem_gateway'}), 400
-    try:
-        cli.pixQrCode.simulate(pix_id)
-    except Exception as e:
-        return jsonify({'ok': False, 'erro': 'simulacao', 'detalhe': str(e)[:160]}), 502
-    st = _confirmar_compra_se_paga(pix_id)
-    u = carregar_usuario_reg(uid) or {}
-    return jsonify({'ok': True, 'status': st, 'saldo': saldo_creditos(u)})
-
-
-@app.route('/api/pagamento/abacatepay/webhook', methods=['POST'])
-def webhook_abacatepay():
-    # Segredo no query string (método documentado da AbacatePay). Sem segredo
-    # configurado ou divergente → 401. A confirmação real é feita por check().
-    if not ABACATEPAY_WEBHOOK_SECRET or request.args.get('webhookSecret') != ABACATEPAY_WEBHOOK_SECRET:
-        return jsonify({'ok': False}), 401
-    pix_id = _extrair_pix_id(request.get_json(silent=True) or {})
-    if pix_id:
-        _confirmar_compra_se_paga(pix_id)
-    return jsonify({'ok': True})  # sempre 200 para a AbacatePay não reenfileirar
 
 
 # ----- FASE 10.9: painel de administração de assinaturas (SÓ o mestre legado) -----

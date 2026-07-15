@@ -203,27 +203,6 @@ def salvar_campanha_meta(camp_id, meta):
     _salvar_doc(COLECAO_CAMPANHAS_META, CAMPMETA_FILE, camp_id, meta)
 
 
-def campanha_paga_em_dia(meta):
-    """Fase 23.3: a campanha aceita escritas? True se paga em dia (pagaAte no
-    futuro), OU se é legada (sem meta, ex.: 'principal'), OU se o dono é o
-    mestre legado (admin — nunca cobrado)."""
-    if not meta:
-        return True  # campanha legada sem metadados (mestre fixo de env)
-    if str(meta.get('mestreUid', '')).startswith('legacy:'):
-        return True  # campanha do mestre legado (admin) — fora da cobrança
-    pa = meta.get('pagaAte')
-    if not pa:
-        return False
-    try:
-        return datetime.fromisoformat(pa) > datetime.now(timezone.utc)
-    except ValueError:
-        return False
-
-
-def campanha_ativa_para_escrita(camp_id):
-    return campanha_paga_em_dia(carregar_campanhas_meta().get(camp_id))
-
-
 def eh_legado_mestre(uid):
     return isinstance(uid, str) and uid.startswith('legacy:') and session.get('papelGlobal') == 'mestre'
 
@@ -271,12 +250,6 @@ CREDITO_CENTAVOS = int(os.environ.get('CREDITO_CENTAVOS', '25'))     # 1 crédit
 COMPRA_MIN_CREDITOS = int(os.environ.get('COMPRA_MIN_CREDITOS', '8'))  # mínimo R$ 2,00
 ABACATEPAY_API_KEY = os.environ.get('ABACATEPAY_API_KEY', '').strip()
 ABACATEPAY_WEBHOOK_SECRET = os.environ.get('ABACATEPAY_WEBHOOK_SECRET', '').strip()
-
-# FASE 23.3: a campanha é o produto. Criar/renovar debita CAMPANHA_CREDITOS do
-# dono e estende pagaAte por CAMPANHA_DIAS. Sem pagamento em dia, a campanha
-# fica inativa (só-leitura). O mestre legado (admin) não é cobrado.
-CAMPANHA_CREDITOS = int(os.environ.get('CAMPANHA_CREDITOS', '20'))  # R$ 5,00/mês
-CAMPANHA_DIAS = int(os.environ.get('CAMPANHA_DIAS', '30'))
 
 _abacate = None
 
@@ -531,16 +504,6 @@ def login_obrigatorio(papeis=None, exigir_assinatura=True):
                     if request.path.startswith('/api/'):
                         return jsonify({'erro': 'assinatura', 'detalhe': 'trial/assinatura expirada'}), 402
                     return redirect(url_for('pagina_assinatura'))
-            # Fase 23.3: campanha sem pagamento em dia é só-leitura. Bloqueia as
-            # escritas de estado (mutações em /api/*), menos as de crédito
-            # (o dono precisa comprar créditos para renovar). Mestre legado passa.
-            if (request.method in ('POST', 'PUT', 'PATCH', 'DELETE')
-                    and request.path.startswith('/api/')
-                    and not request.path.startswith('/api/creditos')
-                    and not eh_legado_mestre(uid)
-                    and not campanha_ativa_para_escrita(campanha_atual())):
-                return jsonify({'erro': 'campanha_inativa',
-                                'detalhe': 'campanha sem pagamento em dia (só-leitura); renove com 20 créditos'}), 403
             return fn(*args, **kwargs)
         return wrapper
     return decorador
@@ -864,19 +827,14 @@ def pagina_campanhas():
     for cid, m in metas.items():
         papel = 'mestre' if (m.get('mestreUid') == uid or eh_legado_mestre(uid)) else ('jogador' if uid in (m.get('membros') or {}) else None)
         if papel:
-            paga = campanha_paga_em_dia(m)
             minhas.append({'id': cid, 'nome': m.get('nome', cid), 'papel': papel,
                            'codigo': m.get('codigoConvite') if papel == 'mestre' else None,
-                           'ativa': cid == campanha_atual(),
-                           'paga': paga,
-                           'cobravel': not str(m.get('mestreUid', '')).startswith('legacy:'),
-                           'pagaAte': (m.get('pagaAte') or '')[:10]})
+                           'ativa': cid == campanha_atual()})
     minhas.sort(key=lambda c: c['nome'].lower())
     creditos = None if (not uid or uid.startswith('legacy:')) else saldo_creditos(carregar_usuario_reg(uid))
     return render_template('campanhas.html', campanhas=minhas, erro=request.args.get('erro'),
                            usuario=session.get('nomeExibicao') or session.get('usuario'),
-                           legado_mestre=eh_legado_mestre(uid), creditos=creditos,
-                           custo_campanha=CAMPANHA_CREDITOS)
+                           legado_mestre=eh_legado_mestre(uid), creditos=creditos)
 
 
 @app.route('/campanha/nova', methods=['POST'])
@@ -886,18 +844,7 @@ def campanha_nova():
     nome = request.form.get('nome', '').strip()[:48]
     if not nome:
         return redirect(url_for('pagina_campanhas', erro='Dê um nome à campanha.'))
-    # Fase 23.3: criar uma campanha custa CAMPANHA_CREDITOS (o mestre legado é isento).
-    eh_legado = uid.startswith('legacy:')
-    if not eh_legado:
-        if saldo_creditos(carregar_usuario_reg(uid)) < CAMPANHA_CREDITOS:
-            return redirect(url_for('pagina_campanhas',
-                                    erro=f'Criar uma campanha custa {CAMPANHA_CREDITOS} créditos (R$ 5,00/mês). '
-                                         'Compre créditos e tente de novo.'))
     cid = 'camp_' + uuid.uuid4().hex[:10]
-    if not eh_legado:
-        ok, _ = lancar_creditos(uid, -CAMPANHA_CREDITOS, f'criar campanha "{nome}"', por='sistema')
-        if not ok:
-            return redirect(url_for('pagina_campanhas', erro='Saldo de créditos insuficiente.'))
     salvar_campanha_meta(cid, {
         'nome': nome,
         'mestreUid': uid,
@@ -905,7 +852,6 @@ def campanha_nova():
         'codigoConvite': gerar_codigo_convite(nome),
         'ativa': True,
         'criadaEm': _agora(),
-        'pagaAte': _mais_dias(None, CAMPANHA_DIAS),
     })
     session['campanha'] = cid
     session['papel'] = 'mestre'
@@ -939,33 +885,6 @@ def campanha_ativa():
     session['campanha'] = cid
     session['papel'] = papel
     return redirect(url_for('index'))
-
-
-@app.route('/campanha/renovar', methods=['POST'])
-@login_obrigatorio()
-def campanha_renovar():
-    """Fase 23.3: o dono paga mais um mês (debita CAMPANHA_CREDITOS e estende
-    pagaAte por CAMPANHA_DIAS, empilhando sobre o vencimento futuro se houver).
-    Reativa a campanha (limpa inativaDesde)."""
-    uid = session.get('uid', '')
-    cid = re.sub(r'[^a-zA-Z0-9_-]', '', request.form.get('id', ''))
-    metas = carregar_campanhas_meta()
-    meta = metas.get(cid)
-    if not meta:
-        return redirect(url_for('pagina_campanhas', erro='Campanha não encontrada.'))
-    if meta.get('mestreUid') != uid and not eh_legado_mestre(uid):
-        return redirect(url_for('pagina_campanhas', erro='Só o Mestre da campanha pode renová-la.'))
-    if not str(meta.get('mestreUid', '')).startswith('legacy:'):
-        if saldo_creditos(carregar_usuario_reg(uid)) < CAMPANHA_CREDITOS:
-            return redirect(url_for('pagina_campanhas',
-                                    erro=f'Renovar custa {CAMPANHA_CREDITOS} créditos. Compre créditos e tente de novo.'))
-        ok, _ = lancar_creditos(uid, -CAMPANHA_CREDITOS, f'renovar campanha "{meta.get("nome", cid)}"', por='sistema')
-        if not ok:
-            return redirect(url_for('pagina_campanhas', erro='Saldo de créditos insuficiente.'))
-    meta['pagaAte'] = _mais_dias(meta.get('pagaAte'), CAMPANHA_DIAS)
-    meta.pop('inativaDesde', None)
-    salvar_campanha_meta(cid, meta)
-    return redirect(url_for('pagina_campanhas', erro=f'✅ Campanha renovada até {meta["pagaAte"][:10]}.'))
 
 
 @app.route('/logout')

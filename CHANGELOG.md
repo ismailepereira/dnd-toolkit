@@ -4,6 +4,27 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — Fase 23.3: a campanha é o produto (criar/renovar debita créditos + trava só-leitura)
+
+**Backup antes da alteração:** `versoes/2026-07-15-fase23-3-campanha-produto/` (app.py, campanhas.html).
+
+**Resumo:** A **campanha** passa a ser a unidade paga (modelo em `docs/MONETIZACAO.md`): **criar** ou **renovar** uma campanha debita **20 créditos** (R$ 5,00) do dono e estende `pagaAte` por **30 dias**. Campanha **sem pagamento em dia** fica **só-leitura** (inativa) para todos até renovar. O **mestre legado (admin/Ismaile) é isento** — as campanhas dele nunca são cobradas nem travadas. **Jogador não paga nada** (entra por convite).
+- **Criar** (`/campanha/nova`): valida saldo ≥ 20 antes; debita via `lancar_creditos` (ledger); grava `pagaAte = +30 dias`. Sem saldo → volta para "Minhas Campanhas" com CTA de comprar créditos.
+- **Renovar** (`/campanha/renovar`, novo): só o Mestre da campanha; debita 20 e **empilha** +30 sobre o vencimento futuro (usa `_mais_dias`); limpa `inativaDesde` (reativa).
+- **Trava de escrita**: no `login_obrigatorio`, qualquer mutação (`POST/PUT/PATCH/DELETE`) em `/api/*` numa campanha inativa devolve **403 `campanha_inativa`** — **exceto** `/api/creditos*` (o dono precisa comprar créditos para renovar). Leitura (`GET`) e o tempo real seguem livres → mesa vira só-leitura, não some.
+- **Helpers** (`app.py`): `campanha_paga_em_dia(meta)` (legada sem meta / dono legado / `pagaAte` futuro = ativa) e `campanha_ativa_para_escrita(cid)`.
+- **UI** (`campanhas.html`): cada card mostra **✅ Ativa até AAAA-MM-DD** ou **⚠️ Inativa (só-leitura)**; o Mestre ganha **🔄 Renovar (20)** com confirmação; o criar mostra o custo ("Criar campanha (20 créditos)"). Card inativo com borda âmbar.
+
+**Ficheiros:** `app.py` (constantes `CAMPANHA_CREDITOS`/`CAMPANHA_DIAS`; `campanha_paga_em_dia`/`campanha_ativa_para_escrita`; débito em `campanha_nova`; rota `campanha_renovar`; trava no `login_obrigatorio`; status na `pagina_campanhas`), `templates/campanhas.html` (status/renovar/custo), `static/css/style.css` (`.campanha-card.inativa`, `.campanha-card-acoes`, `.camp-status`), `docs/MONETIZACAO.md` (progresso).
+
+**Verificação (harness Flask com `DATA_DIR` temporário — sem tocar dados reais):** `campanha_paga_em_dia` (legada/legado/futuro/passado/sem-pagaAte); criar sem 20 créditos **não cria** e saldo intacto; criar com saldo **debita 20** e nasce ativa; `PUT /api/notas` **200** em campanha ativa; forçando `pagaAte` no passado → **403 campanha_inativa**, `GET` segue **200**, `/api/creditos/comprar` **não** bloqueado; renovar **debita 20** e reativa (escrita volta a 200); jogador **não** renova campanha alheia (saldo intacto). **17/17 ✅.** Template renderizado via test-client (status, 🔄 Renovar, "Inativa (só-leitura)", "Criar campanha (20 créditos)") e servido no boot local. Dados reais intocados.
+
+**Como reverter:** restaurar `versoes/2026-07-15-fase23-3-campanha-produto/`, ou `git revert`.
+
+**Próximo:** 23.4 — limite de 6 fichas de PJ por campanha (servidor rejeita a 7ª).
+
+---
+
 ## 2026-07-14 — Fase 23.2: comprar créditos com Pix (AbacatePay) + fallback manual
 
 **Backup antes da alteração:** `versoes/2026-07-14-fase23-2-abacatepay/` (app.py, requirements.txt, .gitignore, campanhas.html).

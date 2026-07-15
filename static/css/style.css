@@ -1876,9 +1876,14 @@ body.alto-contraste a { color: #ffd400; }
   padding: 10px 12px;
 }
 .campanha-card.ativa { border-color: var(--accent); }
+.campanha-card.inativa { border-color: #e3b341; background: rgba(227,179,65,0.06); }
 .campanha-card-info { display: flex; flex-direction: column; gap: 2px; text-align: left; }
 .campanha-card-info small { color: var(--text-dim); }
 .campanha-card-info code { color: #e3b341; }
+.campanha-card-acoes { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+.camp-status { font-size: 0.78rem !important; }
+.camp-status.ok { color: #5ac47d !important; }
+.camp-status.alerta { color: #e3b341 !important; }
 .campanhas-h3 { margin: 18px 0 6px; font-size: 0.9rem; color: var(--accent); text-align: left; }
 .campanha-form-linha { display: flex; gap: 8px; }
 .campanha-form-linha input { flex: 1; }

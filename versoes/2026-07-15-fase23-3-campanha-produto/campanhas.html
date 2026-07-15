@@ -23,28 +23,14 @@
       {% if campanhas %}
       <div class="campanhas-lista">
         {% for c in campanhas %}
-        <div class="campanha-card{% if c.ativa %} ativa{% endif %}{% if not c.paga %} inativa{% endif %}">
+        <form action="{{ url_for('campanha_ativa') }}" method="post" class="campanha-card{% if c.ativa %} ativa{% endif %}">
+          <input type="hidden" name="id" value="{{ c.id }}">
           <div class="campanha-card-info">
             <b>{{ c.nome }}</b>
             <small>{{ '🎩 Você mestra' if c.papel == 'mestre' else '🎲 Jogador' }}{% if c.codigo %} · convite: <code>{{ c.codigo }}</code>{% endif %}</small>
-            {% if c.cobravel %}
-              {% if c.paga %}<small class="camp-status ok">✅ Ativa{% if c.pagaAte %} até {{ c.pagaAte }}{% endif %}</small>
-              {% else %}<small class="camp-status alerta">⚠️ Inativa (só-leitura){% if c.papel == 'mestre' %} — renove para editar{% endif %}</small>{% endif %}
-            {% endif %}
           </div>
-          <div class="campanha-card-acoes">
-            <form action="{{ url_for('campanha_ativa') }}" method="post">
-              <input type="hidden" name="id" value="{{ c.id }}">
-              <button type="submit" class="btn-primary">{{ 'Continuar' if c.ativa else 'Entrar' }}</button>
-            </form>
-            {% if c.papel == 'mestre' and c.cobravel %}
-            <form action="{{ url_for('campanha_renovar') }}" method="post" onsubmit="return confirm('Renovar por mais 30 dias? Isso debita {{ custo_campanha }} créditos.');">
-              <input type="hidden" name="id" value="{{ c.id }}">
-              <button type="submit" class="btn-secondary">🔄 Renovar ({{ custo_campanha }})</button>
-            </form>
-            {% endif %}
-          </div>
-        </div>
+          <button type="submit" class="btn-primary">{{ 'Continuar' if c.ativa else 'Entrar' }}</button>
+        </form>
         {% endfor %}
       </div>
       {% else %}
@@ -58,11 +44,10 @@
       </form>
 
       <h3 class="campanhas-h3">✨ Criar uma campanha nova</h3>
-      <p class="login-sub">Você será o Mestre dela e recebe um código de convite para os jogadores. Custa <b>{{ custo_campanha }} créditos</b> (R$ 5,00 = 30 dias). Jogadores entram de graça.</p>
-      <form action="{{ url_for('campanha_nova') }}" method="post" class="campanha-form-linha"
-            onsubmit="return confirm('Criar esta campanha debita {{ custo_campanha }} créditos. Continuar?');">
+      <p class="login-sub">Você será o Mestre dela e recebe um código de convite para os jogadores.</p>
+      <form action="{{ url_for('campanha_nova') }}" method="post" class="campanha-form-linha">
         <input type="text" name="nome" placeholder="nome da campanha" maxlength="48" required>
-        <button type="submit" class="btn-primary">Criar campanha ({{ custo_campanha }} créditos)</button>
+        <button type="submit" class="btn-primary">Criar campanha</button>
       </form>
     </div>
   </div>

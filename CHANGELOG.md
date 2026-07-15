@@ -4,6 +4,26 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — PH5 (Campanha Phandelver): Cap. 4 — Caverna do Eco das Ondas (18 nós, final)
+
+**Backup antes da alteração:** `versoes/2026-07-15-ph5-caverna/aventurasprontas.js`.
+
+**Resumo:** Novo modelo importável **`modelo_phandelver_caverna`** (Cap. 4, nível 4-5, **18 nós**) — a masmorra FINAL da campanha: a Mina Perdida, a Forja das Magias e o clímax contra Nezznar, o Aranha Negra. Escrita própria/condensada, mesmo padrão.
+- **Abertura de peso:** o corpo de Tharden (irmão de Gundren) na entrada.
+- **Percurso (sandbox convergente):** Gosma Ocre que persegue → poço de 10 Estirge → 9 Esqueleto (mineiros) → depósito seguro (descanso) → 3 + 7 Carniçal com câmara de esporos (armadilha Con CD 11) → lago (Varinha de Mísseis Mágicos) → barricada de 5 Bugbear → Caveira Flamejante + 8 Zumbi (revive sem água benta) → **Mormesk** (Aparição/Wraith — barganha social + mapa) → **Forja das Magias** com o **Espectador** (dispensar por Enganação CD 15 ou lutar; Lightbringer + Dragonguard; águas que sobem).
+- **Clímax:** guarda de **Vhalak** (Doppelganger + 3 Bugbear) → templo de **Nezznar** (Mago Drow, chefe) invisível + 4 Aranha Gigante (teia + blefe do refém) → resgate de **Nundro** (último irmão).
+- **Finais:** vitória plena (irmãos vivos, Mina retomada, 10% dos lucros vitalícios) e vitória amarga (perdas/fugas); ambos `vitoria`. Ganchos pós-campanha nos notasMestre (mansão como base, masmorra do mapa de Mormesk, Nezznar solto por Halia se entregue vivo).
+
+**Ficheiros:** `static/js/aventurasprontas.js` (+`modelo_phandelver_caverna`), `docs/CAMPANHA-PHANDELVER.md` (PH5 ✅).
+
+**Verificação (harness Node):** `node --check` OK; `validarAventura` → **0 erros / 0 avisos**; **18 nós**; os 12 tipos de encontro do final confirmados no bestiário (Gosma Ocre, Estirge, Esqueleto, Carniçal, Bugbear, Zumbi, Caveira Flamejante, Aparição, Espectador, Doppelganger, Mago Drow/Nezznar, Aranha Gigante); final de vitória alcançável; os **9 modelos** seguem sem erros.
+
+**Como reverter:** restaurar `versoes/2026-07-15-ph5-caverna/aventurasprontas.js`, ou `git revert`.
+
+**Próximo:** PH6 — passe final de integração e fecho da campanha completa.
+
+---
+
 ## 2026-07-15 — PH4 (Campanha Phandelver): Cap. 3B — Castelo Dentefino (16 nós)
 
 **Backup antes da alteração:** `versoes/2026-07-15-ph4-castelo/aventurasprontas.js`.

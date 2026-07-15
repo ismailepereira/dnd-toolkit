@@ -4,6 +4,24 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — Fase 23.7 (migração): jogador grátis — assinatura plana desligada (cobrança 100% por créditos)
+
+**Backup antes da alteração:** `versoes/2026-07-15-fase23-7b-migracao-jogador-gratis/` (app.py).
+
+**Resumo:** Fecha a Fase 23. A assinatura plana de conta (Fase 10.9) trancava a app inteira após o trial de 3 dias — o que contradizia o modelo novo (**jogador é grátis; a cobrança é por campanha, em créditos** — 23.3). Esta migração **desliga o gate plana por padrão**, de forma **reversível** e **sem perder o bloqueio manual do admin**.
+- **Gate reescrito** (`login_obrigatorio`): para contas registadas, o **bloqueio do admin** (`bloqueado`) trava **sempre** (HTML → tela de status; API → **403 `bloqueado`**). A checagem de **assinatura/trial** só roda se `EXIGIR_ASSINATURA_PLANA=1` (env, **padrão desligado** = migrado). Com o padrão, uma conta com trial expirado **acessa normalmente** — cria/joga; o que custa é criar/renovar campanha (débito de créditos, 23.3).
+- **Rollback de emergência:** `EXIGIR_ASSINATURA_PLANA=1` restaura exatamente o comportamento antigo (trial/pagaAte trancam a app). As rotas de assinatura (`/assinatura`, admin) e os helpers `assinatura_valida`/`status_assinatura` seguem existindo (usados no admin e no rollback).
+
+**Ficheiros:** `app.py` (const `EXIGIR_ASSINATURA_PLANA` + gate de `login_obrigatorio` reescrito: bloqueio sempre, plana opcional).
+
+**Verificação (harness Flask com `DATA_DIR` temporário, os dois modos — dados reais intocados):** **plana OFF (padrão)** → trial expirado **acessa** `/campanhas` (200) e `/api/creditos` (200); conta **bloqueada** → 302 no HTML e **403 `bloqueado`** na API. **plana ON (rollback)** → trial expirado **redireciona** para assinatura; trial em dia **acessa**. **6/6 ✅.**
+
+**Como reverter:** definir `EXIGIR_ASSINATURA_PLANA=1` (volta o gate antigo, sem redeploy de código) ou restaurar `versoes/2026-07-15-fase23-7b-migracao-jogador-gratis/app.py`.
+
+**Fase 23 — MONETIZAÇÃO: concluída.** 23.1 carteira · 23.2/23.8 comprar créditos (Pix AbacatePay) · 23.3 campanha=produto · 23.4 limite 6 fichas · 23.5 jobs/retenção · 23.6 admin · 23.9 dashboard · 23.7 bônus de boas-vindas + migração jogador-grátis.
+
+---
+
 ## 2026-07-15 — Fase 23.7: bônus de boas-vindas (conta nova nasce com crédito para 1 aventura + 6 fichas)
 
 **Backup antes da alteração:** `versoes/2026-07-15-fase23-7-bonus-boasvindas/` (app.py).

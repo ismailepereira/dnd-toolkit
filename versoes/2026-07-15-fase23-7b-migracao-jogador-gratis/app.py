@@ -368,10 +368,6 @@ RETENCAO_DIAS = int(os.environ.get('RETENCAO_DIAS', '180'))  # Fase 23.5: 6 mese
 # Fase 23.7: bônus de boas-vindas — cada conta nova nasce com crédito suficiente
 # para 1 aventura + 6 fichas, ou seja, 1 campanha completa (= CAMPANHA_CREDITOS).
 CREDITO_INICIAL = int(os.environ.get('CREDITO_INICIAL', '20'))
-# Fase 23.7: migração jogador-grátis. A cobrança é POR CAMPANHA (créditos, 23.3),
-# então a assinatura plana de conta (Fase 10.9) nasce DESLIGADA. Só volta a
-# trancar a app inteira se EXIGIR_ASSINATURA_PLANA=1 (rollback de emergência).
-EXIGIR_ASSINATURA_PLANA = os.environ.get('EXIGIR_ASSINATURA_PLANA', '0') == '1'
 
 _abacate = None
 
@@ -617,20 +613,12 @@ def login_obrigatorio(papeis=None, exigir_assinatura=True):
                 return redirect(url_for('login'))
             if papeis and session.get('papel') not in papeis:
                 return redirect(url_for('index'))
-            # Contas legadas de env não passam por aqui (uid 'legacy:*').
+            # Fase 10.9: contas registadas precisam de trial/assinatura em dia
+            # (contas legadas de env não passam por aqui — uid 'legacy:*')
             uid = session.get('uid', '')
-            if uid and not uid.startswith('legacy:'):
+            if exigir_assinatura and uid and not uid.startswith('legacy:'):
                 u = carregar_usuario_reg(uid)
-                # Bloqueio manual do admin: trava sempre, em qualquer modelo.
-                if u and u.get('bloqueado'):
-                    if request.path.startswith('/api/'):
-                        return jsonify({'erro': 'bloqueado', 'detalhe': 'conta bloqueada'}), 403
-                    return redirect(url_for('pagina_assinatura'))
-                # Fase 23.7: jogador é grátis — a cobrança é por campanha (créditos).
-                # A assinatura plana da Fase 10.9 fica desligada por padrão; só
-                # tranca a app se EXIGIR_ASSINATURA_PLANA=1 (rollback).
-                if (EXIGIR_ASSINATURA_PLANA and exigir_assinatura
-                        and not assinatura_valida(u)):
+                if not assinatura_valida(u):
                     if request.path.startswith('/api/'):
                         return jsonify({'erro': 'assinatura', 'detalhe': 'trial/assinatura expirada'}), 402
                     return redirect(url_for('pagina_assinatura'))

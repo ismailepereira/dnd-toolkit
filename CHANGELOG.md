@@ -4,6 +4,27 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — Fase 23.5: ciclo de vida da campanha (só-expirar + retenção de 6 meses, lazy)
+
+**Backup antes da alteração:** `versoes/2026-07-15-fase23-5-jobs-retencao/` (app.py, campanhas.html).
+
+**Resumo:** Fecha o ciclo de vida do produto (modelo em `docs/MONETIZACAO.md`). **Decisões do Ismaile:** renovação é **só-expirar** (o Claude **nunca** debita créditos sozinho — o dono renova à mão pela 23.3); a exclusão aos **6 meses** é **automática**; o disparo é **verificação lazy** (sem cron — o plano free do Render hiberna).
+- **Ciclo** (`ciclo_campanha(cid, meta)`): campanha paga que **venceu** ganha `inativaDesde` (contado a partir do `pagaAte`) no 1º acesso; inativa há **≥ RETENCAO_DIAS** (env, padrão **180**) é **apagada** com todo o estado; se voltou a ficar em dia (renovada), `inativaDesde` é limpo. Campanhas legadas/`principal` passam intactas.
+- **Deleção** (`deletar_campanha(cid)`): remove `campanhas_meta/<cid>` + `campanha/<cid>` + `campanha_publica/<cid>` (Firestore) ou o `estado_<cid>.json` (local). **Nunca** apaga a `principal`. Loga a exclusão.
+- **Lazy sweep** (`varrer_ciclo_campanhas`): roda no `pagina_campanhas` (qualquer acesso à lista limpa as vencidas de todos) e ao **entrar** numa campanha (`campanha_ativa` — se a retenção esgotou, avisa em vez de entrar).
+- **UI** (`campanhas.html`): card inativo mostra a contagem regressiva "**será apagada em N dias**" (`dias_ate_apagar`).
+- **Infra:** `timedelta` promovido ao import do topo. Consts `RETENCAO_DIAS`; helpers `_deletar_doc`, `deletar_campanha`, `dias_ate_apagar`, `ciclo_campanha`, `varrer_ciclo_campanhas`.
+
+**Ficheiros:** `app.py` (ciclo/retenção/deleção + sweep em `pagina_campanhas`/`campanha_ativa` + `apagaEm` no card), `templates/campanhas.html` (contagem regressiva), `docs/MONETIZACAO.md` (progresso + decisões).
+
+**Verificação (harness Flask com `DATA_DIR` temporário — só campanhas fictícias no temp, dados reais intocados):** vencida sem `inativaDesde` → marca (persistido); inativa há 100 dias → mantida, `dias_ate_apagar≈80`; inativa há 181 dias → **apagada** (meta + `estado_*.json`), `ciclo` devolve None; renovada com `inativaDesde` antigo → limpo; dono legado → intacta; `principal` **não** apagável; `varrer_ciclo_campanhas` apaga a expirada e mantém a recente. **12/12 ✅.**
+
+**Como reverter:** restaurar `versoes/2026-07-15-fase23-5-jobs-retencao/`, ou `git revert`. (Campanhas já apagadas por retenção **não** voltam — a deleção é destrutiva por design.)
+
+**Próximo:** 23.6 — painel de admin completo (utilizadores + campanhas + compras + receita).
+
+---
+
 ## 2026-07-15 — Fase 23.4: limite de 6 fichas de PJ por campanha paga
 
 **Backup antes da alteração:** `versoes/2026-07-15-fase23-4-limite-fichas/` (app.py).

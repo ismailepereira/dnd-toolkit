@@ -4,7 +4,7 @@ import os
 import re
 import secrets
 import uuid
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from functools import wraps
 
 from dotenv import load_dotenv
@@ -231,85 +231,6 @@ def campanha_cobravel(camp_id):
     return bool(meta) and not str(meta.get('mestreUid', '')).startswith('legacy:')
 
 
-# ---------------------------------------------------------------
-# FASE 23.5 — ciclo de vida da campanha (verificação LAZY, sem cron):
-# "só expirar" (nunca auto-debita — o dono renova à mão) + retenção de
-# RETENCAO_DIAS: a campanha inativa é guardada 6 meses e depois APAGADA.
-# ---------------------------------------------------------------
-def _deletar_doc(colecao, caminho, doc_id):
-    if db is not None:
-        db.collection(colecao).document(doc_id).delete()
-        return
-    todos = _carregar_docs(colecao, caminho)
-    if doc_id in todos:
-        del todos[doc_id]
-        os.makedirs(os.path.dirname(caminho), exist_ok=True)
-        with open(caminho, 'w', encoding='utf-8') as f:
-            json.dump(todos, f, ensure_ascii=False, indent=2)
-
-
-def deletar_campanha(cid):
-    """Apaga a campanha e TODO o seu estado (meta + estado privado + público).
-    Destrutivo e irreversível — só chamado quando a retenção esgota. Nunca
-    apaga a 'principal' (é a mesa legada do mestre fixo)."""
-    if cid == 'principal':
-        return False
-    _deletar_doc(COLECAO_CAMPANHAS_META, CAMPMETA_FILE, cid)
-    if db is not None:
-        db.collection(COLECAO_CAMPANHA).document(cid).delete()
-        db.collection(COLECAO_CAMPANHA_PUBLICA).document(cid).delete()
-    else:
-        p = os.path.join(DATA_DIR, f'estado_{cid}.json')
-        if os.path.exists(p):
-            os.remove(p)
-    print(f'[23.5] campanha {cid} apagada (retenção de {RETENCAO_DIAS} dias esgotada)')
-    return True
-
-
-def dias_ate_apagar(meta):
-    """Dias restantes até a exclusão de uma campanha inativa (ou None)."""
-    ini = (meta or {}).get('inativaDesde')
-    if not ini:
-        return None
-    try:
-        base = datetime.fromisoformat(ini)
-    except (ValueError, TypeError):
-        return None
-    restante = (base + timedelta(days=RETENCAO_DIAS)) - datetime.now(timezone.utc)
-    return max(0, restante.days)
-
-
-def ciclo_campanha(cid, meta):
-    """Transições de ciclo de vida de UMA campanha paga (lazy). Marca
-    `inativaDesde` no 1º acesso após vencer; apaga após RETENCAO_DIAS inativa;
-    limpa `inativaDesde` se voltou a ficar em dia. Devolve a meta (talvez
-    atualizada) ou None se foi apagada. Campanhas legadas passam intactas."""
-    if not meta or str(meta.get('mestreUid', '')).startswith('legacy:'):
-        return meta
-    if campanha_paga_em_dia(meta):
-        if meta.get('inativaDesde'):
-            meta.pop('inativaDesde', None)
-            salvar_campanha_meta(cid, meta)
-        return meta
-    ini = meta.get('inativaDesde')
-    if not ini:
-        # começa a contar a retenção a partir do vencimento (pagaAte), se houver
-        meta['inativaDesde'] = meta.get('pagaAte') or _agora()
-        salvar_campanha_meta(cid, meta)
-        return meta
-    if dias_ate_apagar(meta) == 0:
-        deletar_campanha(cid)
-        return None
-    return meta
-
-
-def varrer_ciclo_campanhas():
-    """Passa o ciclo em TODAS as campanhas (chamado lazy quando alguém abre a
-    lista de campanhas). Sem cron: qualquer acesso limpa as vencidas."""
-    for cid, meta in list(carregar_campanhas_meta().items()):
-        ciclo_campanha(cid, meta)
-
-
 def eh_legado_mestre(uid):
     return isinstance(uid, str) and uid.startswith('legacy:') and session.get('papelGlobal') == 'mestre'
 
@@ -364,7 +285,6 @@ ABACATEPAY_WEBHOOK_SECRET = os.environ.get('ABACATEPAY_WEBHOOK_SECRET', '').stri
 CAMPANHA_CREDITOS = int(os.environ.get('CAMPANHA_CREDITOS', '20'))  # R$ 5,00/mês
 CAMPANHA_DIAS = int(os.environ.get('CAMPANHA_DIAS', '30'))
 MAX_FICHAS_PJ = int(os.environ.get('MAX_FICHAS_PJ', '6'))  # Fase 23.4: 6 PJs por campanha paga
-RETENCAO_DIAS = int(os.environ.get('RETENCAO_DIAS', '180'))  # Fase 23.5: 6 meses inativa → apaga
 
 _abacate = None
 
@@ -947,7 +867,6 @@ def admin_assinaturas():
 @login_obrigatorio()
 def pagina_campanhas():
     uid = session.get('uid', '')
-    varrer_ciclo_campanhas()  # Fase 23.5: limpa vencidas (marca inativas / apaga expiradas)
     metas = carregar_campanhas_meta()
     minhas = []
     for cid, m in metas.items():
@@ -959,8 +878,7 @@ def pagina_campanhas():
                            'ativa': cid == campanha_atual(),
                            'paga': paga,
                            'cobravel': not str(m.get('mestreUid', '')).startswith('legacy:'),
-                           'pagaAte': (m.get('pagaAte') or '')[:10],
-                           'apagaEm': (None if paga else dias_ate_apagar(m))})
+                           'pagaAte': (m.get('pagaAte') or '')[:10]})
     minhas.sort(key=lambda c: c['nome'].lower())
     creditos = None if (not uid or uid.startswith('legacy:')) else saldo_creditos(carregar_usuario_reg(uid))
     return render_template('campanhas.html', campanhas=minhas, erro=request.args.get('erro'),
@@ -1026,10 +944,6 @@ def campanha_ativa():
     papel = papel_na_campanha(uid, cid)
     if not papel:
         return redirect(url_for('pagina_campanhas', erro='Você não é membro dessa campanha.'))
-    # Fase 23.5: passa o ciclo antes de entrar (pode apagar se a retenção esgotou)
-    meta = carregar_campanhas_meta().get(cid)
-    if meta is not None and ciclo_campanha(cid, meta) is None:
-        return redirect(url_for('pagina_campanhas', erro='Campanha apagada por inatividade (retenção esgotada).'))
     session['campanha'] = cid
     session['papel'] = papel
     return redirect(url_for('index'))

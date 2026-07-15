@@ -29,7 +29,7 @@
             <small>{{ '🎩 Você mestra' if c.papel == 'mestre' else '🎲 Jogador' }}{% if c.codigo %} · convite: <code>{{ c.codigo }}</code>{% endif %}</small>
             {% if c.cobravel %}
               {% if c.paga %}<small class="camp-status ok">✅ Ativa{% if c.pagaAte %} até {{ c.pagaAte }}{% endif %}</small>
-              {% else %}<small class="camp-status alerta">⚠️ Inativa (só-leitura){% if c.papel == 'mestre' %} — renove para editar{% endif %}{% if c.apagaEm is not none %} · será apagada em {{ c.apagaEm }} dia{{ 's' if c.apagaEm != 1 else '' }}{% endif %}</small>{% endif %}
+              {% else %}<small class="camp-status alerta">⚠️ Inativa (só-leitura){% if c.papel == 'mestre' %} — renove para editar{% endif %}</small>{% endif %}
             {% endif %}
           </div>
           <div class="campanha-card-acoes">

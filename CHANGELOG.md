@@ -4,6 +4,26 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — PH4 (Campanha Phandelver): Cap. 3B — Castelo Dentefino (16 nós)
+
+**Backup antes da alteração:** `versoes/2026-07-15-ph4-castelo/aventurasprontas.js`.
+
+**Resumo:** Novo modelo importável **`modelo_phandelver_castelo`** (Cap. 3B, nível 3-4, **16 nós**) — a fortaleza goblin Cragmaw na Floresta Neverwinter, com o resgate de Gundren e do mapa da Mina. Escrita própria/condensada, mesmo padrão.
+- **3 abordagens:** portão principal (arqueiros + alarme), porta lateral (Ladinagem CD 15, furtiva), torre em ruínas com lona falsa (escalada, sem alarme).
+- **Corredores-hub** → guarda hobgoblin (á.6) → salão do **Yegg** (Goblin Mestre + 7 Goblin; moral quebra se o chefe cai) → **Grick** emboscando do teto (á.8) → capela do falso deus **Lhupo** (Goblin Mestre + emboscada) → antecâmara (2 Hobgoblin; um corre avisar Grol) → jaula do **Urso-Coruja** (acalmar com carne ou soltar contra os goblins).
+- **Clímax (á.14):** **Rei Grol** (Bugbear chefe) usa Gundren como escudo vivo + 1 Lobo + **Vyerith** (Doppelganger disfarçado de mensageiro drow que TRAI o lado perdedor, tenta matar Gundren e fugir com o mapa).
+- **Resgate + finais:** libertar Gundren e achar o mapa sob o colchão de Grol; dois finais de vitória — "com o mapa" e "de memória" (se Vyerith fugiu com ele, Gundren sabe o caminho — rede de segurança). Gundren revela que o Aranha Negra é o drow Nezznar.
+
+**Ficheiros:** `static/js/aventurasprontas.js` (+`modelo_phandelver_castelo`), `docs/CAMPANHA-PHANDELVER.md` (PH4 ✅).
+
+**Verificação (harness Node):** `node --check` OK; `validarAventura` → **0 erros / 0 avisos**; **16 nós**; encontros com nomes exatos (Goblin/Hobgoblin/Goblin Mestre/Grick/Urso-Coruja/Rei Grol/Lobo/Doppelganger); final de vitória alcançável; os **8 modelos** seguem sem erros.
+
+**Como reverter:** restaurar `versoes/2026-07-15-ph4-castelo/aventurasprontas.js`, ou `git revert`.
+
+**Próximo:** PH5 — Cap. 4: Caverna Onda Eco (masmorra final; Nezznar, o Aranha Negra) → PH6 (finais/integração).
+
+---
+
 ## 2026-07-15 — PH3 (Campanha Phandelver): Cap. 3A — A Teia da Aranha (16 nós)
 
 **Backup antes da alteração:** `versoes/2026-07-15-ph3-teia/aventurasprontas.js`.

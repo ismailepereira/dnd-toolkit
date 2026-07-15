@@ -365,9 +365,6 @@ CAMPANHA_CREDITOS = int(os.environ.get('CAMPANHA_CREDITOS', '20'))  # R$ 5,00/m�
 CAMPANHA_DIAS = int(os.environ.get('CAMPANHA_DIAS', '30'))
 MAX_FICHAS_PJ = int(os.environ.get('MAX_FICHAS_PJ', '6'))  # Fase 23.4: 6 PJs por campanha paga
 RETENCAO_DIAS = int(os.environ.get('RETENCAO_DIAS', '180'))  # Fase 23.5: 6 meses inativa → apaga
-# Fase 23.7: bônus de boas-vindas — cada conta nova nasce com crédito suficiente
-# para 1 aventura + 6 fichas, ou seja, 1 campanha completa (= CAMPANHA_CREDITOS).
-CREDITO_INICIAL = int(os.environ.get('CREDITO_INICIAL', '20'))
 
 _abacate = None
 
@@ -747,12 +744,6 @@ def registro():
                 'pagaAte': None,
                 'bloqueado': False,
                 'pagamentoInfo': None,
-                # Fase 23.7: bônus de boas-vindas — crédito para 1 campanha
-                # completa (1 aventura + 6 fichas). Já gravado com o ledger.
-                'creditos': CREDITO_INICIAL,
-                'creditos_log': ([{'delta': CREDITO_INICIAL, 'saldo': CREDITO_INICIAL,
-                                   'motivo': 'bonus de boas-vindas (1 aventura + 6 fichas)',
-                                   'por': 'sistema', 'em': _agora()}] if CREDITO_INICIAL else []),
             })
             session.clear()
             session['usuario'] = usuario
@@ -761,8 +752,7 @@ def registro():
             session['papelGlobal'] = 'jogador'
             session['papel'] = 'jogador'
             return redirect(url_for('pagina_campanhas'))
-    return render_template('registro.html', erro=erro, trial_dias=TRIAL_DIAS, preco=ASSINATURA_PRECO,
-                           credito_inicial=CREDITO_INICIAL)
+    return render_template('registro.html', erro=erro, trial_dias=TRIAL_DIAS, preco=ASSINATURA_PRECO)
 
 
 # ----- FASE 10.9: página de assinatura (trial expirado / pagamento manual) -----

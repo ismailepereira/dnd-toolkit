@@ -4,6 +4,24 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — Fase 23.7: bônus de boas-vindas (conta nova nasce com crédito para 1 aventura + 6 fichas)
+
+**Backup antes da alteração:** `versoes/2026-07-15-fase23-7-bonus-boasvindas/` (app.py).
+
+**Resumo:** Decisão do Ismaile (15/07): **toda conta nova nasce com crédito suficiente para 1 aventura + 6 fichas** — que no modelo atual é exatamente **1 campanha completa = 20 créditos**. Então o registo passa a dar um **bônus de boas-vindas** de `CREDITO_INICIAL` créditos (env, padrão **20**). (Isto substitui a ideia anterior de "15 fichas + 1 aventura por 15 dias" — o Ismaile simplificou para "o trial deixa a conta com o suficiente para 1 aventura e 6 fichas".)
+- **Registo** (`/registro`): a conta é criada já com `creditos = CREDITO_INICIAL` e um lançamento no `creditos_log` ("bonus de boas-vindas (1 aventura + 6 fichas)"), num único write. Com isso a conta consegue **criar 1 campanha na hora** (a criação debita 20 — Fase 23.3), sem pagar nada.
+- **UI** (`registro.html`): a copy vende o bônus — "ganhe 20 créditos grátis — dá para montar 1 aventura completa + 6 fichas"; botão "Criar conta (+20 créditos grátis)".
+
+**Ficheiros:** `app.py` (const `CREDITO_INICIAL` + bônus no dict do registo + passa ao template), `templates/registro.html` (copy + botão).
+
+**Verificação (harness Flask com `DATA_DIR` temporário — dados reais intocados):** conta nova nasce com **20 créditos** e ledger correto (delta 20/saldo 20, motivo "boas-vindas"); consegue **criar 1 campanha** com o bônus (saldo 20→0); `GET /api/creditos` mostra saldo 0 e o bônus no histórico. **7/7 ✅.**
+
+**Como reverter:** restaurar `versoes/2026-07-15-fase23-7-bonus-boasvindas/app.py` e a copy de `registro.html`, ou `git revert`.
+
+**Nota:** o gate de assinatura plana da Fase 10.9 (`exigir_assinatura=True`, trial de 3 dias) ainda coexiste; a aposentadoria dele fica para quando o Ismaile decidir migrar 100% para créditos.
+
+---
+
 ## 2026-07-15 — Fase 23.9: dashboard de admin (gráficos de vendas + produtos + usuários, só o Ismaile)
 
 **Backup antes da alteração:** `versoes/2026-07-15-fase23-9-dashboard/` (app.py, admin_assinaturas.html, campanhas.html).

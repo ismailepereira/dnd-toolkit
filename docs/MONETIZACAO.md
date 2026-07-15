@@ -13,6 +13,11 @@ Substitui, aos poucos, a assinatura plana de conta (Fase 10.9).
 - **Jogadores entram de graça**: criam conta, entram na campanha do Mestre
   por convite/cadastro, e o Mestre **envia o acesso** a uma das 6 fichas.
   Jogador NÃO paga; quem paga é o dono da campanha.
+- **Bônus de boas-vindas (Fase 23.7, 15/07):** toda conta nova nasce com
+  **`CREDITO_INICIAL` créditos** (padrão **20** = 1 campanha completa = **1
+  aventura + 6 fichas**), lançado no ledger como "bonus de boas-vindas". Assim
+  qualquer conta consegue montar a primeira campanha sem pagar; depois recarrega
+  por Pix. (Substituiu a ideia anterior de "15 fichas + 1 aventura por 15 dias".)
 
 ## Créditos (a moeda)
 

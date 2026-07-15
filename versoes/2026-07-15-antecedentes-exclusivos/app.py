@@ -231,26 +231,6 @@ def campanha_cobravel(camp_id):
     return bool(meta) and not str(meta.get('mestreUid', '')).startswith('legacy:')
 
 
-# Antecedentes EXCLUSIVOS de campanha: os de módulo/campanha pré-pronta (ex.:
-# "Recruta da Milícia (Ninho da Rainha Dragão)") só podem ser usados por UM PJ
-# por campanha. O critério é o sufixo "(Módulo)" — nenhum antecedente do PHB
-# tem parênteses no nome (Soldado, Acólito, etc.). Mesmo critério do cliente
-# (fontes.js antecedenteExclusivo), sem o servidor precisar conhecer fontes.js.
-_ANTECEDENTE_EXCLUSIVO_RE = re.compile(r'\(.+\)\s*$')
-
-
-def _antecedentes_exclusivos_dup(fichas):
-    """Conjunto de antecedentes exclusivos usados por MAIS DE UMA ficha na lista."""
-    cont = {}
-    for f in fichas:
-        if not isinstance(f, dict):
-            continue
-        a = f.get('antecedente')
-        if isinstance(a, str) and _ANTECEDENTE_EXCLUSIVO_RE.search(a):
-            cont[a] = cont.get(a, 0) + 1
-    return {a for a, n in cont.items() if n > 1}
-
-
 # ---------------------------------------------------------------
 # FASE 23.5 — ciclo de vida da campanha (verificação LAZY, sem cron):
 # "só expirar" (nunca auto-debita — o dono renova à mão) + retenção de
@@ -1394,14 +1374,6 @@ def api_put_fichas():
     if campanha_cobravel(campanha_atual()) and len(novas) > MAX_FICHAS_PJ and len(novas) > len(estado.get('fichas', [])):
         return jsonify({'ok': False, 'erro': 'limite_fichas',
                         'detalhe': f'esta campanha permite no máximo {MAX_FICHAS_PJ} fichas de personagem'}), 403
-    # Antecedentes EXCLUSIVOS de campanha (módulos pré-prontos): um por campanha.
-    # O nome traz o módulo entre parênteses — nenhum antecedente do PHB tem. Só
-    # barra quando a submissão INTRODUZ um novo conflito (não trava dados legados).
-    novos_dups = _antecedentes_exclusivos_dup(novas) - _antecedentes_exclusivos_dup(estado.get('fichas', []))
-    if novos_dups:
-        alvo = sorted(novos_dups)[0]
-        return jsonify({'ok': False, 'erro': 'antecedente_em_uso',
-                        'detalhe': f'o antecedente "{alvo}" já está em uso por outro personagem desta campanha'}), 403
     estado['fichas'] = novas
     salvar_estado(estado)
     return jsonify({'ok': True})

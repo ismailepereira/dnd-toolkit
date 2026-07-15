@@ -1878,34 +1878,12 @@ const Criador = (function () {
       }
     }
     preencherCampos();
-    atualizarAntecedentesExclusivos(ficha);  // trava antecedentes de campanha já em uso
     renderTudoDinamico();
     $('criadorTitulo').textContent = ficha ? 'Editar Personagem' : 'Criar Personagem';
     $('cExcluir').style.display = (ficha && ctx.aoExcluir) ? 'inline-block' : 'none';
     mostrarValidacao([]);
     irPasso(passoInicial);
     $('modalCriador').classList.remove('hidden');
-  }
-
-  // Antecedentes EXCLUSIVOS de campanha (módulos pré-prontos): cada um só pode
-  // ser usado por UM PJ na campanha. Desabilita no <select> os que já estão em
-  // uso por OUTRAS fichas (a própria ficha em edição continua liberada). O
-  // servidor faz a trava definitiva (ver /api/fichas).
-  function atualizarAntecedentesExclusivos(fichaAtual) {
-    const sel = $('cAntecedente');
-    if (!sel || typeof antecedenteExclusivo !== 'function') return;
-    const lista = (typeof fichas !== 'undefined' && Array.isArray(fichas)) ? fichas : [];
-    const meuId = fichaAtual && fichaAtual.id;
-    const meuAnt = fichaAtual && fichaAtual.antecedente;
-    const usados = new Set();
-    lista.forEach(f => {
-      if (f && f.id !== meuId && f.antecedente && antecedenteExclusivo(f.antecedente)) usados.add(f.antecedente);
-    });
-    Array.from(sel.options).forEach(opt => {
-      const emUso = usados.has(opt.value) && opt.value !== meuAnt;
-      opt.disabled = emUso;
-      opt.textContent = opt.value + (emUso ? ' — em uso nesta campanha' : '');
-    });
   }
 
   let montado = false;

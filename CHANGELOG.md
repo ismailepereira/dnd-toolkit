@@ -4,6 +4,25 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — Antecedentes de campanha (Ninho da Rainha Dragão): mais opções + exclusividade por campanha
+
+**Backup antes da alteração:** `versoes/2026-07-15-antecedentes-exclusivos/` (fontes.js, criador.js, app.js, app.py).
+
+**Contexto:** pedido do Ismaile — a campanha pré-pronta "Ninho da Rainha Dragão" tem antecedentes próprios sugeridos; ele quer que apareçam na criação de ficha e que **cada um seja único na campanha** (se um PJ já usa, ninguém mais pode).
+- **Conteúdo:** `FONTES_AVENTURA.ninho_rainha_dragao` passou de **1 para 5 antecedentes** (novos: Sobrevivente de Greenest, Desertor do Culto, Guarda de Caravana, Órfão das Cinzas), cada um com o shape completo (perícias/idiomas/ferramentas/equipamento/característica + tabelas de personalidade/ideais/vínculos/defeitos). Escrita própria, temática do culto dracônico. Já aparecem no `<select>` do Criador (agrupados por "Ninho da Rainha Dragão"), via a infra de fontes que já existia.
+- **Exclusividade (cliente):** `fontes.js` ganhou `antecedenteExclusivo(nome)` (true para antecedentes de módulo, false para os do PHB) e o flag `exclusivo` em `antecedentesDisponiveis()`. No Criador (`criador.js`), ao abrir a ficha, `atualizarAntecedentesExclusivos()` **desabilita no select** os antecedentes de campanha já usados por OUTRAS fichas (rótulo "— em uso nesta campanha"); a própria ficha em edição continua liberada para o seu.
+- **Exclusividade (servidor, trava real):** `PUT /api/fichas` rejeita com **403 `antecedente_em_uso`** se a submissão colocar o mesmo antecedente **exclusivo** em duas fichas da campanha. O servidor identifica "exclusivo" pelo sufixo `(Módulo)` no nome (regex `\(.+\)$` — nenhum antecedente do PHB tem parênteses), então não precisa conhecer o `fontes.js`. Só barra **novos** conflitos (não trava dados legados); antecedentes do PHB podem repetir à vontade. `salvarFichas` (`app.js`) reverte e avisa no 403.
+
+**Ficheiros:** `static/js/fontes.js` (4 antecedentes + `antecedenteExclusivo` + flag + export Node), `static/js/criador.js` (`atualizarAntecedentesExclusivos` + chamada no `abrir`), `app.py` (`_ANTECEDENTE_EXCLUSIVO_RE` + `_antecedentes_exclusivos_dup` + trava no `api_put_fichas`), `static/js/app.js` (alerta do 403).
+
+**Verificação:** `node --check` nos 3 JS + `ast.parse` no app.py. Harness cliente (fontes) **9/9** — PHB não-exclusivo, módulos exclusivos, Ninho com 5 antecedentes e shape completo. Harness servidor (Flask, DATA_DIR temporário) **10/10** — 2 PJs com o mesmo exclusivo → 403; 1 exclusivo + 1 PHB → 200; introduzir conflito → 403 e estado preservado; 2 PJs com antecedente do PHB → 200; editar a própria ficha mantendo seu exclusivo → 200. Dados reais intocados.
+
+**Como reverter:** restaurar `versoes/2026-07-15-antecedentes-exclusivos/`, ou `git revert`.
+
+**Próximo:** reproduzir a campanha "Ninho da Rainha Dragão" completa, capítulo a capítulo (mesmo tratamento do Phandelver), agora com os antecedentes exclusivos amarrados a ela.
+
+---
+
 ## 2026-07-15 — PH6 (Campanha Phandelver): fecho e integração — CAMPANHA COMPLETA ✅
 
 **Resumo:** Passe final de integração que fecha a **Mina Perdida de Phandelver completa** no toolkit. Não é um novo modelo — é a validação do arco inteiro e a documentação de condução.

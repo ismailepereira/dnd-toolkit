@@ -78,7 +78,6 @@ function salvarFichas() {
           // estado local recarregando do servidor e avisa o usuário.
           const d = await res.json().catch(() => ({}));
           if (d.erro === 'limite_fichas') alert('⚠️ ' + (d.detalhe || 'Limite de fichas atingido.') + '\nApague uma ficha para criar outra.');
-          else if (d.erro === 'antecedente_em_uso') alert('⚠️ ' + (d.detalhe || 'Antecedente já em uso.') + '\nEscolha outro antecedente para este personagem.');
           else if (d.erro === 'campanha_inativa') alert('⚠️ Campanha sem pagamento em dia (só-leitura). Renove para editar.');
           await carregarFichas();
         }

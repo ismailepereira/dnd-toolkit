@@ -4,6 +4,24 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — PH6 (Campanha Phandelver): fecho e integração — CAMPANHA COMPLETA ✅
+
+**Resumo:** Passe final de integração que fecha a **Mina Perdida de Phandelver completa** no toolkit. Não é um novo modelo — é a validação do arco inteiro e a documentação de condução.
+- **Arco validado ponta a ponta:** os **6 capítulos** (`emboscada`, `phandalin`, `marcarrubra`, `teia`, `castelo`, `caverna`) somam **93 nós**, do nível 1 ao 5, todos com **0 erros / 0 avisos** no `validarAventura` e **encontros com nomes exatos do bestiário** (loot da Fase 13 automático).
+- **Continuidade:** cada Final aponta o próximo `id` a importar; os fios (Gundren/mapa, Aranha Negra/Nezznar, o traidor doppelganger, missões da vila, família Dendrar) atravessam os capítulos e pagam no fim.
+- **Integração conferida:** antecedente **"Herdeiro de Phandalin"** presente em `fontes.js`; NPCs com `notasPrivadas`; itens-marco (Talon, Anel de Proteção, Hew, Cajado da Defesa, Lightbringer, Dragonguard, Cajado da Aranha) distribuídos pelos capítulos.
+- **Guia de condução** adicionado em `docs/CAMPANHA-PHANDELVER.md` (tabela de ordem/import/nível/nós + fios da trama + notas de integração).
+
+**Contexto:** resolve o apontamento do Ismaile de que a campanha importável estava "pouco trabalhada, com poucos nós" — ela ia só até a porta do 1º calabouço (2 capítulos / 28 nós). Agora vai do ataque na estrada ao confronto final com o Aranha Negra: **6 capítulos, 93 nós**.
+
+**Ficheiros:** `docs/CAMPANHA-PHANDELVER.md` (PH5/PH6 ✅ + guia de condução). Sem mudança de código (validação do que os PH2-PH5 entregaram).
+
+**Verificação (harness Node):** os 6 modelos do arco validam juntos — 14+14+15+16+16+18 = **93 nós**, todos **0 erros / 0 avisos**, encontros exatos; níveis 1-2 → 2-3 → 2-3 → 3-4 → 3-4 → 4-5; antecedente "Herdeiro de Phandalin" confirmado em `fontes.js`.
+
+**Fase 19 (Campanha Phandelver): CONCLUÍDA.** PH0 (bestiário/itens) · PH1 (Phandalin) · PH2 (Marcarrubra) · PH3 (Teia da Aranha) · PH4 (Castelo Dentefino) · PH5 (Caverna Onda Eco) · PH6 (finais/integração).
+
+---
+
 ## 2026-07-15 — PH5 (Campanha Phandelver): Cap. 4 — Caverna do Eco das Ondas (18 nós, final)
 
 **Backup antes da alteração:** `versoes/2026-07-15-ph5-caverna/aventurasprontas.js`.

@@ -160,6 +160,43 @@ Aventura `modelo_phandelver_caverna` · nível 4-5 · ~18 nós · masmorra final
 
 ---
 
+## ✅ CAMPANHA COMPLETA — guia de condução (PH6, 15/07/2026)
+
+A Mina Perdida de Phandelver está **inteira** no toolkit: **6 aventuras importáveis**,
+**93 nós** no total, do nível 1 ao 5. Cada capítulo é um modelo separado em
+`aventurasprontas.js` — importe e conduza um de cada vez, na ordem:
+
+| Ordem | Importar (`id`) | Título | Nível | Nós |
+|---|---|---|:--:|:--:|
+| 1 | `modelo_phandelver_emboscada` | Cap. 1 — Emboscada Goblin | 1-2 | 14 |
+| 2 | `modelo_phandelver_phandalin` | Cap. 2A — Phandalin | 2-3 | 14 |
+| 3 | `modelo_phandelver_marcarrubra` | Cap. 2B — Esconderijo Marcarrubra | 2-3 | 15 |
+| 4 | `modelo_phandelver_teia` | Cap. 3A — A Teia da Aranha | 3-4 | 16 |
+| 5 | `modelo_phandelver_castelo` | Cap. 3B — Castelo Dentefino | 3-4 | 16 |
+| 6 | `modelo_phandelver_caverna` | Cap. 4 — Caverna do Eco das Ondas | 4-5 | 18 |
+
+**Continuidade entre capítulos:** o nó de **Final** de cada capítulo aponta, nos
+`notasMestre`, qual modelo importar em seguida — o Mestre importa o próximo e
+inicia com o mesmo grupo (as fichas continuam; a campanha é a mesa, a aventura é
+o capítulo). O nível recomendado sobe junto (confira no Montador de Encontros).
+
+**Fios que atravessam a campanha** (plantados cedo, pagam no fim): Gundren e o
+mapa (Cap.1→3B→4); o Aranha Negra / Nezznar (rumor no Cap.1 → nome no 2B → cara
+no 4); o traidor doppelganger (Vyerith no 3B → Vhalak no 4); missões da vila do
+Cap. 2A (Linene, Halia, Sildar, Daran, Garaele, Harbin, Carp) resolvidas em 2B e
+3A; a família Dendrar (2B → colar em 3A). Itens-marco: Talon (2B), Anel de
+Proteção e Hew (3A), Cajado da Defesa (2B), Lightbringer/Dragonguard e Cajado da
+Aranha (4).
+
+**Integração com o toolkit:** todos os encontros usam **nomes exatos do
+bestiário** (loot da Fase 13 rola automático); NPCs com `notasPrivadas` (segredos
+só do Mestre); antecedente **"Herdeiro de Phandalin"** no Criador (`fontes.js`)
+liga um PJ à campanha. Cada grafo valida com **0 erros / 0 avisos** no
+`validarAventura`. Imagens por nó (`imagemUrl`) ficam para quando o Storage for
+ativado (hoje o padrão do projeto é sem upload) — o Mestre pode colar URLs à mão.
+
+---
+
 ## Ordem de execução (1 sub-fase por run da rotina)
 
 PH0 → PH1 → PH2 → PH3 (pode dividir em 3a estradas+2 locais / 3b Árvore

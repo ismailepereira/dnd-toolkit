@@ -172,7 +172,7 @@ validada e anotar o ponto de continuação AQUI.
 - [x] Cap. 1 — Emboscada Goblin (08/07/2026, CT1)
 - [x] PH0 — bestiário & itens (14/07/2026: 9 criaturas — as 8 planejadas + Rei Grol — e 9 itens mágicos; Anel de Proteção e Varinha de Mísseis já existiam)
 - [x] PH1 — Phandalin (14/07/2026: `modelo_phandelver_phandalin`, 14 nós — chegada, hub da praça com 8 locais/missões, confronto de rua, decisão pré-assalto, finais vitória+neutro; NPCs com segredos embutidos)
-- [ ] PH2 — Esconderijo Marcarrubra
+- [x] PH2 — Esconderijo Marcarrubra (15/07/2026: `modelo_phandelver_marcarrubra`, 15 nós — 2 entradas (porta do porão / túnel do Carp), porão→alojamento→criptas (senha "Illefarn")→jaulas (resgate dos Dendrar, gancho colar de Árvore Trovão)→fresta (Nothic social + espada Talon)→quartel dos bugbears (Droop) / antro dos bêbados→oficina (familiar avisa)→Cajavidro (Mago; rende-se ≤8 PV; Cajado da Defesa + cartas do Aranha Negra), com ramo de fuga; finais "da lei" (Sildar) e "da sombra" (Halia), ambos vitória, + beco mortal "esconderijo desperta". 0 erros/0 avisos no validador; encontros exatos do bestiário)
 - [ ] PH3 — Teia da Aranha
 - [ ] PH4 — Castelo Dentefino
 - [ ] PH5 — Caverna Onda Eco

@@ -4,6 +4,26 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — PH2 (Campanha Phandelver): Cap. 2B — Esconderijo Marcarrubra (15 nós)
+
+**Backup antes da alteração:** `versoes/2026-07-15-ph2-marcarrubra/aventurasprontas.js`.
+
+**Contexto:** o Ismaile apontou que a campanha importável de Phandelver "parece pouco trabalhada, tem poucos nós". O diagnóstico: ela **terminava na porta do primeiro calabouço** — o Cap. 2A (Phandalin) fechava com *"PRÓXIMO: importar Cap. 2B — Esconderijo Marcarrubra"*, mas esse capítulo **não existia**. Toda a metade de masmorra (PH2→PH6 do `docs/CAMPANHA-PHANDELVER.md`) estava por fazer. Esta entrega começa a completá-la, capítulo a capítulo.
+
+**Resumo:** Novo modelo importável **`modelo_phandelver_marcarrubra`** (Cap. 2B, nível 2-3, **15 nós**) — a masmorra sob a Mansão Tresendar, com clímax no mago Iarno "Cajavidro" Albrek. Escrita própria e condensada (repo público — nunca copia prosa do módulo; só nomes/fatos mecânicos), no mesmo padrão do Cap. 1 e 2A (narração + notasMestre + NPCs com `notasPrivadas`).
+- **Estrutura:** 2 entradas (porta do porão em sequência / túnel do Carp que pula pra fresta) → porão (2 Bandido, caixas do Leão Escudo) → alojamento (3 Bandido) → criptas (3 Esqueleto, senha "Illefarn" os deixa dormentes) → jaulas (2 Bandido; **resgate da família Dendrar**, Mirna dá o gancho do colar em Árvore Trovão/PH3) → fresta (**Nothic** como encontro social + espada mágica **Talon**) → quartel dos bugbears (3 Bugbear + goblin Droop; Enganação com manto disfarça) / antro dos bêbados (4 Bandido) → oficina (familiar avisa Iarno) → **Cajavidro** (Mago; rende-se ≤8 PV; Cajado da Defesa + cartas do Aranha Negra) com ramo de **fuga**.
+- **Decisões:** capturar Iarno vivo vs. matar; entregar à **lei (Sildar)** vs. à **sombra (Halia/Zhentarim)** — dois finais de vitória com consequências distintas + beco mortal sinalizado ("o esconderijo desperta", com saída clemente: acordam presos nas jaulas).
+
+**Ficheiros:** `static/js/aventurasprontas.js` (+`modelo_phandelver_marcarrubra`), `docs/CAMPANHA-PHANDELVER.md` (PH2 ✅).
+
+**Verificação (harness Node):** `node --check` OK; `validarAventura` no novo modelo → **0 erros / 0 avisos**; **15 nós**; todos os encontros usam **nomes exatos do bestiário** (Bandido/Esqueleto/Nothic/Bugbear/Mago); final de vitória alcançável; e os **6 modelos** de `AVENTURAS_PRONTAS` seguem sem erros de grafo (não quebrou os existentes).
+
+**Como reverter:** restaurar `versoes/2026-07-15-ph2-marcarrubra/aventurasprontas.js`, ou `git revert`.
+
+**Próximo:** PH3 — Cap. 3A: A Teia da Aranha (sandbox das estradas: Agatha, Velha Coruja, Árvore Trovão/Venomfang, Cume da Wyvern) → depois PH4 (Castelo Dentefino) → PH5 (Caverna Onda Eco) → PH6 (finais/integração).
+
+---
+
 ## 2026-07-15 — Fase 23.7 (migração): jogador grátis — assinatura plana desligada (cobrança 100% por créditos)
 
 **Backup antes da alteração:** `versoes/2026-07-15-fase23-7b-migracao-jogador-gratis/` (app.py).

@@ -4,6 +4,29 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — Fase 23.9: dashboard de admin (gráficos de vendas + produtos + usuários, só o Ismaile)
+
+**Backup antes da alteração:** `versoes/2026-07-15-fase23-9-dashboard/` (app.py, admin_assinaturas.html, campanhas.html).
+
+**Resumo:** Nova tela **`/admin/dashboard`** (também em `/admin`), **exclusiva do mestre legado** (a conta `MESTRE_USER`/Ismaile — `eh_legado_mestre`; jogadores e contas registadas nunca entram, redireciona). Visão de negócio com gráficos, sem biblioteca externa (barras em CSS/HTML — offline-safe, no estilo do app). Tudo vem dos dados que já existem (compras Pix creditadas, campanhas, ledgers de crédito) — nada inventado.
+- **KPIs:** faturamento (gateway), nº de vendas, **ticket médio**, créditos vendidos, utilizadores, créditos em circulação; e campanhas total/ativas/inativas.
+- **📈 Vendas — últimos 30 dias:** barra por dia (R$), escala automática pelo pico, rótulos a cada 3 dias, container com scroll horizontal no mobile.
+- **🏆 Pacotes de crédito mais vendidos:** ranking por faturamento (8/20/40/110/livre), com qtd + R$ + barra proporcional.
+- **🎲 Uso de créditos:** quanto foi gasto em **criar** vs **renovar** campanha (dos ledgers), + comprados/creditados-admin.
+- **👥 Utilizadores por status** (ativa/teste/aguardando/bloqueada/expirada).
+- **Navegação:** o link do mestre legado em "Minhas Campanhas" agora é **📊 Admin** → dashboard; dashboard ↔ **🗂️ Gestão** (`/admin/assinaturas`, as tabelas acionáveis da 23.6) cruzados no topo.
+- **Helper** `_dashboard_dados(dias=30)` (agregação) — reusável/testável isolado.
+
+**Ficheiros:** `app.py` (`_dashboard_dados` + rota `admin_dashboard` em `/admin` e `/admin/dashboard`), **novo** `templates/admin_dashboard.html`, `templates/admin_assinaturas.html` (título "Gestão" + link Dashboard), `templates/campanhas.html` (link 📊 Admin), `static/css/style.css` (gráficos `.dash-*`).
+
+**Verificação (harness Flask com `DATA_DIR` temporário — dados reais intocados):** agregação exata — faturamento R$ 12 (2 vendas, pendente não conta), 48 créditos vendidos, ticket R$ 6, circulação 18, campanhas 2/1a/1i (legada ignorada), série de 30 dias com hoje/ontem certos, pacote top = 40 créditos (100%), uso criar20/renovar20/comprados48, 1 em trial; GET dashboard renderiza as seções; **não-admin → 302**. **21/21 ✅.** Além disso, boot real com dados de demo semeados (5 compras, 3 utilizadores, 3 campanhas): o servidor serviu o dashboard com **faturamento R$ 49,50**, 30 barras (5 com venda, alturas 100/36/18/7%) e todos os blocos — confirmado por `curl` (o painel visual do browser não renderiza neste ambiente).
+
+**Como reverter:** restaurar `versoes/2026-07-15-fase23-9-dashboard/`, apagar `templates/admin_dashboard.html`, ou `git revert`.
+
+**Nota de segurança:** o dashboard é gated pelo mesmo `eh_legado_mestre` do resto do admin — só a conta `MESTRE_USER`/`MESTRE_SENHA`. Para ser realmente exclusivo em produção, o Ismaile precisa ter definido `MESTRE_SENHA` (secreta) no Render — o padrão do repositório é público.
+
+---
+
 ## 2026-07-15 — Fase 23.6: painel de admin completo (campanhas + compras Pix + receita)
 
 **Backup antes da alteração:** `versoes/2026-07-15-fase23-6-admin/` (app.py, admin_assinaturas.html).

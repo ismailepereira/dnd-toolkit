@@ -1875,6 +1875,23 @@ body.alto-contraste a { color: #ffd400; }
 .receita-card.destaque { border-color: var(--accent); }
 .btn-mini.btn-perigo { border-color: rgba(233,69,96,0.5); color: #e94560; }
 .btn-mini.btn-perigo:hover { background: rgba(233,69,96,0.15); border-color: #e94560; }
+/* Fase 23.9: dashboard de admin (gráficos sem lib) */
+.dash-chart-wrap { overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 10px 6px; }
+.dash-bars { display: flex; align-items: flex-end; gap: 3px; height: 180px; min-width: 100%; }
+.dash-bar-col { flex: 1 1 0; min-width: 14px; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+.dash-bar { width: 78%; min-height: 1px; background: var(--accent-grad, linear-gradient(180deg,#e94560,#c81d4e)); border-radius: 3px 3px 0 0; transition: height .3s; }
+.dash-bar-lbl { font-size: 0.6rem; color: var(--text-dim); margin-top: 4px; white-space: nowrap; height: 12px; }
+.dash-duas-colunas { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 720px) { .dash-duas-colunas { grid-template-columns: 1fr; } }
+.dash-rank { display: flex; flex-direction: column; gap: 8px; }
+.dash-rank-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+.dash-rank-top { display: flex; justify-content: space-between; gap: 8px; font-size: 0.82rem; margin-bottom: 5px; }
+.dash-rank-barra { height: 8px; background: rgba(255,255,255,0.06); border-radius: 5px; overflow: hidden; }
+.dash-rank-barra > div { height: 100%; background: var(--accent-grad, linear-gradient(90deg,#e94560,#c81d4e)); border-radius: 5px; }
+.dash-status { display: flex; flex-wrap: wrap; gap: 8px; }
+.dash-status-tag { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; font-size: 0.82rem; }
+.dash-nota { color: var(--text-dim); font-size: 0.82rem; margin: 8px 0; }
+.dash-vazio { color: var(--text-dim); font-size: 0.86rem; padding: 8px 0; }
 
 /* ===== Fase 10: autenticação, campanhas, morte/permanência ===== */
 .campanhas-box { max-width: 520px; }

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · Dashboard - Mestre's Toolkit</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-row">
+      <h1>📊 Admin · Dashboard</h1>
+      <div class="user-info">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn-secondary">📊 Dashboard</a>
+        <a href="{{ url_for('admin_assinaturas') }}" class="btn-secondary">🗂️ Gestão</a>
+        <a href="{{ url_for('mestre') }}" class="btn-secondary">← Mestre</a>
+        <a href="{{ url_for('logout') }}" class="btn-danger">Sair</a>
+      </div>
+    </div>
+  </header>
+  <main>
+    {# KPIs #}
+    <div class="admin-receita">
+      <div class="receita-card destaque"><b>R$ {{ '%.2f'|format(d.kpi.faturamento) }}</b><small>faturamento (gateway)</small></div>
+      <div class="receita-card"><b>{{ d.kpi.vendas }}</b><small>vendas</small></div>
+      <div class="receita-card"><b>R$ {{ '%.2f'|format(d.kpi.ticket) }}</b><small>ticket médio</small></div>
+      <div class="receita-card"><b>{{ d.kpi.creditos_vendidos }}</b><small>créditos vendidos</small></div>
+      <div class="receita-card"><b>{{ d.kpi.usuarios }}</b><small>utilizadores</small></div>
+      <div class="receita-card"><b>{{ d.kpi.circulacao }}</b><small>créditos em circulação</small></div>
+    </div>
+    <div class="admin-receita">
+      <div class="receita-card"><b>{{ d.kpi.camp_total }}</b><small>campanhas (produto)</small></div>
+      <div class="receita-card"><b style="color:#5ac47d">{{ d.kpi.camp_ativas }}</b><small>campanhas ativas</small></div>
+      <div class="receita-card"><b style="color:#e3b341">{{ d.kpi.camp_inativas }}</b><small>campanhas inativas</small></div>
+    </div>
+
+    {# Gráfico de vendas (últimos N dias) #}
+    <h2 class="admin-secao">📈 Vendas — últimos {{ d.dias }} dias (R$/dia)</h2>
+    {% set tem_venda = d.serie|selectattr('cent')|list|length %}
+    {% if tem_venda %}
+    <div class="dash-chart-wrap">
+      <div class="dash-bars">
+        {% for s in d.serie %}
+        <div class="dash-bar-col" title="{{ s.dia }}: R$ {{ '%.2f'|format(s.reais) }}">
+          <div class="dash-bar" style="height:{{ [s.pct, 2]|max if s.cent else 0 }}%"></div>
+          <span class="dash-bar-lbl">{{ s.dia if loop.index0 % 3 == 0 else '' }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <p class="dash-vazio">Ainda não há vendas registadas. Os gráficos populam assim que as primeiras compras de crédito via gateway forem confirmadas.</p>
+    {% endif %}
+
+    <div class="dash-duas-colunas">
+      {# Produtos mais vendidos: pacotes de crédito #}
+      <div>
+        <h2 class="admin-secao">🏆 Pacotes de crédito mais vendidos</h2>
+        {% if d.pacotes %}
+        <div class="dash-rank">
+          {% for p in d.pacotes %}
+          <div class="dash-rank-item">
+            <div class="dash-rank-top">
+              <span><b>{{ p.creditos }} créditos</b> · {{ p.qtd }}× </span>
+              <span>R$ {{ '%.2f'|format(p.reais) }}</span>
+            </div>
+            <div class="dash-rank-barra"><div style="width:{{ [p.pct, 3]|max }}%"></div></div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}<p class="dash-vazio">Sem compras de crédito ainda.</p>{% endif %}
+      </div>
+
+      {# Uso de créditos: onde o produto é consumido #}
+      <div>
+        <h2 class="admin-secao">🎲 Uso de créditos</h2>
+        {% set u = d.uso %}
+        {% set total_uso = (u.criar + u.renovar) or 1 %}
+        <div class="dash-rank">
+          <div class="dash-rank-item">
+            <div class="dash-rank-top"><span><b>Criar campanha</b></span><span>{{ u.criar }} créd.</span></div>
+            <div class="dash-rank-barra"><div style="width:{{ (100 * u.criar / total_uso)|round }}%"></div></div>
+          </div>
+          <div class="dash-rank-item">
+            <div class="dash-rank-top"><span><b>Renovar campanha</b></span><span>{{ u.renovar }} créd.</span></div>
+            <div class="dash-rank-barra"><div style="width:{{ (100 * u.renovar / total_uso)|round }}%"></div></div>
+          </div>
+        </div>
+        <p class="dash-nota">Comprados (gateway): <b>{{ u.comprados }}</b> · creditados manualmente/admin: <b>{{ u.ajuste }}</b></p>
+      </div>
+    </div>
+
+    {# Utilizadores por status #}
+    <h2 class="admin-secao">👥 Utilizadores por status</h2>
+    <div class="dash-status">
+      {% for st, n in d.status.items() %}
+      <span class="dash-status-tag status-{{ st }}">{{ {'ativa':'✅ ativa','trial':'🎁 teste','aguardando':'⏳ aguardando','bloqueada':'⛔ bloqueada','expirada':'😴 expirada'}.get(st, st) }}: <b>{{ n }}</b></span>
+      {% else %}
+      <span class="dash-vazio">Nenhuma conta registada ainda.</span>
+      {% endfor %}
+    </div>
+    <p class="dash-nota"><a href="{{ url_for('admin_assinaturas') }}">→ Gestão detalhada</a> (aprovar pagamentos, ajustar créditos, renovar/apagar campanhas, confirmar compras Pix).</p>
+  </main>
+  <footer class="footer-attribuicao">
+    Desenvolvido por <a href="https://ismailepereira.github.io/" target="_blank" rel="noopener">ismailepereira</a>
+  </footer>
+</body>
+</html>

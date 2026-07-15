@@ -9,10 +9,10 @@
 <body>
   <header class="topbar">
     <div class="topbar-row">
-      <h1>🗂️ Admin · Gestão</h1>
+      <h1>🔑 Admin</h1>
       <div class="user-info">
-        <a href="{{ url_for('admin_dashboard') }}" class="btn-secondary">📊 Dashboard</a>
-        <a href="{{ url_for('mestre') }}" class="btn-secondary">← Mestre</a>
+        <span>{{ preco }} · teste grátis de {{ trial_dias }} dias</span>
+        <a href="{{ url_for('mestre') }}" class="btn-secondary">← Voltar ao Mestre</a>
         <a href="{{ url_for('logout') }}" class="btn-danger">Sair</a>
       </div>
     </div>

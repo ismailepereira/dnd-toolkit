@@ -4,6 +4,25 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — Fase 23.6: painel de admin completo (campanhas + compras Pix + receita)
+
+**Backup antes da alteração:** `versoes/2026-07-15-fase23-6-admin/` (app.py, admin_assinaturas.html).
+
+**Resumo:** O `/admin/assinaturas` (só mestre legado) ganha tudo o que o Ismaile precisa controlar num lugar só (modelo em `docs/MONETIZACAO.md`), aditivo às ações de utilizador da Fase 10.9/23.1:
+- **Receita** (4 cards): compras Pix creditadas (nº), créditos vendidos via gateway, **faturamento** estimado (R$), e **créditos em circulação** (soma dos saldos). Faturamento conta só o **gateway** (AbacatePay) — o Pix manual é creditado na coluna 💳 dos utilizadores.
+- **Compras pendentes** (Pix não creditado, `compras/<pixId>` com `creditadoEm` nulo): **🔁 reconferir** (re-consulta a AbacatePay via `_confirmar_compra_se_paga`, idempotente) e **✅ creditar** (crédito forçado do admin quando o Pix foi conferido à mão → `lancar_creditos` + marca `creditadoEm`/`status=PAID_MANUAL`; nunca dobra).
+- **Campanhas** (todas): dono, nº de membros, status (✅ ativa / ⚠️ inativa / 🔑 legada), `pagaAte`, retenção ("apaga em Nd"), com **🔄 +30d cortesia** (estende sem debitar créditos de ninguém) e **🗑️ apagar** (usa `deletar_campanha`, com confirmação; a `principal` é protegida).
+
+**Ficheiros:** `app.py` (ações `camp_renovar`/`camp_apagar`/`compra_reconferir`/`compra_creditar` + dados de campanhas/compras/receita na rota `admin_assinaturas`), `templates/admin_assinaturas.html` (seções de receita, compras e campanhas), `static/css/style.css` (`.admin-receita`, `.receita-card`, `.admin-secao`, `.btn-perigo`).
+
+**Verificação (harness Flask com `DATA_DIR` temporário — dados reais intocados):** GET admin renderiza as 3 seções (compras/campanhas/receita), receita correta (1 venda, 20 créditos, R$ 5,00, circulação 35); não-admin → 302; `camp_renovar` reativa **sem debitar**; `compra_creditar` credita +8 e marca (repetir **não dobra**); `camp_apagar` remove a campanha e a `principal` fica protegida. **18/18 ✅** + regressão das ações antigas (aprovar30/creditos/bloquear) **3/3 ✅**. Screenshot do painel renderizado no boot local.
+
+**Como reverter:** restaurar `versoes/2026-07-15-fase23-6-admin/`, ou `git revert`.
+
+**Próximo:** 23.7 — migração jogador-grátis (aposentar `login_obrigatorio(exigir_assinatura=True)` da assinatura plana da Fase 10.9). **Precisa de cuidado** — muda quem paga.
+
+---
+
 ## 2026-07-15 — Fase 23.5: ciclo de vida da campanha (só-expirar + retenção de 6 meses, lazy)
 
 **Backup antes da alteração:** `versoes/2026-07-15-fase23-5-jobs-retencao/` (app.py, campanhas.html).

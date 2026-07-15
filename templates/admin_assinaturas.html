@@ -9,7 +9,7 @@
 <body>
   <header class="topbar">
     <div class="topbar-row">
-      <h1>🔑 Admin · Assinaturas</h1>
+      <h1>🔑 Admin</h1>
       <div class="user-info">
         <span>{{ preco }} · teste grátis de {{ trial_dias }} dias</span>
         <a href="{{ url_for('mestre') }}" class="btn-secondary">← Voltar ao Mestre</a>
@@ -19,6 +19,70 @@
   </header>
   <main>
     {% if msg %}<div class="assinatura-ok" style="margin-bottom:12px">{{ msg }}</div>{% endif %}
+
+    {# Fase 23.6: resumo de receita #}
+    <div class="admin-receita">
+      <div class="receita-card"><b>{{ receita.vendas }}</b><small>compras Pix creditadas</small></div>
+      <div class="receita-card"><b>{{ receita.creditos }}</b><small>créditos vendidos (gateway)</small></div>
+      <div class="receita-card destaque"><b>R$ {{ '%.2f'|format(receita.reais) }}</b><small>faturamento (gateway)</small></div>
+      <div class="receita-card"><b>{{ receita.circulacao }}</b><small>créditos em circulação</small></div>
+    </div>
+    <p class="aviso-mestre">Faturamento conta só as compras via <b>gateway</b> (AbacatePay). Pix manual você credita direto na coluna 💳 dos utilizadores.</p>
+
+    {# Fase 23.6: compras de crédito pendentes (Pix não creditado) #}
+    <h2 class="admin-secao">💳 Compras pendentes ({{ compras_pendentes|length }})</h2>
+    {% if compras_pendentes %}
+    <div class="admin-tabela-wrap">
+      <table class="admin-tabela">
+        <thead><tr><th>Quando</th><th>Utilizador</th><th>Créditos</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead>
+        <tbody>
+        {% for c in compras_pendentes %}
+          <tr>
+            <td>{{ c.criadoEm }}</td>
+            <td>{{ c.usuario }}</td>
+            <td><b>{{ c.creditos }}</b></td>
+            <td>R$ {{ '%.2f'|format(c.valorReais) }}</td>
+            <td>{{ c.status }}{% if c.devMode %} <small>(dev)</small>{% endif %}</td>
+            <td class="admin-acoes">
+              <form method="POST"><input type="hidden" name="acao" value="compra_reconferir"><input type="hidden" name="pixId" value="{{ c.id }}"><button class="btn-mini" title="Reconsulta o gateway e credita se estiver pago">🔁 reconferir</button></form>
+              <form method="POST" onsubmit="return confirm('Creditar {{ c.creditos }} créditos a {{ c.usuario }} manualmente? Use só se confirmou o Pix por fora.');"><input type="hidden" name="acao" value="compra_creditar"><input type="hidden" name="pixId" value="{{ c.id }}"><button class="btn-mini" title="Credita à força (Pix conferido à mão)">✅ creditar</button></form>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}<p style="color:var(--text-dim)">Nenhuma compra pendente.</p>{% endif %}
+
+    {# Fase 23.6: campanhas (produto pago) #}
+    <h2 class="admin-secao">🗺️ Campanhas ({{ campanhas|length }})</h2>
+    {% if campanhas %}
+    <div class="admin-tabela-wrap">
+      <table class="admin-tabela">
+        <thead><tr><th>Campanha</th><th>Dono</th><th>Membros</th><th>Status</th><th>Paga até</th><th>Retenção</th><th>Ações</th></tr></thead>
+        <tbody>
+        {% for c in campanhas %}
+          <tr>
+            <td><b>{{ c.nome }}</b><br><small style="color:var(--text-dim)">{{ c.id }}</small></td>
+            <td>{{ c.dono }}</td>
+            <td>{{ c.membros }}</td>
+            <td>{% if c.legada %}🔑 legada{% elif c.ativa %}✅ ativa{% else %}⚠️ inativa{% endif %}</td>
+            <td>{{ c.pagaAte or '—' }}</td>
+            <td>{% if c.apagaEm is not none %}apaga em {{ c.apagaEm }}d{% else %}—{% endif %}</td>
+            <td class="admin-acoes">
+              {% if not c.legada %}
+              <form method="POST"><input type="hidden" name="acao" value="camp_renovar"><input type="hidden" name="cid" value="{{ c.id }}"><button class="btn-mini" title="Estende +30 dias como cortesia (sem debitar créditos)">🔄 +30d cortesia</button></form>
+              <form method="POST" onsubmit="return confirm('APAGAR a campanha \'{{ c.nome }}\' e TODO o estado dela? Isso é irreversível.');"><input type="hidden" name="acao" value="camp_apagar"><input type="hidden" name="cid" value="{{ c.id }}"><button class="btn-mini btn-perigo" title="Apaga a campanha e todo o estado (irreversível)">🗑️ apagar</button></form>
+              {% else %}<small style="color:var(--text-dim)">—</small>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}<p style="color:var(--text-dim)">Nenhuma campanha criada ainda.</p>{% endif %}
+
+    <h2 class="admin-secao">👤 Utilizadores</h2>
     <p class="aviso-mestre">Confira o comprovante do Pix (banco/WhatsApp) e use <b>+30 dias</b> para liberar. Contas com "⏳ aguardando" informaram pagamento pela página de assinatura. Só você (mestre legado) vê esta página.</p>
     {% if not usuarios %}
     <p style="color:var(--text-dim)">Nenhuma conta registada ainda.</p>

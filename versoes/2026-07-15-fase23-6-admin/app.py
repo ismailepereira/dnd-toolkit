@@ -898,48 +898,8 @@ def admin_assinaturas():
     if request.method == 'POST':
         alvo = request.form.get('uid', '')
         acao = request.form.get('acao', '')
-        # Fase 23.6: ações sobre CAMPANHAS (não têm 'uid' de utilizador)
-        if acao in ('camp_renovar', 'camp_apagar'):
-            cid = re.sub(r'[^a-zA-Z0-9_-]', '', request.form.get('cid', ''))
-            meta = carregar_campanhas_meta().get(cid)
-            if not meta:
-                msg = 'Campanha não encontrada.'
-            elif acao == 'camp_renovar':
-                # renovação de cortesia do admin: NÃO debita créditos de ninguém
-                meta['pagaAte'] = _mais_dias(meta.get('pagaAte'), CAMPANHA_DIAS)
-                meta.pop('inativaDesde', None)
-                salvar_campanha_meta(cid, meta)
-                msg = f"🔄 Campanha \"{meta.get('nome', cid)}\" renovada até {meta['pagaAte'][:10]} (cortesia, sem débito)."
-            elif acao == 'camp_apagar':
-                nome = meta.get('nome', cid)
-                msg = (f"🗑️ Campanha \"{nome}\" apagada." if deletar_campanha(cid)
-                       else 'Essa campanha não pode ser apagada.')
-        # Fase 23.6: ações sobre COMPRAS de crédito (Pix)
-        elif acao in ('compra_reconferir', 'compra_creditar'):
-            pid = request.form.get('pixId', '')
-            compra = _carregar_compra(pid)
-            if not compra:
-                msg = 'Compra não encontrada.'
-            elif compra.get('creditadoEm'):
-                msg = 'Essa compra já foi creditada.'
-            elif acao == 'compra_reconferir':
-                st = _confirmar_compra_se_paga(pid)
-                msg = (f"💳 Compra confirmada e creditada (status {st})." if st == 'PAID'
-                       else f"Ainda não paga (status {st}).")
-            elif acao == 'compra_creditar':  # crédito forçado do admin (Pix conferido à mão)
-                ok, novo = lancar_creditos(compra['uid'], int(compra['creditos']),
-                                           'compra de créditos (Pix confirmado pelo admin)', por='admin')
-                if ok:
-                    compra['status'] = 'PAID_MANUAL'
-                    compra['creditadoEm'] = _agora()
-                    _salvar_compra(pid, compra)
-                    dono = carregar_usuario_reg(compra['uid']) or {}
-                    msg = f"💳 {compra['creditos']} créditos creditados a {dono.get('usuario', compra['uid'])} (saldo {novo})."
-                else:
-                    msg = 'Falha ao creditar (conta não encontrada?).'
-        else:
-          u = carregar_usuario_reg(alvo)
-          if u:
+        u = carregar_usuario_reg(alvo)
+        if u:
             if acao == 'aprovar30':
                 u['pagaAte'] = _mais_dias(u.get('pagaAte'), 30)
                 u['pagamentoInfo'] = None
@@ -968,9 +928,8 @@ def admin_assinaturas():
                 else:
                     msg = 'Informe um número de créditos (positivo credita, negativo debita).'
             salvar_usuario_reg(alvo, u)
-    usuarios_reg = carregar_usuarios_reg()
     usuarios = []
-    for uid_u, u in sorted(usuarios_reg.items(), key=lambda kv: kv[1].get('criadoEm', ''), reverse=True):
+    for uid_u, u in sorted(carregar_usuarios_reg().items(), key=lambda kv: kv[1].get('criadoEm', ''), reverse=True):
         usuarios.append({
             'uid': uid_u, 'usuario': u.get('usuario'), 'nome': u.get('nomeCompleto') or u.get('nomeExibicao'),
             'email': u.get('email', ''), 'cpf': u.get('cpf', ''), 'whatsapp': u.get('whatsapp', ''),
@@ -979,47 +938,8 @@ def admin_assinaturas():
             'pagamentoInfo': u.get('pagamentoInfo'),
             'creditos': saldo_creditos(u),
         })
-
-    # Fase 23.6: campanhas (todas), compras de crédito e receita
-    def _nome_dono(du):
-        if str(du).startswith('legacy:'):
-            return '(mestre legado)'
-        return (usuarios_reg.get(du) or {}).get('usuario') or du or '—'
-    campanhas = []
-    for cid, m in carregar_campanhas_meta().items():
-        paga = campanha_paga_em_dia(m)
-        legada = str(m.get('mestreUid', '')).startswith('legacy:')
-        campanhas.append({
-            'id': cid, 'nome': m.get('nome', cid), 'dono': _nome_dono(m.get('mestreUid', '')),
-            'legada': legada, 'ativa': paga, 'membros': len(m.get('membros') or {}),
-            'pagaAte': (m.get('pagaAte') or '')[:10],
-            'inativaDesde': (m.get('inativaDesde') or '')[:10],
-            'apagaEm': (None if (paga or legada) else dias_ate_apagar(m)),
-        })
-    campanhas.sort(key=lambda c: (c['ativa'], c['nome'].lower()))
-
-    compras_pendentes, receita_creditos, receita_centavos, vendas = [], 0, 0, 0
-    for pid, c in _carregar_docs(COLECAO_COMPRAS, COMPRAS_FILE).items():
-        if c.get('creditadoEm'):
-            receita_creditos += int(c.get('creditos') or 0)
-            receita_centavos += int(c.get('valorCentavos') or 0)
-            vendas += 1
-        else:
-            compras_pendentes.append({
-                'id': pid, 'usuario': _nome_dono(c.get('uid', '')),
-                'creditos': int(c.get('creditos') or 0),
-                'valorReais': int(c.get('valorCentavos') or 0) / 100,
-                'status': c.get('status', '?'), 'devMode': c.get('devMode'),
-                'criadoEm': (c.get('criadoEm') or '')[:16].replace('T', ' '),
-            })
-    compras_pendentes.sort(key=lambda x: x['criadoEm'], reverse=True)
-    creditos_circulacao = sum(saldo_creditos(u) for u in usuarios_reg.values())
-    receita = {'vendas': vendas, 'creditos': receita_creditos, 'reais': receita_centavos / 100,
-               'circulacao': creditos_circulacao}
-
     return render_template('admin_assinaturas.html', usuarios=usuarios, msg=msg,
-                           preco=ASSINATURA_PRECO, trial_dias=TRIAL_DIAS,
-                           campanhas=campanhas, compras_pendentes=compras_pendentes, receita=receita)
+                           preco=ASSINATURA_PRECO, trial_dias=TRIAL_DIAS)
 
 
 # ----- Minhas Campanhas (contas registadas; o mestre legado também pode usar) -----

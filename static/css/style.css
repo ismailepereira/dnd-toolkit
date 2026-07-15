@@ -1866,6 +1866,15 @@ body.alto-contraste a { color: #ffd400; }
 .admin-tabela tr.status-expirada { background: rgba(233,69,96,0.05); }
 .admin-acoes { white-space: nowrap; }
 .admin-acoes form { display: inline-block; margin: 1px; }
+/* Fase 23.6: painel admin completo (receita + campanhas + compras) */
+.admin-secao { margin: 22px 0 8px; font-size: 1rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+.admin-receita { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 4px 0 10px; }
+.receita-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
+.receita-card b { display: block; font-size: 1.4rem; color: var(--text); }
+.receita-card small { color: var(--text-dim); font-size: 0.72rem; }
+.receita-card.destaque { border-color: var(--accent); }
+.btn-mini.btn-perigo { border-color: rgba(233,69,96,0.5); color: #e94560; }
+.btn-mini.btn-perigo:hover { background: rgba(233,69,96,0.15); border-color: #e94560; }
 
 /* ===== Fase 10: autenticação, campanhas, morte/permanência ===== */
 .campanhas-box { max-width: 520px; }

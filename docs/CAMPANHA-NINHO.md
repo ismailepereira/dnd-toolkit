@@ -93,7 +93,7 @@ encontros exatos do bestiário, CHANGELOG, ✅ aqui e no ROADMAP, commit+push.
 **Progresso:**
 - [x] Eps 1-3 (Greenest/Trilha/Chocadouro) — `modelo_ninho_rainha_dragao`
 - [x] NR0 — bestiário (15/07/2026: 7 criaturas — Fanático do Culto, Homem-Lagarto, Bullywug, Rezmir, Talis, Gigante das Nuvens/Blagothkus, Dragão Branco Jovem/Glazhael; itens Máscara Dracônica Negra + Hazirawn como loot garantido de Rezmir)
-- [ ] Ep4 — Na Estrada
+- [x] Ep4 — Na Estrada (15/07/2026: `modelo_ninho_ep4_estrada`, 13 nós, prefixo `e4_` — caravana + disfarce, hub da viagem (quem é quem, vigília noturna, bisbilhotar as lonas 💀, encontro de estrada com tabela 1d6, caçadores/Azbara Jos), desmascaramento como ramo, o desvio para o entreposto; finais "disfarce intacto" e "sem máscara" (ambos vitória) + beco "largar o rasto". 0 erros/0 avisos; encontros exatos)
 - [ ] Ep5 — Obras à Frente (Carnath)
 - [ ] Ep6 — Castelo Naerytar
 - [ ] Ep7 — Refúgio de Caça

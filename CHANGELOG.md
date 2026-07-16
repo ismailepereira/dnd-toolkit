@@ -4,6 +4,26 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — Ep4 (Campanha Ninho): Na Estrada (13 nós)
+
+**Backup antes da alteração:** `versoes/2026-07-15-ninho-ep4-estrada/aventurasprontas.js`.
+
+**Resumo:** Novo modelo importável **`modelo_ninho_ep4_estrada`** (Ep. 4, nível 4-5, **13 nós**) — a longa viagem pela Estrada do Comércio seguindo o tesouro de Greenest. Episódio de **intriga social**, não de combate: vence quem observa e chega a Naerytar sem queimar o disfarce. Escrita própria/condensada; ids com prefixo **`e4_`** (não colidem com os Eps 1-3, que usam `n_` — necessário para a campanha completa derivada mais à frente).
+- **Setup:** entrar na caravana disfarçado (guardas/mercadores; Ackyn Selebon, o mestre da caravana neutro).
+- **Hub da viagem:** quem é quem (identificar cultistas pela marca da escama; **Jamna Gleamsilver**, a gnoma investigadora que é aliada em potencial; **Bortand**, o carroceiro cultista) · vigília noturna (o sinal de vela, Dracônico sussurrado) · **bisbilhotar as lonas** 💀 (Furtividade CD 15 — confirma o tesouro e o destino) · encontro de estrada (tabela 1d6; os PJs lutam AO LADO dos cultistas e são observados) · caçadores de recompensa + **Azbara Jos** (o mago frio que testa em vez de atacar).
+- **Ramo de desmascaramento:** disfarce queimado → célula do culto (Fanático + Cultistas + Garra do Dragão); objetivo é sumir, não vencer a caravana.
+- **Fecho:** as carroças deixam a estrada rumo ao entreposto do rio; finais **"Hóspedes do inimigo"** (disfarce intacto) e **"Sem máscara, no encalço"** (ambos vitória — mudam o tom do Ep5) + beco "largar o rasto".
+
+**Ficheiros:** `static/js/aventurasprontas.js` (+`modelo_ninho_ep4_estrada`), `docs/CAMPANHA-NINHO.md` (Ep4 ✅).
+
+**Verificação (harness Node):** `node --check` OK; `validarAventura` → **0 erros / 0 avisos**; **13 nós**; encontros com nomes exatos (Bandido/Lobo/Bandido Capitão/Fanático do Culto/Cultista/Garra do Dragão); final de vitória alcançável; **ids `e4_*` sem colisão com os Eps 1-3**; os **11 modelos** validam 0/0.
+
+**Como reverter:** restaurar `versoes/2026-07-15-ninho-ep4-estrada/aventurasprontas.js`, ou `git revert`.
+
+**Próximo:** Ep5 (Carnath) → Ep6 (Naerytar) → Ep7 (Refúgio de Caça) → Ep8 (Skyreach) → "Ninho — CAMPANHA COMPLETA" derivada (mesmo `montarCampanhaCompleta` do Phandelver).
+
+---
+
 ## 2026-07-15 — Phandelver: CAMPANHA COMPLETA num único modelo importável (derivado dos 6 capítulos)
 
 **Backup antes da alteração:** `versoes/2026-07-15-phandelver-campanha-completa/aventurasprontas.js`.

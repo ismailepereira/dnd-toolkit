@@ -24,7 +24,7 @@ Ep6 (~5-6) · Ep7 (~6-7) · Ep8 (~7-8).
 ## Estado atual
 
 - [x] **Eps 1-3 — Greenest / Trilha / Chocadouro** ✅ (já entregue):
-  `modelo_ninho_rainha_dragao` (36 nós, nível 1-4) — o ataque a Greenest
+  `modelo_ninho_rainha_dragao` (29 nós, nível 1-4) — o ataque a Greenest
   (Lennithon, Cyanwrath, Nighthill, o templo, a muralha), a trilha e a
   infiltração no acampamento (Leosin), e o Chocadouro (dracos, salão dos
   fungos, ovos, Mondath, revanche de Cyanwrath) → gancho Castelo Naerytar.
@@ -90,11 +90,30 @@ Aventura `modelo_ninho_ep8_skyreach` · nível ~7-8 · fortaleza voadora · ~18 
 NR0 → Ep4 → Ep5 → Ep6 → Ep7 → Ep8. Cada entrega: backup, grafo validado (0/0),
 encontros exatos do bestiário, CHANGELOG, ✅ aqui e no ROADMAP, commit+push.
 
+## ✅ CAMPANHA COMPLETA — como importar (15/07/2026)
+
+**Opção A — tudo de uma vez:** `modelo_ninho_completa` — **"Ninho da Rainha Dragão — CAMPANHA COMPLETA (Ep. 1 ao 8)"**, **95 nós, nível 1-8**, do ataque a Greenest ao castelo voador. Os episódios emendam sozinhos ("▶ Continuar — Ep. X"); não precisa importar nada no meio.
+
+> **Derivado, não duplicado:** composto em tempo de carga pelos 6 modelos abaixo (`montarCampanhaCompleta` — o mesmo helper do Phandelver), com os Finais de episódio religados em passagens. Os episódios são a **fonte única da verdade**; corrigir um nó lá corrige a campanha completa. Os becos/derrotas e os dois desfechos do Ep8 continuam Finais de verdade.
+
+**Opção B — episódio a episódio:** os 6 modelos (Eps 1-3 juntos + Ep4…Ep8) seguem importáveis avulsos.
+
+| Ordem | Importar (`id`) | Episódio | Nível | Nós |
+|---|---|---|:--:|:--:|
+| 1 | `modelo_ninho_rainha_dragao` | Eps 1-3 — Greenest / Trilha / Chocadouro | 1-4 | 29 |
+| 2 | `modelo_ninho_ep4_estrada` | Ep. 4 — Na Estrada | 4-5 | 13 |
+| 3 | `modelo_ninho_ep5_carnath` | Ep. 5 — Obras à Frente | 5 | 13 |
+| 4 | `modelo_ninho_ep6_naerytar` | Ep. 6 — Castelo Naerytar | 5-6 | 14 |
+| 5 | `modelo_ninho_ep7_refugio` | Ep. 7 — O Refúgio de Caça | 6-7 | 13 |
+| 6 | `modelo_ninho_ep8_skyreach` | Ep. 8 — Castelo nas Nuvens | 7-8 | 13 |
+
+**Fios da campanha:** Cyanwrath (duelo no Ep1 → revanche no Ep3) · o tesouro (carroças Ep4 → barcaças Ep5 → círculo Ep6 → correntes Ep7 → depósito Ep8) · **Rezmir** (nome no Ep5 → foge no Ep6 → clímax no Ep8) · a Máscara Negra · o "Poço" ao norte (gancho da continuação). **Antecedentes** exclusivos do Ninho no Criador (5, um PJ cada).
+
 **Progresso:**
 - [x] Eps 1-3 (Greenest/Trilha/Chocadouro) — `modelo_ninho_rainha_dragao`
 - [x] NR0 — bestiário (15/07/2026: 7 criaturas — Fanático do Culto, Homem-Lagarto, Bullywug, Rezmir, Talis, Gigante das Nuvens/Blagothkus, Dragão Branco Jovem/Glazhael; itens Máscara Dracônica Negra + Hazirawn como loot garantido de Rezmir)
 - [x] Ep4 — Na Estrada (15/07/2026: `modelo_ninho_ep4_estrada`, 13 nós, prefixo `e4_` — caravana + disfarce, hub da viagem (quem é quem, vigília noturna, bisbilhotar as lonas 💀, encontro de estrada com tabela 1d6, caçadores/Azbara Jos), desmascaramento como ramo, o desvio para o entreposto; finais "disfarce intacto" e "sem máscara" (ambos vitória) + beco "largar o rasto". 0 erros/0 avisos; encontros exatos)
 - [x] Ep5 — Obras à Frente (15/07/2026: `modelo_ninho_ep5_carnath`, 13 nós, prefixo `e5_` — o entreposto-fachada: hub (salão/Irmão Alvo, pátio das obras que nunca avançam + dracos, cais de madrugada = a descoberta de que o tesouro segue de BARCO, andar de cima com os manifestos → Naerytar, porão do saque), Vardra (oficial do culto) e o alarme como ramos; passagem rio abaixo (escondidos/tripulação/canoa) e o rio para o brejo; finais 'carga viva' e 'pelo brejo a pé' (ambos vitória). 0/0)
 - [x] Ep6 — Castelo Naerytar (15/07/2026: `modelo_ninho_ep6_naerytar`, 14 nós, prefixo `e6_` — o episódio POLÍTICO: três povos (culto/bullywugs/homens-lagarto) numa aliança podre; Pharblex (vaidade → revolta) e Snapjaw (trato → túneis alagados, rota furtiva); ancoradouro, celas, pátio, torreão com **Rezmir** (foge pelo círculo aos ~40% PV — reaparece no Ep8); a revelação do CÍRCULO DE TELETRANSPORTE; finais 'entrar no círculo' e 'destruir o círculo' (ambos vitória) + beco. 0/0)
-- [ ] Ep7 — Refúgio de Caça
-- [ ] Ep8 — Castelo nas Nuvens (Skyreach)
+- [x] Ep7 — Refúgio de Caça (15/07/2026: `modelo_ninho_ep7_refugio`, 13 nós, `e7_` — neve e troféus; hub (salão das arcas = subir na carga, pátio das correntes = escalada 💀, quartos/Yarra = a fofoca da briga, bosque gelado = disfarce), **Talis** como DISSIDENTE negociável (Persuasão CD 13 com a fofoca, CD 16 sem) que abre a porta e entrega a planta + o aviso do dragão; finais carga/correntes/acordo (3 vitórias) + beco. 0/0)
+- [x] Ep8 — Castelo nas Nuvens (15/07/2026: `modelo_ninho_ep8_skyreach`, 13 nós, `e8_` — FINAL: três forças (culto/Blagothkus/Glazhael); fundação, depósito (o tesouro é grande demais para carregar — a percepção), **Blagothkus** (Persuasão CD 15 → fecha os olhos, e pousa o castelo se Rezmir cair), santuário das cinco cabeças (a pista do 'Poço' — era ritual, não roubo), torre (relógio), **Glazhael** acorrentado como CARTA (soltar = caos), clímax **Rezmir** no terraço (sem círculo para fugir; Máscara Negra + Hazirawn); finais 'a montanha que desceu' (plena) e 'o que coube nas mãos' (parcial). 0/0)

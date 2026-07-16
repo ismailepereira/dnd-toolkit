@@ -4,6 +4,25 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — Ninho da Rainha Dragão: Eps 7 e 8 + CAMPANHA COMPLETA ✅ (os 8 episódios)
+
+**Backups:** `versoes/2026-07-15-ninho-ep7-refugio/` · `versoes/2026-07-15-ninho-ep8-skyreach/`.
+
+**Resumo:** Fecha a campanha **Ninho da Rainha Dragão** — os **8 episódios**, do ataque a Greenest ao castelo voador, e tudo emendado num único modelo importável (pedido do Ismaile). Escrita própria/condensada (repo público — nunca copia prosa do módulo).
+- **Ep. 7 — O Refúgio de Caça** (`modelo_ninho_ep7_refugio`, 13 nós, nível 6-7, prefixo `e7_`): neve e troféus; hub com salão das arcas (subir NA carga), pátio das correntes (escalada 💀), quartos/Yarra (a fofoca da briga entre as duas) e o bosque gelado (disfarce). **Talis, a Branca** é o coração: DISSIDENTE preterida por Rezmir, negociável (Persuasão CD 13 com a fofoca, CD 16 sem) — abre a porta, dá a planta e avisa do dragão. Três finais de vitória (carga / correntes / acordo) + beco.
+- **Ep. 8 — Castelo nas Nuvens** (`modelo_ninho_ep8_skyreach`, 13 nós, nível 7-8, prefixo `e8_`): o FINAL. Três forças em conflito — o culto, **Blagothkus** (gigante ressentido; Persuasão CD 15 → fecha os olhos, e pousa o castelo se Rezmir cair) e **Glazhael** acorrentado (uma CARTA: soltar = caos, não um aliado). Fundação, depósito (o tesouro é grande demais para carregar — a percepção que reenquadra o final), santuário das cinco cabeças (a pista do "Poço": era ritual, não roubo), torre (relógio). Clímax: **Rezmir** no terraço, sem círculo para fugir — Máscara Dracônica Negra + Hazirawn. Finais "a montanha que desceu" (plena) e "o que coube nas mãos" (parcial).
+- **CAMPANHA COMPLETA** (`modelo_ninho_completa`): **"Ninho da Rainha Dragão — CAMPANHA COMPLETA (Ep. 1 ao 8)"**, **95 nós, nível 1-8**, um grafo só. **Derivada**, como no Phandelver: composta em tempo de carga pelos 6 modelos (`montarCampanhaCompleta`, o MESMO helper — reusado sem alteração), com **10 Finais de episódio** religados em passagens "▶ Continuar — Ep. X". Os episódios seguem sendo a fonte única da verdade. Becos/derrotas e os dois desfechos do Ep8 continuam Finais de verdade.
+
+**Ficheiros:** `static/js/aventurasprontas.js` (+Ep7, +Ep8, `NINHO_EPISODIOS`, `NINHO_TRANSICOES`, push do modelo derivado), `docs/CAMPANHA-NINHO.md` (Ep7/Ep8 ✅ + guia de condução Opção A/B; corrigida a contagem dos Eps 1-3 para **29 nós** — a estimativa anterior de 36 estava errada).
+
+**Verificação (harness Node) — 24/24 ✅ na completa:** Ep7 e Ep8 validam **0 erros / 0 avisos** cada, encontros exatos, ids `e7_`/`e8_` sem colisão global. A completa: **95 nós** (29+13+13+14+13+13), `noInicial` `n_chegada`, nível 1-8, **0/0**; as **10 passagens** apontam para o episódio certo; os 2 finais de campanha e os 6 becos preservados; **os episódios originais NÃO são mutados** pela composição; os **16 modelos** de `AVENTURAS_PRONTAS` validam 0/0; **99,2 KB** (limite 2 MB).
+
+**Como reverter:** restaurar os backups de `versoes/2026-07-15-ninho-ep7-refugio/` ou `-ep8-skyreach/`, ou `git revert`.
+
+**Campanha Ninho da Rainha Dragão: CONCLUÍDA.** Eps 1-3 (Greenest) · NR0 (bestiário) · Ep4 (Na Estrada) · Ep5 (Carnath) · Ep6 (Naerytar) · Ep7 (Refúgio) · Ep8 (Skyreach) · campanha completa derivada. As DUAS campanhas do toolkit (Phandelver e Ninho) estão inteiras e importáveis de ponta a ponta.
+
+---
+
 ## 2026-07-15 — Ep4 (Campanha Ninho): Na Estrada (13 nós)
 
 **Backup antes da alteração:** `versoes/2026-07-15-ninho-ep4-estrada/aventurasprontas.js`.

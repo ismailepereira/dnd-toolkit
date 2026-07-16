@@ -1530,69 +1530,7 @@ const AVENTURAS_PRONTAS = [
   },
 ];
 
-// =====================================================================
-// CAMPANHA COMPLETA (DERIVADA) — Mina Perdida de Phandelver
-// ---------------------------------------------------------------------
-// Os 6 capítulos acima são a FONTE ÚNICA DA VERDADE. Este bloco compõe os
-// 6 num único grafo (93 nós, nível 1-5) para quem quer importar UMA vez e
-// jogar a campanha inteira de ponta a ponta. Como é derivado, corrigir um
-// nó no capítulo corrige também a campanha completa — as duas versões
-// nunca divergem.
-//
-// A única transformação: os Finais de "vitória de capítulo" viram nós de
-// PASSAGEM (sem `resultado`, com uma saída para o capítulo seguinte). Os
-// becos/derrotas (p_phandalin_cedo, p_tpk, ph2_partir, m_alarme, t_partir)
-// e os dois desfechos do Cap. 4 continuam Finais de verdade.
-// =====================================================================
-const PHANDELVER_CAPITULOS = [
-  'modelo_phandelver_emboscada',   // Cap. 1  — Emboscada Goblin      (1-2)
-  'modelo_phandelver_phandalin',   // Cap. 2A — Phandalin             (2-3)
-  'modelo_phandelver_marcarrubra', // Cap. 2B — Esconderijo Marcarrubra (2-3)
-  'modelo_phandelver_teia',        // Cap. 3A — A Teia da Aranha      (3-4)
-  'modelo_phandelver_castelo',     // Cap. 3B — Castelo Dentefino     (3-4)
-  'modelo_phandelver_caverna',     // Cap. 4  — Caverna do Eco das Ondas (4-5)
-];
-
-// Final de capítulo -> nó inicial do capítulo seguinte.
-const PHANDELVER_TRANSICOES = {
-  p_vitoria: { para: 'ph2_chegada', rotulo: '▶ Continuar — Cap. 2A: Phandalin' },
-  ph2_final_pronto: { para: 'm_entrada', rotulo: '▶ Continuar — Cap. 2B: Esconderijo Marcarrubra' },
-  m_final_lei: { para: 't_hub', rotulo: '▶ Continuar — Cap. 3A: A Teia da Aranha' },
-  m_final_halia: { para: 't_hub', rotulo: '▶ Continuar — Cap. 3A: A Teia da Aranha' },
-  t_rumo: { para: 'k_aproximacao', rotulo: '▶ Continuar — Cap. 3B: Castelo Dentefino' },
-  k_final_mapa: { para: 'w_entrada', rotulo: '▶ Continuar — Cap. 4: Caverna do Eco das Ondas' },
-  k_final_memoria: { para: 'w_entrada', rotulo: '▶ Continuar — Cap. 4: Caverna do Eco das Ondas' },
-};
-
-function montarCampanhaCompleta(lista, capitulos, transicoes, meta) {
-  const nos = [];
-  capitulos.forEach(id => {
-    const cap = lista.find(a => a.id === id);
-    if (!cap) return;
-    // cópia profunda: a campanha completa nunca mexe nos capítulos originais
-    JSON.parse(JSON.stringify(cap.nos)).forEach(n => {
-      const t = transicoes[n.id];
-      if (t) {
-        n.tipo = 'narracao';
-        delete n.resultado;
-        n.saidas = [{ para: t.para, rotulo: t.rotulo, aviso: '' }];
-        n.notasMestre = (n.notasMestre || '') +
-          ' ⏭️ CAMPANHA COMPLETA: não precisa importar nada — siga pela saída abaixo; as fichas e o progresso continuam.';
-      }
-      nos.push(n);
-    });
-  });
-  return Object.assign({ nos }, meta);
-}
-
-AVENTURAS_PRONTAS.push(montarCampanhaCompleta(AVENTURAS_PRONTAS, PHANDELVER_CAPITULOS, PHANDELVER_TRANSICOES, {
-  id: 'modelo_phandelver_completa',
-  titulo: 'Mina Perdida de Phandelver — CAMPANHA COMPLETA (Cap. 1 ao 4)',
-  limites: { jogadoresMax: 5, nivelMin: 1, nivelMax: 5 },
-  noInicial: 'p_estrada',
-}));
-
 // Export para o harness de testes em Node (no browser é ignorado)
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { AVENTURAS_PRONTAS, montarCampanhaCompleta };
+  module.exports = { AVENTURAS_PRONTAS };
 }

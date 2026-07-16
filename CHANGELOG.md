@@ -4,6 +4,29 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-15 — Phandelver: CAMPANHA COMPLETA num único modelo importável (derivado dos 6 capítulos)
+
+**Backup antes da alteração:** `versoes/2026-07-15-phandelver-campanha-completa/aventurasprontas.js`.
+
+**Contexto:** o Ismaile perguntou por que a Mina Perdida de Phandelver estava dividida em várias aventuras importáveis e se dava para juntar tudo numa só. Dava — e agora dá para escolher.
+- **Por que estava dividida:** nível recomendado por capítulo (`limites`), o nó `final` encerra a condução, poder rodar um capítulo avulso (o Cap. 1 é um bom one-shot) e manter o canvas legível.
+- **O que viabilizou juntar:** os 93 nós usam **prefixos distintos por capítulo** (`p_`/`ph2_`/`m_`/`t_`/`k_`/`w_`) → **zero colisão de id**; e a campanha inteira dá **106 KB**, folgado ante o limite de 2 MB (18.3) e o 1 MB do Firestore.
+
+**Resumo:** Novo modelo **`modelo_phandelver_completa`** — "Mina Perdida de Phandelver — CAMPANHA COMPLETA (Cap. 1 ao 4)", **93 nós, nível 1-5**, um grafo só, do ataque na estrada ao confronto com o Aranha Negra. **Não duplica conteúdo:** é **composto em tempo de carga** a partir dos 6 capítulos (`montarCampanhaCompleta`), que seguem sendo a fonte única da verdade — corrigir um nó no capítulo corrige a campanha completa; as duas versões nunca divergem.
+- **Única transformação:** os **7 Finais de "vitória de capítulo"** (`p_vitoria`, `ph2_final_pronto`, `m_final_lei`, `m_final_halia`, `t_rumo`, `k_final_mapa`, `k_final_memoria`) viram nós de **passagem** (tipo `narracao`, sem `resultado`, com uma saída "▶ Continuar — Cap. X" + nota ao Mestre de que não precisa importar nada).
+- **Preservados como Finais de verdade:** os dois desfechos do Cap. 4 (`w_final_plena`/`w_final_amarga`) e todos os becos/derrotas (`p_phandalin_cedo`, `p_tpk`, `ph2_partir`, `m_alarme`, `t_partir`).
+- **As duas opções convivem:** importar a campanha completa (jogar de ponta a ponta) OU um capítulo por vez (one-shot / canvas pequeno). Guia atualizado em `docs/CAMPANHA-PHANDELVER.md`.
+
+**Ficheiros:** `static/js/aventurasprontas.js` (`PHANDELVER_CAPITULOS`, `PHANDELVER_TRANSICOES`, `montarCampanhaCompleta` + push do modelo derivado; export do helper), `docs/CAMPANHA-PHANDELVER.md` (Opção A/B no guia).
+
+**Verificação (harness Node) — 24/24 ✅:** `node --check` OK; a completa tem **93 nós**, `noInicial` `p_estrada`, nível 1-5, **0 erros / 0 avisos**; as 7 passagens religadas para o capítulo certo; os 2 finais de campanha e os 5 becos preservados; **os capítulos originais NÃO foram mutados** pela composição (cópia profunda — `p_vitoria` e `k_final_mapa` seguem Finais nos capítulos); os **10 modelos** de `AVENTURAS_PRONTAS` validam **0/0**; encontros com nomes exatos do bestiário; **106 KB**.
+
+**Como reverter:** restaurar `versoes/2026-07-15-phandelver-campanha-completa/aventurasprontas.js`, ou `git revert`.
+
+**Próximo:** Ep4 do Ninho (`modelo_ninho_ep4_estrada`) → Ep5 → Ep6 → Ep7 → Ep8; no fim, o mesmo modelo "campanha completa" derivado para o Ninho (o helper `montarCampanhaCompleta` já é genérico).
+
+---
+
 ## 2026-07-15 — NR0 (Campanha Ninho da Rainha Dragão): bestiário dos Episódios 4-8
 
 **Backup antes da alteração:** `versoes/2026-07-15-nr0-bestiario-ninho/monstros.js`.

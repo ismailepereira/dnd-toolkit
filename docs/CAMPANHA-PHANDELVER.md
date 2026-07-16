@@ -162,9 +162,26 @@ Aventura `modelo_phandelver_caverna` · nível 4-5 · ~18 nós · masmorra final
 
 ## ✅ CAMPANHA COMPLETA — guia de condução (PH6, 15/07/2026)
 
-A Mina Perdida de Phandelver está **inteira** no toolkit: **6 aventuras importáveis**,
-**93 nós** no total, do nível 1 ao 5. Cada capítulo é um modelo separado em
-`aventurasprontas.js` — importe e conduza um de cada vez, na ordem:
+A Mina Perdida de Phandelver está **inteira** no toolkit: **93 nós**, do nível 1 ao 5.
+Há **duas formas de importar** — escolha a que servir à mesa:
+
+### Opção A — Campanha completa (importe UMA vez)
+`modelo_phandelver_completa` — **"Mina Perdida de Phandelver — CAMPANHA COMPLETA (Cap. 1 ao 4)"**,
+93 nós, nível 1-5, um único grafo do ataque na estrada ao Aranha Negra. Os capítulos
+emendam sozinhos (o fim de cada um vira uma passagem "▶ Continuar — Cap. X"); não é
+preciso importar mais nada no meio da campanha. Ideal para jogar de ponta a ponta.
+O canvas fica grande (93 nós) — é o custo de ver tudo junto.
+
+> **Derivado, não duplicado:** este modelo é **composto em tempo de carga** a partir
+> dos 6 capítulos abaixo (`montarCampanhaCompleta` em `aventurasprontas.js`), com os
+> Finais de vitória de capítulo religados em passagens. Os capítulos são a **fonte
+> única da verdade** — corrigir um nó no capítulo corrige a campanha completa também,
+> então as duas versões **nunca divergem**. Os becos/derrotas e os dois desfechos do
+> Cap. 4 continuam Finais de verdade.
+
+### Opção B — Capítulo a capítulo (importe um por vez)
+Útil para rodar um capítulo avulso (o Cap. 1 é um ótimo one-shot) ou manter o canvas
+pequeno. Cada Final aponta, nos `notasMestre`, o próximo `id` a importar:
 
 | Ordem | Importar (`id`) | Título | Nível | Nós |
 |---|---|---|:--:|:--:|

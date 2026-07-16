@@ -94,7 +94,7 @@ encontros exatos do bestiário, CHANGELOG, ✅ aqui e no ROADMAP, commit+push.
 - [x] Eps 1-3 (Greenest/Trilha/Chocadouro) — `modelo_ninho_rainha_dragao`
 - [x] NR0 — bestiário (15/07/2026: 7 criaturas — Fanático do Culto, Homem-Lagarto, Bullywug, Rezmir, Talis, Gigante das Nuvens/Blagothkus, Dragão Branco Jovem/Glazhael; itens Máscara Dracônica Negra + Hazirawn como loot garantido de Rezmir)
 - [x] Ep4 — Na Estrada (15/07/2026: `modelo_ninho_ep4_estrada`, 13 nós, prefixo `e4_` — caravana + disfarce, hub da viagem (quem é quem, vigília noturna, bisbilhotar as lonas 💀, encontro de estrada com tabela 1d6, caçadores/Azbara Jos), desmascaramento como ramo, o desvio para o entreposto; finais "disfarce intacto" e "sem máscara" (ambos vitória) + beco "largar o rasto". 0 erros/0 avisos; encontros exatos)
-- [ ] Ep5 — Obras à Frente (Carnath)
-- [ ] Ep6 — Castelo Naerytar
+- [x] Ep5 — Obras à Frente (15/07/2026: `modelo_ninho_ep5_carnath`, 13 nós, prefixo `e5_` — o entreposto-fachada: hub (salão/Irmão Alvo, pátio das obras que nunca avançam + dracos, cais de madrugada = a descoberta de que o tesouro segue de BARCO, andar de cima com os manifestos → Naerytar, porão do saque), Vardra (oficial do culto) e o alarme como ramos; passagem rio abaixo (escondidos/tripulação/canoa) e o rio para o brejo; finais 'carga viva' e 'pelo brejo a pé' (ambos vitória). 0/0)
+- [x] Ep6 — Castelo Naerytar (15/07/2026: `modelo_ninho_ep6_naerytar`, 14 nós, prefixo `e6_` — o episódio POLÍTICO: três povos (culto/bullywugs/homens-lagarto) numa aliança podre; Pharblex (vaidade → revolta) e Snapjaw (trato → túneis alagados, rota furtiva); ancoradouro, celas, pátio, torreão com **Rezmir** (foge pelo círculo aos ~40% PV — reaparece no Ep8); a revelação do CÍRCULO DE TELETRANSPORTE; finais 'entrar no círculo' e 'destruir o círculo' (ambos vitória) + beco. 0/0)
 - [ ] Ep7 — Refúgio de Caça
 - [ ] Ep8 — Castelo nas Nuvens (Skyreach)

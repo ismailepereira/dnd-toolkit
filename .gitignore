@@ -38,3 +38,16 @@ Thumbs.db
 .claude/skills/
 skills-lock.json
 .playwright-mcp/
+
+# --- Skill /video: versionada de proposito (precisa existir nas sessoes remotas) ---
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/video/
+
+# --- videobot: saidas de video nunca entram no git ---
+ferramentas/video/saida/
+*.mp4
+*.gif
+*.mp3
+*.webm
+*.mkv

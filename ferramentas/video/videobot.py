@@ -388,6 +388,102 @@ def editar_arquivo(entrada, args):
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+# ------------------------------------------------------------------- clipes
+
+
+def detectar_silencios(arquivo):
+    """Pontos médios dos silêncios do áudio — candidatos naturais de corte."""
+    proc = subprocess.run(
+        [
+            "ffmpeg", "-i", arquivo, "-af",
+            "silencedetect=noise=-30dB:d=0.4", "-f", "null", "-",
+        ],
+        stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True,
+    )
+    pontos, inicio = [], None
+    for linha in proc.stderr.splitlines():
+        m = re.search(r"silence_start: ([\d.]+)", linha)
+        if m:
+            inicio = float(m.group(1))
+        m = re.search(r"silence_end: ([\d.]+)", linha)
+        if m and inicio is not None:
+            pontos.append((inicio + float(m.group(1))) / 2)
+            inicio = None
+    return pontos
+
+
+def planejar_clipes(duracao, pontos, quantidade, min_s, max_s):
+    """Divide [0, duracao] em trechos de min_s–max_s, cortando de
+    preferência num silêncio. Ajusta a janela para render >= quantidade
+    clipes quando a duração permite."""
+    if duracao < min_s:
+        erro(f"vídeo tem só {duracao:.0f}s — menor que o clipe mínimo ({min_s:.0f}s)")
+    # janela efetiva: encolhe o teto para alcançar a quantidade pedida
+    max_ef = max(min_s, min(max_s, duracao / quantidade))
+    cortes, t = [], 0.0
+    while t < duracao - 0.5:
+        restante = duracao - t
+        if restante <= max_s:
+            fim = duracao
+        else:
+            janela = [p for p in pontos if t + min_s <= p <= t + max_ef]
+            fim = max(janela) if janela else t + max_ef
+        if fim - t < min_s and cortes and (fim - cortes[-1][0]) <= max_s * 1.2:
+            # rabinho curto no final: estica o clipe anterior até o fim
+            cortes[-1] = (cortes[-1][0], fim)
+        else:
+            cortes.append((t, fim))
+        t = fim
+    return cortes
+
+
+def gerar_clipes(entrada, args):
+    checar_dependencias(precisa_ytdlp=False)
+    if not os.path.exists(entrada):
+        erro(f"arquivo não encontrado: {entrada}")
+    os.makedirs(args.saida, exist_ok=True)
+    duracao, tem_audio = sondar(entrada)
+    base = args.nome or os.path.splitext(os.path.basename(entrada))[0]
+
+    pontos = detectar_silencios(entrada) if tem_audio else []
+    cortes = planejar_clipes(
+        duracao, pontos, args.quantidade, args.min_s, args.max_s
+    )
+    if len(cortes) < args.quantidade:
+        print(
+            f"AVISO: vídeo de {duracao:.0f}s rende só {len(cortes)} clipes "
+            f"de >= {args.min_s:.0f}s (pedido: {args.quantidade})",
+            file=sys.stderr,
+        )
+
+    fv = []
+    if args.vertical:
+        fv.append(
+            "split[fundo][frente];"
+            "[fundo]scale=1080:1920:force_original_aspect_ratio=increase,"
+            "crop=1080:1920,boxblur=24:4[f1];"
+            "[frente]scale=1080:1920:force_original_aspect_ratio=decrease"
+            "[f2];[f1][f2]overlay=(W-w)/2:(H-h)/2,setsar=1"
+        )
+    elif args.resolucao:
+        fv.append(f"scale=-2:'min({args.resolucao},ih)'")
+
+    gerados = []
+    for i, (ini, fim) in enumerate(cortes, 1):
+        destino = nome_livre(args.saida, f"{base}-{i:02d}", ".mp4")
+        cmd = ["ffmpeg", "-y", "-ss", f"{ini:.3f}", "-to", f"{fim:.3f}",
+               "-i", entrada]
+        if fv:
+            cmd += ["-vf", ",".join(fv)]
+        cmd += ["-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+                "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+                "-c:a", "aac", "-b:a", "160k", destino]
+        rodar(cmd)
+        gerados.append(destino)
+        print(destino)
+    return gerados
+
+
 # ---------------------------------------------------------------------- CLI
 
 
@@ -437,6 +533,18 @@ def montar_parser():
     opcoes_comuns(a)
     opcoes_edicao(a)
 
+    c = sub.add_parser(
+        "clipes", help="fatia em vários clipes curtos, cortando nas pausas"
+    )
+    c.add_argument("origem", help="URL ou arquivo local")
+    c.add_argument("--quantidade", type=int, default=15)
+    c.add_argument("--min-s", type=float, default=15)
+    c.add_argument("--max-s", type=float, default=60)
+    c.add_argument("--vertical", action="store_true")
+    c.add_argument("--resolucao", type=int)
+    c.add_argument("--qualidade", type=int, default=1080)
+    opcoes_comuns(c)
+
     return p
 
 
@@ -448,6 +556,15 @@ def main():
         baixar(args)
     elif args.comando == "editar":
         editar_arquivo(args.arquivo, args)
+    elif args.comando == "clipes":
+        origem = args.origem
+        if origem.startswith(("http://", "https://")):
+            args.url = origem
+            nome_final = args.nome
+            args.nome = None
+            origem = baixar(args)
+            args.nome = nome_final
+        gerar_clipes(origem, args)
     else:  # auto
         nome_final = args.nome
         args.nome = None

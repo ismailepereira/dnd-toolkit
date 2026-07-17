@@ -39,6 +39,15 @@ Comandos: `baixar URL` | `editar ARQUIVO` | `auto URL` (baixa + edita).
 | "só o áudio / em MP3"                      | `--mp3`                        |
 | "vira um GIF"                              | `--gif`                        |
 | "em 720p / mais leve"                      | `--resolucao 720`              |
+| "fatia em 15 clipes de 15s a 1min"         | comando `clipes` (abaixo)      |
+
+### Modo clipes (cortes para redes sociais)
+
+`clipes URL_OU_ARQUIVO --quantidade 15 --min-s 15 --max-s 60 [--vertical]`
+fatia o vídeo em vários clipes curtos, escolhendo os pontos de corte nas
+**pausas da fala** (detecção de silêncio) — a janela encolhe sozinha para
+render a quantidade pedida. Imprime um arquivo numerado por linha
+(`base-01.mp4`, `base-02.mp4`, …). Envie todos com um único SendUserFile.
 
 Exemplo completo:
 

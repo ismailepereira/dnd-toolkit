@@ -44,16 +44,18 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
     condicoes: [],
   };
 
-  const [popup] = await Promise.all([
-    page.waitForEvent('popup'),
-    page.evaluate(f => {
-      window.Jogo.abrir(f, {});
-      document.getElementById('jgPDF').click();
-    }, ficha),
-  ]);
-  await popup.waitForLoadState('domcontentloaded');
-  await popup.evaluate(() => { window.print = () => {}; });
-  const html = await popup.content();
+  // a exportação agora escreve num IFRAME oculto (sem pop-up/bloqueador);
+  // o conteúdo é escrito de forma síncrona no clique — lemos direto dele
+  await page.evaluate(f => {
+    window.Jogo.abrir(f, {});
+    document.getElementById('jgPDF').click();
+  }, ficha);
+  const html = await page.evaluate(() => {
+    const fr = document.getElementById('fichaPdfFrame');
+    if (fr && fr.contentWindow) fr.contentWindow.print = () => {}; // não bloqueia o teste
+    return (fr && fr.contentDocument) ? fr.contentDocument.documentElement.outerHTML : '';
+  });
+  ok(html.length > 1000, 'iframe oculto do PDF foi criado com conteúdo (sem pop-up)');
 
   ok(html.includes('Vex do Pacto'), 'Nome na ficha');
   ok(html.includes('Fé &amp; Pacto') || html.includes('Fé & Pacto'), 'Seção Fé & Pacto');

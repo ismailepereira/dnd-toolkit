@@ -143,6 +143,12 @@ const HISTORIA = 'Nascido nas docas de Águas Profundas, cresceu ouvindo histór
   const divAuto = await page.$eval('#cDivindade', s => s.value);
   ok(divAuto !== '' && divAuto !== '__manual__', `Auto-gerar escolhe divindade (${divAuto})`);
 
+  // ----- a11y: Esc fecha o Criador (o rascunho persistente segura o progresso) -----
+  await page.focus('#modalCriador .modal-content');
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(200);
+  ok(await page.$eval('#modalCriador', el => el.classList.contains('hidden')), 'Esc fecha o modal do Criador');
+
   console.log(falhas.length ? `\n❌ ${falhas.length} falha(s)` : '\n✅ E2E do Criador: todas as verificações passaram');
   await browser.close();
   process.exit(falhas.length ? 1 : 0);

@@ -2043,10 +2043,6 @@ const Criador = (function () {
     mostrarValidacao([]);
     irPasso(passoInicial);
     $('modalCriador').classList.remove('hidden');
-    // a11y: foco entra no modal ao abrir (teclado/leitor de tela não fica
-    // preso na página de trás); Esc fecha — o rascunho B1 preserva o progresso
-    const mc = document.querySelector('#modalCriador .modal-content');
-    if (mc) { mc.setAttribute('tabindex', '-1'); mc.focus({ preventScroll: true }); }
   }
 
   // Antecedentes EXCLUSIVOS de campanha (módulos pré-prontos): cada um só pode
@@ -2197,10 +2193,6 @@ const Criador = (function () {
     $('btnAutoGerar').addEventListener('click', autoGerar);
 
     $('cCancelar').addEventListener('click', () => $('modalCriador').classList.add('hidden'));
-    // Esc fecha o Criador (sem perder nada: o rascunho persistente continua lá)
-    $('modalCriador').addEventListener('keydown', e => {
-      if (e.key === 'Escape') { e.stopPropagation(); $('modalCriador').classList.add('hidden'); }
-    });
     $('cSalvar').addEventListener('click', () => {
       // ficha só salva completa: valida TODOS os passos, volta ao primeiro
       // incompleto e pisca a seção pendente

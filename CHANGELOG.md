@@ -4,6 +4,23 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-18 — Fichas: PATCH em todos os fluxos de ficha única, PDF sem pop-up (iframe) e Esc nos modais
+
+**Backup antes da alteração:** `versoes/2026-07-18-patch-geral-pdf-iframe/` (`app.js`, `jogador.js`, `jogo.js`, `criador.js`).
+
+**Resumo:** continuação das melhorias — fecha as pontas soltas da rodada anterior.
+- **Salvamento por ficha em TODOS os fluxos de ficha única:** além do Modo de Jogo, agora usam `PATCH /api/fichas/<id>` (com trava otimista): **editar no Criador** (mestre e jogador), o **toggle 🔓 Loja Especial** do card e a **sincronização de PV do combate** (as duas vias). Criação, exclusão e recompensas em grupo ("👥 todos") seguem no PUT em lista — o PATCH não cria fichas e recompensa múltipla é operação de lista mesmo.
+- **PDF sem pop-up:** a exportação deixou de usar `window.open` (que dependia de permissão de pop-up e tinha o alert "Permita pop-ups") e passou a imprimir por um **iframe oculto** — funciona sempre, sem pedir nada ao navegador. O iframe se remove após a impressão (`afterprint` + limite de segurança).
+- **A11y dos modais:** **Esc fecha** o Criador (o rascunho persistente B1 segura o progresso — nada se perde) e o Modo de Jogo (que já salva a cada ação); o foco entra no modal do Criador ao abrir (`tabindex=-1` + `focus()`), então teclado e leitores de tela não ficam presos na página de trás.
+
+**Ficheiros:** `static/js/app.js`, `static/js/jogador.js`, `static/js/jogo.js`, `static/js/criador.js`, `tests/e2e-criador.js`, `tests/e2e-pdf.js`.
+
+**Verificação:** sintaxe OK; **21/21** unit; **22/22** servidor; E2E completo verde — incluindo os casos novos: "Esc fecha o modal do Criador" e "iframe oculto do PDF foi criado com conteúdo (sem pop-up)"; o smoke do PATCH segue passando (dano gravado + carimbo sincronizado).
+
+**Como reverter:** restaurar `versoes/2026-07-18-patch-geral-pdf-iframe/`, ou `git revert`.
+
+---
+
 ## 2026-07-18 — Fichas: regras derivadas em módulo único, schema v2 no servidor e salvamento por ficha com trava otimista
 
 **Backup antes da alteração:** `versoes/2026-07-18-regras-unicas-e-servidor/` (`criador.js`, `jogo.js`, `app.js`, `jogador.js`, `app.py`, `mestre.html`, `jogador.html`).

@@ -1472,21 +1472,9 @@ const Jogo = (function () {
       <p style="margin-top:20px;color:#999;font-size:11px;text-align:center;">Gerado pelo D&D Toolkit · Desenvolvido por ismailepereira</p>
       <script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>
       </body></html>`;
-    // iframe oculto em vez de window.open: imprime sem depender de permissão
-    // de pop-up (o alert "Permita pop-ups" deixou de existir). O próprio HTML
-    // chama window.print() no onload; o iframe é removido após a impressão.
-    const antigo = document.getElementById('fichaPdfFrame');
-    if (antigo) antigo.remove();
-    const fr = document.createElement('iframe');
-    fr.id = 'fichaPdfFrame';
-    fr.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
-    document.body.appendChild(fr);
-    fr.contentDocument.open();
-    fr.contentDocument.write(html);
-    fr.contentDocument.close();
-    const limpar = () => setTimeout(() => fr.remove(), 500);
-    fr.contentWindow.addEventListener('afterprint', limpar);
-    setTimeout(() => { if (document.getElementById('fichaPdfFrame') === fr) fr.remove(); }, 5 * 60 * 1000);
+    const w = window.open('', '_blank');
+    if (!w) { alert('Permita pop-ups para exportar a ficha em PDF.'); return; }
+    w.document.write(html); w.document.close();
   }
 
   function abrir(f, opts) {
@@ -1501,10 +1489,6 @@ const Jogo = (function () {
   function montarUmaVez() {
     if (montado) return; montado = true;
     $('jgFechar').onclick = () => $('modalJogo').classList.add('hidden');
-    // a11y: Esc fecha o Modo de Jogo (tudo já está salvo a cada ação)
-    $('modalJogo').addEventListener('keydown', e => {
-      if (e.key === 'Escape') { e.stopPropagation(); $('modalJogo').classList.add('hidden'); }
-    });
   }
 
   return { abrir };

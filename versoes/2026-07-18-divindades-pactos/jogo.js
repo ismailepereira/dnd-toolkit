@@ -577,25 +577,6 @@ const Jogo = (function () {
           <label class="mini-label">Significado<textarea id="jgItemMemDescricao" rows="2">${esc(im.descricao)}</textarea></label>
         </div>
       </details>
-      ${(() => {
-        if (!f.divindade && !f.patrono) return '';
-        const dd = (typeof divindadeDados === 'function') ? divindadeDados(f.divindade) : null;
-        let pat = null;
-        if (f.patrono && typeof PATRONOS_PACTO !== 'undefined') {
-          for (const t in PATRONOS_PACTO) if (PATRONOS_PACTO[t].entidades[f.patrono]) { pat = { tipo: t, ...PATRONOS_PACTO[t].entidades[f.patrono] }; break; }
-        }
-        const ateu = (typeof SEM_DIVINDADE !== 'undefined') && f.divindade === SEM_DIVINDADE;
-        return `<details class="jg-magia">
-          <summary>⛩️ Fé & Pacto${f.divindade ? ' — ' + esc(f.divindade) : ''}${f.patrono ? ' · ' + esc(f.patrono) : ''}</summary>
-          <div class="jg-magia-corpo">
-            ${ateu ? '<p><b>Ateu:</b> este personagem não segue divindade alguma.</p>' : ''}
-            ${f.divindade && !ateu ? `<p><b>Divindade:</b> ${esc(f.divindade)}${dd ? ` — ${esc(dd.titulo)}` : ''}</p>` : ''}
-            ${dd ? `<p>⚖️ ${esc(dd.alinhamento)} · 📜 Domínios: ${esc(dd.dominio)} · 🔱 ${esc(dd.simbolo)}</p><p>${esc(dd.resumo)}</p>` : ''}
-            ${f.patrono ? `<p><b>Patrono do Pacto:</b> ${esc(f.patrono)}${pat ? ` — ${esc(pat.titulo)} (${esc(pat.tipo)})` : ''}</p>` : ''}
-            ${pat ? `<p>${esc(pat.resumo)}</p>` : ''}
-          </div>
-        </details>`;
-      })()}
     </div>`;
 
     // condições
@@ -923,7 +904,7 @@ const Jogo = (function () {
       <div class="jg-header">
         <div>
           <h2>${esc(f.nome)}</h2>
-          <div class="jg-sub">${esc(f.raca)} · ${ehMulticlasse() ? classesFicha().map(c => `${getClasseIcone(c.classe)} ${esc(c.classe)} ${c.nivel}`).join(' / ') + ` (total ${f.nivel})` : `${getClasseIcone(f.classe)} ${esc(f.classe)} nível ${f.nivel}`}${f.estilo ? ' · ' + esc(f.estilo) : ''}${f.divindade ? ' · ⛩️ ' + esc(f.divindade) : ''}${f.patrono ? ' · 👁️ ' + esc(f.patrono) : ''}</div>
+          <div class="jg-sub">${esc(f.raca)} · ${ehMulticlasse() ? classesFicha().map(c => `${getClasseIcone(c.classe)} ${esc(c.classe)} ${c.nivel}`).join(' / ') + ` (total ${f.nivel})` : `${getClasseIcone(f.classe)} ${esc(f.classe)} nível ${f.nivel}`}${f.estilo ? ' · ' + esc(f.estilo) : ''}</div>
         </div>
         <div class="jg-rest">
           <button id="jgSubirNivel" class="btn-primary${podeSubirPorXP(f) ? ' jg-pulsa' : ''}">⬆️ Subir de Nível${podeSubirPorXP(f) ? ' ✨' : ''}</button>
@@ -1377,40 +1358,9 @@ const Jogo = (function () {
     const fmtMod = m => (m >= 0 ? '+' : '') + m;
     const attrCards = ATTRS.map(([k, r]) => `<div class="c"><b>${r}</b><span>${a[k] ?? 10}</span><i>${fmtMod(mod(a[k] ?? 10))}</i></div>`).join('');
     const salvas = ATTRS.map(([k]) => { const prof = cls && (cls.salvaguardas || []).includes(NOMES[k]); return `<li>${NOMES[k]}: <b>${fmtMod(mod(a[k] ?? 10) + (prof ? pb : 0))}</b>${prof ? ' (prof.)' : ''}</li>`; }).join('');
-    // características de TODOS os níveis até o atual (o PDF é a ficha completa,
-    // não só o que entrou no último nível)
-    const featsAcum = cls ? cls.niveis.filter(n => n.nivel <= (f.nivel || 1)).flatMap(n => n.caracteristicas) : [];
-    const feats = featsAcum.length ? featsAcum.map(c => `<li>${e(c)}</li>`).join('') : '<li>—</li>';
+    const nd = cls ? cls.niveis.find(n => n.nivel === (f.nivel || 1)) : null;
+    const feats = (nd && nd.caracteristicas.length) ? nd.caracteristicas.map(c => `<li>${e(c)}</li>`).join('') : '<li>—</li>';
     const ant = (typeof antecedenteDados === 'function') ? antecedenteDados(f.antecedente) : ((typeof ANTECEDENTES !== 'undefined') ? ANTECEDENTES[f.antecedente] : null);
-    // Perícias (as 18, marcando proficiência), raça, idiomas e sentidos
-    const rd = (typeof RACAS_DETALHE !== 'undefined') ? (RACAS_DETALHE[f.raca] || {}) : {};
-    const periciasFicha = f.pericias || [];
-    const periciasLi = (typeof PERICIAS !== 'undefined') ? Object.keys(PERICIAS).map(p => {
-      const prof = periciasFicha.includes(p);
-      const m = mod(a[PERICIAS[p]] ?? 10) + (prof ? pb : 0);
-      return `<li>${prof ? '●' : '○'} ${p}: <b>${fmtMod(m)}</b></li>`;
-    }).join('') : '';
-    const percPassiva = 10 + mod(a.sab ?? 10) + (periciasFicha.includes('Percepção') ? pb : 0);
-    const tracosLi = (rd.tracos || []).map(t => `<li>${e(t)}</li>`).join('');
-    const idiomasTxt = [(rd.idiomas || []).join(', '), (ant && ant.idiomas) ? `+${ant.idiomas} à escolha (antecedente)` : ''].filter(Boolean).join(' · ');
-    const sentidosTxt = [`Deslocamento ${rd.deslocamento || 30}m`, `Tamanho ${rd.tamanho || 'Médio'}`, rd.visaoNoEscuro ? `Visão no escuro ${rd.visaoNoEscuro}m` : '', `Percepção passiva ${percPassiva}`].filter(Boolean).join(' · ');
-    // Conjuração (CD e bônus de ataque mágico)
-    const cj = (typeof CONJURACAO !== 'undefined') ? CONJURACAO[f.classe] : null;
-    const conjTxt = (cj && (f.nivel || 1) >= (cj.desdeNivel || 1))
-      ? `CD de Magia <b>${8 + pb + mod(a[cj.atributo] ?? 10)}</b> · Ataque Mágico <b>${fmtMod(pb + mod(a[cj.atributo] ?? 10))}</b>` : '';
-    // Fé & Pacto: quem é a divindade/patrono e o que representa
-    const dd = (typeof divindadeDados === 'function') ? divindadeDados(f.divindade) : null;
-    let pat = null;
-    if (f.patrono && typeof PATRONOS_PACTO !== 'undefined') {
-      for (const t in PATRONOS_PACTO) if (PATRONOS_PACTO[t].entidades[f.patrono]) { pat = { tipo: t, ...PATRONOS_PACTO[t].entidades[f.patrono] }; break; }
-    }
-    const ehAteu = (typeof SEM_DIVINDADE !== 'undefined') && f.divindade === SEM_DIVINDADE;
-    const feHtml = (f.divindade || f.patrono) ? `<h3>⛩️ Fé & Pacto</h3>
-      ${ehAteu ? `<p><b>Ateu:</b> não segue divindade alguma.</p>` : ''}
-      ${f.divindade && !ehAteu ? `<p><b>Divindade:</b> ${e(f.divindade)}${dd ? ` — ${e(dd.titulo)}` : ''}</p>` : ''}
-      ${dd ? `<p>${e(dd.alinhamento)} · Domínios: ${e(dd.dominio)} · Símbolo: ${e(dd.simbolo)}<br><i>${e(dd.resumo)}</i></p>` : ''}
-      ${f.patrono ? `<p><b>Patrono do Pacto:</b> ${e(f.patrono)}${pat ? ` — ${e(pat.titulo)} (${e(pat.tipo)})` : ''}${pat ? `<br><i>${e(pat.resumo)}</i>` : ''}</p>` : ''}` : '';
-    const estiloTxt = (f.estilo && typeof ESTILOS_LUTA !== 'undefined' && ESTILOS_LUTA[f.estilo]) ? `${f.estilo}: ${ESTILOS_LUTA[f.estilo]}` : (f.estilo || '');
     const pers = f.personalidade || {};
     const im = f.itemMemoria || {};
     const truques = (f.truques || []).map(e).join(', ') || '—';
@@ -1450,38 +1400,30 @@ const Jogo = (function () {
         .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
         h3{color:#7c2d12;border-bottom:1px solid #ccc;font-size:14px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px;}
         ul{margin:4px 0;padding-left:18px;font-size:13px;} li{margin:2px 0;}
-        ul.duas-colunas{columns:2;-webkit-columns:2;}
         p{font-size:13px;margin:4px 0;}
         @media print{body{padding:0;} button{display:none;}}
       </style></head><body>
       <h1>${e(f.nome || 'Personagem')}</h1>
-      <div class="sub">${e(f.raca)} · ${e(f.classe)} nível ${f.nivel}${f.subclasse ? ' (' + e(f.subclasse) + ')' : ''}${f.antecedente ? ' · ' + e(f.antecedente) : ''}${f.divindade ? ' · ⛩️ ' + e(f.divindade) : ''}${f.patrono ? ' · 👁️ ' + e(f.patrono) : ''}</div>
+      <div class="sub">${e(f.raca)} · ${e(f.classe)} nível ${f.nivel}${f.subclasse ? ' (' + e(f.subclasse) + ')' : ''}${f.antecedente ? ' · ' + e(f.antecedente) : ''}${f.estilo ? ' · ' + e(f.estilo) : ''}</div>
       <div class="attrs">${attrCards}</div>
       <div class="stats"><span>PV <b>${f.hpMax}</b></span><span>CA <b>${f.ca}</b></span><span>Inic. <b>${fmtMod(f.iniciativa || 0)}</b></span><span>Prof. <b>+${pb}</b></span><span>XP <b>${(f.xp || 0).toLocaleString('pt-BR')}</b></span><span>Ouro <b>${f.ouro || 0} po</b></span></div>
-      <p><b>Sentidos:</b> ${sentidosTxt}${idiomasTxt ? `<br><b>Idiomas:</b> ${e(idiomasTxt)}` : ''}</p>
       <div class="grid">
         <div><h3>Salvaguardas</h3><ul>${salvas}</ul>
-          ${periciasLi ? `<h3>Perícias</h3><ul class="duas-colunas">${periciasLi}</ul>` : ''}
-          ${tracosLi ? `<h3>Traços Raciais — ${e(f.raca)}</h3><ul>${tracosLi}</ul>` : ''}
-          <h3>Características de Classe (até o nível ${f.nivel})</h3><ul>${feats}</ul>
-          ${estiloTxt ? `<h3>Estilo de Combate</h3><p>${e(estiloTxt)}</p>` : ''}
-        </div>
-        <div>${feHtml}
-          ${ant ? `<h3>Antecedente — ${e(f.antecedente)}</h3><p><b>${e(ant.caracteristica)}</b></p>${ant.pericias && ant.pericias.length ? `<p>Perícias: ${ant.pericias.map(e).join(', ')}</p>` : ''}${ant.ferramentas && ant.ferramentas.length ? `<p>Ferramentas: ${ant.ferramentas.map(e).join(', ')}</p>` : ''}${ant.equipamento ? `<p>Equipamento: ${e(ant.equipamento)}</p>` : ''}` : ''}
+          <h3>Características de Classe (Nível ${f.nivel})</h3><ul>${feats}</ul>
+          ${ant ? `<h3>Antecedente — ${e(f.antecedente)}</h3><p><b>${e(ant.caracteristica)}</b></p>${ant.ferramentas && ant.ferramentas.length ? `<p>Ferramentas: ${ant.ferramentas.map(e).join(', ')}</p>` : ''}${ant.equipamento ? `<p>Equipamento: ${e(ant.equipamento)}</p>` : ''}` : ''}
           ${(pers.traco || pers.ideal || pers.ligacao || pers.defeito) ? `<h3>Personalidade</h3>
             ${pers.traco ? `<p><b>Traço:</b> ${e(pers.traco)}</p>` : ''}
             ${pers.ideal ? `<p><b>Ideal:</b> ${e(pers.ideal)}</p>` : ''}
             ${pers.ligacao ? `<p><b>Ligação:</b> ${e(pers.ligacao)}</p>` : ''}
             ${pers.defeito ? `<p><b>Defeito:</b> ${e(pers.defeito)}</p>` : ''}` : ''}
-          <h3>Equipamento</h3><p>${itens}</p>${sint ? `<p><b>Sintonizado:</b> ${sint}</p>` : ''}
-          ${conjTxt ? `<h3>Conjuração</h3><p>${conjTxt}</p>` : ''}
+        </div>
+        <div><h3>Equipamento</h3><p>${itens}</p>${sint ? `<p><b>Sintonizado:</b> ${sint}</p>` : ''}
           <h3>Truques</h3><p>${truques}</p>
           <h3>Magias</h3><p>${magias}</p>
           ${im.nome ? `<h3>🎁 Item de Memória</h3><p><b>${e(im.nome)}</b>${im.tipo ? ` (${e(im.tipo)})` : ''}${im.descricao ? `<br>${e(im.descricao)}` : ''}</p>` : ''}
         </div>
       </div>
       ${f.historia ? `<div style="margin-top:14px"><h3>História Prévia</h3><p style="white-space:pre-wrap">${e(f.historia)}</p></div>` : ''}
-      ${f.anotacoes ? `<div style="margin-top:10px"><h3>Anotações</h3><p style="white-space:pre-wrap">${e(f.anotacoes)}</p></div>` : ''}
       <p style="margin-top:20px;color:#999;font-size:11px;text-align:center;">Gerado pelo D&D Toolkit · Desenvolvido por ismailepereira</p>
       <script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>
       </body></html>`;

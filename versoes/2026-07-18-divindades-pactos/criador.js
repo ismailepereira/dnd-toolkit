@@ -43,8 +43,6 @@ const Criador = (function () {
       ouro: 0,
       ouroRolado: false,          // trava: rola uma única vez por ficha
       anotacoes: '',
-      divindade: '',              // Fé & Pacto: divindade devotada, SEM_DIVINDADE (ateu) ou nome livre; obrigatória p/ Clérigo e Paladino
-      patrono: '',                // Fé & Pacto: entidade do pacto (só Bruxo) — da lista do tipo de patrono ou nome livre
       personalidade: { traco: '', ideal: '', ligacao: '', defeito: '' }, // do antecedente: lista OU texto livre
       historia: '',               // história prévia do personagem (texto livre, contextualizada pelo antecedente)
       itemMemoria: { nome: '', tipo: '', descricao: '' }, // objeto pessoal/herdado — só narrativo, não entra no acervo
@@ -219,21 +217,6 @@ const Criador = (function () {
         ${a.ferramentas && a.ferramentas.length ? `<div class="pv-linha"><strong>Ferramentas:</strong> ${a.ferramentas.map(escHtml).join(', ')}</div>` : ''}
         ${a.idiomas ? `<div class="pv-linha"><strong>Idiomas extras:</strong> ${a.idiomas}</div>` : ''}
         ${a.equipamento ? `<div class="pv-linha"><strong>Equipamento:</strong> ${escHtml(a.equipamento)}</div>` : ''}</div>`; })()}
-      ${(() => {
-        if (!s.divindade && !s.patrono) return '';
-        const dd = (typeof divindadeDados === 'function') ? divindadeDados(s.divindade) : null;
-        let pi = null;
-        if (s.patrono && typeof PATRONOS_PACTO !== 'undefined') {
-          for (const t in PATRONOS_PACTO) if (PATRONOS_PACTO[t].entidades[s.patrono]) { pi = { tipo: t, ...PATRONOS_PACTO[t].entidades[s.patrono] }; break; }
-        }
-        return `<div class="pv-bloco"><h4>⛩️ Fé & Pacto</h4>
-          ${s.divindade === SEM_DIVINDADE ? `<div class="pv-linha">🚫 <strong>Ateu:</strong> não segue divindade alguma.</div>` : ''}
-          ${s.divindade && s.divindade !== SEM_DIVINDADE ? `<div class="pv-linha"><strong>Divindade:</strong> ${escHtml(s.divindade)}${dd ? ` — ${escHtml(dd.titulo)}` : ''}</div>` : ''}
-          ${dd ? `<div class="pv-linha">⚖️ ${escHtml(dd.alinhamento)} · 📜 Domínios: ${escHtml(dd.dominio)} · 🔱 ${escHtml(dd.simbolo)}</div><div class="pv-linha">${escHtml(dd.resumo)}</div>` : ''}
-          ${s.patrono ? `<div class="pv-linha"><strong>Patrono do Pacto:</strong> ${escHtml(s.patrono)}${pi ? ` — ${escHtml(pi.titulo)} (${escHtml(pi.tipo)})` : ''}</div>` : ''}
-          ${pi ? `<div class="pv-linha">${escHtml(pi.resumo)}</div>` : ''}
-        </div>`;
-      })()}
       ${s.estilo ? `<div class="pv-bloco"><h4>Estilo de Combate</h4><div class="pv-linha">${escHtml(s.estilo)}: ${escHtml(ESTILOS_LUTA[s.estilo] || '')}</div></div>` : ''}
       ${conjHtml}
       ${armasHtml}
@@ -289,121 +272,6 @@ const Criador = (function () {
       <div class="pv-linha">🗣️ <strong>Idiomas:</strong> ${escHtml(idiomas)}</div>
       <div class="pv-linha">🎒 <strong>Equipamento:</strong> ${escHtml(a.equipamento || '—')}</div>
       <div class="pv-linha">✨ <strong>Característica:</strong> ${escHtml(a.caracteristica || '—')}</div>`;
-  }
-
-  // ---------- Fé & Pacto: divindade (todos) e patrono do pacto (Bruxo) ----------
-  // Toda ficha escolhe uma divindade OU declara-se atéia; Clérigo e Paladino
-  // não podem ser ateus (canalizam o poder da divindade). Bruxo escolhe ainda
-  // a ENTIDADE do pacto, sugerida pelo tipo de patrono (subclasse).
-  const CLASSES_DEVOTAS = ['Clérigo', 'Paladino'];
-  function renderFe() {
-    const wrap = $('cFeWrap');
-    if (!wrap || typeof DIVINDADES === 'undefined') return;
-    const ehBruxo = estado.classe === 'Bruxo';
-    if (!ehBruxo) estado.patrono = '';
-    const devota = CLASSES_DEVOTAS.includes(estado.classe);
-    const dInfo = divindadeDados(estado.divindade);
-    const dManual = !!estado.divindade && estado.divindade !== SEM_DIVINDADE && !dInfo;
-
-    // Divindade: ateu + grupos do panteão + escrever à mão
-    const optsDiv = `<option value="">— escolher —</option>` +
-      `<option value="${escHtml(SEM_DIVINDADE)}" ${estado.divindade === SEM_DIVINDADE ? 'selected' : ''} ${devota ? 'disabled' : ''}>🚫 ${escHtml(SEM_DIVINDADE)}${devota ? ' — não vale para ' + escHtml(estado.classe) : ''}</option>` +
-      Object.keys(DIVINDADES).map(g => `<optgroup label="${escHtml(g)}">` +
-        Object.keys(DIVINDADES[g]).map(n => `<option value="${escHtml(n)}" ${estado.divindade === n ? 'selected' : ''}>${escHtml(n)} — ${escHtml(DIVINDADES[g][n].titulo)}</option>`).join('') +
-      `</optgroup>`).join('') +
-      `<option value="__manual__" ${dManual ? 'selected' : ''}>✍️ Outra (escrever à mão)…</option>`;
-
-    const hintDiv = devota
-      ? `⚠️ ${estado.classe} canaliza o poder de uma divindade: a escolha é <b>obrigatória</b> (ateu não é opção para esta classe).`
-      : 'Opcional para esta classe: devote-se a quem quiser — ou declare-se ateu.';
-
-    let infoDiv = '';
-    if (estado.divindade === SEM_DIVINDADE) {
-      infoDiv = `<div class="pv-linha">🚫 Sem devoção: este personagem não segue divindade alguma.</div>`;
-    } else if (dInfo) {
-      infoDiv = `<div class="pv-linha"><strong>${escHtml(estado.divindade)}</strong> — ${escHtml(dInfo.titulo)} <em>(${escHtml(dInfo.grupo)})</em></div>
-        <div class="pv-linha">⚖️ <strong>Alinhamento:</strong> ${escHtml(dInfo.alinhamento)} · 📜 <strong>Domínios:</strong> ${escHtml(dInfo.dominio)}</div>
-        <div class="pv-linha">🔱 <strong>Símbolo:</strong> ${escHtml(dInfo.simbolo)}</div>
-        <div class="pv-linha">${escHtml(dInfo.resumo)}</div>`;
-    }
-
-    // Patrono (só Bruxo): entidades agrupadas por tipo de pacto; o grupo da
-    // subclasse escolhida vem marcado como "seu pacto".
-    let patronoHtml = '';
-    if (ehBruxo && typeof PATRONOS_PACTO !== 'undefined') {
-      const pInfoDe = nome => {
-        for (const t in PATRONOS_PACTO) if (PATRONOS_PACTO[t].entidades[nome]) return { tipo: t, ...PATRONOS_PACTO[t].entidades[nome] };
-        return null;
-      };
-      const pInfo = pInfoDe(estado.patrono);
-      const pManual = !!estado.patrono && !pInfo;
-      const optsPat = `<option value="">— escolher a entidade do pacto —</option>` +
-        Object.keys(PATRONOS_PACTO).map(t => `<optgroup label="${escHtml(t)}${estado.subclasse === t ? ' ★ seu pacto' : ''}">` +
-          Object.keys(PATRONOS_PACTO[t].entidades).map(n => `<option value="${escHtml(n)}" ${estado.patrono === n ? 'selected' : ''}>${escHtml(n)} — ${escHtml(PATRONOS_PACTO[t].entidades[n].titulo)}</option>`).join('') +
-        `</optgroup>`).join('') +
-        `<option value="__manual__" ${pManual ? 'selected' : ''}>✍️ Outra entidade (escrever à mão)…</option>`;
-      const avisoTipo = (pInfo && estado.subclasse && pInfo.tipo !== estado.subclasse)
-        ? `<div class="pv-linha">⚠️ ${escHtml(estado.patrono)} é do tipo <b>${escHtml(pInfo.tipo)}</b>, mas sua subclasse é <b>${escHtml(estado.subclasse)}</b> — confirme com o Mestre.</div>` : '';
-      patronoHtml = `
-        <label>Patrono do Pacto <span class="criador-hint-inline">(obrigatório para Bruxo)</span>
-          <select id="cPatrono">${optsPat}</select>
-        </label>
-        <input type="text" id="cPatronoManual" class="${pManual ? '' : 'hidden'}" placeholder="Nome da entidade do pacto (ex.: um demônio da sua campanha)" value="${pManual ? escHtml(estado.patrono) : ''}">
-        <div class="antecedente-info">
-          <div class="pv-linha">👁️ Bruxos extraem magia de um <b>pacto</b> com uma entidade poderosa${estado.subclasse ? ` — o seu tipo é <b>${escHtml(estado.subclasse)}</b>` : ' (escolha o tipo de patrono no passo 1: Classe)'}. ${escHtml((PATRONOS_PACTO[estado.subclasse] || {}).dica || '')}</div>
-          ${pInfo ? `<div class="pv-linha"><strong>${escHtml(estado.patrono)}</strong> — ${escHtml(pInfo.titulo)}: ${escHtml(pInfo.resumo)}</div>` : ''}
-          ${avisoTipo}
-        </div>`;
-    }
-
-    wrap.innerHTML = `
-      <div class="criador-hint">${hintDiv}</div>
-      <div class="criador-row">
-        <label>Divindade
-          <select id="cDivindade">${optsDiv}</select>
-        </label>
-      </div>
-      <input type="text" id="cDivindadeManual" class="${dManual ? '' : 'hidden'}" placeholder="Nome da divindade (homebrew / outra ambientação)" value="${dManual ? escHtml(estado.divindade) : ''}">
-      ${infoDiv ? `<div class="antecedente-info">${infoDiv}</div>` : ''}
-      ${patronoHtml}`;
-
-    // Listeners (re-render a cada mudança: os painéis de info acompanham)
-    $('cDivindade').addEventListener('change', () => {
-      const v = $('cDivindade').value;
-      if (v === '__manual__') {
-        // sem re-render: o select fica em "Outra…" e o campo de texto aparece
-        estado.divindade = '';
-        const t = $('cDivindadeManual');
-        t.classList.remove('hidden');
-        t.value = '';
-        t.focus();
-        renderPreview();
-        return;
-      }
-      estado.divindade = v;
-      renderFe(); renderPreview();
-    });
-    const dTxt = $('cDivindadeManual');
-    dTxt.addEventListener('input', () => { estado.divindade = dTxt.value; renderPreview(); });
-    const pSel = $('cPatrono');
-    if (pSel) {
-      pSel.addEventListener('change', () => {
-        const v = pSel.value;
-        if (v === '__manual__') {
-          estado.patrono = '';
-          const t = $('cPatronoManual');
-          t.classList.remove('hidden');
-          t.value = '';
-          t.focus();
-          renderPreview();
-          return;
-        }
-        estado.patrono = v;
-        renderFe(); renderPreview();
-      });
-      const pTxt = $('cPatronoManual');
-      pTxt.addEventListener('input', () => { estado.patrono = pTxt.value; renderPreview(); });
-    }
   }
 
   // ---------- Personalidade: traço/ideal/ligação/defeito — lista OU texto livre ----------
@@ -905,7 +773,6 @@ const Criador = (function () {
     renderGaleriaRaca();
     renderResumoEscolha();
     renderEscolhaAtributos();
-    renderFe();               // divindade/patrono dependem da classe e subclasse
     renderPainelClasse();
     renderPericias();
     renderEstilo();
@@ -1666,17 +1533,6 @@ const Criador = (function () {
     const scDef = (typeof SUBCLASSES !== 'undefined' && SUBCLASSES[s.classe]) || null;
     if (scDef && s.nivel >= scDef.nivel) s.subclasse = escolherAleatorio(scDef.opcoes).nome;
 
-    // Fé & Pacto: Clérigo/Paladino sempre devotos; os demais podem sair ateus
-    if (typeof DIVINDADES !== 'undefined') {
-      s.divindade = (CLASSES_DEVOTAS.includes(s.classe) || Math.random() > 0.2)
-        ? escolherAleatorio(listaDivindades()) : SEM_DIVINDADE;
-      if (s.classe === 'Bruxo' && typeof PATRONOS_PACTO !== 'undefined') {
-        const pc = PATRONOS_PACTO[s.subclasse];
-        const ents = Object.keys((pc || escolherAleatorio(Object.values(PATRONOS_PACTO))).entidades);
-        s.patrono = escolherAleatorio(ents);
-      }
-    }
-
     // Escolha de atributos raciais
     const r = RACAS_DETALHE[s.raca] || {};
     const ne = r.escolhaAtributos || 0;
@@ -1734,7 +1590,6 @@ const Criador = (function () {
     renderMiniatura();
     renderAtributosBase();
     renderAntecedenteInfo();
-    renderFe();
     renderPersonalidade();
   }
 
@@ -1788,8 +1643,6 @@ const Criador = (function () {
       raca: s.raca,
       nivel: s.nivel,
       antecedente: s.antecedente,
-      divindade: s.divindade || '',
-      patrono: s.classe === 'Bruxo' ? (s.patrono || '') : '',
       hpAtual: c.hp,
       hpMax: c.hp,
       ca: c.ca,
@@ -1830,8 +1683,6 @@ const Criador = (function () {
       s.classe = f.classe && CLASSE_NOME_PARA_CHAVE[f.classe] ? f.classe : 'Guerreiro';
       const _antValido = typeof antecedenteDados === 'function' ? antecedenteDados(f.antecedente) : ANTECEDENTES[f.antecedente];
       s.antecedente = f.antecedente && _antValido ? f.antecedente : 'Soldado';
-      s.divindade = f.divindade || '';
-      s.patrono = s.classe === 'Bruxo' ? (f.patrono || '') : '';
       s.nivel = f.nivel || 1;
       if (f.atributos) s.base = { ...s.base, ...f.atributos };
       s.subclasse = f.subclasse || '';
@@ -1921,18 +1772,6 @@ const Criador = (function () {
       const ne = r.escolhaAtributos || 0;
       const escolhidos = (estado.escolhaAtributos || []).filter(Boolean).length;
       if (ne && escolhidos < ne) erros.push(`Escolha os ${ne} atributos de bônus racial (+1) — faltam ${ne - escolhidos}.`);
-      // Fé & Pacto: Clérigo/Paladino exigem divindade (ateu não vale);
-      // Bruxo exige a entidade do pacto; as demais classes escolhem
-      // divindade OU ateísmo em fichas novas (fichas antigas não travam).
-      const divindade = (estado.divindade || '').trim();
-      if (CLASSES_DEVOTAS.includes(estado.classe)) {
-        if (!divindade || divindade === SEM_DIVINDADE) erros.push(`${estado.classe} precisa devotar-se a uma divindade (escolha em ⛩️ Fé & Pacto — ateu não é opção para esta classe).`);
-      } else if (criandoNovo && !divindade) {
-        erros.push('Escolha uma divindade em ⛩️ Fé & Pacto — ou declare o personagem ateu.');
-      }
-      if (estado.classe === 'Bruxo' && !(estado.patrono || '').trim()) {
-        erros.push('Bruxo precisa de um patrono: escolha a entidade do pacto em ⛩️ Fé & Pacto.');
-      }
       const tamHistoria = (estado.historia || '').trim().length;
       // fichas antigas salvas sem história não ficam presas na edição (legado);
       // fichas novas — e qualquer história começada — precisam do mínimo.
@@ -2009,12 +1848,6 @@ const Criador = (function () {
     $('cVoltar').style.display = passo > 1 ? 'inline-block' : 'none';
     $('cProximo').style.display = passo < TOTAL_PASSOS ? 'inline-block' : 'none';
     $('cSalvar').style.display = passo === TOTAL_PASSOS ? 'inline-block' : 'none';
-    // ao trocar de etapa, volta ao topo do modal (sem isso a nova etapa
-    // abre no meio/fim da rolagem da etapa anterior)
-    const cont = document.querySelector('#modalCriador .modal-content');
-    if (cont) cont.scrollTop = 0;
-    const form = document.querySelector('#modalCriador .criador-form');
-    if (form) form.scrollTop = 0;
     salvarRascunho(); // Fase B1: guarda também o passo atual
   }
 
@@ -2125,8 +1958,6 @@ const Criador = (function () {
           estado.raca ? `Raça: ${estado.raca}` : '',
           estado.classe ? `Classe: ${estado.classe}${estado.subclasse ? ' (' + estado.subclasse + ')' : ''}` : '',
           estado.antecedente ? `Antecedente: ${estado.antecedente}` : '',
-          estado.divindade ? `Divindade/fé: ${estado.divindade}` : '',
-          estado.patrono ? `Patrono do pacto (Bruxo): ${estado.patrono}` : '',
           estado.nivel ? `Nível: ${estado.nivel}` : '',
           p.traco ? `Traço: ${p.traco}` : '',
           p.ideal ? `Ideal: ${p.ideal}` : '',

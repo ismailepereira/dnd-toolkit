@@ -222,7 +222,10 @@ const Criador = (function () {
       ${(() => {
         if (!s.divindade && !s.patrono) return '';
         const dd = (typeof divindadeDados === 'function') ? divindadeDados(s.divindade) : null;
-        const pi = (typeof patronoDados === 'function') ? patronoDados(s.patrono) : null;
+        let pi = null;
+        if (s.patrono && typeof PATRONOS_PACTO !== 'undefined') {
+          for (const t in PATRONOS_PACTO) if (PATRONOS_PACTO[t].entidades[s.patrono]) { pi = { tipo: t, ...PATRONOS_PACTO[t].entidades[s.patrono] }; break; }
+        }
         return `<div class="pv-bloco"><h4>⛩️ Fé & Pacto</h4>
           ${s.divindade === SEM_DIVINDADE ? `<div class="pv-linha">🚫 <strong>Ateu:</strong> não segue divindade alguma.</div>` : ''}
           ${s.divindade && s.divindade !== SEM_DIVINDADE ? `<div class="pv-linha"><strong>Divindade:</strong> ${escHtml(s.divindade)}${dd ? ` — ${escHtml(dd.titulo)}` : ''}</div>` : ''}
@@ -290,9 +293,9 @@ const Criador = (function () {
 
   // ---------- Fé & Pacto: divindade (todos) e patrono do pacto (Bruxo) ----------
   // Toda ficha escolhe uma divindade OU declara-se atéia; Clérigo e Paladino
-  // não podem ser ateus (canalizam o poder da divindade — CLASSES_DEVOTAS em
-  // dados5e.js). Bruxo escolhe ainda a ENTIDADE do pacto, sugerida pelo tipo
-  // de patrono (subclasse).
+  // não podem ser ateus (canalizam o poder da divindade). Bruxo escolhe ainda
+  // a ENTIDADE do pacto, sugerida pelo tipo de patrono (subclasse).
+  const CLASSES_DEVOTAS = ['Clérigo', 'Paladino'];
   function renderFe() {
     const wrap = $('cFeWrap');
     if (!wrap || typeof DIVINDADES === 'undefined') return;
@@ -328,7 +331,11 @@ const Criador = (function () {
     // subclasse escolhida vem marcado como "seu pacto".
     let patronoHtml = '';
     if (ehBruxo && typeof PATRONOS_PACTO !== 'undefined') {
-      const pInfo = patronoDados(estado.patrono);
+      const pInfoDe = nome => {
+        for (const t in PATRONOS_PACTO) if (PATRONOS_PACTO[t].entidades[nome]) return { tipo: t, ...PATRONOS_PACTO[t].entidades[nome] };
+        return null;
+      };
+      const pInfo = pInfoDe(estado.patrono);
       const pManual = !!estado.patrono && !pInfo;
       const optsPat = `<option value="">— escolher a entidade do pacto —</option>` +
         Object.keys(PATRONOS_PACTO).map(t => `<optgroup label="${escHtml(t)}${estado.subclasse === t ? ' ★ seu pacto' : ''}">` +
@@ -714,7 +721,7 @@ const Criador = (function () {
       const r = rolarOuroClasse(estado.classe);
       estado.ouro = arred(estado.ouro + r.total);
       estado.ouroRolado = true;
-      renderPassoItens(); renderPreview();
+      renderPasso5(); renderPreview();
       const d = $('cOuroDados');
       if (d) d.textContent = `— saiu [${r.dados.join(', ')}]${r.mult > 1 ? ' × ' + r.mult : ''} = ${r.total} po`;
     });
@@ -736,7 +743,7 @@ const Criador = (function () {
     wrap.querySelectorAll('[data-kit-grupo]').forEach(r => r.addEventListener('change', () => {
       estado.kit[Number(r.dataset.kitGrupo)] = Number(r.dataset.kitOp);
       aplicarKit();
-      renderPassoItens(); renderPreview();
+      renderPasso5(); renderPreview();
     }));
   }
 
@@ -815,7 +822,7 @@ const Criador = (function () {
       }
       adquirirItem(nome, 'loja');
       autoEquipar(); sincronizarEquipado();
-      renderPassoItens(); renderPreview();
+      renderPasso5(); renderPreview();
     }));
   }
 
@@ -882,10 +889,10 @@ const Criador = (function () {
       removerUmItem(nome);
       if (!(ctx && ctx.modoNpc)) estado.ouro = arred(estado.ouro + precoEmPO(nome));
       sincronizarEquipado();
-      renderPassoItens(); renderPreview();
+      renderPasso5(); renderPreview();
     }));
   }
-  function renderPassoItens() {
+  function renderPasso5() {
     renderOuro();
     renderKit();
     renderLoja();
@@ -903,7 +910,7 @@ const Criador = (function () {
     renderPericias();
     renderEstilo();
     renderMagias();
-    renderPassoItens();
+    renderPasso5();
     renderPreview();
   }
 
@@ -1899,56 +1906,51 @@ const Criador = (function () {
 
   // ---------- Validação de completude (Fase 9c) ----------
   // Cada passo só deixa avançar quando está completo; Salvar valida tudo.
-  // Cada erro carrega `alvo`: o id da seção pendente — a navegação rola até
-  // ela e a faz piscar (destacarAlvoInvalido), para o olho achar na hora.
   const HISTORIA_MIN = 150;
   function validarPasso(p) {
     const erros = [];
-    const erro = (texto, alvo) => erros.push({ texto, alvo });
     if (p === 1) {
       const sc = (typeof SUBCLASSES !== 'undefined') ? SUBCLASSES[estado.classe] : null;
       if (sc && estado.nivel >= sc.nivel && !estado.subclasse) {
-        erro(`Escolha a especialização de ${estado.classe} (disponível a partir do nível ${sc.nivel}).`, 'cGaleriaClasse');
+        erros.push(`Escolha a especialização de ${estado.classe} (disponível a partir do nível ${sc.nivel}).`);
       }
     }
     if (p === 3) {
-      if (!estado.nome.trim()) erro('Dê um nome ao personagem.', 'cNome');
+      if (!estado.nome.trim()) erros.push('Dê um nome ao personagem.');
       const r = RACAS_DETALHE[estado.raca] || {};
       const ne = r.escolhaAtributos || 0;
       const escolhidos = (estado.escolhaAtributos || []).filter(Boolean).length;
-      if (ne && escolhidos < ne) erro(`Escolha os ${ne} atributos de bônus racial (+1) — faltam ${ne - escolhidos}.`, 'cEscolhaAtributos');
+      if (ne && escolhidos < ne) erros.push(`Escolha os ${ne} atributos de bônus racial (+1) — faltam ${ne - escolhidos}.`);
+      // Fé & Pacto: Clérigo/Paladino exigem divindade (ateu não vale);
+      // Bruxo exige a entidade do pacto; as demais classes escolhem
+      // divindade OU ateísmo em fichas novas (fichas antigas não travam).
+      const divindade = (estado.divindade || '').trim();
+      if (CLASSES_DEVOTAS.includes(estado.classe)) {
+        if (!divindade || divindade === SEM_DIVINDADE) erros.push(`${estado.classe} precisa devotar-se a uma divindade (escolha em ⛩️ Fé & Pacto — ateu não é opção para esta classe).`);
+      } else if (criandoNovo && !divindade) {
+        erros.push('Escolha uma divindade em ⛩️ Fé & Pacto — ou declare o personagem ateu.');
+      }
+      if (estado.classe === 'Bruxo' && !(estado.patrono || '').trim()) {
+        erros.push('Bruxo precisa de um patrono: escolha a entidade do pacto em ⛩️ Fé & Pacto.');
+      }
       const tamHistoria = (estado.historia || '').trim().length;
       // fichas antigas salvas sem história não ficam presas na edição (legado);
       // fichas novas — e qualquer história começada — precisam do mínimo.
       const exigeHistoria = criandoNovo || tamHistoria > 0;
       if (exigeHistoria && tamHistoria < HISTORIA_MIN) {
-        erro(`História prévia precisa de pelo menos ${HISTORIA_MIN} caracteres (tem ${tamHistoria}).`, 'cHistoria');
+        erros.push(`História prévia precisa de pelo menos ${HISTORIA_MIN} caracteres (tem ${tamHistoria}).`);
       }
     }
     if (p === 4) {
-      // ⛩️ Divindade & Pacto (aba própria): Clérigo/Paladino exigem divindade
-      // (ateu não vale); Bruxo exige a entidade do pacto; as demais classes
-      // escolhem divindade OU ateísmo em fichas novas (fichas antigas não travam).
-      const divindade = (estado.divindade || '').trim();
-      if (CLASSES_DEVOTAS.includes(estado.classe)) {
-        if (!divindade || divindade === SEM_DIVINDADE) erro(`${estado.classe} precisa devotar-se a uma divindade (ateu não é opção para esta classe).`, 'cFeWrap');
-      } else if (criandoNovo && !divindade) {
-        erro('Escolha uma divindade — ou declare o personagem ateu.', 'cFeWrap');
-      }
-      if (estado.classe === 'Bruxo' && !(estado.patrono || '').trim()) {
-        erro('Bruxo precisa de um patrono: escolha a entidade do pacto.', 'cFeWrap');
-      }
-    }
-    if (p === 5) {
       const def = PERICIAS_CLASSE[estado.classe] || { qtd: 0, opcoes: [] };
-      if (estado.pericias.length < def.qtd) erro(`Escolha ${def.qtd} perícias de ${estado.classe} — faltam ${def.qtd - estado.pericias.length}.`, 'cPericias');
+      if (estado.pericias.length < def.qtd) erros.push(`Escolha ${def.qtd} perícias de ${estado.classe} — faltam ${def.qtd - estado.pericias.length}.`);
       const r = RACAS_DETALHE[estado.raca] || {};
       const ne = r.periciaExtra || 0;
-      if (ne && estado.periciasExtra.length < ne) erro(`Escolha ${ne} perícias raciais — faltam ${ne - estado.periciasExtra.length}.`, 'cPericiasExtra');
+      if (ne && estado.periciasExtra.length < ne) erros.push(`Escolha ${ne} perícias raciais — faltam ${ne - estado.periciasExtra.length}.`);
       const temEstilo = CLASSES_COM_ESTILO.includes(estado.classe)
         && (estado.classe !== 'Patrulheiro' || estado.nivel >= 2)
         && (estado.classe !== 'Paladino' || estado.nivel >= 2);
-      if (temEstilo && !estado.estilo) erro('Escolha um Estilo de Combate.', 'cEstilo');
+      if (temEstilo && !estado.estilo) erros.push('Escolha um Estilo de Combate.');
       const ehConj = (typeof ehConjurador === 'function') && ehConjurador(estado.classe, estado.nivel, estado.subclasse);
       if (ehConj) {
         const disp = magiasDisponiveis(estado.classe, estado.subclasse, estado.nivel);
@@ -1958,8 +1960,8 @@ const Criador = (function () {
           ? (6 + (estado.nivel - 1) * 2)
           : magiasNoNivel(estado.classe, estado.nivel, atributosFinais(estado), estado.subclasse);
         const limMagias = Math.min(limBase, disp.circulos.length);
-        if (estado.truques.length < limTruques) erro(`Escolha ${limTruques} truques — faltam ${limTruques - estado.truques.length}.`, 'cTruquesWrap');
-        if (estado.magias1.length < limMagias) erro(`Escolha ${limMagias} magias — faltam ${limMagias - estado.magias1.length}.`, 'cMagias1Wrap');
+        if (estado.truques.length < limTruques) erros.push(`Escolha ${limTruques} truques — faltam ${limTruques - estado.truques.length}.`);
+        if (estado.magias1.length < limMagias) erros.push(`Escolha ${limMagias} magias — faltam ${limMagias - estado.magias1.length}.`);
       }
     }
     return erros;
@@ -1976,46 +1978,24 @@ const Criador = (function () {
   }
   function mostrarValidacao(erros) {
     const el = $('cValidacao');
-    const textos = erros.map(e => (e && e.texto) || String(e));
-    if (!el) { if (textos.length) alert(textos.join('\n')); return; }
-    if (!textos.length) { el.classList.add('hidden'); el.innerHTML = ''; return; }
+    if (!el) { if (erros.length) alert(erros.join('\n')); return; }
+    if (!erros.length) { el.classList.add('hidden'); el.innerHTML = ''; return; }
     el.classList.remove('hidden');
-    el.innerHTML = `<b>⚠ Complete antes de continuar:</b><ul>${textos.map(t => `<li>${escHtml(t)}</li>`).join('')}</ul>`;
+    el.innerHTML = `<b>⚠ Complete antes de continuar:</b><ul>${erros.map(e => `<li>${escHtml(e)}</li>`).join('')}</ul>`;
   }
   // valida todos os passos de `de` até `ate` (exclusivo); devolve o 1º passo com erro ou 0
-  let _alvoInvalido = null; // id da seção pendente do 1º erro (p/ rolar e piscar)
   function primeiroPassoInvalido(de, ate) {
     for (let p = de; p < ate; p++) {
       const erros = validarPasso(p);
-      if (erros.length) {
-        mostrarValidacao(erros);
-        _alvoInvalido = erros[0].alvo || null;
-        return p;
-      }
+      if (erros.length) { mostrarValidacao(erros); return p; }
     }
     mostrarValidacao([]);
-    _alvoInvalido = null;
     return 0;
-  }
-  // Rola até a seção que ficou pendente e a faz PISCAR — o jogador vê na hora
-  // o que falta preencher, em vez de procurar pela etapa inteira.
-  function destacarAlvoInvalido() {
-    if (!_alvoInvalido) return;
-    const el = $(_alvoInvalido);
-    if (!el) return;
-    // espera o irPasso mostrar a etapa e zerar o scroll antes de rolar até o alvo
-    setTimeout(() => {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.remove('piscar-pendente');
-      void el.offsetWidth; // força reflow p/ reiniciar a animação se já estava piscando
-      el.classList.add('piscar-pendente');
-      setTimeout(() => el.classList.remove('piscar-pendente'), 3000);
-    }, 80);
   }
 
   // ---------- Navegação por etapas ----------
   let passo = 1;
-  const TOTAL_PASSOS = 6;
+  const TOTAL_PASSOS = 5;
   function irPasso(n) {
     passo = Math.max(1, Math.min(TOTAL_PASSOS, n));
     document.querySelectorAll('#modalCriador .criador-step').forEach(el => {
@@ -2223,10 +2203,9 @@ const Criador = (function () {
 
     $('cCancelar').addEventListener('click', () => $('modalCriador').classList.add('hidden'));
     $('cSalvar').addEventListener('click', () => {
-      // ficha só salva completa: valida TODOS os passos, volta ao primeiro
-      // incompleto e pisca a seção pendente
+      // ficha só salva completa: valida TODOS os passos e volta ao primeiro incompleto
       const invalido = primeiroPassoInvalido(1, TOTAL_PASSOS);
-      if (invalido) { irPasso(invalido); destacarAlvoInvalido(); return; }
+      if (invalido) { irPasso(invalido); return; }
       // itens sem proficiência não bloqueiam (regra 5e permite usar com penalidade), mas o jogador confirma ciente
       sincronizarEquipado();
       const fichaTmp = { classe: estado.classe, classes: undefined, armadura: estado.armadura, escudo: estado.escudo, atributos: atributosFinais(estado), itens: estado.itens, equipado: estado.equipado };
@@ -2244,7 +2223,7 @@ const Criador = (function () {
     $('cVoltar').addEventListener('click', () => { mostrarValidacao([]); irPasso(passo - 1); });
     $('cProximo').addEventListener('click', () => {
       const invalido = primeiroPassoInvalido(passo, passo + 1);
-      if (invalido) { destacarAlvoInvalido(); return; }
+      if (invalido) return;
       irPasso(passo + 1);
     });
     document.querySelectorAll('#modalCriador [data-passo-chip]').forEach(c => {
@@ -2252,7 +2231,7 @@ const Criador = (function () {
         const alvo = Number(c.dataset.passoChip);
         if (alvo <= passo) { mostrarValidacao([]); irPasso(alvo); return; }
         const invalido = primeiroPassoInvalido(passo, alvo);
-        if (invalido) { irPasso(invalido); destacarAlvoInvalido(); return; }
+        if (invalido) { irPasso(invalido); return; }
         irPasso(alvo);
       });
     });

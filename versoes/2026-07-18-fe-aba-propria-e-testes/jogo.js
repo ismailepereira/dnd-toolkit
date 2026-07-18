@@ -580,7 +580,10 @@ const Jogo = (function () {
       ${(() => {
         if (!f.divindade && !f.patrono) return '';
         const dd = (typeof divindadeDados === 'function') ? divindadeDados(f.divindade) : null;
-        const pat = (typeof patronoDados === 'function') ? patronoDados(f.patrono) : null;
+        let pat = null;
+        if (f.patrono && typeof PATRONOS_PACTO !== 'undefined') {
+          for (const t in PATRONOS_PACTO) if (PATRONOS_PACTO[t].entidades[f.patrono]) { pat = { tipo: t, ...PATRONOS_PACTO[t].entidades[f.patrono] }; break; }
+        }
         const ateu = (typeof SEM_DIVINDADE !== 'undefined') && f.divindade === SEM_DIVINDADE;
         return `<details class="jg-magia">
           <summary>⛩️ Fé & Pacto${f.divindade ? ' — ' + esc(f.divindade) : ''}${f.patrono ? ' · ' + esc(f.patrono) : ''}</summary>
@@ -1364,7 +1367,7 @@ const Jogo = (function () {
 
   // ----- Exportar ficha em PDF (janela imprimível -> Salvar como PDF) -----
   function exportarFichaPDF(f) {
-    const e = esc; // escape único do módulo (a cópia local antiga não escapava aspas)
+    const e = s => String(s == null ? '' : s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
     const a = f.atributos || {};
     const chave = (typeof CLASSE_NOME_PARA_CHAVE !== 'undefined') ? CLASSE_NOME_PARA_CHAVE[f.classe] : null;
     const cls = (typeof CLASSES !== 'undefined' && chave) ? CLASSES[chave] : null;
@@ -1397,7 +1400,10 @@ const Jogo = (function () {
       ? `CD de Magia <b>${8 + pb + mod(a[cj.atributo] ?? 10)}</b> · Ataque Mágico <b>${fmtMod(pb + mod(a[cj.atributo] ?? 10))}</b>` : '';
     // Fé & Pacto: quem é a divindade/patrono e o que representa
     const dd = (typeof divindadeDados === 'function') ? divindadeDados(f.divindade) : null;
-    const pat = (typeof patronoDados === 'function') ? patronoDados(f.patrono) : null;
+    let pat = null;
+    if (f.patrono && typeof PATRONOS_PACTO !== 'undefined') {
+      for (const t in PATRONOS_PACTO) if (PATRONOS_PACTO[t].entidades[f.patrono]) { pat = { tipo: t, ...PATRONOS_PACTO[t].entidades[f.patrono] }; break; }
+    }
     const ehAteu = (typeof SEM_DIVINDADE !== 'undefined') && f.divindade === SEM_DIVINDADE;
     const feHtml = (f.divindade || f.patrono) ? `<h3>⛩️ Fé & Pacto</h3>
       ${ehAteu ? `<p><b>Ateu:</b> não segue divindade alguma.</p>` : ''}

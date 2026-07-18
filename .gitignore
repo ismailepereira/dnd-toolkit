@@ -38,3 +38,7 @@ Thumbs.db
 .claude/skills/
 skills-lock.json
 .playwright-mcp/
+
+# --- Testes (Node/Playwright) ---
+node_modules/
+tests/.data-teste/

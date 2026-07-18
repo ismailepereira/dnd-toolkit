@@ -11,9 +11,8 @@
         <span class="passo-chip" data-passo-chip="1">1 · Classe</span>
         <span class="passo-chip" data-passo-chip="2">2 · Raça</span>
         <span class="passo-chip" data-passo-chip="3">3 · Identidade & Atributos</span>
-        <span class="passo-chip" data-passo-chip="4">4 · ⛩️ Divindade & Pacto</span>
-        <span class="passo-chip" data-passo-chip="5">5 · Habilidades & Magias</span>
-        <span class="passo-chip" data-passo-chip="6">6 · Itens & Inventário</span>
+        <span class="passo-chip" data-passo-chip="4">4 · Habilidades & Magias</span>
+        <span class="passo-chip" data-passo-chip="5">5 · Itens & Inventário</span>
       </div>
 
       <div class="criador-layout">
@@ -52,6 +51,9 @@
             </div>
             <div id="cAntecedenteInfo" class="antecedente-info"></div>
 
+            <h3>⛩️ Fé & Pacto <span class="criador-hint-inline">(qualquer personagem pode ter uma divindade — ou ser ateu)</span></h3>
+            <div id="cFeWrap"></div>
+
             <h3>Atributos (status)
               <span class="criador-metodo">
                 <button type="button" id="btnArranjoPadrao" class="btn-mini">Arranjo padrão</button>
@@ -80,15 +82,8 @@
             </div>
           </div>
 
-          <!-- ETAPA 4: ⛩️ Divindade & Pacto (aba própria — pedido do Ismaile:
-               a fé merecia um lugar fácil de achar, não escondida na Identidade) -->
+          <!-- ETAPA 4: Habilidades e magias (painel por classe) -->
           <div class="criador-step hidden" data-step="4">
-            <h3>⛩️ Fé & Devoção <span class="criador-hint-inline">(qualquer personagem pode ter uma divindade — ou ser ateu)</span></h3>
-            <div id="cFeWrap"></div>
-          </div>
-
-          <!-- ETAPA 5: Habilidades e magias (painel por classe) -->
-          <div class="criador-step hidden" data-step="5">
             <div id="cClassePainel" class="classe-painel"></div>
 
             <h3 id="cEstiloWrap" class="hidden">Estilo de Combate</h3>
@@ -104,8 +99,8 @@
             </div>
           </div>
 
-          <!-- ETAPA 6: Ouro, kit inicial, loja, bolsa e slots -->
-          <div class="criador-step hidden" data-step="6">
+          <!-- ETAPA 5: Ouro, kit inicial, loja, bolsa e slots -->
+          <div class="criador-step hidden" data-step="5">
             <div id="cOuroWrap"></div>
             <div id="cKitWrap"></div>
             <div id="cLojaWrap"></div>
@@ -120,8 +115,7 @@
         <div class="criador-preview" id="cPreview"></div>
       </div>
 
-      <!-- role=alert + aria-live: leitores de tela anunciam os erros de validação -->
-      <div id="cValidacao" class="criador-validacao hidden" role="alert" aria-live="polite"></div>
+      <div id="cValidacao" class="criador-validacao hidden"></div>
       <div class="modal-actions">
         <button type="button" id="cExcluir" class="btn-danger">Excluir</button>
         <button type="button" id="cCancelar" class="btn-secondary">Cancelar</button>

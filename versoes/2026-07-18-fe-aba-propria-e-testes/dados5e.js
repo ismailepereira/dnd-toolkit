@@ -722,9 +722,6 @@ const RACAS_RESUMO = {
 // =====================================================
 const SEM_DIVINDADE = 'Ateu (sem divindade)';
 
-// Classes que CANALIZAM o poder de uma divindade: escolha obrigatória, ateísmo não vale.
-const CLASSES_DEVOTAS = ['Clérigo', 'Paladino'];
-
 // Agrupadas por tema (panteão de Faerûn, PHB). titulo aparece no <select>;
 // dominio/alinhamento/simbolo alimentam o painel de informação e a ficha.
 const DIVINDADES = {
@@ -824,15 +821,6 @@ const PATRONOS_PACTO = {
     },
   },
 };
-
-// Busca os dados de uma entidade de pacto pelo nome, em qualquer tipo de
-// patrono; devolve { tipo, titulo, resumo } ou null. Fonte única — usada pelo
-// Criador (escolha + preview), pelo Modo de Jogo e pelo PDF.
-function patronoDados(nome) {
-  if (!nome) return null;
-  for (const t in PATRONOS_PACTO) if (PATRONOS_PACTO[t].entidades[nome]) return { tipo: t, ...PATRONOS_PACTO[t].entidades[nome] };
-  return null;
-}
 
 // Nomes para o gerador aleatório
 const NOMES_ALEATORIOS = [

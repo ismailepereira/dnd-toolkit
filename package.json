@@ -1,0 +1,14 @@
+{
+  "name": "dnd-toolkit-testes",
+  "private": true,
+  "description": "Dependências de TESTE do D&D Toolkit (o app em si é Flask + JS estático, sem build). Instale com `npm install` apenas para rodar os testes E2E.",
+  "scripts": {
+    "test": "node tests/unit-regras.js",
+    "test:sintaxe": "node tests/checar-sintaxe.js",
+    "test:e2e": "bash tests/run-e2e.sh",
+    "test:tudo": "npm run test:sintaxe && npm run test && npm run test:e2e"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}

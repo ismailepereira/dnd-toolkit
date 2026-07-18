@@ -4,6 +4,24 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-18 — Criador: aba própria ⛩️ Divindade & Pacto, "rolar e piscar" na seção pendente, testes automatizados + CI
+
+**Backup antes da alteração:** `versoes/2026-07-18-fe-aba-propria-e-testes/` (`_criador.html`, `criador.js`, `dados5e.js`, `jogo.js`, `style.css`).
+
+**Resumo:** Dois pedidos do Ismaile ("não achei o local das divindades" e "a validação devia voltar pra aba que faltou e piscar") + a primeira leva das melhorias de engenharia (testes commitados, CI e deduplicação).
+- **Aba própria para a fé:** o Criador agora tem **6 etapas** — a **4 · ⛩️ Divindade & Pacto** é dedicada (a seção saiu do meio da etapa de Identidade, onde ficava escondida). As validações acompanharam: fé valida na etapa 4, habilidades/magias na 5, itens na 6.
+- **Validação que guia o olho:** todo erro de validação agora carrega um **alvo** (a seção pendente). Ao clicar Próximo/Salvar/chip com algo faltando, o Criador **volta à etapa pendente, rola até a seção exata e a faz PISCAR** (animação `piscar-pendente`, 4 pulsos âmbar). O aviso `#cValidacao` ganhou `role=alert`/`aria-live` (leitores de tela anunciam).
+- **Testes commitados (`tests/`) + CI:** `unit-regras.js` (16 testes de consistência dos dados: 18 perícias, 12 classes, 32 divindades, patronos×subclasses de Bruxo 1:1, antecedentes completos, mod()/PB() na tabela 5e), `checar-sintaxe.js` (node --check em todos os JS), `e2e-criador.js` + `e2e-pdf.js` (Playwright no fluxo real) com `run-e2e.sh` que sobe o Flask com `DATA_DIR` descartável. `package.json` com scripts (`npm test`, `test:e2e`, `test:tudo`) e **GitHub Actions** (`.github/workflows/ci.yml`): sintaxe JS + unit + `py_compile` a cada push.
+- **Deduplicação:** `patronoDados()` e `CLASSES_DEVOTAS` agora vivem em `dados5e.js` (fonte única — o lookup de patrono estava copiado em 4 lugares); o PDF passou a usar o `esc` do módulo (a cópia local não escapava aspas); `renderPasso5` renomeado p/ `renderPassoItens` (o número mentia após a renumeração).
+
+**Ficheiros:** `templates/_criador.html`, `static/js/criador.js`, `static/js/dados5e.js`, `static/js/jogo.js`, `static/css/style.css`, `tests/*` (novos), `.github/workflows/ci.yml` (novo), `package.json` (novo, só p/ testes), `.gitignore`.
+
+**Verificação:** sintaxe OK em todos os JS; **16/16** unit; **23/23** E2E Criador (6 etapas, Ateu desabilitado p/ Clérigo, piscar na seção pendente ao avançar E ao salvar, scroll a 0, painel explicativo, Bruxo trava sem patrono) e **12/12** E2E PDF.
+
+**Como reverter:** restaurar `versoes/2026-07-18-fe-aba-propria-e-testes/`, ou `git revert`.
+
+---
+
 ## 2026-07-18 — Fichas: ⛩️ Fé & Pacto (divindades + patronos de Bruxo), scroll das etapas e PDF completo
 
 **Backup antes da alteração:** `versoes/2026-07-18-divindades-pactos/` (`dados5e.js`, `criador.js`, `jogo.js`, `_criador.html`).

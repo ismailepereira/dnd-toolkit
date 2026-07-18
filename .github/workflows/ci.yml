@@ -1,0 +1,21 @@
+# CI mínima: pega erro de sintaxe e inconsistência de dados a cada push.
+# (Os testes E2E com navegador rodam localmente: npm run test:e2e — ver tests/README.md)
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Sintaxe de todos os JS servidos
+        run: node tests/checar-sintaxe.js
+      - name: Testes unitários de regras/dados
+        run: node tests/unit-regras.js
+      - name: Sintaxe do backend (app.py)
+        run: python3 -m py_compile app.py

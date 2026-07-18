@@ -68,6 +68,23 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   ok(html.includes('Anotações') && html.includes('Nota de teste do PDF.'), 'Anotações');
   ok(html.includes('Antecedente') && html.includes('História Prévia') && html.includes('Medalhão'), 'Antecedente, história e item de memória');
 
+  // ----- salvamento por ficha (PATCH com trava otimista) de ponta a ponta -----
+  const resultadoPatch = await page.evaluate(async f => {
+    fichas.push(f);
+    await salvarFichas();          // cria no servidor (PUT em lista)
+    await carregarFichas();        // pega o carimbo atualizadoEm do servidor
+    const minha = fichas.find(x => x.id === f.id);
+    minha.hpAtual = 21;            // simula dano no Modo de Jogo
+    await salvarFicha(minha);      // caminho novo: PATCH só desta ficha
+    const doServidor = await fetch('/api/fichas').then(r => r.json());
+    const gravada = doServidor.find(x => x.id === f.id) || {};
+    return { hpAtual: gravada.hpAtual, carimbo: gravada.atualizadoEm, versao: gravada.schemaVersion, local: minha.atualizadoEm };
+  }, ficha);
+  ok(resultadoPatch.hpAtual === 21, 'PATCH gravou o dano no servidor (hpAtual 21)');
+  ok(!!resultadoPatch.carimbo, 'ficha gravada tem carimbo atualizadoEm');
+  ok(resultadoPatch.versao === 2, 'ficha gravada tem schemaVersion 2');
+  ok(resultadoPatch.local === resultadoPatch.carimbo, 'cliente sincronizou o carimbo devolvido pelo PATCH');
+
   console.log(falhas.length ? `\n❌ ${falhas.length} falha(s)` : '\n✅ E2E do PDF: todas as verificações passaram');
   await browser.close();
   process.exit(falhas.length ? 1 : 0);

@@ -14,7 +14,7 @@ const RAIZ = path.join(__dirname, '..');
 const sandbox = { console, module: { exports: {} }, require: () => ({}) };
 vm.createContext(sandbox);
 // ordem espelha a dos <script> nos templates (classes.js define PB antes dos demais usos)
-for (const f of ['classes.js', 'dados5e.js', 'compendio.js', 'fontes.js']) {
+for (const f of ['classes.js', 'dados5e.js', 'compendio.js', 'fontes.js', 'regras-ficha.js']) {
   vm.runInContext(fs.readFileSync(path.join(RAIZ, 'static/js', f), 'utf8'), sandbox, { filename: f });
 }
 // const/let do topo dos ficheiros ficam no escopo léxico do contexto, não em
@@ -24,6 +24,7 @@ const ctx = vm.runInContext(`({
   CLASSES_RESUMO, RACAS_DETALHE, RACAS_RESUMO, CONJURACAO, mod, PB,
   DIVINDADES, SEM_DIVINDADE, CLASSES_DEVOTAS, listaDivindades, divindadeDados,
   PATRONOS_PACTO, patronoDados, SUBCLASSES, antecedentesDisponiveis, antecedenteDados,
+  calcularCA, percepcaoPassiva, cdConjuracao, pvMaximoMonoclasse,
 })`, sandbox);
 // guarda contra testes vácuos: nada aqui pode estar indefinido
 for (const k in ctx) assert.ok(ctx[k] != null, `binding indefinida no contexto: ${k}`);
@@ -156,6 +157,51 @@ t('antecedentes (PHB + módulos): perícias existem e personalidade completa', (
     ['tracosPersonalidade', 'ideais', 'ligacoes', 'defeitos'].forEach(c =>
       assert.ok(Array.isArray(a[c]) && a[c].length >= 1, `${nome} sem ${c}`));
   });
+});
+
+// ----- regras-ficha.js: derivados da ficha (fonte única) -----
+t('calcularCA: armadura leve/média/pesada, escudo e estilo Defesa', () => {
+  const at = { for: 10, des: 16, con: 14, int: 10, sab: 12, car: 8 }; // DES +3
+  const base = { classes: ['Guerreiro'], escudo: false, estilo: '', atributos: at };
+  assert.strictEqual(ctx.calcularCA({ ...base, armadura: 'Armadura de Couro' }), 14);          // 11 + 3
+  assert.strictEqual(ctx.calcularCA({ ...base, armadura: 'Camisão de Malha' }), 15);           // 13 + min(3,2)
+  assert.strictEqual(ctx.calcularCA({ ...base, armadura: 'Cota de Malha' }), 16);              // fixa
+  assert.strictEqual(ctx.calcularCA({ ...base, armadura: 'Cota de Malha', escudo: true }), 18);
+  assert.strictEqual(ctx.calcularCA({ ...base, armadura: 'Cota de Malha', estilo: 'Defesa' }), 17);
+  assert.strictEqual(ctx.calcularCA({ ...base, armadura: 'Sem armadura', estilo: 'Defesa' }), 13); // Defesa só COM armadura
+});
+
+t('calcularCA: defesa sem armadura de Bárbaro e Monge (e em multiclasse)', () => {
+  const at = { for: 14, des: 14, con: 16, int: 10, sab: 16, car: 8 };
+  assert.strictEqual(ctx.calcularCA({ classes: ['Bárbaro'], armadura: 'Sem armadura', escudo: false, estilo: '', atributos: at }), 15); // 10+2+3
+  assert.strictEqual(ctx.calcularCA({ classes: ['Monge'], armadura: 'Sem armadura', escudo: false, estilo: '', atributos: at }), 15);   // 10+2+3
+  // multiclasse: qualquer classe da lista concede a defesa
+  assert.strictEqual(ctx.calcularCA({ classes: ['Ladino', 'Bárbaro'], armadura: 'Sem armadura', escudo: false, estilo: '', atributos: at }), 15);
+  assert.strictEqual(ctx.calcularCA({ classes: ['Ladino'], armadura: 'Sem armadura', escudo: false, estilo: '', atributos: at }), 12);  // 10+2
+});
+
+t('pvMaximoMonoclasse: dado cheio no nv1 + média depois + CON + racial', () => {
+  const at = { for: 15, des: 12, con: 16, int: 10, sab: 10, car: 8 }; // CON +3
+  assert.strictEqual(ctx.pvMaximoMonoclasse('Guerreiro', 1, at, 'Humano'), 13);        // 10+3
+  assert.strictEqual(ctx.pvMaximoMonoclasse('Guerreiro', 3, at, 'Humano'), 31);        // 13 + 2*(6+3)
+  assert.strictEqual(ctx.pvMaximoMonoclasse('Mago', 1, at, 'Humano'), 9);              // 6+3
+  assert.strictEqual(ctx.pvMaximoMonoclasse('Guerreiro', 3, at, 'Anão da Colina'), 34); // +1 PV/nível
+});
+
+t('cdConjuracao: 8+prof+mod; null p/ não-conjurador e meio-conjurador nv1', () => {
+  const at = { for: 10, des: 10, con: 10, int: 16, sab: 14, car: 18 };
+  const mago = ctx.cdConjuracao('Mago', 1, at, 2);
+  assert.deepStrictEqual({ ...mago }, { atributo: 'int', cd: 13, ataque: 5 });
+  assert.strictEqual(ctx.cdConjuracao('Guerreiro', 5, at, 3), null);
+  assert.strictEqual(ctx.cdConjuracao('Paladino', 1, at, 2), null);   // conjura só do nv2
+  assert.strictEqual(ctx.cdConjuracao('Paladino', 2, at, 2).cd, 14);  // 8+2+4 (CAR)
+});
+
+t('percepcaoPassiva: 10 + SAB (+prof), aceitando array ou Set', () => {
+  const at = { for: 10, des: 10, con: 10, int: 10, sab: 14, car: 10 };
+  assert.strictEqual(ctx.percepcaoPassiva(at, ['Furtividade'], 2), 12);
+  assert.strictEqual(ctx.percepcaoPassiva(at, ['Percepção'], 2), 14);
+  assert.strictEqual(ctx.percepcaoPassiva(at, new Set(['Percepção']), 3), 15);
 });
 
 t('SUBCLASSES: toda classe listada existe e nível de escolha é 1-3', () => {

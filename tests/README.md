@@ -5,7 +5,8 @@ Três camadas, da mais barata à mais completa:
 | Comando | O que cobre | Precisa de |
 |---|---|---|
 | `npm run test:sintaxe` | `node --check` em todos os JS de `static/js/` | Node |
-| `npm test` | Regras/dados puros (perícias, classes, divindades, patronos, antecedentes) | Node |
+| `npm test` | Regras/dados puros (perícias, classes, divindades, patronos, antecedentes, CA/PV/CD de `regras-ficha.js`) | Node |
+| `npm run test:servidor` | API de fichas: normalização de schema v2, carimbo `atualizadoEm`, `PATCH` com trava otimista, posse por papel | Python + Flask |
 | `npm run test:e2e` | Fluxo real no navegador: Criador (Fé & Pacto, validação, piscar, scroll) e PDF completo | Node + `npm install` + Python/Flask + Chromium |
 
 - As duas primeiras camadas rodam na CI (`.github/workflows/ci.yml`) a cada push.

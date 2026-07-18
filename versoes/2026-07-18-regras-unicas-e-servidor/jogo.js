@@ -230,12 +230,18 @@ const Jogo = (function () {
   }
   function recalcularCA() {
     if (!ficha.atributos || typeof ARMADURAS === 'undefined') return;
-    // regra única em regras-ficha.js (a mesma do Criador e do PDF)
-    ficha.ca = calcularCA({
-      classes: classesFicha().map(c => c.classe),
-      armadura: ficha.armadura, escudo: ficha.escudo,
-      estilo: ficha.estilo, atributos: ficha.atributos,
-    });
+    const arm = ARMADURAS[ficha.armadura] || ARMADURAS['Sem armadura'];
+    const dexMod = mod(ficha.atributos.des);
+    const classesCA = classesFicha().map(c => c.classe);
+    let ca;
+    if (ficha.armadura === 'Sem armadura' && classesCA.includes('Bárbaro')) ca = 10 + dexMod + mod(ficha.atributos.con);
+    else if (ficha.armadura === 'Sem armadura' && classesCA.includes('Monge')) ca = 10 + dexMod + mod(ficha.atributos.sab);
+    else if (arm.tipo === 'leve') ca = arm.base + dexMod;
+    else if (arm.tipo === 'media') ca = arm.base + Math.min(dexMod, 2);
+    else ca = arm.base;
+    if (ficha.escudo) ca += 2;
+    if (ficha.estilo === 'Defesa' && ficha.armadura !== 'Sem armadura') ca += 1;
+    ficha.ca = ca;
   }
 
   // ----- estado de jogo na ficha -----
@@ -1359,7 +1365,7 @@ const Jogo = (function () {
   // ----- Exportar ficha em PDF (janela imprimível -> Salvar como PDF) -----
   function exportarFichaPDF(f) {
     const e = esc; // escape único do módulo (a cópia local antiga não escapava aspas)
-    const a = { for: 10, des: 10, con: 10, int: 10, sab: 10, car: 10, ...(f.atributos || {}) };
+    const a = f.atributos || {};
     const chave = (typeof CLASSE_NOME_PARA_CHAVE !== 'undefined') ? CLASSE_NOME_PARA_CHAVE[f.classe] : null;
     const cls = (typeof CLASSES !== 'undefined' && chave) ? CLASSES[chave] : null;
     const pb = (typeof PB === 'function') ? PB(f.nivel || 1) : 2;
@@ -1381,13 +1387,14 @@ const Jogo = (function () {
       const m = mod(a[PERICIAS[p]] ?? 10) + (prof ? pb : 0);
       return `<li>${prof ? '●' : '○'} ${p}: <b>${fmtMod(m)}</b></li>`;
     }).join('') : '';
-    const percPassiva = percepcaoPassiva(a, periciasFicha, pb);
+    const percPassiva = 10 + mod(a.sab ?? 10) + (periciasFicha.includes('Percepção') ? pb : 0);
     const tracosLi = (rd.tracos || []).map(t => `<li>${e(t)}</li>`).join('');
     const idiomasTxt = [(rd.idiomas || []).join(', '), (ant && ant.idiomas) ? `+${ant.idiomas} à escolha (antecedente)` : ''].filter(Boolean).join(' · ');
     const sentidosTxt = [`Deslocamento ${rd.deslocamento || 30}m`, `Tamanho ${rd.tamanho || 'Médio'}`, rd.visaoNoEscuro ? `Visão no escuro ${rd.visaoNoEscuro}m` : '', `Percepção passiva ${percPassiva}`].filter(Boolean).join(' · ');
-    // Conjuração (CD e bônus de ataque mágico) — regra única em regras-ficha.js
-    const conjPdf = cdConjuracao(f.classe, f.nivel || 1, a, pb);
-    const conjTxt = conjPdf ? `CD de Magia <b>${conjPdf.cd}</b> · Ataque Mágico <b>${fmtMod(conjPdf.ataque)}</b>` : '';
+    // Conjuração (CD e bônus de ataque mágico)
+    const cj = (typeof CONJURACAO !== 'undefined') ? CONJURACAO[f.classe] : null;
+    const conjTxt = (cj && (f.nivel || 1) >= (cj.desdeNivel || 1))
+      ? `CD de Magia <b>${8 + pb + mod(a[cj.atributo] ?? 10)}</b> · Ataque Mágico <b>${fmtMod(pb + mod(a[cj.atributo] ?? 10))}</b>` : '';
     // Fé & Pacto: quem é a divindade/patrono e o que representa
     const dd = (typeof divindadeDados === 'function') ? divindadeDados(f.divindade) : null;
     const pat = (typeof patronoDados === 'function') ? patronoDados(f.patrono) : null;

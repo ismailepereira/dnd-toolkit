@@ -4,6 +4,23 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-18 — Fichas: regras derivadas em módulo único, schema v2 no servidor e salvamento por ficha com trava otimista
+
+**Backup antes da alteração:** `versoes/2026-07-18-regras-unicas-e-servidor/` (`criador.js`, `jogo.js`, `app.js`, `jogador.js`, `app.py`, `mestre.html`, `jogador.html`).
+
+**Resumo:** a segunda leva das melhorias de engenharia — os três itens estruturais do plano.
+- **`regras-ficha.js` (novo): fonte única dos derivados.** `calcularCA` (leve/média/pesada, escudo, estilo Defesa, defesa sem armadura de Bárbaro/Monge — inclusive multiclasse), `percepcaoPassiva`, `cdConjuracao` e `pvMaximoMonoclasse`. Antes, a CA era calculada em DUAS cópias independentes (criador.js e jogo.js) e a percepção/CD em três lugares — cópias que podiam divergir a qualquer edição. Agora Criador (preview/salvar), Modo de Jogo (recalcularCA ao equipar) e PDF chamam as MESMAS funções, testadas em unidade (5 casos novos).
+- **Servidor: schema v2 + normalização leniente (`_normalizar_ficha`).** O `PUT /api/fichas` deixou de aceitar qualquer blob: campos conhecidos são coagidos a tipos/limites sãos (nível 1-20, atributos 1-30, textos com teto, listas só de strings) — sempre CONSERTANDO o campo, nunca rejeitando a ficha (fichas legadas passam). Todo save carimba `schemaVersion: 2` e `atualizadoEm` — que **só avança quando o conteúdo muda** (saves repetidos e o PUT em lista do Mestre passando por fichas intocadas preservam o carimbo).
+- **`PATCH /api/fichas/<id>` (novo): salvamento por ficha com trava otimista.** Antes, todo save era PUT da lista COMPLETA: Mestre e jogador salvando quase juntos = o último sobrescrevia o outro em silêncio. O Modo de Jogo (que salva a cada clique de dano/magia/item) agora grava só a própria ficha via PATCH, enviando `baseAtualizadoEm`; se outra sessão salvou antes, o servidor devolve **409 + a versão atual** e o cliente recarrega e avisa — nunca atropela. Mesmas proteções por papel do PUT (posse, xp/ouro/morte só via Mestre, antecedente exclusivo); 404 para id inexistente; falhas de rede caem no fluxo antigo (PUT) sem perder o save.
+
+**Ficheiros:** `static/js/regras-ficha.js` (novo), `static/js/criador.js`, `static/js/jogo.js`, `static/js/app.js`, `static/js/jogador.js`, `app.py`, `templates/mestre.html`, `templates/jogador.html`, `tests/test-servidor.py` (novo), `tests/unit-regras.js`, `tests/e2e-*.js`, `.github/workflows/ci.yml`, `package.json`.
+
+**Verificação:** sintaxe OK em todos os JS; **21/21** unit (5 novos p/ regras-ficha); **22/22** testes de servidor novos (`python3 tests/test-servidor.py`: normalização, carimbo estável, 409/404/403, B2 preservado); **23/23** E2E Criador; **16/16** E2E PDF+PATCH (o smoke grava dano via PATCH no navegador e confere carimbo/schema no servidor). CI agora roda também os testes de servidor.
+
+**Como reverter:** restaurar `versoes/2026-07-18-regras-unicas-e-servidor/`, ou `git revert`.
+
+---
+
 ## 2026-07-18 — Criador: aba própria ⛩️ Divindade & Pacto, "rolar e piscar" na seção pendente, testes automatizados + CI
 
 **Backup antes da alteração:** `versoes/2026-07-18-fe-aba-propria-e-testes/` (`_criador.html`, `criador.js`, `dados5e.js`, `jogo.js`, `style.css`).

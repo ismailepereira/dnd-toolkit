@@ -5,8 +5,9 @@
   "scripts": {
     "test": "node tests/unit-regras.js",
     "test:sintaxe": "node tests/checar-sintaxe.js",
+    "test:servidor": "python3 tests/test-servidor.py",
     "test:e2e": "bash tests/run-e2e.sh",
-    "test:tudo": "npm run test:sintaxe && npm run test && npm run test:e2e"
+    "test:tudo": "npm run test:sintaxe && npm run test && npm run test:servidor && npm run test:e2e"
   },
   "devDependencies": {
     "playwright": "^1.49.0"

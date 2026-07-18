@@ -1377,85 +1377,6 @@ def _sanitizar_fichas_jogador(recebidas, armazenadas, meu_uid):
     return saida
 
 
-# ---------------------------------------------------------------
-# Normalização de ficha no servidor (schema versão 2)
-# O cliente é quem monta a ficha, mas o servidor deixou de aceitar qualquer
-# blob: campos conhecidos são coagidos a tipos/limites sãos (LENIENTE — nunca
-# rejeita a ficha, só conserta o campo), todo save ganha `schemaVersion` e um
-# carimbo `atualizadoEm` que só muda quando o CONTEÚDO muda (é a base da trava
-# otimista do PATCH /api/fichas/<id>).
-# ---------------------------------------------------------------
-FICHA_SCHEMA_VERSAO = 2
-
-_FICHA_TEXTOS = {  # campo -> tamanho máximo
-    'nome': 80, 'raca': 60, 'classe': 40, 'subclasse': 80, 'antecedente': 80,
-    'divindade': 80, 'patrono': 80, 'estilo': 60, 'armadura': 60, 'status': 20,
-    'historia': 20000, 'anotacoes': 20000, 'inventario': 20000, 'magias': 20000,
-    'miniaturaUrl': 2000, 'concentrando': 200,
-}
-_FICHA_LISTAS_STR = ['pericias', 'truques', 'magias1', 'itens', 'preparadas', 'sintonizados', 'kitAplicado', 'condicoes']
-_FICHA_DICTS_STR = {'personalidade': 2000, 'itemMemoria': 2000, 'equipado': 200}
-
-
-def _int_saneado(v, minimo, maximo, padrao):
-    """Coage a int dentro de [minimo, maximo]; bool/lixo viram o padrão."""
-    if isinstance(v, bool) or not isinstance(v, (int, float)):
-        return padrao
-    try:
-        return max(minimo, min(maximo, int(v)))
-    except (ValueError, OverflowError):
-        return padrao
-
-
-def _normalizar_ficha(f):
-    """Coage os campos conhecidos da ficha a tipos/limites sãos, em lugar.
-    Leniente por desenho: campo ausente segue ausente, campo inválido é
-    consertado (nunca derruba a gravação inteira). Campos desconhecidos
-    passam intactos — o schema evolui no cliente primeiro."""
-    for campo, tam in _FICHA_TEXTOS.items():
-        if campo in f and f[campo] is not None:
-            f[campo] = str(f[campo])[:tam] if isinstance(f[campo], (str, int, float)) else ''
-    if 'nivel' in f:
-        f['nivel'] = _int_saneado(f.get('nivel'), 1, 20, 1)
-    for campo in ('hpMax', 'hpAtual', 'pvTemp', 'ca', 'xp', 'ouro'):
-        if campo in f:
-            teto = 10_000_000 if campo in ('xp', 'ouro') else 999
-            f[campo] = _int_saneado(f.get(campo), 0, teto, 0)
-    if 'iniciativa' in f:
-        f['iniciativa'] = _int_saneado(f.get('iniciativa'), -10, 30, 0)
-    if isinstance(f.get('atributos'), dict):
-        f['atributos'] = {k: _int_saneado(f['atributos'].get(k), 1, 30, 10)
-                          for k in ('for', 'des', 'con', 'int', 'sab', 'car')}
-    for campo in _FICHA_LISTAS_STR:
-        if campo in f:
-            lista = f[campo] if isinstance(f[campo], list) else []
-            f[campo] = [str(x)[:200] for x in lista if isinstance(x, (str, int, float))][:300]
-    for campo, tam in _FICHA_DICTS_STR.items():
-        if campo in f and isinstance(f[campo], dict):
-            f[campo] = {k: (str(v)[:tam] if isinstance(v, (str, int, float)) else v)
-                        for k, v in f[campo].items()}
-    f['schemaVersion'] = FICHA_SCHEMA_VERSAO
-    return f
-
-
-def _conteudo_ficha(f):
-    """Assinatura estável do conteúdo (ignora os carimbos) p/ decidir se um
-    save realmente mudou algo — e portanto se `atualizadoEm` avança."""
-    visivel = {k: v for k, v in f.items() if k not in ('atualizadoEm', 'schemaVersion')}
-    return json.dumps(visivel, sort_keys=True, ensure_ascii=False, default=str)
-
-
-def _carimbar_ficha(nova, antiga):
-    """`atualizadoEm` só avança quando o conteúdo muda — saves repetidos (ou o
-    PUT em lista do Mestre passando por fichas intocadas) preservam o carimbo,
-    senão toda gravação alheia geraria conflito falso na trava otimista."""
-    if antiga is not None and _conteudo_ficha(nova) == _conteudo_ficha(antiga) and antiga.get('atualizadoEm'):
-        nova['atualizadoEm'] = antiga.get('atualizadoEm')
-    else:
-        nova['atualizadoEm'] = _agora()
-    return nova
-
-
 @app.route('/api/fichas', methods=['PUT'])
 @login_obrigatorio()
 def api_put_fichas():
@@ -1481,73 +1402,9 @@ def api_put_fichas():
         alvo = sorted(novos_dups)[0]
         return jsonify({'ok': False, 'erro': 'antecedente_em_uso',
                         'detalhe': f'o antecedente "{alvo}" já está em uso por outro personagem desta campanha'}), 403
-    # schema v2: normaliza cada ficha e carimba atualizadoEm (só quando mudou)
-    antigas_por_id = {f.get('id'): f for f in estado.get('fichas', []) if isinstance(f, dict)}
-    for f in novas:
-        _normalizar_ficha(f)
-        _carimbar_ficha(f, antigas_por_id.get(f.get('id')))
     estado['fichas'] = novas
     salvar_estado(estado)
     return jsonify({'ok': True})
-
-
-@app.route('/api/fichas/<fid>', methods=['PATCH'])
-@login_obrigatorio()
-def api_patch_ficha(fid):
-    """Grava UMA ficha (em vez da lista inteira) com trava otimista.
-
-    Antes, todo save era PUT da lista completa: dois saves quase simultâneos
-    (Mestre + jogador, ou dois aparelhos) faziam o último sobrescrever o outro
-    em silêncio. O Modo de Jogo agora usa este endpoint: só toca na própria
-    ficha, e se `baseAtualizadoEm` (o carimbo que o cliente viu por último)
-    não bater com o gravado, devolve 409 com a versão atual em vez de
-    atropelar — o cliente recarrega e o usuário refaz a ação em cima do dado
-    certo. As proteções por papel são as MESMAS do PUT (posse, xp/ouro/morte
-    só via Mestre, antecedente exclusivo)."""
-    estado = carregar_estado()
-    fichas = estado.get('fichas', [])
-    idx = next((i for i, f in enumerate(fichas) if isinstance(f, dict) and f.get('id') == fid), None)
-    if idx is None:
-        return jsonify({'ok': False, 'erro': 'ficha_nao_encontrada'}), 404
-    antiga = fichas[idx]
-
-    corpo = request.get_json(force=True)
-    if not isinstance(corpo, dict):
-        return jsonify({'ok': False, 'erro': 'esperava um objeto JSON'}), 400
-    nova = corpo.get('ficha') if isinstance(corpo.get('ficha'), dict) else corpo
-    nova = dict(nova)
-    nova['id'] = fid
-
-    # trava otimista: cliente manda o carimbo que conhecia; divergiu → 409
-    base = corpo.get('baseAtualizadoEm')
-    if base is not None and antiga.get('atualizadoEm') and base != antiga.get('atualizadoEm'):
-        return jsonify({'ok': False, 'erro': 'conflito',
-                        'detalhe': 'a ficha foi alterada por outra sessão desde a sua última leitura',
-                        'ficha': antiga}), 409
-
-    if session.get('papel') != 'mestre':
-        if antiga.get('donoUid') not in (None, uid_sessao()):
-            return jsonify({'ok': False, 'erro': 'sem_permissao',
-                            'detalhe': 'esta ficha pertence a outro jogador'}), 403
-        # mesmos campos protegidos do PUT (B2)
-        nova['donoUid'] = antiga.get('donoUid')
-        nova['xp'] = antiga.get('xp', 0)
-        nova['ouro'] = antiga.get('ouro', 0)
-        if antiga.get('status') == 'morto':
-            nova['status'] = 'morto'
-
-    tentativa = fichas[:idx] + [nova] + fichas[idx + 1:]
-    novos_dups = _antecedentes_exclusivos_dup(tentativa) - _antecedentes_exclusivos_dup(fichas)
-    if novos_dups:
-        alvo = sorted(novos_dups)[0]
-        return jsonify({'ok': False, 'erro': 'antecedente_em_uso',
-                        'detalhe': f'o antecedente "{alvo}" já está em uso por outro personagem desta campanha'}), 403
-
-    _normalizar_ficha(nova)
-    _carimbar_ficha(nova, antiga)
-    estado['fichas'] = tentativa
-    salvar_estado(estado)
-    return jsonify({'ok': True, 'ficha': nova})
 
 
 @app.route('/api/monstros_visiveis', methods=['GET'])

@@ -20,6 +20,8 @@ const HISTORIA = 'Nascido nas docas de Águas Profundas, cresceu ouvindo histór
   const falhas = [];
   const ok = (cond, msg) => { console.log((cond ? '✅' : '❌') + ' ' + msg); if (!cond) falhas.push(msg); };
   page.on('dialog', d => d.accept());
+  // o destaque entra por setTimeout — espera ativa (até 3s) em vez de sleep fixo
+  const piscou = sel => page.waitForSelector(`${sel}.piscar-pendente`, { timeout: 3000 }).then(() => true).catch(() => false);
 
   // ----- login (conta legada de mestre, definida por env no run-e2e.sh) -----
   await page.goto(`${BASE}/login`);
@@ -73,7 +75,7 @@ const HISTORIA = 'Nascido nas docas de Águas Profundas, cresceu ouvindo histór
   await page.click('#cProximo');
   await page.waitForTimeout(300);
   ok((await page.textContent('#cValidacao')).includes('devotar'), 'Validação explica a exigência do Clérigo');
-  ok(await page.$eval('#cFeWrap', el => el.classList.contains('piscar-pendente')), 'Seção pendente PISCA (classe piscar-pendente)');
+  ok(await piscou('#cFeWrap'), 'Seção pendente PISCA (classe piscar-pendente)');
 
   // ----- salvar lá da etapa 6 volta à etapa pendente e pisca -----
   await page.selectOption('#cDivindade', 'Lathander'); // fé ok
@@ -92,7 +94,7 @@ const HISTORIA = 'Nascido nas docas de Águas Profundas, cresceu ouvindo histór
   await page.click('#cSalvar');
   await page.waitForTimeout(350);
   ok(await page.isVisible('.criador-step[data-step="3"]'), 'Salvar volta à primeira etapa pendente (3)');
-  ok(await page.$eval('#cNome', el => el.classList.contains('piscar-pendente')), 'Campo pendente (nome) pisca');
+  ok(await piscou('#cNome'), 'Campo pendente (nome) pisca');
   const scrollDepois = await page.evaluate(() => document.querySelector('#modalCriador .modal-content').scrollTop);
   ok(scrollDepois !== undefined, `Scroll controlado ao navegar (scrollTop=${scrollDepois})`);
 
@@ -117,7 +119,7 @@ const HISTORIA = 'Nascido nas docas de Águas Profundas, cresceu ouvindo histór
   await page.click('#cProximo'); // sem patrono → deve travar e piscar
   await page.waitForTimeout(300);
   ok((await page.textContent('#cValidacao')).includes('patrono'), 'Validação exige patrono do Bruxo');
-  ok(await page.$eval('#cFeWrap', el => el.classList.contains('piscar-pendente')), 'Fé & Pacto pisca quando falta o patrono');
+  ok(await piscou('#cFeWrap'), 'Fé & Pacto pisca quando falta o patrono');
 
   await page.selectOption('#cPatrono', 'Orcus');
   await page.waitForTimeout(200);

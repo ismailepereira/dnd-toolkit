@@ -10,6 +10,8 @@ const Criador = (function () {
   let criandoNovo = true;        // ficha nova (aplica ouro inicial)
   let mostrarTodasEscolas = false; // Mago: ver magias de todas as escolas
 
+  const AVG_DADO = { d6: 4, d8: 5, d10: 6, d12: 7 };
+
   function escHtml(s) {
     if (s == null) return '';
     return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -72,17 +74,35 @@ const Criador = (function () {
   function calcular(s) {
     const attrs = atributosFinais(s);
     const pb = PB(s.nivel);
-    const cls = CLASSES[CLASSE_NOME_PARA_CHAVE[s.classe]];
+    const chaveClasse = CLASSE_NOME_PARA_CHAVE[s.classe];
+    const cls = CLASSES[chaveClasse];
+    const dado = cls ? cls.dadoVida : 'd8';
+    const numDado = parseInt(dado.replace('d', ''), 10);
+    const conMod = mod(attrs.con);
 
-    // PV, CA e percepção passiva: regras-ficha.js (fonte única, compartilhada
-    // com o Modo de Jogo e o PDF — antes cada um tinha a sua cópia)
     const r = RACAS_DETALHE[s.raca] || {};
-    const hp = pvMaximoMonoclasse(s.classe, s.nivel, attrs, s.raca);
-    const ca = calcularCA({ classes: [s.classe], armadura: s.armadura, escudo: s.escudo, estilo: s.estilo, atributos: attrs });
+    const pvExtra = (r.pvExtraPorNivel || 0) * s.nivel;
+    let hp = numDado + conMod; // nível 1
+    for (let n = 2; n <= s.nivel; n++) hp += AVG_DADO[dado] + conMod;
+    hp += pvExtra;
+    hp = Math.max(1, hp);
 
-    const iniciativa = mod(attrs.des);
+    // CA
+    const arm = ARMADURAS[s.armadura] || ARMADURAS['Sem armadura'];
+    const dexMod = mod(attrs.des);
+    let ca;
+    if (s.armadura === 'Sem armadura' && s.classe === 'Bárbaro') ca = 10 + dexMod + conMod;
+    else if (s.armadura === 'Sem armadura' && s.classe === 'Monge') ca = 10 + dexMod + mod(attrs.sab);
+    else if (arm.tipo === 'leve') ca = arm.base + dexMod;
+    else if (arm.tipo === 'media') ca = arm.base + Math.min(dexMod, 2);
+    else ca = arm.base;
+    if (s.escudo) ca += 2;
+    if (s.estilo === 'Defesa' && s.armadura !== 'Sem armadura') ca += 1;
+
+    const iniciativa = dexMod;
     const perProf = periciasProficientes(s);
-    const percPassiva = percepcaoPassiva(attrs, perProf, pb);
+    const percMod = mod(attrs.sab) + (perProf.has('Percepção') ? pb : 0);
+    const percPassiva = 10 + percMod;
 
     // Salvaguardas
     const salvas = (cls ? cls.salvaguardas : []).map(n => SALVA_CHAVE[n]);
@@ -92,8 +112,17 @@ const Criador = (function () {
       prof: salvas.includes(a.chave),
     }));
 
-    // Conjuração (CD/ataque): regras-ficha.js
-    const conj = cdConjuracao(s.classe, s.nivel, attrs, pb);
+    // Conjuração
+    let conj = null;
+    const cj = CONJURACAO[s.classe];
+    if (cj && s.nivel >= (cj.desdeNivel || 1)) {
+      const m = mod(attrs[cj.atributo]);
+      conj = {
+        atributo: cj.atributo,
+        cd: 8 + pb + m,
+        ataque: pb + m,
+      };
+    }
 
     return {
       attrs, pb, hp, ca, iniciativa, percPassiva, salvaguardas, conj,

@@ -19,3 +19,7 @@ jobs:
         run: node tests/unit-regras.js
       - name: Sintaxe do backend (app.py)
         run: python3 -m py_compile app.py
+      - name: Testes do servidor de fichas (schema v2 + PATCH)
+        run: |
+          pip install --quiet Flask python-dotenv
+          python3 tests/test-servidor.py

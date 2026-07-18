@@ -69,33 +69,9 @@ function salvarFichas() {
   return _filaSalvarFichas;
 }
 
-// Grava SÓ a ficha em jogo (PATCH com trava otimista): o Modo de Jogo salva a
-// cada clique e não deve reescrever a lista da mesa inteira. Conflito (409:
-// outro aparelho ou o Mestre salvou antes) → recarrega e avisa, nunca
-// sobrescreve em silêncio. Outras falhas caem no PUT antigo.
-function salvarFicha(f) {
-  if (!f || !f.id) return salvarFichas();
-  const body = JSON.stringify({ ficha: f, baseAtualizadoEm: f.atualizadoEm || null });
-  return fetch(`/api/fichas/${encodeURIComponent(f.id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body })
-    .then(async res => {
-      if (res.ok) {
-        const d = await res.json().catch(() => ({}));
-        if (d.ficha) { f.atualizadoEm = d.ficha.atualizadoEm; f.schemaVersion = d.ficha.schemaVersion; }
-        return;
-      }
-      if (res.status === 409) {
-        alert('⚠️ Esta ficha foi alterada em outra sessão (outro aparelho ou o Mestre).\nRecarregando a versão mais recente — refaça a última ação se ainda for preciso.');
-        await carregarFichas();
-        return;
-      }
-      return salvarFichas();
-    })
-    .catch(() => {});
-}
-
 function minhaFichaId() { try { return localStorage.getItem('dnd_minha_ficha'); } catch (e) { return null; } }
 function setMinhaFicha(id) { try { id ? localStorage.setItem('dnd_minha_ficha', id) : localStorage.removeItem('dnd_minha_ficha'); } catch (e) {} }
-function jogarFicha(f) { Jogo.abrir(f, { aoAtualizar: () => { salvarFicha(f); renderFichas(); } }); }
+function jogarFicha(f) { Jogo.abrir(f, { aoAtualizar: () => { salvarFichas(); renderFichas(); } }); }
 
 function renderFichas() {
   listaFichas.innerHTML = '';

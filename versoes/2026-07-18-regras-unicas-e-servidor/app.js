@@ -66,30 +66,6 @@ async function carregarFichas() {
   renderFichas();
 }
 
-// Grava SÓ uma ficha (PATCH) com trava otimista — o Modo de Jogo salva a cada
-// clique (dano, magia, item) e não deve reescrever a mesa inteira. Se outra
-// sessão salvou no meio tempo, o servidor devolve 409: recarrega e avisa em
-// vez de sobrescrever em silêncio. Qualquer outra falha cai no PUT antigo.
-function salvarFicha(f) {
-  if (!f || !f.id) return salvarFichas();
-  const body = JSON.stringify({ ficha: f, baseAtualizadoEm: f.atualizadoEm || null });
-  return fetch(`/api/fichas/${encodeURIComponent(f.id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body })
-    .then(async res => {
-      if (res.ok) {
-        const d = await res.json().catch(() => ({}));
-        if (d.ficha) { f.atualizadoEm = d.ficha.atualizadoEm; f.schemaVersion = d.ficha.schemaVersion; }
-        return;
-      }
-      if (res.status === 409) {
-        alert('⚠️ Esta ficha foi alterada em outra sessão (outro aparelho ou o Mestre).\nRecarregando a versão mais recente — refaça a última ação se ainda for preciso.');
-        await carregarFichas();
-        return;
-      }
-      return salvarFichas(); // 404 (ficha ainda só local) ou outro erro: fluxo antigo resolve e avisa
-    })
-    .catch(() => {});
-}
-
 let _filaSalvarFichas = Promise.resolve();
 function salvarFichas() {
   // captura o conteúdo AGORA (evita que o listener de tempo real atropele a gravação)
@@ -147,7 +123,7 @@ function renderFichas() {
     `;
     card.querySelector('[data-jogar]').addEventListener('click', (e) => {
       e.stopPropagation();
-      Jogo.abrir(f, { aoAtualizar: () => { salvarFicha(f); renderFichas(); } });
+      Jogo.abrir(f, { aoAtualizar: () => { salvarFichas(); renderFichas(); } });
     });
     card.querySelector('[data-editar]').addEventListener('click', (e) => { e.stopPropagation(); abrirFicha(f.id); });
     card.querySelector('[data-loja-especial-ficha]').addEventListener('click', e => e.stopPropagation());

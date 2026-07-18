@@ -4,6 +4,25 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-18 — Fichas: ⛩️ Fé & Pacto (divindades + patronos de Bruxo), scroll das etapas e PDF completo
+
+**Backup antes da alteração:** `versoes/2026-07-18-divindades-pactos/` (`dados5e.js`, `criador.js`, `jogo.js`, `_criador.html`).
+
+**Resumo:** Pedido do Ismaile — toda ficha pode escolher a sua divindade (ou declarar-se ateia), Clérigos/Paladinos são devotos obrigatórios e Bruxos escolhem a ENTIDADE do pacto (o demônio/fada/horror por trás da subclasse). Cada escolha vem explicada (quem é o deus e para quê) na hora de escolher, no preview, no Modo de Jogo e no PDF. De quebra, dois incómodos antigos: a etapa nova do Criador abria no meio da rolagem, e o PDF exportado saía "simples".
+- **Dados novos (`dados5e.js`):** `DIVINDADES` — 32 divindades de Faerûn em 6 grupos (Vida e Luz · Guerra e Proteção · Conhecimento e Magia · Natureza e Tempestades · Fortuna, Sombras e Morte · Panteões Ancestrais/raciais), cada uma com título, domínios, alinhamento, símbolo e resumo ("quem é e para quê"); `SEM_DIVINDADE` ('Ateu (sem divindade)'); `PATRONOS_PACTO` — 18 entidades de pacto agrupadas pelos 3 tipos de patrono do Bruxo (as chaves espelham `SUBCLASSES['Bruxo']`): Asmodeus, Orcus, Titânia, Tharizdun etc., com título e resumo; helpers `divindadeDados()` e `listaDivindades()`.
+- **Criador (etapa 3 — Identidade):** nova seção **⛩️ Fé & Pacto**. Select de divindade agrupado por panteão + opção Ateu + "✍️ Outra (escrever à mão)" para homebrew; painel de info explica a escolha na hora. Para **Bruxo**, aparece também o **Patrono do Pacto** (agrupado por tipo, com o grupo da subclasse marcado "★ seu pacto", aviso se a entidade não bate com a subclasse, e campo manual p/ demônios da campanha). **Regras:** Clérigo/Paladino → divindade obrigatória (Ateu desabilitado no select + validação); Bruxo → patrono obrigatório; demais classes → escolher divindade OU ateísmo (fichas antigas em edição não travam). Gerador automático sorteia fé coerente (devotos nunca saem ateus; Bruxo ganha entidade do tipo do pacto) e a IA de história recebe a fé no contexto.
+- **Ficha:** `divindade` e `patrono` entram no schema (o servidor grava a ficha inteira — sem mudança no backend). Preview do Criador, cabeçalho + bloco "Fé & Pacto" (com a explicação) no Modo de Jogo, e PDF.
+- **Bug do scroll (`irPasso`):** ao trocar de etapa (Próximo/Voltar/chips), o `.modal-content` volta ao topo — antes a etapa nova abria no ponto de rolagem da anterior.
+- **PDF completo (`exportarFichaPDF`):** agora sai com **as 18 perícias** (modificador + proficiência, em 2 colunas), **traços raciais**, **sentidos** (deslocamento/tamanho/visão no escuro/percepção passiva), **idiomas**, **características de classe ACUMULADAS até o nível** (antes só as do nível atual!), **estilo de combate com descrição**, **CD/ataque de conjuração**, **⛩️ Fé & Pacto explicado** e **anotações** — além de tudo que já tinha.
+
+**Ficheiros:** `static/js/dados5e.js`, `static/js/criador.js`, `static/js/jogo.js`, `templates/_criador.html`, `CHANGELOG.md`.
+
+**Verificação (Playwright + Node):** `node --check` OK nos 3 JS; harness de dados (32 divindades, chaves de `PATRONOS_PACTO` batem 1:1 com as subclasses de Bruxo, helpers devolvem null p/ ateu/desconhecida); **20/20 ✅** no fluxo real do Criador (login mestre → Clérigo: Ateu desabilitado, info "Senhor da Manhã" ao escolher Lathander, preview explicado; Bruxo: select de patrono com "★ seu pacto", info de Orcus, validação trava sem patrono; scroll volta a 0 ao trocar de etapa; auto-gerar escolhe divindade) e **18/18 ✅** no PDF exportado (Shar e Asmodeus explicados, 18 perícias, traços de Tiefling, percepção passiva, CD de magia, características nível 1-3, anotações).
+
+**Como reverter:** restaurar os backups de `versoes/2026-07-18-divindades-pactos/`, ou `git revert`.
+
+---
+
 ## 2026-07-15 — Ninho da Rainha Dragão: Eps 7 e 8 + CAMPANHA COMPLETA ✅ (os 8 episódios)
 
 **Backups:** `versoes/2026-07-15-ninho-ep7-refugio/` · `versoes/2026-07-15-ninho-ep8-skyreach/`.

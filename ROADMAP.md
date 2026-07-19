@@ -8,6 +8,15 @@ Mapa de tarefas do projeto, organizado por fases. Marque `[x]` conforme for conc
 
 ---
 
+## 🎯 NOVO (19/07/2026) — Fichas por classe & Combate
+
+Feedback da mesa de 18/07 (Paladino confuso no nv1, magias invisíveis no combate, azagaias repetidas,
+arma arremessada sem controle) virou um roadmap próprio e priorizado:
+**→ `docs/ROADMAP-FICHAS-COMBATE.md`** (Fase F = fichas, Fase C = combate; ordem sugerida C1 → F1 → C2+C3 → F2 → C4…).
+Já entregues dessa leva: 🐺 Forma Selvagem do Druida completa, bug das magias do Clérigo, ⛩️ Divindades & Pactos.
+
+---
+
 ## 🧭 AGORA (13/07/2026) — onde estamos e para onde ir
 
 **Estado:** o núcleo do produto está completo — 12 classes até o nível 20, combate com alvos/defesas/loot, livro-jogo (editor canvas + condução com votação, NPCs, loot e XP), **Tabuleiro-imagem ao vivo** (tokens de PJ e monstro, toque, travar, redimensionar), **PWA instalável** e telas reorganizadas por modo (Mestre 3 / Jogador 2). Conteúdo: 59 monstros (100% com loot), 3 aventuras prontas (Ninho 29 nós, Phandelver Cap. 1, + 2 one-shots originais).

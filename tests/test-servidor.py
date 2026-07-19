@@ -19,6 +19,7 @@ os.environ['JOGADOR_SENHA'] = 'senha-teste-456'
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from app import app  # noqa: E402
+import app as servidor  # noqa: E402  (acesso às funções de cobrança p/ testar o MODO LIVRE)
 
 falhas = []
 total = 0
@@ -107,6 +108,16 @@ d = r.get_json().get('ficha', {})
 t('xp do jogador é preservado do servidor (B2)', d.get('xp') == 100, str(d.get('xp')))
 t('ouro do jogador é preservado do servidor (B2)', d.get('ouro') == 20, str(d.get('ouro')))
 t('nome novo do jogador entrou', d.get('nome') == 'Legada Editada', str(d.get('nome')))
+
+# ----- MODO LIVRE (temporário): limitação e cobrança desligadas -----
+t('MODO_LIVRE está LIGADO por padrão (pedido de 2026-07-19)', servidor.MODO_LIVRE is True)
+with app.test_request_context('/'):
+    vencida = {'mestreUid': 'u_pagante', 'pagaAte': '2000-01-01T00:00:00+00:00'}
+    t('campanha vencida NÃO fica só-leitura no modo livre', servidor.campanha_paga_em_dia(vencida) is True)
+    t('nenhuma campanha é "cobrável" no modo livre (sem limite de fichas)',
+      servidor.campanha_cobravel('camp_qualquer') is False)
+    t('ciclo de vida não marca inativa nem apaga no modo livre',
+      servidor.ciclo_campanha('camp_x', dict(vencida)) is not None)
 
 print()
 print(f'❌ {len(falhas)} falha(s) de {total}' if falhas else f'✅ {total} testes do servidor passaram')

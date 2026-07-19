@@ -207,8 +207,6 @@ def campanha_paga_em_dia(meta):
     """Fase 23.3: a campanha aceita escritas? True se paga em dia (pagaAte no
     futuro), OU se é legada (sem meta, ex.: 'principal'), OU se o dono é o
     mestre legado (admin — nunca cobrado)."""
-    if MODO_LIVRE:
-        return True  # modo livre temporário: nenhuma campanha fica só-leitura
     if not meta:
         return True  # campanha legada sem metadados (mestre fixo de env)
     if str(meta.get('mestreUid', '')).startswith('legacy:'):
@@ -229,8 +227,6 @@ def campanha_ativa_para_escrita(camp_id):
 def campanha_cobravel(camp_id):
     """True se a campanha é um produto pago (tem meta e o dono NÃO é o mestre
     legado). As legadas/'principal' ficam fora dos limites de produto (23.4)."""
-    if MODO_LIVRE:
-        return False  # modo livre temporário: sem limite de fichas nem cobrança por campanha
     meta = carregar_campanhas_meta().get(camp_id)
     return bool(meta) and not str(meta.get('mestreUid', '')).startswith('legacy:')
 
@@ -396,18 +392,6 @@ CREDITO_INICIAL = int(os.environ.get('CREDITO_INICIAL', '20'))
 # então a assinatura plana de conta (Fase 10.9) nasce DESLIGADA. Só volta a
 # trancar a app inteira se EXIGIR_ASSINATURA_PLANA=1 (rollback de emergência).
 EXIGIR_ASSINATURA_PLANA = os.environ.get('EXIGIR_ASSINATURA_PLANA', '0') == '1'
-
-# ---------------------------------------------------------------
-# MODO LIVRE (TEMPORÁRIO — pedido do Ismaile em 2026-07-19): desliga TODA a
-# limitação de jogo e a cobrança de créditos até segunda ordem. Com a chave
-# ligada: campanhas nunca ficam inativas/só-leitura nem são apagadas por
-# retenção, o limite de fichas por campanha não se aplica, e criar/renovar
-# campanha é grátis (nenhum crédito é debitado; os saldos ficam intactos).
-# PARA REATIVAR a cobrança: defina MODO_LIVRE=0 no ambiente (Render) — ou
-# troque o padrão abaixo para '0' e faça deploy. Nada foi removido: todo o
-# código de créditos/limites continua no lugar, só desviado por esta chave.
-# ---------------------------------------------------------------
-MODO_LIVRE = os.environ.get('MODO_LIVRE', '1') == '1'
 
 _abacate = None
 
@@ -1207,7 +1191,7 @@ def pagina_campanhas():
     return render_template('campanhas.html', campanhas=minhas, erro=request.args.get('erro'),
                            usuario=session.get('nomeExibicao') or session.get('usuario'),
                            legado_mestre=eh_legado_mestre(uid), creditos=creditos,
-                           custo_campanha=CAMPANHA_CREDITOS, modo_livre=MODO_LIVRE)
+                           custo_campanha=CAMPANHA_CREDITOS)
 
 
 @app.route('/campanha/nova', methods=['POST'])
@@ -1217,16 +1201,15 @@ def campanha_nova():
     nome = request.form.get('nome', '').strip()[:48]
     if not nome:
         return redirect(url_for('pagina_campanhas', erro='Dê um nome à campanha.'))
-    # Fase 23.3: criar uma campanha custa CAMPANHA_CREDITOS (o mestre legado é
-    # isento; no MODO LIVRE temporário ninguém é cobrado).
-    cobrar = not uid.startswith('legacy:') and not MODO_LIVRE
-    if cobrar:
+    # Fase 23.3: criar uma campanha custa CAMPANHA_CREDITOS (o mestre legado é isento).
+    eh_legado = uid.startswith('legacy:')
+    if not eh_legado:
         if saldo_creditos(carregar_usuario_reg(uid)) < CAMPANHA_CREDITOS:
             return redirect(url_for('pagina_campanhas',
                                     erro=f'Criar uma campanha custa {CAMPANHA_CREDITOS} créditos (R$ 5,00/mês). '
                                          'Compre créditos e tente de novo.'))
     cid = 'camp_' + uuid.uuid4().hex[:10]
-    if cobrar:
+    if not eh_legado:
         ok, _ = lancar_creditos(uid, -CAMPANHA_CREDITOS, f'criar campanha "{nome}"', por='sistema')
         if not ok:
             return redirect(url_for('pagina_campanhas', erro='Saldo de créditos insuficiente.'))
@@ -1291,7 +1274,7 @@ def campanha_renovar():
         return redirect(url_for('pagina_campanhas', erro='Campanha não encontrada.'))
     if meta.get('mestreUid') != uid and not eh_legado_mestre(uid):
         return redirect(url_for('pagina_campanhas', erro='Só o Mestre da campanha pode renová-la.'))
-    if not str(meta.get('mestreUid', '')).startswith('legacy:') and not MODO_LIVRE:
+    if not str(meta.get('mestreUid', '')).startswith('legacy:'):
         if saldo_creditos(carregar_usuario_reg(uid)) < CAMPANHA_CREDITOS:
             return redirect(url_for('pagina_campanhas',
                                     erro=f'Renovar custa {CAMPANHA_CREDITOS} créditos. Compre créditos e tente de novo.'))

@@ -14,7 +14,7 @@ const RAIZ = path.join(__dirname, '..');
 const sandbox = { console, module: { exports: {} }, require: () => ({}) };
 vm.createContext(sandbox);
 // ordem espelha a dos <script> nos templates (classes.js define PB antes dos demais usos)
-for (const f of ['classes.js', 'dados5e.js', 'compendio.js', 'fontes.js', 'regras-ficha.js']) {
+for (const f of ['classes.js', 'dados5e.js', 'compendio.js', 'fontes.js', 'regras-ficha.js', 'formaselvagem.js']) {
   vm.runInContext(fs.readFileSync(path.join(RAIZ, 'static/js', f), 'utf8'), sandbox, { filename: f });
 }
 // const/let do topo dos ficheiros ficam no escopo léxico do contexto, não em
@@ -25,6 +25,7 @@ const ctx = vm.runInContext(`({
   DIVINDADES, SEM_DIVINDADE, CLASSES_DEVOTAS, listaDivindades, divindadeDados,
   PATRONOS_PACTO, patronoDados, SUBCLASSES, antecedentesDisponiveis, antecedenteDados,
   calcularCA, percepcaoPassiva, cdConjuracao, pvMaximoMonoclasse,
+  FORMAS_SELVAGENS, limiteFormaSelvagem, formasSelvagensDisponiveis, formaSelvagemDados,
 })`, sandbox);
 // guarda contra testes vácuos: nada aqui pode estar indefinido
 for (const k in ctx) assert.ok(ctx[k] != null, `binding indefinida no contexto: ${k}`);
@@ -202,6 +203,52 @@ t('percepcaoPassiva: 10 + SAB (+prof), aceitando array ou Set', () => {
   assert.strictEqual(ctx.percepcaoPassiva(at, ['Furtividade'], 2), 12);
   assert.strictEqual(ctx.percepcaoPassiva(at, ['Percepção'], 2), 14);
   assert.strictEqual(ctx.percepcaoPassiva(at, new Set(['Percepção']), 3), 15);
+});
+
+// ----- Forma Selvagem (Druida) -----
+t('formas selvagens: catálogo íntegro (stats completos em todas)', () => {
+  assert.ok(ctx.FORMAS_SELVAGENS.length >= 20, `só ${ctx.FORMAS_SELVAGENS.length} formas`);
+  ctx.FORMAS_SELVAGENS.forEach(f => {
+    assert.ok(f.nome && f.nd >= 0 && f.ca >= 10 && f.pv >= 1 && f.desloc, `${f.nome}: básico`);
+    ['for', 'des', 'con'].forEach(k => assert.ok(f.atributos[k] >= 1 && f.atributos[k] <= 30, `${f.nome}: ${k}`));
+    assert.ok(Array.isArray(f.ataques) && f.ataques.length >= 1 && f.ataques.every(a => a.nome && a.dano), `${f.nome}: ataques`);
+    assert.ok(Array.isArray(f.tracos), `${f.nome}: traços`);
+  });
+});
+
+t('limiteFormaSelvagem segue a tabela do PHB (padrão e Círculo da Lua)', () => {
+  assert.strictEqual(ctx.limiteFormaSelvagem(1, ''), null);                       // sem Forma Selvagem no nv1
+  assert.deepStrictEqual({ ...ctx.limiteFormaSelvagem(2, '') }, { nd: 0.25, nado: false, voo: false });
+  assert.deepStrictEqual({ ...ctx.limiteFormaSelvagem(4, '') }, { nd: 0.5, nado: true, voo: false });
+  assert.deepStrictEqual({ ...ctx.limiteFormaSelvagem(8, '') }, { nd: 1, nado: true, voo: true });
+  assert.strictEqual(ctx.limiteFormaSelvagem(2, 'Círculo da Lua').nd, 1);         // Forma de Combate
+  assert.strictEqual(ctx.limiteFormaSelvagem(9, 'Círculo da Lua').nd, 3);         // ⌊9/3⌋
+  assert.strictEqual(ctx.limiteFormaSelvagem(20, 'Círculo da Lua').nd, 6);
+  assert.strictEqual(ctx.limiteFormaSelvagem(2, 'Círculo da Lua').nado, false);   // deslocamento não muda com a subclasse
+});
+
+t('formasSelvagensDisponiveis filtra ND, natação e voo por nível', () => {
+  const nomes = nivel => ctx.formasSelvagensDisponiveis(nivel, '').map(f => f.nome);
+  const n2 = nomes(2);
+  assert.ok(n2.includes('Lobo') && n2.includes('Pantera'), 'nv2 tem Lobo/Pantera');
+  assert.ok(!n2.includes('Corvo') && !n2.includes('Cobra Constritora'), 'nv2 sem voo nem natação');
+  assert.ok(!n2.includes('Urso Negro'), 'nv2 sem ND ½');
+  const n4 = nomes(4);
+  assert.ok(n4.includes('Urso Negro') && n4.includes('Crocodilo') && n4.includes('Cobra Constritora'), 'nv4 ganha ND ½ e natação');
+  assert.ok(!n4.includes('Águia Gigante') && !n4.includes('Corvo'), 'nv4 ainda sem voo');
+  const n8 = nomes(8);
+  assert.ok(n8.includes('Urso-Pardo') && n8.includes('Águia Gigante') && n8.includes('Corvo'), 'nv8 ganha ND 1 e voo');
+  assert.ok(!n8.includes('Urso Polar'), 'nv8 padrão não passa de ND 1');
+  const lua2 = ctx.formasSelvagensDisponiveis(2, 'Círculo da Lua').map(f => f.nome);
+  assert.ok(lua2.includes('Urso-Pardo') && lua2.includes('Lobo Atroz'), 'Lua nv2 alcança ND 1');
+  assert.ok(!lua2.includes('Águia Gigante'), 'Lua nv2 continua sem voo');
+  const lua9 = ctx.formasSelvagensDisponiveis(9, 'Círculo da Lua').map(f => f.nome);
+  assert.ok(lua9.includes('Urso Polar') && lua9.includes('Anquilossauro'), 'Lua nv9 alcança ND 3');
+});
+
+t('formaSelvagemDados devolve a forma pelo nome (e null p/ inexistente)', () => {
+  assert.strictEqual(ctx.formaSelvagemDados('Urso-Pardo').pv, 34);
+  assert.strictEqual(ctx.formaSelvagemDados('Fênix'), null);
 });
 
 t('SUBCLASSES: toda classe listada existe e nível de escolha é 1-3', () => {

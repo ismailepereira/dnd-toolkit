@@ -161,15 +161,9 @@ function abrirFicha(id) {
   const f = id ? fichas.find(x => x.id === id) : null;
   Criador.abrir(f, {
     aoSalvar(novo) {
-      if (f) {
-        // edição: grava SÓ esta ficha (PATCH com trava otimista)
-        Object.assign(f, novo);
-        salvarFicha(f);
-      } else {
-        // criação: precisa do PUT em lista (o PATCH não cria fichas)
-        fichas.push({ id: uid(), donoUid: window.MEU_UID || null, status: 'vivo', ...novo });
-        salvarFichas();
-      }
+      if (f) Object.assign(f, novo);
+      else fichas.push({ id: uid(), donoUid: window.MEU_UID || null, status: 'vivo', ...novo });
+      salvarFichas();
       renderFichas();
     },
     aoExcluir: f ? () => {

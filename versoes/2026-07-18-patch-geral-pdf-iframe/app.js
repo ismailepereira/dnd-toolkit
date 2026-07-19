@@ -153,7 +153,7 @@ function renderFichas() {
     card.querySelector('[data-loja-especial-ficha]').addEventListener('click', e => e.stopPropagation());
     card.querySelector('[data-loja-especial-ficha]').addEventListener('change', (e) => {
       f.lojaEspecialLiberada = e.target.checked;
-      salvarFicha(f);
+      salvarFichas();
     });
     listaFichas.appendChild(card);
   });
@@ -280,15 +280,9 @@ function abrirFicha(id) {
   const f = id ? fichas.find(x => x.id === id) : null;
   Criador.abrir(f, {
     aoSalvar(novo) {
-      if (f) {
-        // edição: grava SÓ esta ficha (PATCH com trava otimista)
-        Object.assign(f, novo);
-        salvarFicha(f);
-      } else {
-        // criação: precisa do PUT em lista (o PATCH não cria fichas)
-        fichas.push({ id: uid(), donoUid: window.MEU_UID || null, status: 'vivo', ...novo });
-        salvarFichas();
-      }
+      if (f) Object.assign(f, novo);
+      else fichas.push({ id: uid(), donoUid: window.MEU_UID || null, status: 'vivo', ...novo });
+      salvarFichas();
       renderFichas();
     },
     aoExcluir: f ? () => {
@@ -535,12 +529,12 @@ function aplicarDanoComb(c, v, tipo) {
   const mult = multiplicadorDano(c, tipo);
   const real = Math.floor(v * mult);
   c.hpAtual = Math.max(0, c.hpAtual - real);
-  if (c.tipo === 'pc' && c.fichaId) { const f = fichas.find(x => x.id === c.fichaId); if (f) { f.hpAtual = c.hpAtual; salvarFicha(f); } }
+  if (c.tipo === 'pc' && c.fichaId) { const f = fichas.find(x => x.id === c.fichaId); if (f) { f.hpAtual = c.hpAtual; salvarFichas(); } }
   return { real, mult };
 }
 function curarComb(c, v) {
   c.hpAtual = Math.min(c.hpMax, c.hpAtual + v);
-  if (c.tipo === 'pc' && c.fichaId) { const f = fichas.find(x => x.id === c.fichaId); if (f) { f.hpAtual = c.hpAtual; salvarFicha(f); } }
+  if (c.tipo === 'pc' && c.fichaId) { const f = fichas.find(x => x.id === c.fichaId); if (f) { f.hpAtual = c.hpAtual; salvarFichas(); } }
 }
 
 function umAtaque(atacante, acao, alvo) {

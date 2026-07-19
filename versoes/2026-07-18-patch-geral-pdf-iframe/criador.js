@@ -237,12 +237,7 @@ const Criador = (function () {
     wrap.querySelectorAll('[data-escolha]').forEach(sel => {
       sel.addEventListener('change', () => {
         estado.escolhaAtributos[+sel.dataset.escolha] = sel.value;
-        // BUG (relato do Ismaile): +1 racial em SAB/INT/CAR muda o limite de
-        // magias preparadas (ex.: Clérigo 15→16 de SAB = 3→4 magias), mas o
-        // painel de magias não era re-renderizado — o aviso/validação dizia 4
-        // e os checkboxes travavam em 3. Re-render de tudo que depende de
-        // atributos (o select da escolha racial não é tocado, o foco fica).
-        renderAposAtributos();
+        renderPreview();
       });
     });
   }
@@ -1393,17 +1388,6 @@ const Criador = (function () {
   function painelDruida(s) {
     const prep = Math.max(1, mod(atributosFinais(s).sab) + s.nivel);
     const ndForma = s.nivel >= 8 ? '1 (qualquer desloc.)' : (s.nivel >= 4 ? '½ (sem voo)' : '¼ (sem voo/natação)');
-    // Formas concretas do nível (formaselvagem.js) — agrupadas por ND
-    let formasHtml = '';
-    if (s.nivel >= 2 && typeof formasSelvagensDisponiveis === 'function') {
-      const formas = formasSelvagensDisponiveis(s.nivel, s.subclasse);
-      const grupos = {};
-      formas.forEach(fs => { (grupos[ndRotulo(fs.nd)] = grupos[ndRotulo(fs.nd)] || []).push(fs); });
-      formasHtml = `<h4>🐺 Formas Selvagens disponíveis no nível ${s.nivel}${s.subclasse === 'Círculo da Lua' ? ' (Círculo da Lua 🌙)' : ''}</h4>
-        ${Object.keys(grupos).map(nd => `<div class="pv-linha"><strong>ND ${nd}:</strong> ${grupos[nd].map(fs =>
-          `${escHtml(fs.nome)} <small>(CA ${fs.ca} · ${fs.pv} PV)</small>`).join(' · ')}</div>`).join('')}
-        <div class="criador-hint">No Modo de Jogo você transforma com 1 clique: PV da fera, ataques e traços prontos; dano excedente volta para os seus PV.${s.nivel < 8 ? ` Melhora no nível ${s.nivel < 4 ? '4 (ND ½ + natação)' : '8 (ND 1 + voo)'}.` : ''}</div>`;
-    }
     return `<div class="classe-painel-box mago"><h3>🌿 Druida — Nível ${s.nivel}</h3>
       <div class="criador-hint">Conjurador da natureza (Sabedoria) que <b>prepara</b> magias da lista inteira e assume Forma Selvagem.</div>
       ${cardsConj('Druida', s, 'sab', { valor: prep, rotulo: 'Preparadas/dia' })}
@@ -1414,7 +1398,6 @@ const Criador = (function () {
         ${s.nivel >= 18 ? '<li><b>Conjuração Atemporal (N18):</b> pode conjurar magias enquanto estiver em Forma Selvagem.</li>' : ''}
         ${s.nivel >= 20 ? '<li><b>Arquidruida (N20):</b> usos ilimitados de Forma Selvagem; ignora componentes V/S de magias de druida.</li>' : ''}
       </ul>
-      ${formasHtml}
       ${seletorSubclasse(s)}${blocoSubFeats(s)}</div>`;
   }
 
@@ -1987,25 +1970,17 @@ const Criador = (function () {
   }
   // Rola até a seção que ficou pendente e a faz PISCAR — o jogador vê na hora
   // o que falta preencher, em vez de procurar pela etapa inteira.
-  let _piscarTimer = null;
-  let _piscarEl = null;
   function destacarAlvoInvalido() {
     if (!_alvoInvalido) return;
     const el = $(_alvoInvalido);
     if (!el) return;
     // espera o irPasso mostrar a etapa e zerar o scroll antes de rolar até o alvo
     setTimeout(() => {
-      // um destaque por vez: cancela o timer do anterior — senão o timer velho
-      // (3s) apagava o piscar NOVO no meio da animação quando dois destaques
-      // aconteciam em sequência rápida
-      clearTimeout(_piscarTimer);
-      if (_piscarEl && _piscarEl !== el) _piscarEl.classList.remove('piscar-pendente');
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       el.classList.remove('piscar-pendente');
       void el.offsetWidth; // força reflow p/ reiniciar a animação se já estava piscando
       el.classList.add('piscar-pendente');
-      _piscarEl = el;
-      _piscarTimer = setTimeout(() => el.classList.remove('piscar-pendente'), 3000);
+      setTimeout(() => el.classList.remove('piscar-pendente'), 3000);
     }, 80);
   }
 
@@ -2068,10 +2043,6 @@ const Criador = (function () {
     mostrarValidacao([]);
     irPasso(passoInicial);
     $('modalCriador').classList.remove('hidden');
-    // a11y: foco entra no modal ao abrir (teclado/leitor de tela não fica
-    // preso na página de trás); Esc fecha — o rascunho B1 preserva o progresso
-    const mc = document.querySelector('#modalCriador .modal-content');
-    if (mc) { mc.setAttribute('tabindex', '-1'); mc.focus({ preventScroll: true }); }
   }
 
   // Antecedentes EXCLUSIVOS de campanha (módulos pré-prontos): cada um só pode
@@ -2222,10 +2193,6 @@ const Criador = (function () {
     $('btnAutoGerar').addEventListener('click', autoGerar);
 
     $('cCancelar').addEventListener('click', () => $('modalCriador').classList.add('hidden'));
-    // Esc fecha o Criador (sem perder nada: o rascunho persistente continua lá)
-    $('modalCriador').addEventListener('keydown', e => {
-      if (e.key === 'Escape') { e.stopPropagation(); $('modalCriador').classList.add('hidden'); }
-    });
     $('cSalvar').addEventListener('click', () => {
       // ficha só salva completa: valida TODOS os passos, volta ao primeiro
       // incompleto e pisca a seção pendente

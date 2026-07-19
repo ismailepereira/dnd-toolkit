@@ -4,6 +4,66 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-19 — Druida: 🐺 Forma Selvagem completa por nível (catálogo de feras + transformar/reverter no Modo de Jogo)
+
+**Backup antes da alteração:** `versoes/2026-07-19-forma-selvagem/` (`jogo.js`, `criador.js`, `mestre.html`, `jogador.html`).
+
+**Resumo:** pedido do Ismaile — o Druida só tinha o contador de usos; agora tem as **transformações de verdade, bem feitas por nível**.
+- **`formaselvagem.js` (novo):** catálogo de **26 feras jogáveis** (SRD, PT-BR) do ND 0 ao 6 — Gato, Corvo, Lobo, Pantera, Javali, Cobra Constritora, Urso Negro, Crocodilo, Urso-Pardo, Águia Gigante, Urso Polar, Anquilossauro, Elefante, Mamute… cada uma com CA, PV, deslocamento, FOR/DES/CON, ataques (bônus + dano) e traços (Tática de Matilha, Bote, Investida…). Regras da tabela do PHB: **nv2** ND ¼ sem voo/natação · **nv4** ND ½ + natação · **nv8** ND 1 + voo; **Círculo da Lua**: ND 1 já no nv2 e ⌊nível/3⌋ do nv6 em diante (travas de deslocamento continuam por nível).
+- **Modo de Jogo:** painel **🐺 Forma Selvagem** para Druida nv2+ — select com as formas do nível (ND/CA/PV/deslocamento), **Transformar** gasta 1 dos 2 usos (Arquidruida nv20: ilimitado) e ativa o card da fera: **PV próprios da fera** com dano/cura, ataques e traços prontos, atributos físicos da fera (INT/SAB/CAR seguem do druida), aviso de "não conjura" (exceto nv18) e **Reverter** (ação bônus). **Fera a 0 PV reverte sozinha e o dano excedente passa para os PV do druida** (regra 5e). Descanso longo desfaz a forma; a forma ativa persiste na ficha (`formaAtiva`) e sobrevive a refresh.
+- **Criador:** o painel do Druida agora lista as **formas concretas disponíveis no nível** (agrupadas por ND, com CA/PV), reagindo à subclasse (Círculo da Lua) e dizendo em que nível melhora.
+
+**Ficheiros:** `static/js/formaselvagem.js` (novo), `static/js/jogo.js`, `static/js/criador.js`, `templates/mestre.html`, `templates/jogador.html`, `tests/unit-regras.js` (+4), `tests/e2e-pdf.js` (+7 checagens).
+
+**Verificação:** **25/25** unit (catálogo íntegro; tabela do PHB nv2/4/8 e Lua nv2/9/20; filtros de voo/natação) · **26/26** servidor · **E2E completo verde** — o smoke transforma um Druida nv2 em Lobo no navegador, confere as 10 formas do select (sem Águia/Crocodilo no nv2), aplica 15 de dano na fera de 11 PV e confirma a reversão automática com 4 de dano passando ao druida (17→13).
+
+**Como reverter:** restaurar `versoes/2026-07-19-forma-selvagem/`, ou `git revert`.
+
+---
+
+## 2026-07-19 — Bug do Clérigo: limite de magias não acompanhava o +1 racial em SAB ("avisa 4, só marca 3")
+
+**Resumo:** relato do Ismaile — Clérigo nível 1 avisava "prepare 4 magias" mas os checkboxes travavam em 3. **Causa:** o handler do **+1 racial à escolha** (Humano Variante, Meio-Elfo…) só re-renderizava o preview; o painel de magias ficava com o limite congelado do atributo ANTIGO (SAB 15 → 3), enquanto a validação recalculava com o atributo final (SAB 16 → 4). **Correção:** a escolha racial agora dispara `renderAposAtributos()` (painel de classe, perícias, magias, peso e preview) — o aviso e os checkboxes acompanham o atributo final na hora. De quebra, corrigido um race no "piscar" da validação: o timer de remoção do destaque anterior apagava o destaque novo quando dois erros aconteciam em menos de 3s.
+
+**Ficheiros:** `static/js/criador.js`, `tests/e2e-criador.js` (+2 casos de regressão: o aviso muda 3→4 ao pôr +1 em SAB e as 4 magias ficam marcáveis).
+
+**Verificação:** E2E completo verde (incl. os 2 casos novos e os 3 do piscar) · sintaxe · 21/21 unit · 26/26 servidor.
+
+---
+
+## 2026-07-19 — MODO LIVRE (temporário): limitação de jogo e créditos DESLIGADOS até segunda ordem
+
+**Backup antes da alteração:** `versoes/2026-07-19-modo-livre/` (`app.py`, `campanhas.html`).
+
+**Resumo:** pedido do Ismaile — retirar temporariamente a limitação de jogo e a questão dos créditos, até ele mandar reativar. Implementado como uma **chave única e reversível** (`MODO_LIVRE`, ligada por padrão): nada do código de cobrança foi removido, só desviado.
+- **Com a chave ligada:** campanhas nunca ficam inativas/só-leitura (mesmo com `pagaAte` vencido) e **não são apagadas pela retenção**; campanhas que estavam inativas **voltam a ativas** no próximo acesso; o **limite de 6 fichas** por campanha não se aplica; **criar e renovar campanha é grátis** (nenhum crédito debitado — os saldos dos usuários ficam intactos para quando a cobrança voltar); a página de campanhas mostra "🎉 Período livre" e esconde preços/saldo/botão de renovar.
+- **Para REATIVAR a cobrança:** definir `MODO_LIVRE=0` no ambiente (Render) — ou trocar o padrão em `app.py` para `'0'` e fazer deploy. Bloqueio manual de conta pelo admin continua funcionando mesmo no modo livre.
+
+**Ficheiros:** `app.py` (chave + 4 desvios: `campanha_paga_em_dia`, `campanha_cobravel`, criar, renovar), `templates/campanhas.html`, `tests/test-servidor.py` (+4 casos do modo livre).
+
+**Verificação:** **26/26** testes de servidor (os 4 novos: chave ligada por padrão, campanha vencida não fica só-leitura, nada é "cobrável", ciclo não marca/apaga) · sintaxe · 21/21 unit · E2E completo verde.
+
+**Como reverter:** `MODO_LIVRE=0` no env (reativa a cobrança sem deploy de código), ou restaurar `versoes/2026-07-19-modo-livre/`.
+
+---
+
+## 2026-07-18 — Fichas: PATCH em todos os fluxos de ficha única, PDF sem pop-up (iframe) e Esc nos modais
+
+**Backup antes da alteração:** `versoes/2026-07-18-patch-geral-pdf-iframe/` (`app.js`, `jogador.js`, `jogo.js`, `criador.js`).
+
+**Resumo:** continuação das melhorias — fecha as pontas soltas da rodada anterior.
+- **Salvamento por ficha em TODOS os fluxos de ficha única:** além do Modo de Jogo, agora usam `PATCH /api/fichas/<id>` (com trava otimista): **editar no Criador** (mestre e jogador), o **toggle 🔓 Loja Especial** do card e a **sincronização de PV do combate** (as duas vias). Criação, exclusão e recompensas em grupo ("👥 todos") seguem no PUT em lista — o PATCH não cria fichas e recompensa múltipla é operação de lista mesmo.
+- **PDF sem pop-up:** a exportação deixou de usar `window.open` (que dependia de permissão de pop-up e tinha o alert "Permita pop-ups") e passou a imprimir por um **iframe oculto** — funciona sempre, sem pedir nada ao navegador. O iframe se remove após a impressão (`afterprint` + limite de segurança).
+- **A11y dos modais:** **Esc fecha** o Criador (o rascunho persistente B1 segura o progresso — nada se perde) e o Modo de Jogo (que já salva a cada ação); o foco entra no modal do Criador ao abrir (`tabindex=-1` + `focus()`), então teclado e leitores de tela não ficam presos na página de trás.
+
+**Ficheiros:** `static/js/app.js`, `static/js/jogador.js`, `static/js/jogo.js`, `static/js/criador.js`, `tests/e2e-criador.js`, `tests/e2e-pdf.js`.
+
+**Verificação:** sintaxe OK; **21/21** unit; **22/22** servidor; E2E completo verde — incluindo os casos novos: "Esc fecha o modal do Criador" e "iframe oculto do PDF foi criado com conteúdo (sem pop-up)"; o smoke do PATCH segue passando (dano gravado + carimbo sincronizado).
+
+**Como reverter:** restaurar `versoes/2026-07-18-patch-geral-pdf-iframe/`, ou `git revert`.
+
+---
+
 ## 2026-07-18 — Fichas: regras derivadas em módulo único, schema v2 no servidor e salvamento por ficha com trava otimista
 
 **Backup antes da alteração:** `versoes/2026-07-18-regras-unicas-e-servidor/` (`criador.js`, `jogo.js`, `app.js`, `jogador.js`, `app.py`, `mestre.html`, `jogador.html`).

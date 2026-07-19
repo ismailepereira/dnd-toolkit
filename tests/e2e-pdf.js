@@ -87,6 +87,47 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   ok(resultadoPatch.versao === 2, 'ficha gravada tem schemaVersion 2');
   ok(resultadoPatch.local === resultadoPatch.carimbo, 'cliente sincronizou o carimbo devolvido pelo PATCH');
 
+  // ----- 🐺 Forma Selvagem do Druida (Modo de Jogo) de ponta a ponta -----
+  const druida = {
+    id: 'teste-druida', nome: 'Raiz Torta', raca: 'Elfo da Floresta', classe: 'Druida', nivel: 2,
+    subclasse: 'Círculo da Terra', antecedente: 'Eremita', divindade: 'Silvanus',
+    hpMax: 17, hpAtual: 17, ca: 13, iniciativa: 2,
+    atributos: { for: 10, des: 14, con: 14, int: 10, sab: 16, car: 8 },
+    pericias: ['Natureza', 'Percepção'], truques: ['Orientação'], magias1: ['Curar Ferimentos'],
+    itens: [], equipado: { maoPrincipal: '', maoSecundaria: '', armadura: '', foco: '' },
+    ouro: 5, xp: 300, condicoes: [],
+  };
+  const fs1 = await page.evaluate(async f => {
+    window.Jogo.abrir(f, {});
+    const painel = document.querySelector('.jg-forma');
+    const opcoes = Array.from(document.querySelectorAll('#jgFsForma option')).map(o => o.value);
+    return { temPainel: !!painel, titulo: painel ? painel.textContent.slice(0, 120) : '', opcoes };
+  }, druida);
+  ok(fs1.temPainel, 'Druida nv2 tem painel 🐺 Forma Selvagem no Modo de Jogo');
+  ok(fs1.opcoes.includes('Lobo') && fs1.opcoes.includes('Pantera'), `Formas de nv2 no select (${fs1.opcoes.length} opções)`);
+  ok(!fs1.opcoes.includes('Águia Gigante') && !fs1.opcoes.includes('Crocodilo'), 'Sem voo/natação no nv2 (Águia/Crocodilo fora)');
+
+  const fs2 = await page.evaluate(() => {
+    document.getElementById('jgFsForma').value = 'Lobo';
+    document.getElementById('jgFsTransformar').click();
+    const painel = document.querySelector('.jg-forma');
+    return { texto: painel.textContent, temReverter: !!document.getElementById('jgFsReverter') };
+  });
+  ok(fs2.texto.includes('Lobo') && fs2.texto.includes('11'), 'Transformou em Lobo (PV da fera 11 no painel)');
+  ok(fs2.temReverter, 'Botão Reverter presente na forma ativa');
+  ok(fs2.texto.includes('1/2 usos') || fs2.texto.includes('NÃO conjura'), 'Painel avisa que não conjura na forma');
+
+  // dano maior que os PV da fera → reverte e o excedente vai para o druida
+  const fs3 = await page.evaluate(() => {
+    document.getElementById('jgFsVal').value = 15; // Lobo tem 11 PV → 4 excedem
+    document.getElementById('jgFsDano').click();
+    const painel = document.querySelector('.jg-forma');
+    const pvTexto = document.querySelector('.jg-pv-num').textContent;
+    return { voltouAoSeletor: !!document.getElementById('jgFsTransformar'), pvTexto };
+  });
+  ok(fs3.voltouAoSeletor, 'Fera caiu → reverteu automaticamente');
+  ok(fs3.pvTexto.includes('13'), `Dano excedente (4) passou para o druida: ${fs3.pvTexto.trim().slice(0, 30)} (17→13)`);
+
   console.log(falhas.length ? `\n❌ ${falhas.length} falha(s)` : '\n✅ E2E do PDF: todas as verificações passaram');
   await browser.close();
   process.exit(falhas.length ? 1 : 0);

@@ -255,12 +255,6 @@ const Jogo = (function () {
     if (ficha.historia == null) ficha.historia = '';
     if (!ficha.itemMemoria) ficha.itemMemoria = { nome: '', tipo: '', descricao: '' };
     if (!ficha.estadoTatico) ficha.estadoTatico = { emCombate: true, emFuria: false, inimigoAdjacente: false, aliadoAdjacenteAoAlvo: false, caido: false };
-    // Forma Selvagem: só druida mantém; forma desconhecida (catálogo mudou) cai
-    if (ficha.formaAtiva) {
-      const ehDruida = classesFicha().some(c => c.classe === 'Druida' && c.nivel >= 2);
-      const dadosFA = (typeof formaSelvagemDados === 'function') ? formaSelvagemDados(ficha.formaAtiva.nome) : null;
-      if (!ehDruida || !dadosFA) ficha.formaAtiva = null;
-    }
     // ----- bolsa + slots (migração de fichas legadas) -----
     ficha.itens = ficha.itens || [];
     if (!ficha.municao || !ficha.municao.nome) ficha.municao = ficha.municao || { nome: '', qtd: 0 };
@@ -359,7 +353,6 @@ const Jogo = (function () {
     ficha.slotsUsados = {};
     ficha.pactoUsados = 0;
     ficha.recursosUsados = {};
-    ficha.formaAtiva = null; // a Forma Selvagem dura nível/2 horas — não sobrevive à noite
     const c = classeObj();
     const dvMax = ficha.nivel;
     ficha.dvUsados = Math.max(0, ficha.dvUsados - Math.max(1, Math.floor(dvMax / 2)));
@@ -463,47 +456,6 @@ const Jogo = (function () {
       slotsHtml = `<div class="jg-bloco"><h4>Magia de Pacto (nível ${sm.pacto.nivel})</h4>
         <div class="jg-slot-linha"><div class="slots">${bol}</div>
         <button data-pacto="-1" class="btn-mini">−</button><button data-pacto="1" class="btn-mini">+</button></div></div>`;
-    }
-
-    // ----- 🐺 Forma Selvagem (Druida nv2+): transformar, PV da fera, reverter -----
-    let formaHtml = '';
-    const druida = classesFicha().find(c => c.classe === 'Druida' && c.nivel >= 2);
-    if (druida && typeof formasSelvagensDisponiveis === 'function') {
-      const lim = limiteFormaSelvagem(druida.nivel, druida.subclasse);
-      const formas = formasSelvagensDisponiveis(druida.nivel, druida.subclasse);
-      const usadosFS = f.recursosUsados['Forma Selvagem'] || 0;
-      const restamFS = Math.max(0, 2 - usadosFS);
-      const ativa = f.formaAtiva && (typeof formaSelvagemDados === 'function') ? formaSelvagemDados(f.formaAtiva.nome) : null;
-      if (ativa) {
-        const pvF = Math.max(0, f.formaAtiva.pvAtual);
-        const pct = Math.max(0, Math.min(100, (pvF / ativa.pv) * 100));
-        formaHtml = `<div class="jg-bloco jg-forma">
-          <h4>🐺 Forma Selvagem — ${esc(ativa.nome)} <small>(ND ${ndRotulo(ativa.nd)})</small></h4>
-          <div class="pv-linha">PV da fera <b>${pvF}</b> / ${ativa.pv} · CA <b>${ativa.ca}</b> · ${esc(ativa.desloc)}</div>
-          <div class="jg-pv-bar"><div style="width:${pct}%;background:#3fb950"></div></div>
-          <div class="jg-pv-acoes">
-            <input type="number" id="jgFsVal" value="5" min="1" style="width:64px">
-            <button id="jgFsDano" class="btn-danger">− Dano na fera</button>
-            <button id="jgFsCura" class="btn-primary">+ Cura</button>
-            <button id="jgFsReverter" class="btn-secondary">↩️ Reverter (ação bônus)</button>
-          </div>
-          <div class="pv-linha">💪 FOR ${ativa.atributos.for} · DES ${ativa.atributos.des} · CON ${ativa.atributos.con} <small>(INT/SAB/CAR continuam os seus)</small></div>
-          ${ativa.ataques.map(a => `<div class="pv-linha"><b>${esc(a.nome)}:</b> ${a.bonus >= 0 ? '+' : ''}${a.bonus} p/ acertar · ${esc(a.dano)}</div>`).join('')}
-          ${ativa.tracos.length ? `<div class="pv-linha">${ativa.tracos.map(esc).join(' · ')}</div>` : ''}
-          <div class="criador-hint">Na forma você NÃO conjura magias${druida.nivel >= 18 ? ' (exceto: Conjuração Atemporal N18 ✓ — pode!)' : ''}. Dano além dos PV da fera passa para os SEUS PV. Equipamento não funciona (a critério do Mestre).</div>
-        </div>`;
-      } else {
-        const ops = formas.map(fs =>
-          `<option value="${esc(fs.nome)}">ND ${ndRotulo(fs.nd)} — ${esc(fs.nome)} (CA ${fs.ca} · ${fs.pv} PV · ${esc(fs.desloc)})</option>`).join('');
-        formaHtml = `<div class="jg-bloco jg-forma">
-          <h4>🐺 Forma Selvagem <small>(${restamFS}/2 usos · ND máx ${ndRotulo(lim.nd)}${lim.voo ? '' : ' · sem voo'}${lim.nado ? '' : ' · sem natação'})</small></h4>
-          <div class="jg-pv-acoes">
-            <select id="jgFsForma" style="flex:1;min-width:0">${ops}</select>
-            <button id="jgFsTransformar" class="btn-primary" ${restamFS <= 0 && druida.nivel < 20 ? 'disabled title="Sem usos — recupera em descanso curto"' : ''}>🐾 Transformar</button>
-          </div>
-          <div class="criador-hint">${druida.subclasse === 'Círculo da Lua' ? '🌙 Círculo da Lua: feras de combate (ND acima do padrão)' : `Melhora nos níveis 4 (ND ½ + natação) e 8 (ND 1 + voo)`}${druida.nivel >= 20 ? ' · Arquidruida: usos ILIMITADOS' : ' · 2 usos, recupera em descanso curto'}.</div>
-        </div>`;
-      }
     }
 
     // recursos
@@ -991,7 +943,7 @@ const Jogo = (function () {
       <div class="jg-attrs">${attrHtml}</div>
 
       <div class="jg-cols">
-        <div>${salvasHtml}${defesasContraInimigoHtml}${periciasHtml}${formaHtml}${slotsHtml}${recHtml}
+        <div>${salvasHtml}${defesasContraInimigoHtml}${periciasHtml}${slotsHtml}${recHtml}
           <div class="jg-bloco"><h4>Ouro</h4>
             <div class="jg-ouro"><b>${f.ouro} po</b>
               ${window.EH_MESTRE ? `
@@ -1256,54 +1208,6 @@ const Jogo = (function () {
       ficha.pactoUsados = Math.max(0, Math.min(sm.pacto.slots, (ficha.pactoUsados || 0) + (+b.dataset.pacto)));
       salvar();
     });
-    // ----- Forma Selvagem: transformar / dano-cura da fera / reverter -----
-    const fsBtn = $('jgFsTransformar');
-    if (fsBtn) fsBtn.onclick = () => {
-      const nome = ($('jgFsForma') || {}).value;
-      const dados = (typeof formaSelvagemDados === 'function') ? formaSelvagemDados(nome) : null;
-      if (!dados) return;
-      const nivelDruida = (classesFicha().find(c => c.classe === 'Druida') || {}).nivel || 0;
-      const usados = ficha.recursosUsados['Forma Selvagem'] || 0;
-      if (usados >= 2 && nivelDruida < 20) return; // Arquidruida (N20): ilimitado
-      if (nivelDruida < 20) ficha.recursosUsados['Forma Selvagem'] = usados + 1;
-      ficha.formaAtiva = { nome: dados.nome, pvAtual: dados.pv };
-      log(`🐺 Transformou-se em ${dados.nome} (${dados.pv} PV da fera)`);
-      salvar();
-    };
-    const fsRev = $('jgFsReverter');
-    if (fsRev) fsRev.onclick = () => {
-      log(`↩️ Reverteu da forma de ${(ficha.formaAtiva || {}).nome || 'fera'}`);
-      ficha.formaAtiva = null;
-      salvar();
-    };
-    const fsValor = () => Math.max(1, Number(($('jgFsVal') || {}).value) || 1);
-    const fsDano = $('jgFsDano');
-    if (fsDano) fsDano.onclick = () => {
-      if (!ficha.formaAtiva) return;
-      const v = fsValor();
-      const sobra = v - ficha.formaAtiva.pvAtual;
-      if (sobra >= 0) {
-        // regra 5e: PV da fera zeraram — reverte e o dano EXCEDENTE vai para o druida
-        log(`🐺 A fera caiu (${v} de dano)${sobra > 0 ? ` — ${sobra} excedente passa para você` : ''}`);
-        ficha.formaAtiva = null;
-        if (sobra > 0) { aplicarDano(sobra); return; } // aplicarDano já salva/rende
-      } else {
-        ficha.formaAtiva.pvAtual -= v;
-        log(`Fera sofreu ${v} de dano`);
-      }
-      salvar();
-    };
-    const fsCura = $('jgFsCura');
-    if (fsCura) fsCura.onclick = () => {
-      if (!ficha.formaAtiva) return;
-      const dados = formaSelvagemDados(ficha.formaAtiva.nome);
-      if (!dados) return;
-      const v = fsValor();
-      ficha.formaAtiva.pvAtual = Math.min(dados.pv, ficha.formaAtiva.pvAtual + v);
-      log(`Fera curou ${v} PV`);
-      salvar();
-    };
-
     document.querySelectorAll('[data-recm]').forEach(b => b.onclick = () => {
       const n = b.dataset.recm; ficha.recursosUsados[n] = Math.min((recursosClasse().find(r => r.nome === n)?.max || 0), (ficha.recursosUsados[n] || 0) + 1); salvar();
     });

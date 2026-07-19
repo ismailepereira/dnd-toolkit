@@ -4,6 +4,16 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-19 — Bug do Clérigo: limite de magias não acompanhava o +1 racial em SAB ("avisa 4, só marca 3")
+
+**Resumo:** relato do Ismaile — Clérigo nível 1 avisava "prepare 4 magias" mas os checkboxes travavam em 3. **Causa:** o handler do **+1 racial à escolha** (Humano Variante, Meio-Elfo…) só re-renderizava o preview; o painel de magias ficava com o limite congelado do atributo ANTIGO (SAB 15 → 3), enquanto a validação recalculava com o atributo final (SAB 16 → 4). **Correção:** a escolha racial agora dispara `renderAposAtributos()` (painel de classe, perícias, magias, peso e preview) — o aviso e os checkboxes acompanham o atributo final na hora. De quebra, corrigido um race no "piscar" da validação: o timer de remoção do destaque anterior apagava o destaque novo quando dois erros aconteciam em menos de 3s.
+
+**Ficheiros:** `static/js/criador.js`, `tests/e2e-criador.js` (+2 casos de regressão: o aviso muda 3→4 ao pôr +1 em SAB e as 4 magias ficam marcáveis).
+
+**Verificação:** E2E completo verde (incl. os 2 casos novos e os 3 do piscar) · sintaxe · 21/21 unit · 26/26 servidor.
+
+---
+
 ## 2026-07-19 — MODO LIVRE (temporário): limitação de jogo e créditos DESLIGADOS até segunda ordem
 
 **Backup antes da alteração:** `versoes/2026-07-19-modo-livre/` (`app.py`, `campanhas.html`).

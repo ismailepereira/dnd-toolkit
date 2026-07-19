@@ -237,7 +237,12 @@ const Criador = (function () {
     wrap.querySelectorAll('[data-escolha]').forEach(sel => {
       sel.addEventListener('change', () => {
         estado.escolhaAtributos[+sel.dataset.escolha] = sel.value;
-        renderPreview();
+        // BUG (relato do Ismaile): +1 racial em SAB/INT/CAR muda o limite de
+        // magias preparadas (ex.: Clérigo 15→16 de SAB = 3→4 magias), mas o
+        // painel de magias não era re-renderizado — o aviso/validação dizia 4
+        // e os checkboxes travavam em 3. Re-render de tudo que depende de
+        // atributos (o select da escolha racial não é tocado, o foco fica).
+        renderAposAtributos();
       });
     });
   }
@@ -1970,17 +1975,25 @@ const Criador = (function () {
   }
   // Rola até a seção que ficou pendente e a faz PISCAR — o jogador vê na hora
   // o que falta preencher, em vez de procurar pela etapa inteira.
+  let _piscarTimer = null;
+  let _piscarEl = null;
   function destacarAlvoInvalido() {
     if (!_alvoInvalido) return;
     const el = $(_alvoInvalido);
     if (!el) return;
     // espera o irPasso mostrar a etapa e zerar o scroll antes de rolar até o alvo
     setTimeout(() => {
+      // um destaque por vez: cancela o timer do anterior — senão o timer velho
+      // (3s) apagava o piscar NOVO no meio da animação quando dois destaques
+      // aconteciam em sequência rápida
+      clearTimeout(_piscarTimer);
+      if (_piscarEl && _piscarEl !== el) _piscarEl.classList.remove('piscar-pendente');
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       el.classList.remove('piscar-pendente');
       void el.offsetWidth; // força reflow p/ reiniciar a animação se já estava piscando
       el.classList.add('piscar-pendente');
-      setTimeout(() => el.classList.remove('piscar-pendente'), 3000);
+      _piscarEl = el;
+      _piscarTimer = setTimeout(() => el.classList.remove('piscar-pendente'), 3000);
     }, 80);
   }
 

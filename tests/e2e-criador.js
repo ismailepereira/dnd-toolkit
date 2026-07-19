@@ -143,6 +143,40 @@ const HISTORIA = 'Nascido nas docas de Águas Profundas, cresceu ouvindo histór
   const divAuto = await page.$eval('#cDivindade', s => s.value);
   ok(divAuto !== '' && divAuto !== '__manual__', `Auto-gerar escolhe divindade (${divAuto})`);
 
+  // ----- REGRESSÃO (bug do Clérigo): +1 racial em SAB muda o limite de magias
+  // preparadas — o painel tem que acompanhar (antes o aviso dizia 4 e os
+  // checkboxes travavam em 3) -----
+  await page.evaluate(() => {
+    // descarta o rascunho do fluxo anterior (o confirm auto-aceito o retomaria)
+    try { localStorage.removeItem('dnd_rascunho_criador_' + (window.CAMPANHA_ID || 'local')); } catch (e) {}
+    window.Criador.abrir(null, {});
+  });
+  await page.waitForSelector('#modalCriador:not(.hidden)');
+  await page.click('[data-galeria-classe="Clérigo"]');
+  await page.waitForTimeout(250);
+  await page.click('.sub-card >> nth=0'); // Domínio (nível 1)
+  await page.waitForTimeout(200);
+  await page.click('[data-passo-chip="2"]');
+  await page.waitForTimeout(200);
+  await page.click('[data-galeria-raca="Humano (Variante)"]'); // +1 em DOIS atributos à escolha
+  await page.waitForTimeout(250);
+  await page.click('[data-passo-chip="3"]');
+  await page.waitForTimeout(200);
+  const hintAntes = await page.textContent('#cMagias1Wrap h4'); // SAB 15 → prepara 3
+  await page.selectOption('#cEscolhaAtributos [data-escolha="0"]', 'sab'); // SAB 16 → prepara 4
+  await page.waitForTimeout(250);
+  const hintDepois = await page.textContent('#cMagias1Wrap h4');
+  ok(hintAntes.includes('3') && hintDepois.includes('4'), `Limite de magias acompanha o +1 racial em SAB (${hintAntes.trim()} → ${hintDepois.trim()})`);
+  const marcadas = await page.evaluate(() => {
+    let n = 0;
+    document.querySelectorAll('#cMagias1Wrap [data-magia1]').forEach(chk => {
+      chk.click();
+      if (chk.checked) n++;
+    });
+    return n;
+  });
+  ok(marcadas === 4, `Clérigo SAB 16 consegue marcar as 4 magias (marcou ${marcadas})`);
+
   // ----- a11y: Esc fecha o Criador (o rascunho persistente segura o progresso) -----
   await page.focus('#modalCriador .modal-content');
   await page.keyboard.press('Escape');

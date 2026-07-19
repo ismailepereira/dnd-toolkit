@@ -4,6 +4,22 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-19 — MODO LIVRE (temporário): limitação de jogo e créditos DESLIGADOS até segunda ordem
+
+**Backup antes da alteração:** `versoes/2026-07-19-modo-livre/` (`app.py`, `campanhas.html`).
+
+**Resumo:** pedido do Ismaile — retirar temporariamente a limitação de jogo e a questão dos créditos, até ele mandar reativar. Implementado como uma **chave única e reversível** (`MODO_LIVRE`, ligada por padrão): nada do código de cobrança foi removido, só desviado.
+- **Com a chave ligada:** campanhas nunca ficam inativas/só-leitura (mesmo com `pagaAte` vencido) e **não são apagadas pela retenção**; campanhas que estavam inativas **voltam a ativas** no próximo acesso; o **limite de 6 fichas** por campanha não se aplica; **criar e renovar campanha é grátis** (nenhum crédito debitado — os saldos dos usuários ficam intactos para quando a cobrança voltar); a página de campanhas mostra "🎉 Período livre" e esconde preços/saldo/botão de renovar.
+- **Para REATIVAR a cobrança:** definir `MODO_LIVRE=0` no ambiente (Render) — ou trocar o padrão em `app.py` para `'0'` e fazer deploy. Bloqueio manual de conta pelo admin continua funcionando mesmo no modo livre.
+
+**Ficheiros:** `app.py` (chave + 4 desvios: `campanha_paga_em_dia`, `campanha_cobravel`, criar, renovar), `templates/campanhas.html`, `tests/test-servidor.py` (+4 casos do modo livre).
+
+**Verificação:** **26/26** testes de servidor (os 4 novos: chave ligada por padrão, campanha vencida não fica só-leitura, nada é "cobrável", ciclo não marca/apaga) · sintaxe · 21/21 unit · E2E completo verde.
+
+**Como reverter:** `MODO_LIVRE=0` no env (reativa a cobrança sem deploy de código), ou restaurar `versoes/2026-07-19-modo-livre/`.
+
+---
+
 ## 2026-07-18 — Fichas: PATCH em todos os fluxos de ficha única, PDF sem pop-up (iframe) e Esc nos modais
 
 **Backup antes da alteração:** `versoes/2026-07-18-patch-geral-pdf-iframe/` (`app.js`, `jogador.js`, `jogo.js`, `criador.js`).

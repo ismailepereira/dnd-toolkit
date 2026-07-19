@@ -1134,13 +1134,6 @@ input:focus, textarea:focus, select:focus {
 .slot.usado { background: transparent; }
 
 .jg-rec { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 5px; }
-
-/* ✨ Conjuração em combate (C1): cards de magia com botão de gasto de slot */
-.jg-cast { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; margin-bottom: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
-.jg-cast-info { min-width: 0; }
-.jg-cast-info small { display: block; color: var(--text-dim); }
-.jg-cast.esgotado { opacity: 0.45; }
-.jg-cast-btn { white-space: nowrap; flex-shrink: 0; }
 .jg-rec small { color: var(--text-dim); }
 .jg-rec-ctrl { display: flex; align-items: center; gap: 6px; }
 

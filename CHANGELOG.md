@@ -4,6 +4,24 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-19 — Combate C1: ✨ magias viram cartas de ação (CD/ataque, Conjurar com 1 clique, upcast e concentração)
+
+**Backup antes da alteração:** `versoes/2026-07-19-magias-cards/` (`jogo.js`, `style.css`).
+
+**Resumo:** primeiro item executado do roadmap `docs/ROADMAP-FICHAS-COMBATE.md` (dor da mesa de 18/07: "no combate não fica disponível as magias, só as armas").
+- **Bloco "✨ Conjuração"** no Modo de Jogo, logo abaixo dos Ataques de Arma: cabeçalho com **CD de magia e ataque mágico** (por classe conjuradora, no caso de multiclasse) e um **card por truque/magia castável** — círculo, tempo com ícone (🎯 ação / ⚡ ação bônus / ↩️ reação), alcance, dano ou DT, e 🧠 quando exige concentração.
+- **Botão "✨ Conjurar"** gasta o espaço do círculo certo com 1 clique: **upcast automático** quando o círculo base está esgotado (rótulo "(2º↑)"), **Magia de Pacto** do Bruxo suportada (gasta `pactoUsados`; em multiclasse o espaço normal exato tem prioridade e o pacto é o plano B), **concentração marcada sozinha** e registro no Histórico. Truques têm "✨ Usar" (não gastam nada) e o **dano escala pelos níveis 5/11/17** direto no card ("2× 1d10").
+- **"Castável agora":** card sem espaço fica apagado com o botão desabilitado; truques ficam sempre acesos. O bloco de gerenciamento (🧠 Preparadas/Grimório) continua onde estava — o novo bloco é a visão de COMBATE.
+- Helpers novos: `conjuracaoDaMagia`, `espacoParaMagia`, `conjurarMagia`, `escalaTruque` (jogo.js).
+
+**Ficheiros:** `static/js/jogo.js`, `static/css/style.css`, `docs/ROADMAP-FICHAS-COMBATE.md` (C1 ✅), `tests/e2e-pdf.js` (+7 checagens).
+
+**Verificação:** E2E completo verde — Clérigo nv1 real no navegador: bloco presente, cabeçalho "CD 13 · Atq. mágico +5", 5 cards, conjurar Bênção gasta 1 espaço do 1º e marca concentração, segundo gasto esgota e o card de Curar Ferimentos apaga com botão desabilitado, truques seguem acesos · 25/25 unit · 26/26 servidor · sintaxe OK.
+
+**Como reverter:** restaurar `versoes/2026-07-19-magias-cards/`, ou `git revert`.
+
+---
+
 ## 2026-07-19 — Druida: 🐺 Forma Selvagem completa por nível (catálogo de feras + transformar/reverter no Modo de Jogo)
 
 **Backup antes da alteração:** `versoes/2026-07-19-forma-selvagem/` (`jogo.js`, `criador.js`, `mestre.html`, `jogador.html`).

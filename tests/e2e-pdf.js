@@ -128,6 +128,61 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   ok(fs3.voltouAoSeletor, 'Fera caiu → reverteu automaticamente');
   ok(fs3.pvTexto.includes('13'), `Dano excedente (4) passou para o druida: ${fs3.pvTexto.trim().slice(0, 30)} (17→13)`);
 
+  // ----- ✨ C1: magias como cards de ação (conjurar gasta slot, marca concentração) -----
+  const clerigo = {
+    id: 'teste-clerigo-c1', nome: 'Irmã Solene', raca: 'Humano', classe: 'Clérigo', nivel: 1,
+    subclasse: 'Domínio da Vida', antecedente: 'Acólito', divindade: 'Lathander',
+    hpMax: 11, hpAtual: 11, ca: 15, iniciativa: 0,
+    atributos: { for: 14, des: 10, con: 14, int: 8, sab: 16, car: 10 },
+    pericias: ['Intuição', 'Religião'], truques: ['Chama Sagrada', 'Luz', 'Orientação'],
+    magias1: ['Curar Ferimentos', 'Bênção (Bless)', 'Escudo da Fé'],
+    preparadas: ['Curar Ferimentos', 'Bênção (Bless)'],
+    itens: [], equipado: { maoPrincipal: '', maoSecundaria: '', armadura: '', foco: '' },
+    ouro: 15, xp: 0, condicoes: [],
+  };
+  const c1a = await page.evaluate(f => {
+    window.__f = f; // referência p/ inspecionar o estado após as ações
+    window.Jogo.abrir(f, {});
+    const bloco = document.querySelector('.jg-conjuracao');
+    return {
+      existe: !!bloco,
+      cabecalho: bloco ? bloco.querySelector('h4').textContent : '',
+      cards: Array.from(document.querySelectorAll('.jg-cast .jg-cast-info b')).map(b => b.textContent),
+    };
+  }, clerigo);
+  ok(c1a.existe, 'Bloco ✨ Conjuração aparece no Modo de Jogo');
+  ok(c1a.cabecalho.includes('CD') && c1a.cabecalho.includes('13'), `Cabeçalho mostra CD de magia (SAB 16, nv1 → CD 13): "${c1a.cabecalho.trim().slice(0, 60)}"`);
+  ok(c1a.cards.includes('Chama Sagrada') && c1a.cards.includes('Curar Ferimentos'), `Truques e preparadas viram cards (${c1a.cards.length} cards)`);
+
+  // conjura Bênção (concentração) → gasta 1 slot do 1º e marca concentração
+  const c1b = await page.evaluate(() => {
+    const btn = Array.from(document.querySelectorAll('[data-conjurar]')).find(b => b.dataset.conjurar === 'Bênção (Bless)');
+    btn.click();
+    const f = window.__f;
+    return {
+      slotsUsados: (f && f.slotsUsados && f.slotsUsados[1]) || null,
+      concentrando: f && f.concentrando,
+    };
+  });
+  ok(c1b.slotsUsados === 1, `Conjurar gastou 1 espaço do 1º círculo (usados: ${c1b.slotsUsados})`);
+  ok(c1b.concentrando === 'Bênção (Bless)', `Concentração marcada automaticamente (${c1b.concentrando})`);
+
+  // Clérigo nv1 tem 2 espaços: gasta o segundo → cards de 1º círculo apagam
+  const c1c = await page.evaluate(() => {
+    const btn = Array.from(document.querySelectorAll('[data-conjurar]')).find(b => b.dataset.conjurar === 'Curar Ferimentos');
+    btn.click();
+    const cardCurar = Array.from(document.querySelectorAll('.jg-cast')).find(c => c.textContent.includes('Curar Ferimentos'));
+    const btnDepois = Array.from(document.querySelectorAll('[data-conjurar]')).find(b => b.dataset.conjurar === 'Curar Ferimentos');
+    const truqueAceso = Array.from(document.querySelectorAll('.jg-cast')).find(c => c.textContent.includes('Chama Sagrada'));
+    return {
+      esgotado: cardCurar && cardCurar.classList.contains('esgotado'),
+      desabilitado: btnDepois && btnDepois.disabled,
+      truqueSegueAceso: truqueAceso && !truqueAceso.classList.contains('esgotado'),
+    };
+  });
+  ok(c1c.esgotado && c1c.desabilitado, 'Sem espaços restantes → card de magia apaga e botão desabilita');
+  ok(c1c.truqueSegueAceso, 'Truques continuam sempre acesos (não gastam espaço)');
+
   console.log(falhas.length ? `\n❌ ${falhas.length} falha(s)` : '\n✅ E2E do PDF: todas as verificações passaram');
   await browser.close();
   process.exit(falhas.length ? 1 : 0);

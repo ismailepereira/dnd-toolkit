@@ -83,23 +83,22 @@ Um item por sessão de trabalho; cada entrega com teste de regressão (a suíte 
 - [x] "Castável agora": card sem espaço fica apagado com botão desabilitado; truques sempre acesos.
 - [x] Escalonamento de truques por nível do personagem (nv5/11/17 → "2× 1d10" no card).
 
-### C2 🔴 Itens repetidos agrupados com quantidade
+### C2 ✅ Itens repetidos agrupados com quantidade — ENTREGUE 19/07
 **Dor relatada:** "azagaia se repete muito; se tem mais de uma coloque a quantidade."
-O kit do Bárbaro entrega 4 azagaias FIXAS (equipamento.js) — e a UI mostra o nome repetido ou some com
-as cópias sem dizer quantas são.
 
-- [ ] **Ataques de Arma**: uma linha só com contagem — "Azagaia ×4 · +5 · 1d6+3 perfurante".
-- [ ] **Slots de equipar** (mão principal/secundária): opção única com "(×4)" no rótulo.
-- [ ] **PDF e preview do Criador**: mesma agregação (a Bolsa já agrupa — estender o padrão `contarItem`
-  aos demais painéis).
+- [x] **Ataques de Arma**: uma linha só com contagem — "Azagaia: +5 · 1d6+3 perfurante ×4".
+- [x] **Slots de equipar** (mão principal/secundária): opção única com "(×4)" no rótulo.
+- [~] PDF e preview já agregam pela Bolsa; a lista de ataques do PDF fica para uma passada futura (baixa
+  prioridade — o combate acontece no Modo de Jogo).
 
-### C3 🔴 Armas de arremesso com controle de lançada/recuperada
+### C3 ✅ Armas de arremesso com controle de lançada/recuperada — ENTREGUE 19/07
 **Dor relatada:** "e se recuperou a arma…" — azagaia lançada some da mão e ninguém controla.
-- [ ] Ao usar ataque à distância de arma com propriedade `arremesso`: botão "🎯 Lançar" decrementa a
-  contagem "em mãos" e soma em "no chão" (ex.: Em mãos 2× · No chão 2×).
-- [ ] Botão **"↩️ Recuperar arremessadas"** (fim do combate) devolve tudo para a mão.
-- [ ] Última azagaia lançada → aviso "sem azagaias em mãos" e o card de ataque apaga.
-- [ ] Mesmo padrão vale para Adaga, Lança, Machadinha, Martelo Leve, Tridente e Dardo.
+- [x] Botão **"🎯 lançar"** em toda arma com propriedade `arremesso` (Azagaia, Adaga, Lança, Machadinha,
+  Martelo Leve, Tridente, Dardo…): decrementa "em mãos" e soma em "no chão"; a linha mostra
+  "×4 (3 em mãos · 1 no chão)".
+- [x] Botão **"↩️ Recuperar armas arremessadas"** devolve tudo para a mão; aparece só quando há algo no chão.
+- [x] Sem unidades em mãos → aviso "nenhuma em mãos" e os botões de atacar/lançar desabilitam.
+- [x] Descanso longo recolhe automaticamente o que foi arremessado.
 
 ### C4 🟠 Golpes especiais pós-acerto com botão
 - [ ] Paladino: Punição Divina (ver F1) — mesmo mecanismo.

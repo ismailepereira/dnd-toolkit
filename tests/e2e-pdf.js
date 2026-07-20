@@ -233,6 +233,57 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   ok(/nível 2/.test(f1c) && /Punição/.test(f1c), 'Criador avisa que magia + Punição chegam no nível 2 (não é ficha quebrada)');
   await page.evaluate(() => document.getElementById('modalCriador').classList.add('hidden'));
 
+  // ----- C2/C3: azagaias agrupadas (×4) e lançar/recuperar arma de arremesso -----
+  const barbaro = {
+    id: 'teste-barbaro-c2', nome: 'Grokk', raca: 'Meio-Orc', classe: 'Bárbaro', nivel: 1,
+    subclasse: '', antecedente: 'Forasteiro', divindade: 'Ateu (sem divindade)',
+    hpMax: 15, hpAtual: 15, ca: 13, iniciativa: 2,
+    atributos: { for: 16, des: 14, con: 15, int: 8, sab: 10, car: 8 },
+    pericias: ['Atletismo', 'Sobrevivência'],
+    itens: ['Machado Grande', 'Azagaia', 'Azagaia', 'Azagaia', 'Azagaia'],
+    equipado: { maoPrincipal: 'Machado Grande', maoSecundaria: '', armadura: '', foco: '' },
+    ouro: 10, xp: 0, condicoes: [],
+  };
+  const c2a = await page.evaluate(f => {
+    window.__f = f;
+    window.Jogo.abrir(f, {});
+    const linhaAz = Array.from(document.querySelectorAll('#modalJogoBody .pv-linha')).find(l => l.textContent.includes('Azagaia'));
+    return {
+      texto: linhaAz ? linhaAz.textContent.replace(/\s+/g, ' ').trim() : '',
+      temLancar: !!document.querySelector('[data-lancararma="Azagaia"]'),
+    };
+  }, barbaro);
+  ok(/×4/.test(c2a.texto), `Azagaias repetidas agrupadas com quantidade: "${c2a.texto.slice(0, 60)}"`);
+  ok(c2a.temLancar, 'Azagaia (arma de arremesso) tem botão 🎯 lançar');
+
+  // lança 1 → em mãos cai para 3, aparece "no chão"
+  const c2b = await page.evaluate(() => {
+    document.querySelector('[data-lancararma="Azagaia"]').click();
+    const f = window.__f;
+    const linhaAz = Array.from(document.querySelectorAll('#modalJogoBody .pv-linha')).find(l => l.textContent.includes('Azagaia') && l.textContent.includes('×'));
+    return { noChao: (f.arremessadas && f.arremessadas['Azagaia']) || 0, texto: linhaAz ? linhaAz.textContent.replace(/\s+/g, ' ') : '' };
+  });
+  ok(c2b.noChao === 1, `Lançar registra 1 azagaia no chão (${c2b.noChao})`);
+  ok(/3 em mãos/.test(c2b.texto) && /1 no chão/.test(c2b.texto), `Linha mostra "3 em mãos · 1 no chão": "${c2b.texto.slice(0, 70)}"`);
+
+  // recupera → volta tudo para a mão
+  const c2c = await page.evaluate(() => {
+    document.getElementById('jgRecuperarArrem').click();
+    const f = window.__f;
+    return { chao: Object.values(f.arremessadas || {}).reduce((a, b) => a + b, 0), temBotao: !!document.getElementById('jgRecuperarArrem') };
+  });
+  ok(c2c.chao === 0, 'Recuperar zera as armas no chão');
+  ok(!c2c.temBotao, 'Botão de recuperar some quando não há nada arremessado');
+
+  // lança as 4 → ataque desabilita ("nenhuma em mãos")
+  const c2d = await page.evaluate(() => {
+    for (let i = 0; i < 4; i++) { const b = document.querySelector('[data-lancararma="Azagaia"]'); if (b && !b.disabled) b.click(); }
+    const btnAtacar = Array.from(document.querySelectorAll('[data-atacararma][data-arma="Azagaia"]'))[0];
+    const btnLancar = document.querySelector('[data-lancararma="Azagaia"]');
+    return { atacarOff: btnAtacar ? btnAtacar.disabled : null, lancarOff: btnLancar ? btnLancar.disabled : null };
+  });
+  ok(c2d.atacarOff === true && c2d.lancarOff === true, 'Sem azagaias em mãos → atacar e lançar desabilitam');
+
   console.log(falhas.length ? `\n❌ ${falhas.length} falha(s)` : '\n✅ E2E do PDF: todas as verificações passaram');
   await browser.close();
   process.exit(falhas.length ? 1 : 0);

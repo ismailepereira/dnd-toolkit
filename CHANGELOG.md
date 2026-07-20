@@ -4,6 +4,22 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-19 — Combate C2+C3: itens repetidos com quantidade (×4) e armas de arremesso (lançar/recuperar)
+
+**Backup antes da alteração:** `versoes/2026-07-19-c2c3-arremesso/` (`jogo.js`, `style.css`).
+
+**Resumo:** itens C2 e C3 do roadmap `docs/ROADMAP-FICHAS-COMBATE.md` (dores: "azagaia se repete muito, coloque a quantidade" e "se recuperou a arma").
+- **C2 — quantidade agregada:** os Ataques de Arma mostram "×4" numa linha só em vez de repetir a azagaia quatro vezes; os slots de equipar trazem "(×4)" no rótulo da opção. (A Bolsa já agrupava — agora os ataques e slots também.)
+- **C3 — armas de arremesso:** toda arma com propriedade `arremesso` (Azagaia, Adaga, Lança, Machadinha, Martelo Leve, Tridente, Dardo…) ganha botão **"🎯 lançar"** que tira a unidade da mão e a coloca "no chão" — a linha vira "×4 (3 em mãos · 1 no chão)". Botão **"↩️ Recuperar armas arremessadas"** (aparece só quando há algo lançado) devolve tudo à mão. Sem unidades em mãos, os botões de atacar/lançar desabilitam com aviso "nenhuma em mãos". O descanso longo recolhe automaticamente. Estado novo `ficha.arremessadas` (nome→qtd no chão), inicializado e migrado com segurança.
+
+**Ficheiros:** `static/js/jogo.js`, `static/css/style.css`, `docs/ROADMAP-FICHAS-COMBATE.md` (C2 ✅, C3 ✅), `tests/e2e-pdf.js` (+7 checagens).
+
+**Verificação:** E2E completo verde — Bárbaro com 4 azagaias real no navegador: linha "×4", lançar 1 mostra "3 em mãos · 1 no chão", recuperar zera, lançar as 4 desabilita atacar/lançar · 25/25 unit · 26/26 servidor · sintaxe OK.
+
+**Como reverter:** restaurar `versoes/2026-07-19-c2c3-arremesso/`, ou `git revert`.
+
+---
+
 ## 2026-07-19 — Ficha F1: 🛡️ Paladino claro do nível 1 ao 3 (Sentido Divino, Punição Divina com botão, Auras)
 
 **Backup antes da alteração:** `versoes/2026-07-19-paladino-f1/` (`jogo.js`, `criador.js`, `style.css`).

@@ -108,9 +108,11 @@ Um item por sessão de trabalho; cada entrega com teste de regressão (a suíte 
   (+2/+3/+4 por faixa de nível), com selo 🔥 no dano (que já entra no botão de rolar) e aviso no cabeçalho;
   não se aplica a ataques à distância nem com Destreza. (20/07)
 
-### C5 🟠 Rolagem integrada nos cards
-- [ ] Botão 🎲 em cada card (arma/magia): rola ataque (com vantagem/desvantagem) e dano, registra no
-  Histórico da ficha. Tira o jogador da calculadora sem tirar o dado físico de quem prefere (rolagem é opcional).
+### C5 🟠 Rolagem integrada nos cards — ENTREGUE (magias) 20/07
+- [x] **Magias:** cada card da ✨ Conjuração ganhou 🎲 — "🎲 atacar" nas magias de ataque (d20 + ataque
+  mágico, respeita vantagem/desvantagem) e "🎲 dano"/"🎲 cura" com a fórmula certa (dado do truque escalado
+  por nível, +modificador de conjuração na cura); tudo registra no Histórico. Respeita o modo Dado Físico.
+- [x] **Armas** já tinham 🎲 atacar / 🎲 dano (pré-existente) — C5 estendeu o padrão às magias.
 
 ### C6 🟡 Efeitos dos ataques → condições com 1 toque
 - [ ] Ataque com efeito conhecido (Lobo derruba CD 11, teia prende…) sugere aplicar a condição no alvo

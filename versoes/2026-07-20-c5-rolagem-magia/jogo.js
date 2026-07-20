@@ -400,20 +400,6 @@ const Jogo = (function () {
     return 1 + (n >= 5 ? 1 : 0) + (n >= 11 ? 1 : 0) + (n >= 17 ? 1 : 0);
   }
 
-  // ----- C5: fórmula de dano jogável de uma magia -----
-  // Extrai NdM do detalhe da magia, multiplica os dados pela escala do truque
-  // e soma o modificador de conjuração quando a magia diz "+mod" (ex.: cura).
-  // Devolve { formula: '2d10', tipo: 'fogo' } ou null se a magia não tem dado.
-  const TIPOS_DANO_MAGIA = ['fogo', 'frio', 'elétrico', 'ácido', 'veneno', 'necrótico', 'radiante', 'psíquico', 'trovão', 'força', 'energia', 'perfurante', 'concussão', 'corte'];
-  function formulaMagia(d, mult, conjMod) {
-    const m = (d.dano || '').match(/(\d+)d(\d+)/);
-    if (!m) return null;
-    let formula = `${parseInt(m[1], 10) * (mult || 1)}d${m[2]}`;
-    if (/\+\s*mod/i.test(d.dano) && conjMod) formula += (conjMod >= 0 ? '+' + conjMod : String(conjMod));
-    const tipo = TIPOS_DANO_MAGIA.find(t => new RegExp(t, 'i').test(d.dano || '')) || (/cura/i.test(d.dano || '') ? 'cura' : '');
-    return { formula, tipo };
-  }
-
   // ----- C3: armas de arremesso — lançar (sai da mão) e recuperar -----
   function lancarArma(nome) {
     const total = (ficha.itens || []).filter(x => x === nome).length;
@@ -702,7 +688,6 @@ const Jogo = (function () {
         return k ? `${conjsCab.length > 1 ? esc(c.classe) + ' ' : ''}CD <b>${k.cd}</b> · Atq. mágico <b>${fmt(k.ataque)}</b>` : '';
       }).filter(Boolean).join(' · ');
       const tempoIcone = t => (t || '').includes('bônus') ? '⚡' : ((t || '').includes('reação') ? '↩️' : '🎯');
-      const conjMagia = conjsCab.length ? cdConjuracao(conjsCab[0].classe, conjsCab[0].nivel, f.atributos, pb) : null;
       const cardCast = nome => {
         const d = detalheMagia(nome);
         if (!d) return '';
@@ -712,19 +697,11 @@ const Jogo = (function () {
         const temDano = d.dano && d.dano !== '—';
         const dano = temDano ? (mult > 1 && /\dd\d/.test(d.dano) ? `${mult}× ${d.dano}` : d.dano) : '';
         const dt = d.salva && d.salva !== '—' && !/^Ataque/.test(d.salva) ? `DT de ${d.salva}` : (/^Ataque/.test(d.salva || '') ? d.salva : '');
-        // C5: rolagem integrada — 🎲 atacar (magia de ataque) e 🎲 dano
-        const kMagia = (typeof conjuracaoDaMagia === 'function') ? conjuracaoDaMagia(nome) : conjMagia;
-        const ehAtaqueMagico = /^Ataque/.test(d.salva || '');
-        const fd = formulaMagia(d, mult, kMagia ? (kMagia.ataque - pb) : 0);
-        const btnAtq = (ehAtaqueMagico && kMagia) ? `<button class="btn-mini" data-magiaataque="${kMagia.ataque}" data-magianome="${esc(nome)}">🎲 atacar</button>` : '';
-        const btnDano = fd ? `<button class="btn-mini" data-magiadano="${esc(fd.formula)}" data-magiatipo="${esc(fd.tipo)}" data-magianome="${esc(nome)}">🎲 ${fd.tipo === 'cura' ? 'cura' : 'dano'}</button>` : '';
         return `<div class="jg-cast${sem ? ' esgotado' : ''}">
           <div class="jg-cast-info"><b>${esc(nome)}</b>
             <small>${d.nivel === 0 ? 'truque' : d.nivel + 'º círculo'} · ${tempoIcone(d.tempo)} ${esc(d.tempo)} · ${esc(d.alcance)}${dano ? ` · <span class="jg-dano">${esc(dano)}</span>` : ''}${dt ? ' · ' + esc(dt) : ''}${/concentração/i.test(d.duracao || '') ? ' · 🧠 concentração' : ''}</small>
           </div>
-          <div class="jg-cast-acoes">${btnAtq}${btnDano}
-            <button class="btn-mini jg-cast-btn" data-conjurar="${esc(nome)}" ${sem ? 'disabled title="Sem espaço de magia — recupere num descanso"' : ''}>${d.nivel === 0 ? '✨ Usar' : (sem ? 'Sem espaço' : `✨ Conjurar${esp && esp.circulo > d.nivel ? ` (${esp.circulo}º↑)` : ''}`)}</button>
-          </div>
+          <button class="btn-mini jg-cast-btn" data-conjurar="${esc(nome)}" ${sem ? 'disabled title="Sem espaço de magia — recupere num descanso"' : ''}>${d.nivel === 0 ? '✨ Usar' : (sem ? 'Sem espaço' : `✨ Conjurar${esp && esp.circulo > d.nivel ? ` (${esp.circulo}º↑)` : ''}`)}</button>
         </div>`;
       };
       const castaveis = [...magiasCastaveis()].sort((a, b) => ((detalheMagia(a) || {}).nivel || 0) - ((detalheMagia(b) || {}).nivel || 0));
@@ -1506,23 +1483,6 @@ const Jogo = (function () {
     });
     // ----- ✨ Conjuração (C1): botão Conjurar/Usar nos cards -----
     document.querySelectorAll('[data-conjurar]').forEach(b => b.onclick = () => conjurarMagia(b.dataset.conjurar));
-
-    // ----- C5: rolagem 🎲 nos cards de magia (ataque mágico e dano/cura) -----
-    document.querySelectorAll('[data-magiaataque]').forEach(b => b.onclick = () => {
-      const nome = b.dataset.magianome, bonus = +b.dataset.magiaataque;
-      const r = d20Modo();
-      const total = r.v + bonus;
-      const critMsg = r.v === 20 ? ' — 20 NATURAL!' : r.v === 1 ? ' — 1 natural' : '';
-      log(`✨🎲 ${nome}: ataque mágico ${total} (${r.txt}${bonus >= 0 ? '+' : ''}${bonus})${critMsg}`);
-      salvar();
-    });
-    document.querySelectorAll('[data-magiadano]').forEach(b => b.onclick = () => {
-      const nome = b.dataset.magianome, tipo = b.dataset.magiatipo;
-      const r = rolar(b.dataset.magiadano);
-      if (!r) return;
-      log(`✨🎲 ${nome}: ${tipo === 'cura' ? 'cura' : 'dano'} ${r.total} (${r.txt})${tipo && tipo !== 'cura' ? ' ' + tipo : ''}.`);
-      salvar();
-    });
 
     // ----- ⚡ Punição Divina (F1) -----
     document.querySelectorAll('[data-punicao]').forEach(b => b.onclick = () => {

@@ -1154,10 +1154,6 @@ input:focus, textarea:focus, select:focus {
 /* 🗡️ Ataque Furtivo do Ladino (C4) */
 .jg-furtivo-cond.ok { color: #3fb950; }
 .jg-furtivo-cond.alerta { color: #d29922; }
-
-/* 🔥 Fúria do Bárbaro (C4): selo de dano no ataque corpo a corpo */
-.jg-furia-selo { color: #e94560; font-weight: 600; }
-.jg-furia-cab { color: #e94560; font-weight: 400; }
 .jg-rec small { color: var(--text-dim); }
 .jg-rec-ctrl { display: flex; align-items: center; gap: 6px; }
 

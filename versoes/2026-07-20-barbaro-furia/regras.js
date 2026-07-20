@@ -142,9 +142,7 @@ function dadosArma(nome) {
 
 // Ataque de arma calculado para um personagem
 // Arma versátil empunhada na mão principal com a secundária LIVRE usa o dado maior
-// bonusDano (opcional): somado só ao DANO (não ao ataque) — ex.: Fúria do Bárbaro.
-// Devolve também usaDes/distancia para quem precisa decidir bônus condicionais.
-function ataqueArma(ficha, nome, pb, bonusDano) {
+function ataqueArma(ficha, nome, pb) {
   const da = dadosArma(nome);
   if (!da) return null;
   const forMod = mod(ficha.atributos.for), desMod = mod(ficha.atributos.des);
@@ -152,7 +150,6 @@ function ataqueArma(ficha, nome, pb, bonusDano) {
   const atrMod = usaDes ? desMod : forMod;
   const prof = proficienteArmaFicha(ficha, nome) ? pb : 0;
   const ataque = atrMod + prof;
-  const danoMod = atrMod + (bonusDano || 0);
   let dado = da.dano;
   let notaVersatil = '';
   const eq = ficha.equipado;
@@ -160,7 +157,7 @@ function ataqueArma(ficha, nome, pb, bonusDano) {
     dado = da.versatil;
     notaVersatil = ' (2 mãos)';
   }
-  return { nome, dano: `${dado}${danoMod >= 0 ? '+' : ''}${danoMod} ${da.tipoDano}${notaVersatil}`, ataque, semProf: prof === 0, usaDes, distancia: !!da.distancia };
+  return { nome, dano: `${dado}${atrMod >= 0 ? '+' : ''}${atrMod} ${da.tipoDano}${notaVersatil}`, ataque, semProf: prof === 0 };
 }
 
 // =====================================================

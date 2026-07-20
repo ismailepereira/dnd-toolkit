@@ -4,6 +4,22 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-20 — Combate C4 (fecha): 🔥 dano da Fúria do Bárbaro somado automático no corpo a corpo
+
+**Backup antes da alteração:** `versoes/2026-07-20-barbaro-furia/` (`jogo.js`, `regras.js`, `style.css`).
+
+**Resumo:** fecha o item C4 do roadmap (o dano da Fúria era manual).
+- Enquanto o Bárbaro está **"Em Fúria"** (toggle do painel "O teu turno"), o dano de cada ataque **corpo a corpo com Força** ganha o bônus da Fúria automaticamente: **+2** (nv1-8), **+3** (nv9-15), **+4** (nv16+). O selo **🔥+N** aparece ao lado do dano e o bônus **já entra no botão "🎲 dano"** (ex.: Machado Grande passa de `1d12+4` para `1d12+6`). O cabeçalho de Ataques de Arma avisa "🔥 Em Fúria: +N de dano corpo a corpo (Força)".
+- **Não se aplica** a ataques à distância (arco) nem a golpes que usam Destreza — a regra 5e restringe a Fúria a armas corpo a corpo de Força. `ataqueArma` ganhou um parâmetro opcional de bônus de dano (não-destrutivo) e passou a expor `usaDes`/`distancia` para essa decisão.
+
+**Ficheiros:** `static/js/regras.js` (`ataqueArma` com bônus opcional + flags), `static/js/jogo.js`, `static/css/style.css`, `docs/ROADMAP-FICHAS-COMBATE.md` (C4 ✅), `tests/e2e-pdf.js` (+5 checagens).
+
+**Verificação:** E2E completo verde — Bárbaro nv5 real no navegador: fora de Fúria o machado é `1d12+4` sem selo; em Fúria vira `1d12+6` com 🔥+2 e o arco fica de fora; cabeçalho avisa · 25/25 unit · 26/26 servidor · sintaxe OK.
+
+**Como reverter:** restaurar `versoes/2026-07-20-barbaro-furia/`, ou `git revert`.
+
+---
+
 ## 2026-07-20 — Combate C4 (parte): 🗡️ Ataque Furtivo do Ladino jogável
 
 **Backup antes da alteração:** `versoes/2026-07-20-ladino-furtivo/` (`jogo.js`, `style.css`).

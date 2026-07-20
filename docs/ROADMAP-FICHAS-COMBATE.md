@@ -71,18 +71,17 @@ precisa DIZER isso e mostrar o que está chegando, senão parece ficha quebrada.
 
 ## FASE C — Combate (Modo de Jogo)
 
-### C1 🔴 Magias como cartas de ação (igual às armas)
+### C1 ✅ Magias como cartas de ação (igual às armas) — ENTREGUE 19/07
 **Dor relatada:** "no combate não fica disponível as magias para uso, somente algumas armas."
-Hoje o painel "O teu turno" só lista os NOMES das magias num texto corrido; as armas têm card com
-bônus/dano. As magias precisam do mesmo tratamento.
 
-- [ ] Painel **"✨ Conjuração"** ao lado de "Ataques de Arma": um card por truque/magia castável com
-  **+ataque mágico ou CD**, dano/efeito, alcance, tempo (ação/bônus/reação) e concentração.
-- [ ] Botão **"Conjurar"** no card: gasta o espaço do círculo certo com 1 clique (e marca concentração
-  se for o caso) — hoje o gasto de slot é manual e distante da magia.
-- [ ] Filtro "castável agora": esconde/apaga cards sem espaço disponível; truques sempre acesos.
-- [ ] Escalonamento no card: truques por nível de personagem (Rajada Sobrenatural 2 raios no nv5…),
-  magias com "+Xd por círculo acima".
+- [x] Painel **"✨ Conjuração"** logo abaixo de "Ataques de Arma": um card por truque/magia castável com
+  **CD e ataque mágico no cabeçalho** (por classe, em multiclasse), dano/DT, alcance, tempo com ícone
+  (🎯 ação / ⚡ bônus / ↩️ reação) e 🧠 concentração.
+- [x] Botão **"✨ Conjurar"**: gasta o espaço do círculo certo com 1 clique — com **upcast automático**
+  (círculo base esgotado → usa o menor acima, marcado "(2º↑)") e suporte à Magia de Pacto do Bruxo;
+  marca a concentração sozinho e registra no Histórico.
+- [x] "Castável agora": card sem espaço fica apagado com botão desabilitado; truques sempre acesos.
+- [x] Escalonamento de truques por nível do personagem (nv5/11/17 → "2× 1d10" no card).
 
 ### C2 🔴 Itens repetidos agrupados com quantidade
 **Dor relatada:** "azagaia se repete muito; se tem mais de uma coloque a quantidade."

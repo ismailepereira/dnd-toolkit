@@ -342,58 +342,6 @@ const Jogo = (function () {
     const usados = ficha.slotsUsados[nivel] || 0;
     if (usados < max.normal[nivel - 1]) { ficha.slotsUsados[nivel] = usados + 1; salvar(); }
   }
-
-  // ----- C1 (roadmap fichas & combate): conjurar com 1 clique -----
-  // CD/ataque POR MAGIA: usa a classe conjuradora do personagem que tem a
-  // magia na própria lista; multiclasse sem dono claro cai na 1ª conjuradora.
-  function classesConjuradoras() {
-    if (typeof CONJURACAO === 'undefined') return [];
-    return classesFicha().filter(c => CONJURACAO[c.classe] && c.nivel >= (CONJURACAO[c.classe].desdeNivel || 1));
-  }
-  function conjuracaoDaMagia(nome) {
-    if (typeof cdConjuracao !== 'function') return null;
-    const conjs = classesConjuradoras();
-    if (!conjs.length) return null;
-    const donos = (typeof MAGIAS_CLASSES !== 'undefined' && MAGIAS_CLASSES[nome]) || null;
-    const cls = (donos && conjs.find(c => donos.includes(c.classe))) || conjs[0];
-    return cdConjuracao(cls.classe, cls.nivel, ficha.atributos, pbAtual());
-  }
-  // menor espaço LIVRE que casta a magia (círculo >= o dela); null se nenhum.
-  // Multiclasse Bruxo+outro: prefere o espaço normal exato; pacto é o plano B.
-  function espacoParaMagia(nivelMagia) {
-    const sm = slotsMax();
-    if (!sm) return null;
-    if (sm.normal) {
-      for (let c = nivelMagia; c <= 9; c++) {
-        const qtd = sm.normal[c - 1] || 0;
-        if (qtd > 0 && (ficha.slotsUsados[c] || 0) < qtd) return { tipo: 'normal', circulo: c };
-      }
-    }
-    if (sm.pacto && sm.pacto.nivel >= nivelMagia && (ficha.pactoUsados || 0) < sm.pacto.slots) {
-      return { tipo: 'pacto', circulo: sm.pacto.nivel };
-    }
-    return null;
-  }
-  function conjurarMagia(nome) {
-    const d = (typeof detalheMagia === 'function') ? detalheMagia(nome) : null;
-    if (!d) return;
-    if (d.nivel > 0) {
-      const esp = espacoParaMagia(d.nivel);
-      if (!esp) { log(`Sem espaço de magia para ${nome}.`); render(); return; }
-      if (esp.tipo === 'pacto') ficha.pactoUsados = (ficha.pactoUsados || 0) + 1;
-      else ficha.slotsUsados[esp.circulo] = (ficha.slotsUsados[esp.circulo] || 0) + 1;
-      log(`✨ Conjurou ${nome} (${esp.tipo === 'pacto' ? `pacto ${esp.circulo}º` : `espaço do ${esp.circulo}º`}${esp.circulo > d.nivel ? ' — círculo acima, efeito ampliado' : ''}).`);
-    } else {
-      log(`✨ Usou o truque ${nome}.`);
-    }
-    if (/concentração/i.test(d.duracao || '')) ficha.concentrando = nome;
-    salvar();
-  }
-  // truques de dano escalam nos níveis 5/11/17 do PERSONAGEM (regra 5e)
-  function escalaTruque() {
-    const n = ficha.nivel || 1;
-    return 1 + (n >= 5 ? 1 : 0) + (n >= 11 ? 1 : 0) + (n >= 17 ? 1 : 0);
-  }
   function recuperarSlot(nivel) {
     const usados = ficha.slotsUsados[nivel] || 0;
     if (usados > 0) { ficha.slotsUsados[nivel] = usados - 1; salvar(); }
@@ -618,40 +566,6 @@ const Jogo = (function () {
           grimorioF.map(n => cardMagia(n, false)).join('') + `</div>`;
       }
       magiasHtml += '</div>';
-    }
-
-    // ----- ✨ Conjuração em COMBATE (C1): cards de ação com CD/ataque e botão
-    // que gasta o espaço certo — as magias ganham o mesmo status das armas.
-    let castHtml = '';
-    if (_ehConj && (truquesF.length || magiasCastaveis().length)) {
-      const conjsCab = classesConjuradoras();
-      const cabecalho = conjsCab.map(c => {
-        const k = (typeof cdConjuracao === 'function') ? cdConjuracao(c.classe, c.nivel, f.atributos, pb) : null;
-        return k ? `${conjsCab.length > 1 ? esc(c.classe) + ' ' : ''}CD <b>${k.cd}</b> · Atq. mágico <b>${fmt(k.ataque)}</b>` : '';
-      }).filter(Boolean).join(' · ');
-      const tempoIcone = t => (t || '').includes('bônus') ? '⚡' : ((t || '').includes('reação') ? '↩️' : '🎯');
-      const cardCast = nome => {
-        const d = detalheMagia(nome);
-        if (!d) return '';
-        const esp = d.nivel > 0 ? espacoParaMagia(d.nivel) : null;
-        const sem = d.nivel > 0 && !esp;
-        const mult = d.nivel === 0 ? escalaTruque() : 1;
-        const temDano = d.dano && d.dano !== '—';
-        const dano = temDano ? (mult > 1 && /\dd\d/.test(d.dano) ? `${mult}× ${d.dano}` : d.dano) : '';
-        const dt = d.salva && d.salva !== '—' && !/^Ataque/.test(d.salva) ? `DT de ${d.salva}` : (/^Ataque/.test(d.salva || '') ? d.salva : '');
-        return `<div class="jg-cast${sem ? ' esgotado' : ''}">
-          <div class="jg-cast-info"><b>${esc(nome)}</b>
-            <small>${d.nivel === 0 ? 'truque' : d.nivel + 'º círculo'} · ${tempoIcone(d.tempo)} ${esc(d.tempo)} · ${esc(d.alcance)}${dano ? ` · <span class="jg-dano">${esc(dano)}</span>` : ''}${dt ? ' · ' + esc(dt) : ''}${/concentração/i.test(d.duracao || '') ? ' · 🧠 concentração' : ''}</small>
-          </div>
-          <button class="btn-mini jg-cast-btn" data-conjurar="${esc(nome)}" ${sem ? 'disabled title="Sem espaço de magia — recupere num descanso"' : ''}>${d.nivel === 0 ? '✨ Usar' : (sem ? 'Sem espaço' : `✨ Conjurar${esp && esp.circulo > d.nivel ? ` (${esp.circulo}º↑)` : ''}`)}</button>
-        </div>`;
-      };
-      const castaveis = [...magiasCastaveis()].sort((a, b) => ((detalheMagia(a) || {}).nivel || 0) - ((detalheMagia(b) || {}).nivel || 0));
-      castHtml = `<div class="jg-bloco jg-conjuracao"><h4>✨ Conjuração ${cabecalho ? `<small>${cabecalho}</small>` : ''}</h4>
-        ${truquesF.map(cardCast).join('')}
-        ${castaveis.map(cardCast).join('')}
-        ${(!castaveis.length && ehPreparador()) ? '<div class="criador-hint">Nenhuma magia preparada hoje — prepare no bloco 🧠 Magias, mais abaixo.</div>' : ''}
-      </div>`;
     }
 
     // características acumuladas até o nível atual (com descrição do que fazem)
@@ -1097,7 +1011,7 @@ const Jogo = (function () {
           </div>
           ${condHtml}${logHtml}
         </div>
-        <div>${armasHtml}${castHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
+        <div>${armasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
       </div>
     `;
 
@@ -1342,9 +1256,6 @@ const Jogo = (function () {
       ficha.pactoUsados = Math.max(0, Math.min(sm.pacto.slots, (ficha.pactoUsados || 0) + (+b.dataset.pacto)));
       salvar();
     });
-    // ----- ✨ Conjuração (C1): botão Conjurar/Usar nos cards -----
-    document.querySelectorAll('[data-conjurar]').forEach(b => b.onclick = () => conjurarMagia(b.dataset.conjurar));
-
     // ----- Forma Selvagem: transformar / dano-cura da fera / reverter -----
     const fsBtn = $('jgFsTransformar');
     if (fsBtn) fsBtn.onclick = () => {

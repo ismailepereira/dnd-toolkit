@@ -1141,15 +1141,6 @@ input:focus, textarea:focus, select:focus {
 .jg-cast-info small { display: block; color: var(--text-dim); }
 .jg-cast.esgotado { opacity: 0.45; }
 .jg-cast-btn { white-space: nowrap; flex-shrink: 0; }
-
-/* ⚡ Punição Divina e 🛡️ Auras do Paladino (F1) */
-.jg-punicao-botoes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-.jg-auras h4 { color: #d29922; }
-
-/* C2/C3: quantidade agregada e recuperação de armas arremessadas */
-.jg-qtd { color: var(--accent, #e94560); font-weight: 600; }
-.jg-qtd small { color: var(--text-dim); font-weight: 400; }
-.jg-recuperar { margin-top: 6px; }
 .jg-rec small { color: var(--text-dim); }
 .jg-rec-ctrl { display: flex; align-items: center; gap: 6px; }
 

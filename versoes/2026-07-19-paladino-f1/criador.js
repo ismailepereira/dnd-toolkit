@@ -1456,31 +1456,21 @@ const Criador = (function () {
     const prep = s.nivel >= 2 ? Math.max(1, Math.floor(s.nivel / 2) + mod(atributosFinais(s).car)) : 0;
     const pool = 5 * s.nivel;
     const ataques = s.nivel >= 5 ? 2 : 1;
-    const sentidos = Math.max(1, 1 + mod(atributosFinais(s).car));
-    // Aviso honesto no nível 1: o Paladino REALMENTE só tem Sentido Divino +
-    // Cura pelas Mãos até o 2º nível — sem isso o jogador acha a ficha quebrada.
-    const avisoNivel1 = s.nivel === 1
-      ? `<div class="criador-hint" style="border-left:3px solid #d29922;padding-left:8px">⚠️ <b>No nível 1 o Paladino ainda é "só" um guerreiro devoto:</b> tem Sentido Divino e a cura das mãos, mas <b>ainda não conjura magias nem tem a Punição Divina</b> — o golpe radiante explosivo da classe. Tudo isso chega no <b>nível 2</b> (magia + Estilo de Luta + Punição) e o Juramento no <b>nível 3</b>. Muitas mesas começam o Paladino no nível 2 ou 3 por isso.</div>`
-      : '';
     return `<div class="classe-painel-box mago"><h3>🛡️ Paladino — Nível ${s.nivel}</h3>
       <div class="criador-hint">Guerreiro sagrado (Carisma). Combina marcial, magia e auras; pune inimigos com energia divina.</div>
-      ${avisoNivel1}
       <div class="mago-stats">
-        <div class="mago-card"><span>${sentidos}</span><small>Sentido Divino (usos)</small></div>
         <div class="mago-card"><span>${pool}</span><small>Cura pelas Mãos (PV)</small></div>
         <div class="mago-card"><span>${ataques}</span><small>Ataques por ação</small></div>
-        ${s.nivel >= 2 ? cardsConjInline('Paladino', s, 'car', { valor: prep, rotulo: 'Preparadas/dia' }) : '<div class="mago-card"><span>N2</span><small>Magia começa</small></div>'}
+        ${s.nivel >= 2 ? cardsConjInline('Paladino', s, 'car', { valor: prep, rotulo: 'Preparadas/dia' }) : '<div class="mago-card"><span>N2</span><small>Conjuração começa</small></div>'}
       </div>
-      <h4>O que você faz${s.nivel === 1 ? ' já no nível 1' : ` até o nível ${s.nivel}`}</h4>
+      <h4>Características de Paladino</h4>
       <ul class="mago-feats">
-        <li><b>Sentido Divino (${sentidos} usos/descanso longo):</b> como ação, sente celestiais, corruptores e mortos-vivos num raio de 18m.</li>
-        <li><b>Cura pelas Mãos (${pool} PV):</b> uma reserva de ${pool} PV que você distribui ao toque, como ação — cura ferimentos ou (do N14) remove doença/veneno.</li>
-        ${s.nivel >= 2 ? '<li><b>⚡ Punição Divina (N2):</b> ao ACERTAR um golpe corpo a corpo, gasta um espaço de magia para +2d8 radiante (+1d8 por círculo acima do 1º; +1d8 vs mortos-vivos). É o dano-assinatura da classe — no Modo de Jogo há botão pronto.</li>' : ''}
-        ${s.nivel >= 2 ? '<li><b>Conjuração + Estilo de Luta (N2):</b> passa a preparar magias de Paladino e escolhe um estilo de combate (Defesa, Duelo…).</li>' : ''}
-        ${s.nivel >= 3 ? '<li><b>Juramento Sagrado (N3):</b> escolhe o juramento (subclasse) — dá magias fixas e um Canalizar Divindade próprio. <b>Saúde Divina:</b> imune a doenças.</li>' : ''}
+        <li><b>Sentido Divino:</b> detecta celestiais, corruptores e mortos-vivos. <b>Cura pelas Mãos:</b> reserva de ${pool} PV ao toque.</li>
+        ${s.nivel >= 2 ? '<li><b>Punição Divina (N2):</b> ao acertar corpo a corpo, gasta espaço de magia para +2d8 radiante (+1d8 por círculo acima do 1º). <b>Estilo de Luta</b>.</li>' : ''}
+        ${s.nivel >= 3 ? '<li><b>Saúde Divina (N3):</b> imune a doenças.</li>' : ''}
         ${s.nivel >= 6 ? '<li><b>Aura de Proteção (N6):</b> você e aliados a 3m (9m no N18) somam seu Carisma às salvaguardas.</li>' : ''}
         ${s.nivel >= 10 ? '<li><b>Aura de Coragem (N10):</b> você e aliados perto não podem ser amedrontados.</li>' : ''}
-        ${s.nivel >= 11 ? '<li><b>Punição Divina Aprimorada (N11):</b> todo ataque corpo a corpo já causa +1d8 radiante de graça.</li>' : ''}
+        ${s.nivel >= 11 ? '<li><b>Punição Divina Aprimorada (N11):</b> todo ataque corpo a corpo causa +1d8 radiante.</li>' : ''}
         ${s.nivel >= 14 ? '<li><b>Toque Purificador (N14):</b> usa Cura pelas Mãos para remover venenos/doenças.</li>' : ''}
       </ul>
       ${seletorSubclasse(s)}${blocoSubFeats(s)}</div>`;

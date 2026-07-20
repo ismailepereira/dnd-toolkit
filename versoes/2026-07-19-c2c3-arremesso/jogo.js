@@ -267,7 +267,6 @@ const Jogo = (function () {
     }
     // ----- bolsa + slots (migração de fichas legadas) -----
     ficha.itens = ficha.itens || [];
-    if (!ficha.arremessadas) ficha.arremessadas = {}; // C3: nome -> qtd lançada no chão
     if (!ficha.municao || !ficha.municao.nome) ficha.municao = ficha.municao || { nome: '', qtd: 0 };
     if (!ficha.equipado) {
       const cat = n => (typeof itemCatalogo === 'function') ? itemCatalogo(n) : null;
@@ -400,26 +399,6 @@ const Jogo = (function () {
     return 1 + (n >= 5 ? 1 : 0) + (n >= 11 ? 1 : 0) + (n >= 17 ? 1 : 0);
   }
 
-  // ----- C3: armas de arremesso — lançar (sai da mão) e recuperar -----
-  function lancarArma(nome) {
-    const total = (ficha.itens || []).filter(x => x === nome).length;
-    if (!ficha.arremessadas) ficha.arremessadas = {};
-    const jaNoChao = ficha.arremessadas[nome] || 0;
-    if (jaNoChao >= total) { log(`Nenhuma ${nome} em mãos para lançar.`); render(); return; }
-    ficha.arremessadas[nome] = jaNoChao + 1;
-    const emMaos = total - ficha.arremessadas[nome];
-    log(`🎯 Lançou ${nome} (${emMaos} em mãos · ${ficha.arremessadas[nome]} no chão).`);
-    salvar();
-  }
-  function recuperarArremessadas() {
-    if (!ficha.arremessadas) return;
-    const nomes = Object.keys(ficha.arremessadas).filter(n => ficha.arremessadas[n] > 0);
-    if (!nomes.length) return;
-    ficha.arremessadas = {};
-    log(`↩️ Recuperou as armas arremessadas (${nomes.join(', ')}).`);
-    salvar();
-  }
-
   // ----- F1: Punição Divina do Paladino (nv2+) -----
   // Gasta 1 espaço de magia DEPOIS de acertar um golpe corpo a corpo:
   // 2d8 radiante (1º), +1d8 por círculo acima (máx 5d8), +1d8 vs mortos-vivos/ínferos.
@@ -455,7 +434,6 @@ const Jogo = (function () {
     ficha.pactoUsados = 0;
     ficha.recursosUsados = {};
     ficha.formaAtiva = null; // a Forma Selvagem dura nível/2 horas — não sobrevive à noite
-    ficha.arremessadas = {}; // C3: no descanso longo, recolhe tudo que foi arremessado
     const c = classeObj();
     const dvMax = ficha.nivel;
     ficha.dvUsados = Math.max(0, ficha.dvUsados - Math.max(1, Math.floor(dvMax / 2)));
@@ -780,16 +758,10 @@ const Jogo = (function () {
     const avisos = (typeof penalidadesEquipamento === 'function') ? penalidadesEquipamento(f) : [];
     const eqJogo = f.equipado || {};
     const catJogo = n => (typeof itemCatalogo === 'function') ? itemCatalogo(n) : null;
-    // C2/C3: contagem por nome e detecção de arma de arremesso
-    const qtdItem = n => (f.itens || []).filter(x => x === n).length;
-    const ehArremesso = n => { const it = catJogo(n); return !!(it && (it.props || []).some(p => /arremesso/i.test(p))); };
-    const noChao = n => (f.arremessadas && f.arremessadas[n]) || 0;         // quantas foram lançadas e estão no chão
-    const emMaos = n => Math.max(0, qtdItem(n) - noChao(n));
     const nomesArmas = [...new Set(f.itens || [])];
     // arma equipada primeiro na lista
     nomesArmas.sort((a, b) => (b === eqJogo.maoPrincipal ? 1 : 0) - (a === eqJogo.maoPrincipal ? 1 : 0));
     const armas = nomesArmas.map(n => (typeof ataqueArma === 'function') ? ataqueArma(f, n, pb) : null).filter(Boolean);
-    const temArremessadas = f.arremessadas && Object.values(f.arremessadas).some(v => v > 0);
     // duas armas: arma LEVE na mão secundária dá ataque bônus (dano sem o mod,
     // a menos que tenha o estilo Combate com Duas Armas)
     let bonusDuasArmas = '';
@@ -812,22 +784,10 @@ const Jogo = (function () {
       const equipada = a.nome === eqJogo.maoPrincipal || a.nome === eqJogo.maoSecundaria;
       const usaMunicao = it && it.municaoTipo;
       const municaoOk = !usaMunicao || (f.municao && f.municao.nome === it.municaoTipo && f.municao.qtd > 0);
-      // C2: quantidade agregada. C3: armas de arremesso mostram em mãos / no chão.
-      const qtd = qtdItem(a.nome);
-      const arremesso = ehArremesso(a.nome);
-      const mao = arremesso ? emMaos(a.nome) : qtd;
-      const chao = arremesso ? noChao(a.nome) : 0;
-      const semNaMao = arremesso && mao <= 0;
-      const contagem = qtd > 1
-        ? `<span class="jg-qtd">×${qtd}${arremesso ? ` <small>(${mao} em mãos${chao ? ` · ${chao} no chão` : ''})</small>` : ''}</span>`
-        : (arremesso && chao ? `<span class="jg-qtd"><small>(lançada — no chão)</small></span>` : '');
-      const btnLancar = arremesso
-        ? `<button class="btn-mini" data-lancararma="${esc(a.nome)}" ${semNaMao ? 'disabled title="sem unidades em mãos"' : ''}>🎯 lançar</button>` : '';
-      return `<div class="pv-linha${equipada ? ' arma-equipada' : ''}"><strong>${equipada ? '✋ ' : ''}${getArmaIcone(a.nome)} ${esc(a.nome)}:</strong> ${a.ataque >= 0 ? '+' : ''}${a.ataque} · ${esc(a.dano)} ${contagem}
-      <button class="btn-mini" data-atacararma="${a.ataque}" data-arma="${esc(a.nome)}"${(usaMunicao && !municaoOk) || semNaMao ? ' disabled' : ''}${semNaMao ? ' title="sem unidades em mãos"' : ''}${usaMunicao ? ` data-municao="${esc(it.municaoTipo)}"` : ''}>🎲 atacar</button>
-      ${btnLancar}
-      ${/\d+d\d+/.test(a.dano) ? `<button class="btn-mini" data-rolararma="${esc(a.dano)}" data-arma="${esc(a.nome)}">🎲 dano</button>` : ''}${a.semProf ? ' <span class="pv-warn">⚠ sem prof.</span>' : ''}${usaMunicao && !municaoOk ? ' <span class="pv-warn">sem munição</span>' : ''}${semNaMao ? ' <span class="pv-warn">nenhuma em mãos</span>' : ''}</div>`;
-    }).join('')}${bonusDuasArmas}${temArremessadas ? `<div class="pv-linha jg-recuperar"><button class="btn-mini" id="jgRecuperarArrem">↩️ Recuperar armas arremessadas</button> <span class="criador-hint-inline">após o combate, junta o que foi lançado no chão</span></div>` : ''}</div>` : '';
+      return `<div class="pv-linha${equipada ? ' arma-equipada' : ''}"><strong>${equipada ? '✋ ' : ''}${getArmaIcone(a.nome)} ${esc(a.nome)}:</strong> ${a.ataque >= 0 ? '+' : ''}${a.ataque} · ${esc(a.dano)}
+      <button class="btn-mini" data-atacararma="${a.ataque}" data-arma="${esc(a.nome)}"${usaMunicao && !municaoOk ? ' disabled title="sem munição"' : ''}${usaMunicao ? ` data-municao="${esc(it.municaoTipo)}"` : ''}>🎲 atacar</button>
+      ${/\d+d\d+/.test(a.dano) ? `<button class="btn-mini" data-rolararma="${esc(a.dano)}" data-arma="${esc(a.nome)}">🎲 dano</button>` : ''}${a.semProf ? ' <span class="pv-warn">⚠ sem prof.</span>' : ''}${usaMunicao && !municaoOk ? ' <span class="pv-warn">sem munição</span>' : ''}</div>`;
+    }).join('')}${bonusDuasArmas}</div>` : '';
 
     // ----- ⚡ Punição Divina do Paladino (F1) — botões que gastam espaço e rolam o dano -----
     let punicaoHtml = '';
@@ -974,10 +934,8 @@ const Jogo = (function () {
     ];
     const slotJg = (id, rotulo, icone, opcoes, valor, nota) => `
       <label class="slot-eq"><span>${icone} ${rotulo}</span>
-        <select data-slot-jogo="${id}"><option value="">— vazio —</option>${[...new Set(opcoes)].map(o => {
-          const c = qtdItem(o); // C2: mostra "(×N)" quando há repetidas
-          return `<option value="${esc(o)}"${valor === o ? ' selected' : ''}>${esc(o)}${c > 1 ? ` (×${c})` : ''}</option>`;
-        }).join('')}</select>
+        <select data-slot-jogo="${id}"><option value="">— vazio —</option>${[...new Set(opcoes)].map(o =>
+          `<option value="${esc(o)}"${valor === o ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>
         ${nota || ''}</label>`;
     const municaoJgHtml = (f.municao && f.municao.nome)
       ? `<div class="slot-eq slot-municao"><span>🏹 Munição</span><b>${esc(f.municao.nome)} × ${f.municao.qtd}</b></div>` : '';
@@ -1446,10 +1404,6 @@ const Jogo = (function () {
       const mv = !!($('jgPunicaoMV') && $('jgPunicaoMV').checked);
       punicaoDivina(+b.dataset.punicao, mv);
     });
-
-    // ----- 🎯 Armas de arremesso (C3) -----
-    document.querySelectorAll('[data-lancararma]').forEach(b => b.onclick = () => lancarArma(b.dataset.lancararma));
-    if ($('jgRecuperarArrem')) $('jgRecuperarArrem').onclick = recuperarArremessadas;
 
     // ----- Forma Selvagem: transformar / dano-cura da fera / reverter -----
     const fsBtn = $('jgFsTransformar');

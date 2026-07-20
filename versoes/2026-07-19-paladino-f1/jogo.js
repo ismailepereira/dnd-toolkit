@@ -211,11 +211,7 @@ const Jogo = (function () {
     if (cl === 'Clérigo' && nivel >= 2) r.push({ nome: 'Canalizar Divindade', max: nivel >= 18 ? 3 : nivel >= 6 ? 2 : 1, rec: 'curto' });
     if (cl === 'Druida' && nivel >= 2) r.push({ nome: 'Forma Selvagem', max: 2, rec: 'curto' });
     if (cl === 'Feiticeiro' && nivel >= 2) r.push({ nome: 'Pontos de Feitiçaria', max: nivel, rec: 'longo' });
-    if (cl === 'Paladino') {
-      r.push({ nome: 'Sentido Divino', max: Math.max(1, 1 + cm), rec: 'longo' }); // 1 + mod CAR usos/descanso longo — F1
-      r.push({ nome: 'Imposição das Mãos (PV)', max: nivel * 5, rec: 'longo', pool: true });
-      if (nivel >= 3) r.push({ nome: 'Canalizar Divindade', max: 1, rec: 'curto' });
-    }
+    if (cl === 'Paladino') { r.push({ nome: 'Imposição das Mãos (PV)', max: nivel * 5, rec: 'longo', pool: true }); if (nivel >= 3) r.push({ nome: 'Canalizar Divindade', max: 1, rec: 'curto' }); }
     return r;
   }
   function recursosClasse() {
@@ -267,7 +263,6 @@ const Jogo = (function () {
     }
     // ----- bolsa + slots (migração de fichas legadas) -----
     ficha.itens = ficha.itens || [];
-    if (!ficha.arremessadas) ficha.arremessadas = {}; // C3: nome -> qtd lançada no chão
     if (!ficha.municao || !ficha.municao.nome) ficha.municao = ficha.municao || { nome: '', qtd: 0 };
     if (!ficha.equipado) {
       const cat = n => (typeof itemCatalogo === 'function') ? itemCatalogo(n) : null;
@@ -399,44 +394,6 @@ const Jogo = (function () {
     const n = ficha.nivel || 1;
     return 1 + (n >= 5 ? 1 : 0) + (n >= 11 ? 1 : 0) + (n >= 17 ? 1 : 0);
   }
-
-  // ----- C3: armas de arremesso — lançar (sai da mão) e recuperar -----
-  function lancarArma(nome) {
-    const total = (ficha.itens || []).filter(x => x === nome).length;
-    if (!ficha.arremessadas) ficha.arremessadas = {};
-    const jaNoChao = ficha.arremessadas[nome] || 0;
-    if (jaNoChao >= total) { log(`Nenhuma ${nome} em mãos para lançar.`); render(); return; }
-    ficha.arremessadas[nome] = jaNoChao + 1;
-    const emMaos = total - ficha.arremessadas[nome];
-    log(`🎯 Lançou ${nome} (${emMaos} em mãos · ${ficha.arremessadas[nome]} no chão).`);
-    salvar();
-  }
-  function recuperarArremessadas() {
-    if (!ficha.arremessadas) return;
-    const nomes = Object.keys(ficha.arremessadas).filter(n => ficha.arremessadas[n] > 0);
-    if (!nomes.length) return;
-    ficha.arremessadas = {};
-    log(`↩️ Recuperou as armas arremessadas (${nomes.join(', ')}).`);
-    salvar();
-  }
-
-  // ----- F1: Punição Divina do Paladino (nv2+) -----
-  // Gasta 1 espaço de magia DEPOIS de acertar um golpe corpo a corpo:
-  // 2d8 radiante (1º), +1d8 por círculo acima (máx 5d8), +1d8 vs mortos-vivos/ínferos.
-  function paladinoDaFicha() { return classesFicha().find(c => c.classe === 'Paladino' && c.nivel >= 2); }
-  function punicaoDivina(circulo, vsMortoVivo) {
-    if (!paladinoDaFicha()) return;
-    const esp = espacoParaMagia(circulo); // menor espaço livre >= o círculo pedido
-    if (!esp || esp.tipo === 'pacto') { log('Sem espaço de magia para a Punição Divina.'); render(); return; }
-    const usado = esp.circulo;
-    ficha.slotsUsados[usado] = (ficha.slotsUsados[usado] || 0) + 1;
-    const dados = Math.min(5, 1 + usado) + (vsMortoVivo ? 1 : 0); // 2d8 base no 1º, teto 5d8 (+1 vs mortos-vivos)
-    // rola o dano radiante e registra
-    let total = 0; const rolls = [];
-    for (let k = 0; k < dados; k++) { const r = 1 + Math.floor(Math.random() * 8); rolls.push(r); total += r; }
-    log(`⚡ Punição Divina (espaço do ${usado}º): ${dados}d8 radiante = ${total} [${rolls.join(', ')}]${vsMortoVivo ? ' (bônus vs morto-vivo/ínfero)' : ''}.`);
-    salvar();
-  }
   function recuperarSlot(nivel) {
     const usados = ficha.slotsUsados[nivel] || 0;
     if (usados > 0) { ficha.slotsUsados[nivel] = usados - 1; salvar(); }
@@ -455,7 +412,6 @@ const Jogo = (function () {
     ficha.pactoUsados = 0;
     ficha.recursosUsados = {};
     ficha.formaAtiva = null; // a Forma Selvagem dura nível/2 horas — não sobrevive à noite
-    ficha.arremessadas = {}; // C3: no descanso longo, recolhe tudo que foi arremessado
     const c = classeObj();
     const dvMax = ficha.nivel;
     ficha.dvUsados = Math.max(0, ficha.dvUsados - Math.max(1, Math.floor(dvMax / 2)));
@@ -780,16 +736,10 @@ const Jogo = (function () {
     const avisos = (typeof penalidadesEquipamento === 'function') ? penalidadesEquipamento(f) : [];
     const eqJogo = f.equipado || {};
     const catJogo = n => (typeof itemCatalogo === 'function') ? itemCatalogo(n) : null;
-    // C2/C3: contagem por nome e detecção de arma de arremesso
-    const qtdItem = n => (f.itens || []).filter(x => x === n).length;
-    const ehArremesso = n => { const it = catJogo(n); return !!(it && (it.props || []).some(p => /arremesso/i.test(p))); };
-    const noChao = n => (f.arremessadas && f.arremessadas[n]) || 0;         // quantas foram lançadas e estão no chão
-    const emMaos = n => Math.max(0, qtdItem(n) - noChao(n));
     const nomesArmas = [...new Set(f.itens || [])];
     // arma equipada primeiro na lista
     nomesArmas.sort((a, b) => (b === eqJogo.maoPrincipal ? 1 : 0) - (a === eqJogo.maoPrincipal ? 1 : 0));
     const armas = nomesArmas.map(n => (typeof ataqueArma === 'function') ? ataqueArma(f, n, pb) : null).filter(Boolean);
-    const temArremessadas = f.arremessadas && Object.values(f.arremessadas).some(v => v > 0);
     // duas armas: arma LEVE na mão secundária dá ataque bônus (dano sem o mod,
     // a menos que tenha o estilo Combate com Duas Armas)
     let bonusDuasArmas = '';
@@ -812,54 +762,10 @@ const Jogo = (function () {
       const equipada = a.nome === eqJogo.maoPrincipal || a.nome === eqJogo.maoSecundaria;
       const usaMunicao = it && it.municaoTipo;
       const municaoOk = !usaMunicao || (f.municao && f.municao.nome === it.municaoTipo && f.municao.qtd > 0);
-      // C2: quantidade agregada. C3: armas de arremesso mostram em mãos / no chão.
-      const qtd = qtdItem(a.nome);
-      const arremesso = ehArremesso(a.nome);
-      const mao = arremesso ? emMaos(a.nome) : qtd;
-      const chao = arremesso ? noChao(a.nome) : 0;
-      const semNaMao = arremesso && mao <= 0;
-      const contagem = qtd > 1
-        ? `<span class="jg-qtd">×${qtd}${arremesso ? ` <small>(${mao} em mãos${chao ? ` · ${chao} no chão` : ''})</small>` : ''}</span>`
-        : (arremesso && chao ? `<span class="jg-qtd"><small>(lançada — no chão)</small></span>` : '');
-      const btnLancar = arremesso
-        ? `<button class="btn-mini" data-lancararma="${esc(a.nome)}" ${semNaMao ? 'disabled title="sem unidades em mãos"' : ''}>🎯 lançar</button>` : '';
-      return `<div class="pv-linha${equipada ? ' arma-equipada' : ''}"><strong>${equipada ? '✋ ' : ''}${getArmaIcone(a.nome)} ${esc(a.nome)}:</strong> ${a.ataque >= 0 ? '+' : ''}${a.ataque} · ${esc(a.dano)} ${contagem}
-      <button class="btn-mini" data-atacararma="${a.ataque}" data-arma="${esc(a.nome)}"${(usaMunicao && !municaoOk) || semNaMao ? ' disabled' : ''}${semNaMao ? ' title="sem unidades em mãos"' : ''}${usaMunicao ? ` data-municao="${esc(it.municaoTipo)}"` : ''}>🎲 atacar</button>
-      ${btnLancar}
-      ${/\d+d\d+/.test(a.dano) ? `<button class="btn-mini" data-rolararma="${esc(a.dano)}" data-arma="${esc(a.nome)}">🎲 dano</button>` : ''}${a.semProf ? ' <span class="pv-warn">⚠ sem prof.</span>' : ''}${usaMunicao && !municaoOk ? ' <span class="pv-warn">sem munição</span>' : ''}${semNaMao ? ' <span class="pv-warn">nenhuma em mãos</span>' : ''}</div>`;
-    }).join('')}${bonusDuasArmas}${temArremessadas ? `<div class="pv-linha jg-recuperar"><button class="btn-mini" id="jgRecuperarArrem">↩️ Recuperar armas arremessadas</button> <span class="criador-hint-inline">após o combate, junta o que foi lançado no chão</span></div>` : ''}</div>` : '';
-
-    // ----- ⚡ Punição Divina do Paladino (F1) — botões que gastam espaço e rolam o dano -----
-    let punicaoHtml = '';
-    const palad = classesFicha().find(c => c.classe === 'Paladino' && c.nivel >= 2);
-    if (palad) {
-      const sm = slotsMax();
-      const circulosDisp = [];
-      if (sm && sm.normal) sm.normal.forEach((qtd, i) => { if (qtd > 0) circulosDisp.push(i + 1); });
-      const temEspaco = circulosDisp.some(c => (f.slotsUsados[c] || 0) < (sm.normal[c - 1] || 0));
-      const botoes = circulosDisp.map(c => {
-        const livre = (f.slotsUsados[c] || 0) < (sm.normal[c - 1] || 0);
-        const dados = Math.min(5, 1 + c);
-        return `<button class="btn-mini" data-punicao="${c}" ${livre ? '' : 'disabled'}>${c}º espaço → ${dados}d8</button>`;
-      }).join('');
-      punicaoHtml = `<div class="jg-bloco jg-punicao"><h4>⚡ Punição Divina <small>(após acertar corpo a corpo)</small></h4>
-        <div class="pv-linha">Gasta 1 espaço de magia por um golpe de dano <b>radiante</b> extra (2d8 no 1º, +1d8 por círculo acima, teto 5d8).</div>
-        <label class="check-chip" style="margin:4px 0"><input type="checkbox" id="jgPunicaoMV"> 💀 alvo é morto-vivo ou ínfero (+1d8)</label>
-        <div class="jg-punicao-botoes">${botoes || '<span class="criador-hint">Sem espaços de magia neste nível.</span>'}</div>
-        ${!temEspaco && circulosDisp.length ? '<div class="criador-hint">Todos os espaços gastos — recupere num descanso.</div>' : ''}
-        ${palad.nivel >= 11 ? '<div class="criador-hint">✨ Punição Divina Aprimorada (N11): todo ataque corpo a corpo já causa +1d8 radiante de graça (sem gastar espaço).</div>' : ''}
-      </div>`;
-    }
-
-    // ----- 🛡️ Auras do Paladino (F1) — passivas sempre visíveis a partir do N6 -----
-    let aurasHtml = '';
-    if (palad && palad.nivel >= 6) {
-      const carMod = Math.max(0, m(f.atributos.car));
-      const alcance = palad.nivel >= 18 ? 9 : 3;
-      const linhas = [`<div class="pv-linha"><b>Aura de Proteção (N6):</b> você e aliados a até ${alcance}m somam <b>+${carMod}</b> (seu Carisma) em TODAS as salvaguardas.</div>`];
-      if (palad.nivel >= 10) linhas.push(`<div class="pv-linha"><b>Aura de Coragem (N10):</b> você e aliados a até ${alcance}m não podem ser amedrontados.</div>`);
-      aurasHtml = `<div class="jg-bloco jg-auras"><h4>🛡️ Auras (passivas, sempre ativas)</h4>${linhas.join('')}</div>`;
-    }
+      return `<div class="pv-linha${equipada ? ' arma-equipada' : ''}"><strong>${equipada ? '✋ ' : ''}${getArmaIcone(a.nome)} ${esc(a.nome)}:</strong> ${a.ataque >= 0 ? '+' : ''}${a.ataque} · ${esc(a.dano)}
+      <button class="btn-mini" data-atacararma="${a.ataque}" data-arma="${esc(a.nome)}"${usaMunicao && !municaoOk ? ' disabled title="sem munição"' : ''}${usaMunicao ? ` data-municao="${esc(it.municaoTipo)}"` : ''}>🎲 atacar</button>
+      ${/\d+d\d+/.test(a.dano) ? `<button class="btn-mini" data-rolararma="${esc(a.dano)}" data-arma="${esc(a.nome)}">🎲 dano</button>` : ''}${a.semProf ? ' <span class="pv-warn">⚠ sem prof.</span>' : ''}${usaMunicao && !municaoOk ? ' <span class="pv-warn">sem munição</span>' : ''}</div>`;
+    }).join('')}${bonusDuasArmas}</div>` : '';
 
     // perícias clicáveis
     const periciasHtml = `<details class="jg-bloco"><summary><strong>Perícias</strong> (clique para rolar)</summary><div class="jg-pericias-jogo">` +
@@ -974,10 +880,8 @@ const Jogo = (function () {
     ];
     const slotJg = (id, rotulo, icone, opcoes, valor, nota) => `
       <label class="slot-eq"><span>${icone} ${rotulo}</span>
-        <select data-slot-jogo="${id}"><option value="">— vazio —</option>${[...new Set(opcoes)].map(o => {
-          const c = qtdItem(o); // C2: mostra "(×N)" quando há repetidas
-          return `<option value="${esc(o)}"${valor === o ? ' selected' : ''}>${esc(o)}${c > 1 ? ` (×${c})` : ''}</option>`;
-        }).join('')}</select>
+        <select data-slot-jogo="${id}"><option value="">— vazio —</option>${[...new Set(opcoes)].map(o =>
+          `<option value="${esc(o)}"${valor === o ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>
         ${nota || ''}</label>`;
     const municaoJgHtml = (f.municao && f.municao.nome)
       ? `<div class="slot-eq slot-municao"><span>🏹 Munição</span><b>${esc(f.municao.nome)} × ${f.municao.qtd}</b></div>` : '';
@@ -1193,7 +1097,7 @@ const Jogo = (function () {
           </div>
           ${condHtml}${logHtml}
         </div>
-        <div>${armasHtml}${punicaoHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
+        <div>${armasHtml}${castHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
       </div>
     `;
 
@@ -1440,16 +1344,6 @@ const Jogo = (function () {
     });
     // ----- ✨ Conjuração (C1): botão Conjurar/Usar nos cards -----
     document.querySelectorAll('[data-conjurar]').forEach(b => b.onclick = () => conjurarMagia(b.dataset.conjurar));
-
-    // ----- ⚡ Punição Divina (F1) -----
-    document.querySelectorAll('[data-punicao]').forEach(b => b.onclick = () => {
-      const mv = !!($('jgPunicaoMV') && $('jgPunicaoMV').checked);
-      punicaoDivina(+b.dataset.punicao, mv);
-    });
-
-    // ----- 🎯 Armas de arremesso (C3) -----
-    document.querySelectorAll('[data-lancararma]').forEach(b => b.onclick = () => lancarArma(b.dataset.lancararma));
-    if ($('jgRecuperarArrem')) $('jgRecuperarArrem').onclick = recuperarArremessadas;
 
     // ----- Forma Selvagem: transformar / dano-cura da fera / reverter -----
     const fsBtn = $('jgFsTransformar');

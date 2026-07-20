@@ -1150,10 +1150,6 @@ input:focus, textarea:focus, select:focus {
 .jg-qtd { color: var(--accent, #e94560); font-weight: 600; }
 .jg-qtd small { color: var(--text-dim); font-weight: 400; }
 .jg-recuperar { margin-top: 6px; }
-
-/* 🗡️ Ataque Furtivo do Ladino (C4) */
-.jg-furtivo-cond.ok { color: #3fb950; }
-.jg-furtivo-cond.alerta { color: #d29922; }
 .jg-rec small { color: var(--text-dim); }
 .jg-rec-ctrl { display: flex; align-items: center; gap: 6px; }
 

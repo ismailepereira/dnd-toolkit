@@ -4,6 +4,21 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-20 — Combate C4 (parte): 🗡️ Ataque Furtivo do Ladino jogável
+
+**Backup antes da alteração:** `versoes/2026-07-20-ladino-furtivo/` (`jogo.js`, `style.css`).
+
+**Resumo:** primeira fatia do item C4 do roadmap (o Ataque Furtivo era só uma dica de texto — estava na lista de lacunas do F2).
+- **Bloco "🗡️ Ataque Furtivo"** no Modo de Jogo para o Ladino: mostra os dados certos por nível (**⌈nível/2⌉d6** — 1d6 no nv1, 3d6 no nv5, 5d6 no nv9…), botão que **rola e registra no Histórico** ("3d6 = 10 [3,1,6]"), e um lembrete da condição (arma ágil/à distância + vantagem OU aliado adjacente ao alvo) que fica **verde** quando o estado tático da ficha já satisfaz. Não gasta recurso, como manda a regra.
+
+**Ficheiros:** `static/js/jogo.js`, `static/css/style.css`, `docs/ROADMAP-FICHAS-COMBATE.md` (C4 Ladino ✅), `tests/e2e-pdf.js` (+4 checagens).
+
+**Verificação:** E2E completo verde — Ladino nv5 real no navegador: bloco presente com "3d6", condição verde com aliado adjacente, rola e registra; Ladino nv1 mostra "1d6" (escala por nível) · 25/25 unit · 26/26 servidor · sintaxe OK.
+
+**Como reverter:** restaurar `versoes/2026-07-20-ladino-furtivo/`, ou `git revert`.
+
+---
+
 ## 2026-07-19 — Combate C2+C3: itens repetidos com quantidade (×4) e armas de arremesso (lançar/recuperar)
 
 **Backup antes da alteração:** `versoes/2026-07-19-c2c3-arremesso/` (`jogo.js`, `style.css`).

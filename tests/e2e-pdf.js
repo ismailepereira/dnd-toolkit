@@ -284,6 +284,46 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   });
   ok(c2d.atacarOff === true && c2d.lancarOff === true, 'Sem azagaias em mãos → atacar e lançar desabilitam');
 
+  // ----- 🗡️ C4: Ataque Furtivo do Ladino (dados por nível, rola e registra) -----
+  const ladino = {
+    id: 'teste-ladino-c4', nome: 'Vasco', raca: 'Halfling Pés-Leves', classe: 'Ladino', nivel: 5,
+    subclasse: 'Ladrão', antecedente: 'Criminoso', divindade: 'Ateu (sem divindade)',
+    hpMax: 27, hpAtual: 27, ca: 14, iniciativa: 3,
+    atributos: { for: 8, des: 16, con: 14, int: 12, sab: 10, car: 13 },
+    pericias: ['Furtividade', 'Prestidigitação', 'Percepção', 'Acrobacia'],
+    itens: ['Adaga'], equipado: { maoPrincipal: 'Adaga', maoSecundaria: '', armadura: '', foco: '' },
+    ouro: 20, xp: 6500, condicoes: [], estadoTatico: { emCombate: true, aliadoAdjacenteAoAlvo: true },
+  };
+  const c4a = await page.evaluate(f => {
+    window.__f = f;
+    window.Jogo.abrir(f, {});
+    const bloco = document.querySelector('.jg-furtivo');
+    return {
+      existe: !!bloco,
+      titulo: bloco ? bloco.querySelector('h4').textContent : '',
+      condOk: !!(bloco && bloco.querySelector('.jg-furtivo-cond.ok')),
+    };
+  }, ladino);
+  ok(c4a.existe, 'Bloco 🗡️ Ataque Furtivo presente (Ladino)');
+  ok(/3d6/.test(c4a.titulo), `Dados corretos por nível (nv5 → 3d6): "${c4a.titulo.trim()}"`);
+  ok(c4a.condOk, 'Condição destacada em verde quando há aliado adjacente ao alvo');
+
+  const c4b = await page.evaluate(() => {
+    document.getElementById('jgFurtivo').click();
+    const hist = Array.from(document.querySelectorAll('.jg-log li')).map(li => li.textContent).join(' | ');
+    return { hist };
+  });
+  ok(/Ataque Furtivo: 3d6/.test(c4b.hist), `Rola 3d6 e registra no histórico: "${c4b.hist.slice(0, 60)}"`);
+
+  // Ladino nv1 → 1d6 (dado escala com o nível)
+  const c4c = await page.evaluate(() => {
+    const f = { ...window.__f, id: 'teste-ladino-nv1', nivel: 1, hpMax: 9, hpAtual: 9, xp: 0 };
+    window.Jogo.abrir(f, {});
+    const bloco = document.querySelector('.jg-furtivo');
+    return bloco ? bloco.querySelector('h4').textContent : '';
+  });
+  ok(/1d6/.test(c4c), `Ladino nv1 → 1d6 (escala por nível): "${c4c.trim()}"`);
+
   console.log(falhas.length ? `\n❌ ${falhas.length} falha(s)` : '\n✅ E2E do PDF: todas as verificações passaram');
   await browser.close();
   process.exit(falhas.length ? 1 : 0);

@@ -420,20 +420,6 @@ const Jogo = (function () {
     salvar();
   }
 
-  // ----- C4: Ataque Furtivo do Ladino — Xd6 extra (1×/turno) -----
-  // Dados = ⌈nível/2⌉ (1d6 no nv1, +1d6 a cada 2 níveis). Não gasta recurso:
-  // é dano extra quando você tem vantagem OU um aliado está adjacente ao alvo.
-  function ladinoDaFicha() { return classesFicha().find(c => c.classe === 'Ladino'); }
-  function dadosFurtivo() { const l = ladinoDaFicha(); return l ? Math.ceil(l.nivel / 2) : 0; }
-  function rolarFurtivo() {
-    const dados = dadosFurtivo();
-    if (!dados) return;
-    let total = 0; const rolls = [];
-    for (let k = 0; k < dados; k++) { const r = 1 + Math.floor(Math.random() * 6); rolls.push(r); total += r; }
-    log(`🗡️ Ataque Furtivo: ${dados}d6 = ${total} [${rolls.join(', ')}] (soma ao dano do golpe).`);
-    salvar();
-  }
-
   // ----- F1: Punição Divina do Paladino (nv2+) -----
   // Gasta 1 espaço de magia DEPOIS de acertar um golpe corpo a corpo:
   // 2d8 radiante (1º), +1d8 por círculo acima (máx 5d8), +1d8 vs mortos-vivos/ínferos.
@@ -865,20 +851,6 @@ const Jogo = (function () {
       </div>`;
     }
 
-    // ----- 🗡️ Ataque Furtivo do Ladino (C4) -----
-    let furtivoHtml = '';
-    const ladino = classesFicha().find(c => c.classe === 'Ladino');
-    if (ladino) {
-      const dados = Math.ceil(ladino.nivel / 2);
-      const et = f.estadoTatico || {};
-      const condOk = !!(et.aliadoAdjacenteAoAlvo || et.inimigoAdjacente);
-      furtivoHtml = `<div class="jg-bloco jg-furtivo"><h4>🗡️ Ataque Furtivo <small>(${dados}d6 · 1×/turno)</small></h4>
-        <div class="pv-linha">Dano extra com arma <b>ágil</b> ou <b>à distância</b>, quando você tem <b>vantagem</b> no ataque OU um <b>aliado está adjacente ao alvo</b> (e você não está em desvantagem).</div>
-        <div class="pv-linha jg-furtivo-cond ${condOk ? 'ok' : 'alerta'}">${condOk ? '✅ Condição possível agora (aliado adjacente ao alvo / você em corpo a corpo) — confirme a vantagem.' : '⚠️ Marque no painel "O teu turno" se há aliado adjacente ao alvo, ou confirme sua vantagem antes de usar.'}</div>
-        <button class="btn-mini" id="jgFurtivo">🎲 Rolar Ataque Furtivo (${dados}d6)</button>
-      </div>`;
-    }
-
     // ----- 🛡️ Auras do Paladino (F1) — passivas sempre visíveis a partir do N6 -----
     let aurasHtml = '';
     if (palad && palad.nivel >= 6) {
@@ -1221,7 +1193,7 @@ const Jogo = (function () {
           </div>
           ${condHtml}${logHtml}
         </div>
-        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
+        <div>${armasHtml}${punicaoHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
       </div>
     `;
 
@@ -1478,9 +1450,6 @@ const Jogo = (function () {
     // ----- 🎯 Armas de arremesso (C3) -----
     document.querySelectorAll('[data-lancararma]').forEach(b => b.onclick = () => lancarArma(b.dataset.lancararma));
     if ($('jgRecuperarArrem')) $('jgRecuperarArrem').onclick = recuperarArremessadas;
-
-    // ----- 🗡️ Ataque Furtivo (C4) -----
-    if ($('jgFurtivo')) $('jgFurtivo').onclick = rolarFurtivo;
 
     // ----- Forma Selvagem: transformar / dano-cura da fera / reverter -----
     const fsBtn = $('jgFsTransformar');

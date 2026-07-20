@@ -101,9 +101,9 @@ Um item por sessão de trabalho; cada entrega com teste de regressão (a suíte 
 - [x] Descanso longo recolhe automaticamente o que foi arremessado.
 
 ### C4 🟠 Golpes especiais pós-acerto com botão
-- [ ] Paladino: Punição Divina (ver F1) — mesmo mecanismo.
-- [ ] Ladino: card "🗡️ Ataque Furtivo +Xd6" aceso quando as condições do painel tático valem
-  (vantagem OU aliado adjacente ao alvo), com o dado certo por nível.
+- [x] Paladino: Punição Divina — entregue junto com o F1 (19/07).
+- [x] Ladino: bloco "🗡️ Ataque Furtivo (Xd6)" com o dado certo por nível (⌈nível/2⌉d6), rola e registra no
+  Histórico; destaca em verde quando a condição tática (aliado adjacente ao alvo / corpo a corpo) vale. (20/07)
 - [ ] Bárbaro: dano da Fúria somado automaticamente no card do ataque corpo a corpo enquanto "Em Fúria".
 
 ### C5 🟠 Rolagem integrada nos cards

@@ -324,6 +324,49 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   });
   ok(/1d6/.test(c4c), `Ladino nv1 → 1d6 (escala por nível): "${c4c.trim()}"`);
 
+  // ----- 🔥 C4: dano da Fúria do Bárbaro somado automático (corpo a corpo com Força) -----
+  const barbaro2 = {
+    id: 'teste-barbaro-furia', nome: 'Krull', raca: 'Meio-Orc', classe: 'Bárbaro', nivel: 5,
+    subclasse: 'Caminho do Berserker', antecedente: 'Forasteiro', divindade: 'Ateu (sem divindade)',
+    hpMax: 45, hpAtual: 45, ca: 14, iniciativa: 2,
+    atributos: { for: 18, des: 14, con: 16, int: 8, sab: 10, car: 8 }, // FOR +4
+    pericias: ['Atletismo', 'Intimidação'],
+    itens: ['Machado Grande', 'Arco Curto'],
+    equipado: { maoPrincipal: 'Machado Grande', maoSecundaria: '', armadura: '', foco: '' },
+    ouro: 10, xp: 6500, condicoes: [], estadoTatico: { emCombate: true, emFuria: false },
+  };
+  const blocoAtaques = () => {
+    const h4 = Array.from(document.querySelectorAll('#modalJogoBody .jg-bloco h4')).find(h => h.textContent.includes('Ataques de Arma'));
+    return h4 ? h4.parentElement : null;
+  };
+  const cf1 = await page.evaluate(f => {
+    window.__f = f;
+    window.Jogo.abrir(f, {});
+    const h4 = Array.from(document.querySelectorAll('#modalJogoBody .jg-bloco h4')).find(h => h.textContent.includes('Ataques de Arma'));
+    const bloco = h4 ? h4.parentElement : null;
+    const linha = bloco ? Array.from(bloco.querySelectorAll('.pv-linha')).find(l => l.textContent.includes('Machado Grande')) : null;
+    return { texto: linha ? linha.textContent.replace(/\s+/g, ' ').trim() : '', temSelo: !!document.querySelector('.jg-furia-selo') };
+  }, barbaro2);
+  ok(!cf1.temSelo, 'Fora de Fúria: sem selo 🔥 no ataque');
+  ok(/\+4/.test(cf1.texto), `Dano base do Machado Grande com FOR +4 (sem Fúria): "${cf1.texto.slice(0, 55)}"`);
+
+  // entra em Fúria → machado (corpo a corpo, Força) ganha +2 (nv5); arco NÃO
+  const cf2 = await page.evaluate(() => {
+    if (document.getElementById('jgEtFuria')) { document.getElementById('jgEtFuria').checked = true; document.getElementById('jgEtFuria').dispatchEvent(new Event('change')); }
+    const h4 = Array.from(document.querySelectorAll('#modalJogoBody .jg-bloco h4')).find(h => h.textContent.includes('Ataques de Arma'));
+    const bloco = h4 ? h4.parentElement : null;
+    const machado = bloco ? Array.from(bloco.querySelectorAll('.pv-linha')).find(l => l.textContent.includes('Machado Grande')) : null;
+    const arco = bloco ? Array.from(bloco.querySelectorAll('.pv-linha')).find(l => l.textContent.includes('Arco Curto')) : null;
+    return {
+      machado: machado ? machado.textContent.replace(/\s+/g, ' ') : '',
+      arcoTemSelo: arco ? arco.textContent.includes('🔥') : null,
+      cabecalho: (document.querySelector('.jg-furia-cab') || {}).textContent || '',
+    };
+  });
+  ok(/\+6/.test(cf2.machado) && /🔥\+2/.test(cf2.machado), `Em Fúria: machado corpo a corpo vira +6 (4+2) com selo 🔥: "${cf2.machado.slice(0, 60)}"`);
+  ok(cf2.arcoTemSelo === false, 'Fúria NÃO se aplica ao Arco Curto (ataque à distância)');
+  ok(/\+2/.test(cf2.cabecalho), `Cabeçalho avisa "Em Fúria: +2 de dano corpo a corpo": "${cf2.cabecalho.trim()}"`);
+
   console.log(falhas.length ? `\n❌ ${falhas.length} falha(s)` : '\n✅ E2E do PDF: todas as verificações passaram');
   await browser.close();
   process.exit(falhas.length ? 1 : 0);

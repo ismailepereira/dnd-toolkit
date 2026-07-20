@@ -802,21 +802,7 @@ const Jogo = (function () {
     const nomesArmas = [...new Set(f.itens || [])];
     // arma equipada primeiro na lista
     nomesArmas.sort((a, b) => (b === eqJogo.maoPrincipal ? 1 : 0) - (a === eqJogo.maoPrincipal ? 1 : 0));
-    // C4: Fúria do Bárbaro — bônus de dano em golpe CORPO A CORPO com FORÇA
-    // (não vale à distância nem ataque com Destreza). +2 (nv1-8), +3 (9-15), +4 (16+).
-    const barbaroFuria = classesFicha().find(c => c.classe === 'Bárbaro');
-    const emFuria = !!(f.estadoTatico && f.estadoTatico.emFuria) && !!barbaroFuria;
-    const furiaBonus = barbaroFuria ? (barbaroFuria.nivel >= 16 ? 4 : (barbaroFuria.nivel >= 9 ? 3 : 2)) : 0;
-    const armas = nomesArmas.map(n => {
-      if (typeof ataqueArma !== 'function') return null;
-      const base = ataqueArma(f, n, pb);
-      if (!base) return null;
-      // aplica o dano de Fúria só quando é corpo a corpo com Força
-      const aplicaFuria = emFuria && !base.distancia && !base.usaDes;
-      const a = aplicaFuria ? ataqueArma(f, n, pb, furiaBonus) : base;
-      a.furia = aplicaFuria ? furiaBonus : 0;
-      return a;
-    }).filter(Boolean);
+    const armas = nomesArmas.map(n => (typeof ataqueArma === 'function') ? ataqueArma(f, n, pb) : null).filter(Boolean);
     const temArremessadas = f.arremessadas && Object.values(f.arremessadas).some(v => v > 0);
     // duas armas: arma LEVE na mão secundária dá ataque bônus (dano sem o mod,
     // a menos que tenha o estilo Combate com Duas Armas)
@@ -835,7 +821,7 @@ const Jogo = (function () {
           <span class="criador-hint-inline">${somaMod ? 'estilo Duas Armas: soma o mod no dano' : 'ação bônus · sem mod no dano'}</span></div>`;
       }
     }
-    const armasHtml = armas.length ? `<div class="jg-bloco"><h4>Ataques de Arma${emFuria ? ` <small class="jg-furia-cab">🔥 Em Fúria: +${furiaBonus} de dano corpo a corpo (Força)</small>` : ''}</h4>${armas.map(a => {
+    const armasHtml = armas.length ? `<div class="jg-bloco"><h4>Ataques de Arma</h4>${armas.map(a => {
       const it = catJogo(a.nome);
       const equipada = a.nome === eqJogo.maoPrincipal || a.nome === eqJogo.maoSecundaria;
       const usaMunicao = it && it.municaoTipo;
@@ -851,8 +837,7 @@ const Jogo = (function () {
         : (arremesso && chao ? `<span class="jg-qtd"><small>(lançada — no chão)</small></span>` : '');
       const btnLancar = arremesso
         ? `<button class="btn-mini" data-lancararma="${esc(a.nome)}" ${semNaMao ? 'disabled title="sem unidades em mãos"' : ''}>🎯 lançar</button>` : '';
-      const selo = a.furia ? ` <span class="jg-furia-selo" title="Fúria: +${a.furia} de dano corpo a corpo com Força">🔥+${a.furia}</span>` : '';
-      return `<div class="pv-linha${equipada ? ' arma-equipada' : ''}"><strong>${equipada ? '✋ ' : ''}${getArmaIcone(a.nome)} ${esc(a.nome)}:</strong> ${a.ataque >= 0 ? '+' : ''}${a.ataque} · ${esc(a.dano)}${selo} ${contagem}
+      return `<div class="pv-linha${equipada ? ' arma-equipada' : ''}"><strong>${equipada ? '✋ ' : ''}${getArmaIcone(a.nome)} ${esc(a.nome)}:</strong> ${a.ataque >= 0 ? '+' : ''}${a.ataque} · ${esc(a.dano)} ${contagem}
       <button class="btn-mini" data-atacararma="${a.ataque}" data-arma="${esc(a.nome)}"${(usaMunicao && !municaoOk) || semNaMao ? ' disabled' : ''}${semNaMao ? ' title="sem unidades em mãos"' : ''}${usaMunicao ? ` data-municao="${esc(it.municaoTipo)}"` : ''}>🎲 atacar</button>
       ${btnLancar}
       ${/\d+d\d+/.test(a.dano) ? `<button class="btn-mini" data-rolararma="${esc(a.dano)}" data-arma="${esc(a.nome)}">🎲 dano</button>` : ''}${a.semProf ? ' <span class="pv-warn">⚠ sem prof.</span>' : ''}${usaMunicao && !municaoOk ? ' <span class="pv-warn">sem munição</span>' : ''}${semNaMao ? ' <span class="pv-warn">nenhuma em mãos</span>' : ''}</div>`;

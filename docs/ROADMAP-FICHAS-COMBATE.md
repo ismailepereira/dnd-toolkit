@@ -100,11 +100,13 @@ Um item por sessão de trabalho; cada entrega com teste de regressão (a suíte 
 - [x] Sem unidades em mãos → aviso "nenhuma em mãos" e os botões de atacar/lançar desabilitam.
 - [x] Descanso longo recolhe automaticamente o que foi arremessado.
 
-### C4 🟠 Golpes especiais pós-acerto com botão
+### C4 ✅ Golpes especiais pós-acerto com botão — ENTREGUE
 - [x] Paladino: Punição Divina — entregue junto com o F1 (19/07).
 - [x] Ladino: bloco "🗡️ Ataque Furtivo (Xd6)" com o dado certo por nível (⌈nível/2⌉d6), rola e registra no
   Histórico; destaca em verde quando a condição tática (aliado adjacente ao alvo / corpo a corpo) vale. (20/07)
-- [ ] Bárbaro: dano da Fúria somado automaticamente no card do ataque corpo a corpo enquanto "Em Fúria".
+- [x] Bárbaro: dano da Fúria somado automaticamente no ataque **corpo a corpo com Força** enquanto "Em Fúria"
+  (+2/+3/+4 por faixa de nível), com selo 🔥 no dano (que já entra no botão de rolar) e aviso no cabeçalho;
+  não se aplica a ataques à distância nem com Destreza. (20/07)
 
 ### C5 🟠 Rolagem integrada nos cards
 - [ ] Botão 🎲 em cada card (arma/magia): rola ataque (com vantagem/desvantagem) e dano, registra no

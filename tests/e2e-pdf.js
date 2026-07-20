@@ -367,6 +367,50 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   ok(cf2.arcoTemSelo === false, 'Fúria NÃO se aplica ao Arco Curto (ataque à distância)');
   ok(/\+2/.test(cf2.cabecalho), `Cabeçalho avisa "Em Fúria: +2 de dano corpo a corpo": "${cf2.cabecalho.trim()}"`);
 
+  // ----- ✨🎲 C5: rolagem integrada nos cards de magia (ataque mágico e dano/cura) -----
+  const mago = {
+    id: 'teste-mago-c5', nome: 'Elara', raca: 'Alto Elfo', classe: 'Mago', nivel: 5,
+    subclasse: 'Escola de Evocação', antecedente: 'Sábio', divindade: 'Mystra',
+    hpMax: 27, hpAtual: 27, ca: 12, iniciativa: 2,
+    atributos: { for: 8, des: 14, con: 14, int: 16, sab: 10, car: 10 }, // INT +3, pb +3 → CD 14, atq +6
+    pericias: ['Arcanismo', 'História'],
+    truques: ['Rajada de Fogo', 'Raio de Gelo'], // Rajada: Destreza (save); Raio de Gelo: Ataque à distância
+    magias1: ['Mísseis Mágicos', 'Curar Ferimentos'], preparadas: ['Mísseis Mágicos', 'Curar Ferimentos'],
+    itens: [], equipado: { maoPrincipal: '', maoSecundaria: '', armadura: '', foco: '' },
+    ouro: 20, xp: 6500, condicoes: [],
+  };
+  const c5a = await page.evaluate(f => {
+    window.__f = f;
+    window.Jogo.abrir(f, {});
+    const cards = {};
+    document.querySelectorAll('.jg-cast').forEach(c => {
+      const nome = c.querySelector('b').textContent;
+      cards[nome] = {
+        temAtacar: !!c.querySelector('[data-magiaataque]'),
+        danoLabel: (c.querySelector('[data-magiadano]') || {}).textContent || '',
+        danoFormula: (c.querySelector('[data-magiadano]') || {}).getAttribute ? c.querySelector('[data-magiadano]')?.getAttribute('data-magiadano') : '',
+      };
+    });
+    return cards;
+  }, mago);
+  // Raio de Gelo é truque de ATAQUE — tem 🎲 atacar; e dano escalado (nv5 → 2d8)
+  ok(c5a['Raio de Gelo'] && c5a['Raio de Gelo'].temAtacar, 'Magia de ataque (Raio de Gelo) tem botão 🎲 atacar');
+  ok(c5a['Raio de Gelo'] && c5a['Raio de Gelo'].danoFormula === '2d8', `Dano do truque escala por nível (Raio de Gelo nv5 → 2d8): "${c5a['Raio de Gelo'].danoFormula}"`);
+  // Rajada de Fogo é SAVE (Destreza) — não tem 🎲 atacar, mas tem 🎲 dano
+  ok(c5a['Rajada de Fogo'] && !c5a['Rajada de Fogo'].temAtacar, 'Magia de salvaguarda (Rajada de Fogo) NÃO tem 🎲 atacar');
+  ok(c5a['Rajada de Fogo'] && c5a['Rajada de Fogo'].danoFormula === '2d10', `Rajada de Fogo nv5 → 2d10: "${c5a['Rajada de Fogo'].danoFormula}"`);
+  // Curar Ferimentos: botão diz "cura" e soma o mod de conjuração (+3)
+  ok(c5a['Curar Ferimentos'] && /cura/.test(c5a['Curar Ferimentos'].danoLabel), 'Curar Ferimentos: botão 🎲 cura');
+  ok(c5a['Curar Ferimentos'] && c5a['Curar Ferimentos'].danoFormula === '1d8+3', `Cura soma o modificador de conjuração (INT +3 → 1d8+3): "${c5a['Curar Ferimentos'].danoFormula}"`);
+
+  // clicar 🎲 dano registra no histórico
+  const c5b = await page.evaluate(() => {
+    const card = Array.from(document.querySelectorAll('.jg-cast')).find(c => c.querySelector('b').textContent === 'Raio de Gelo');
+    card.querySelector('[data-magiadano]').click();
+    return Array.from(document.querySelectorAll('.jg-log li')).map(li => li.textContent).join(' | ');
+  });
+  ok(/Raio de Gelo.*dano/.test(c5b), `Rolar dano da magia registra no histórico: "${c5b.slice(0, 60)}"`);
+
   console.log(falhas.length ? `\n❌ ${falhas.length} falha(s)` : '\n✅ E2E do PDF: todas as verificações passaram');
   await browser.close();
   process.exit(falhas.length ? 1 : 0);

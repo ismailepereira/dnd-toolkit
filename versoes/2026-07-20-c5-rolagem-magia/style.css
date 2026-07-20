@@ -1141,7 +1141,6 @@ input:focus, textarea:focus, select:focus {
 .jg-cast-info small { display: block; color: var(--text-dim); }
 .jg-cast.esgotado { opacity: 0.45; }
 .jg-cast-btn { white-space: nowrap; flex-shrink: 0; }
-.jg-cast-acoes { display: flex; flex-wrap: wrap; gap: 4px; flex-shrink: 0; align-items: center; justify-content: flex-end; }
 
 /* ⚡ Punição Divina e 🛡️ Auras do Paladino (F1) */
 .jg-punicao-botoes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }

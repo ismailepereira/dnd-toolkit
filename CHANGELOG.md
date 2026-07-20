@@ -4,6 +4,22 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-20 — Combate C5: ✨🎲 rolagem integrada nos cards de magia
+
+**Backup antes da alteração:** `versoes/2026-07-20-c5-rolagem-magia/` (`jogo.js`, `style.css`).
+
+**Resumo:** item C5 do roadmap — as armas já tinham 🎲; agora as **magias** também.
+- Cada card do bloco **✨ Conjuração** ganhou botões de rolagem: **"🎲 atacar"** nas magias de ataque (rola d20 + ataque mágico, respeitando o modo Vantagem/Desvantagem e o Dado Físico, marcando 20/1 natural) e **"🎲 dano"** / **"🎲 cura"** com a fórmula certa. O helper `formulaMagia` extrai o NdM do compêndio, **escala o dado do truque** pelo nível do personagem (Raio de Gelo nv5 → 2d8, Rajada de Fogo nv5 → 2d10) e **soma o modificador de conjuração** quando a magia diz "+mod" (Curar Ferimentos com INT +3 → 1d8+3). Toda rolagem entra no Histórico.
+- Magias de salvaguarda (ex.: Rajada de Fogo pede save de Destreza) não mostram "🎲 atacar" — só o dano; magias sem dado (utilitárias) não mostram nenhum.
+
+**Ficheiros:** `static/js/jogo.js` (`formulaMagia` + botões no card + handlers), `static/css/style.css`, `docs/ROADMAP-FICHAS-COMBATE.md` (C5 ✅), `tests/e2e-pdf.js` (+6 checagens).
+
+**Verificação:** E2E completo verde — Mago nv5 real no navegador: Raio de Gelo (ataque) tem 🎲 atacar e dano 2d8; Rajada de Fogo (save) só dano 2d10; Curar Ferimentos vira 🎲 cura 1d8+3; rolar registra no histórico · 25/25 unit · 26/26 servidor · sintaxe OK.
+
+**Como reverter:** restaurar `versoes/2026-07-20-c5-rolagem-magia/`, ou `git revert`.
+
+---
+
 ## 2026-07-20 — Combate C4 (fecha): 🔥 dano da Fúria do Bárbaro somado automático no corpo a corpo
 
 **Backup antes da alteração:** `versoes/2026-07-20-barbaro-furia/` (`jogo.js`, `regras.js`, `style.css`).

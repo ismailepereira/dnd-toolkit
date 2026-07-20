@@ -211,11 +211,7 @@ const Jogo = (function () {
     if (cl === 'Clérigo' && nivel >= 2) r.push({ nome: 'Canalizar Divindade', max: nivel >= 18 ? 3 : nivel >= 6 ? 2 : 1, rec: 'curto' });
     if (cl === 'Druida' && nivel >= 2) r.push({ nome: 'Forma Selvagem', max: 2, rec: 'curto' });
     if (cl === 'Feiticeiro' && nivel >= 2) r.push({ nome: 'Pontos de Feitiçaria', max: nivel, rec: 'longo' });
-    if (cl === 'Paladino') {
-      r.push({ nome: 'Sentido Divino', max: Math.max(1, 1 + cm), rec: 'longo' }); // 1 + mod CAR usos/descanso longo — F1
-      r.push({ nome: 'Imposição das Mãos (PV)', max: nivel * 5, rec: 'longo', pool: true });
-      if (nivel >= 3) r.push({ nome: 'Canalizar Divindade', max: 1, rec: 'curto' });
-    }
+    if (cl === 'Paladino') { r.push({ nome: 'Imposição das Mãos (PV)', max: nivel * 5, rec: 'longo', pool: true }); if (nivel >= 3) r.push({ nome: 'Canalizar Divindade', max: 1, rec: 'curto' }); }
     return r;
   }
   function recursosClasse() {
@@ -397,24 +393,6 @@ const Jogo = (function () {
   function escalaTruque() {
     const n = ficha.nivel || 1;
     return 1 + (n >= 5 ? 1 : 0) + (n >= 11 ? 1 : 0) + (n >= 17 ? 1 : 0);
-  }
-
-  // ----- F1: Punição Divina do Paladino (nv2+) -----
-  // Gasta 1 espaço de magia DEPOIS de acertar um golpe corpo a corpo:
-  // 2d8 radiante (1º), +1d8 por círculo acima (máx 5d8), +1d8 vs mortos-vivos/ínferos.
-  function paladinoDaFicha() { return classesFicha().find(c => c.classe === 'Paladino' && c.nivel >= 2); }
-  function punicaoDivina(circulo, vsMortoVivo) {
-    if (!paladinoDaFicha()) return;
-    const esp = espacoParaMagia(circulo); // menor espaço livre >= o círculo pedido
-    if (!esp || esp.tipo === 'pacto') { log('Sem espaço de magia para a Punição Divina.'); render(); return; }
-    const usado = esp.circulo;
-    ficha.slotsUsados[usado] = (ficha.slotsUsados[usado] || 0) + 1;
-    const dados = Math.min(5, 1 + usado) + (vsMortoVivo ? 1 : 0); // 2d8 base no 1º, teto 5d8 (+1 vs mortos-vivos)
-    // rola o dano radiante e registra
-    let total = 0; const rolls = [];
-    for (let k = 0; k < dados; k++) { const r = 1 + Math.floor(Math.random() * 8); rolls.push(r); total += r; }
-    log(`⚡ Punição Divina (espaço do ${usado}º): ${dados}d8 radiante = ${total} [${rolls.join(', ')}]${vsMortoVivo ? ' (bônus vs morto-vivo/ínfero)' : ''}.`);
-    salvar();
   }
   function recuperarSlot(nivel) {
     const usados = ficha.slotsUsados[nivel] || 0;
@@ -789,38 +767,6 @@ const Jogo = (function () {
       ${/\d+d\d+/.test(a.dano) ? `<button class="btn-mini" data-rolararma="${esc(a.dano)}" data-arma="${esc(a.nome)}">🎲 dano</button>` : ''}${a.semProf ? ' <span class="pv-warn">⚠ sem prof.</span>' : ''}${usaMunicao && !municaoOk ? ' <span class="pv-warn">sem munição</span>' : ''}</div>`;
     }).join('')}${bonusDuasArmas}</div>` : '';
 
-    // ----- ⚡ Punição Divina do Paladino (F1) — botões que gastam espaço e rolam o dano -----
-    let punicaoHtml = '';
-    const palad = classesFicha().find(c => c.classe === 'Paladino' && c.nivel >= 2);
-    if (palad) {
-      const sm = slotsMax();
-      const circulosDisp = [];
-      if (sm && sm.normal) sm.normal.forEach((qtd, i) => { if (qtd > 0) circulosDisp.push(i + 1); });
-      const temEspaco = circulosDisp.some(c => (f.slotsUsados[c] || 0) < (sm.normal[c - 1] || 0));
-      const botoes = circulosDisp.map(c => {
-        const livre = (f.slotsUsados[c] || 0) < (sm.normal[c - 1] || 0);
-        const dados = Math.min(5, 1 + c);
-        return `<button class="btn-mini" data-punicao="${c}" ${livre ? '' : 'disabled'}>${c}º espaço → ${dados}d8</button>`;
-      }).join('');
-      punicaoHtml = `<div class="jg-bloco jg-punicao"><h4>⚡ Punição Divina <small>(após acertar corpo a corpo)</small></h4>
-        <div class="pv-linha">Gasta 1 espaço de magia por um golpe de dano <b>radiante</b> extra (2d8 no 1º, +1d8 por círculo acima, teto 5d8).</div>
-        <label class="check-chip" style="margin:4px 0"><input type="checkbox" id="jgPunicaoMV"> 💀 alvo é morto-vivo ou ínfero (+1d8)</label>
-        <div class="jg-punicao-botoes">${botoes || '<span class="criador-hint">Sem espaços de magia neste nível.</span>'}</div>
-        ${!temEspaco && circulosDisp.length ? '<div class="criador-hint">Todos os espaços gastos — recupere num descanso.</div>' : ''}
-        ${palad.nivel >= 11 ? '<div class="criador-hint">✨ Punição Divina Aprimorada (N11): todo ataque corpo a corpo já causa +1d8 radiante de graça (sem gastar espaço).</div>' : ''}
-      </div>`;
-    }
-
-    // ----- 🛡️ Auras do Paladino (F1) — passivas sempre visíveis a partir do N6 -----
-    let aurasHtml = '';
-    if (palad && palad.nivel >= 6) {
-      const carMod = Math.max(0, m(f.atributos.car));
-      const alcance = palad.nivel >= 18 ? 9 : 3;
-      const linhas = [`<div class="pv-linha"><b>Aura de Proteção (N6):</b> você e aliados a até ${alcance}m somam <b>+${carMod}</b> (seu Carisma) em TODAS as salvaguardas.</div>`];
-      if (palad.nivel >= 10) linhas.push(`<div class="pv-linha"><b>Aura de Coragem (N10):</b> você e aliados a até ${alcance}m não podem ser amedrontados.</div>`);
-      aurasHtml = `<div class="jg-bloco jg-auras"><h4>🛡️ Auras (passivas, sempre ativas)</h4>${linhas.join('')}</div>`;
-    }
-
     // perícias clicáveis
     const periciasHtml = `<details class="jg-bloco"><summary><strong>Perícias</strong> (clique para rolar)</summary><div class="jg-pericias-jogo">` +
       Object.keys(PERICIAS).map(p => {
@@ -1151,7 +1097,7 @@ const Jogo = (function () {
           </div>
           ${condHtml}${logHtml}
         </div>
-        <div>${armasHtml}${punicaoHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
+        <div>${armasHtml}${castHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
       </div>
     `;
 
@@ -1398,12 +1344,6 @@ const Jogo = (function () {
     });
     // ----- ✨ Conjuração (C1): botão Conjurar/Usar nos cards -----
     document.querySelectorAll('[data-conjurar]').forEach(b => b.onclick = () => conjurarMagia(b.dataset.conjurar));
-
-    // ----- ⚡ Punição Divina (F1) -----
-    document.querySelectorAll('[data-punicao]').forEach(b => b.onclick = () => {
-      const mv = !!($('jgPunicaoMV') && $('jgPunicaoMV').checked);
-      punicaoDivina(+b.dataset.punicao, mv);
-    });
 
     // ----- Forma Selvagem: transformar / dano-cura da fera / reverter -----
     const fsBtn = $('jgFsTransformar');

@@ -4,6 +4,24 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-19 — Ficha F1: 🛡️ Paladino claro do nível 1 ao 3 (Sentido Divino, Punição Divina com botão, Auras)
+
+**Backup antes da alteração:** `versoes/2026-07-19-paladino-f1/` (`jogo.js`, `criador.js`, `style.css`).
+
+**Resumo:** item F1 do roadmap `docs/ROADMAP-FICHAS-COMBATE.md` (dor da mesa: "o paladino não tinha nenhuma habilidade inicial a não ser cura, e estava confuso").
+- **Sentido Divino rastreável** no Modo de Jogo (`recursosDeClasse`): 1 + mod CAR usos por descanso longo — agora aparece ao lado da Cura pelas Mãos, então não é mais "só cura".
+- **Painel do Paladino no Criador reescrito:** card de Sentido Divino + seção "O que você faz já no nível 1" e um **aviso honesto no nível 1** — explica que magia, Estilo de Luta e a Punição Divina chegam no N2 e o Juramento no N3 (sugere começar no nível 2-3). Some a impressão de "ficha quebrada".
+- **⚡ Punição Divina jogável (nv2+):** bloco com um botão por círculo disponível ("1º espaço → 2d8"), checkbox "alvo é morto-vivo/ínfero (+1d8)"; gasta o espaço de magia, **rola o dano radiante** (2d8 base, +1d8 por círculo acima, teto 5d8) e registra no Histórico. Botão apaga quando não há espaço; nota da Punição Aprimorada no N11.
+- **🛡️ Auras (nv6+)** como bloco passivo sempre visível: Proteção (N6, soma o Carisma às salvas de aliados a 3m/9m) e Coragem (N10). Antes ficavam escondidas em dicas.
+
+**Ficheiros:** `static/js/jogo.js`, `static/js/criador.js`, `static/css/style.css`, `docs/ROADMAP-FICHAS-COMBATE.md` (F1 ✅), `tests/e2e-pdf.js` (+8 checagens).
+
+**Verificação:** E2E completo verde — Paladino nv2 real no navegador: Sentido Divino presente, bloco de Punição com botão "1º espaço → 2d8", conjurar a Punição gasta 1 espaço do 1º e registra o dano radiante rolado no histórico; o Criador cita Sentido Divino e avisa que Punição/magia chegam no nível 2 · 25/25 unit · 26/26 servidor · sintaxe OK.
+
+**Como reverter:** restaurar `versoes/2026-07-19-paladino-f1/`, ou `git revert`.
+
+---
+
 ## 2026-07-19 — Combate C1: ✨ magias viram cartas de ação (CD/ataque, Conjurar com 1 clique, upcast e concentração)
 
 **Backup antes da alteração:** `versoes/2026-07-19-magias-cards/` (`jogo.js`, `style.css`).

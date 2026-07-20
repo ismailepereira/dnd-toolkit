@@ -25,20 +25,20 @@ Um item por sessão de trabalho; cada entrega com teste de regressão (a suíte 
 
 ## FASE F — Criação de ficha por classe
 
-### F1 🔴 Paladino compreensível do nível 1 ao 3
+### F1 ✅ Paladino compreensível do nível 1 ao 3 — ENTREGUE 19/07
 **Dor relatada:** "o paladino não tinha nenhuma habilidade inicial a não ser cura, e estava confuso."
-No PHB o nível 1 do Paladino é realmente só **Sentido Divino + Imposição das Mãos** — mas o app
-precisa DIZER isso e mostrar o que está chegando, senão parece ficha quebrada.
 
-- [ ] **Recurso "Sentido Divino"** no Modo de Jogo (`recursosDeClasse`): 1 + mod CAR usos/descanso longo
-  (hoje só a Imposição das Mãos aparece — por isso "só cura").
-- [ ] **Painel do Paladino no Criador** (`painelPaladino`): bloco "Seu nível 1" explicando Sentido Divino
-  e Imposição das Mãos + aviso claro: *"No nível 2 chegam Estilo de Combate, magias e a Punição Divina —
-  o golpe explosivo da classe. Grupos iniciantes costumam começar no nível 2-3."*
-- [ ] **Punição Divina jogável** no Modo de Jogo (nv2+): botão "⚡ Punição (+2d8 radiante)" junto ao ataque
-  corpo a corpo que gasta 1 espaço de magia AO CONFIRMAR o acerto (+1d8 por círculo acima do 1º; +1d8 vs
-  mortos-vivos/ínferos). Hoje é só uma dica de texto.
-- [ ] Auras (nv6+) visíveis como linha permanente no cabeçalho do Modo de Jogo (não escondidas em dicas).
+- [x] **Recurso "Sentido Divino"** no Modo de Jogo (`recursosDeClasse`): 1 + mod CAR usos/descanso longo —
+  agora aparece rastreável ao lado da Cura pelas Mãos (antes só a cura, por isso "só cura").
+- [x] **Painel do Paladino no Criador** reescrito: card de Sentido Divino, seção "O que você faz já no
+  nível 1" e **aviso honesto no nível 1** (magia + Estilo de Luta + Punição chegam no N2, Juramento no N3 —
+  "muitas mesas começam o Paladino no nível 2-3").
+- [x] **Punição Divina jogável** (nv2+): bloco "⚡ Punição Divina" com um botão por círculo disponível
+  ("1º espaço → 2d8"), checkbox "alvo é morto-vivo/ínfero (+1d8)"; gasta o espaço, **rola o dano radiante**
+  (2d8 base, +1d8 por círculo acima, teto 5d8) e registra no Histórico. Botão apaga sem espaço; aviso da
+  Punição Aprimorada (N11).
+- [x] **Auras (nv6+)** como bloco passivo "🛡️ Auras (sempre ativas)" com o valor do Carisma e o alcance
+  (3m, 9m no N18) — Proteção (N6) e Coragem (N10).
 
 ### F2 🔴 Auditoria "kit de estreia" das 12 classes (níveis 1-3)
 **Dor generalizada:** classes cuja abertura confunde. Para CADA classe, garantir os 3 pontos:

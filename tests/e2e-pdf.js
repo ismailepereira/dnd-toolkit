@@ -183,6 +183,56 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   ok(c1c.esgotado && c1c.desabilitado, 'Sem espaços restantes → card de magia apaga e botão desabilita');
   ok(c1c.truqueSegueAceso, 'Truques continuam sempre acesos (não gastam espaço)');
 
+  // ----- ⚡ F1: Paladino — Sentido Divino rastreável e Punição Divina com botão -----
+  const paladino = {
+    id: 'teste-paladino-f1', nome: 'Sor Galahad', raca: 'Humano', classe: 'Paladino', nivel: 2,
+    subclasse: '', antecedente: 'Nobre', divindade: 'Torm',
+    hpMax: 20, hpAtual: 20, ca: 18, iniciativa: 0,
+    atributos: { for: 16, des: 10, con: 14, int: 8, sab: 10, car: 16 }, // CAR 16 → mod +3
+    pericias: ['Atletismo', 'Persuasão'], estilo: 'Defesa',
+    truques: [], magias1: ['Bênção (Bless)', 'Escudo da Fé'], preparadas: ['Bênção (Bless)'],
+    itens: ['Espada Longa'], equipado: { maoPrincipal: 'Espada Longa', maoSecundaria: 'Escudo', armadura: '', foco: '' },
+    ouro: 25, xp: 300, condicoes: [],
+  };
+  const f1a = await page.evaluate(f => {
+    window.__f = f;
+    window.Jogo.abrir(f, {});
+    const rec = document.body.textContent;
+    const punicao = document.querySelector('.jg-punicao');
+    return {
+      temSentidoDivino: rec.includes('Sentido Divino'),
+      temPunicao: !!punicao,
+      botoesPunicao: Array.from(document.querySelectorAll('[data-punicao]')).map(b => b.textContent.trim()),
+    };
+  }, paladino);
+  ok(f1a.temSentidoDivino, 'Sentido Divino aparece como recurso rastreável (não só a cura)');
+  ok(f1a.temPunicao, 'Bloco ⚡ Punição Divina presente (Paladino nv2)');
+  ok(f1a.botoesPunicao.some(t => t.includes('1º') && t.includes('2d8')), `Botão de Punição do 1º círculo → 2d8 (${f1a.botoesPunicao.join(' | ')})`);
+
+  // usa a Punição do 1º círculo → gasta 1 espaço do 1º e registra o dano radiante
+  const f1b = await page.evaluate(() => {
+    const btn = Array.from(document.querySelectorAll('[data-punicao]')).find(b => b.dataset.punicao === '1');
+    btn.click();
+    const f = window.__f;
+    const hist = Array.from(document.querySelectorAll('.jg-log li')).map(li => li.textContent).join(' | ');
+    return { slot1: (f.slotsUsados && f.slotsUsados[1]) || 0, hist };
+  });
+  ok(f1b.slot1 === 1, `Punição gastou 1 espaço do 1º círculo (usados: ${f1b.slot1})`);
+  ok(/Punição Divina/.test(f1b.hist) && /radiante/.test(f1b.hist), `Dano radiante rolado e registrado no histórico: "${f1b.hist.slice(0, 70)}"`);
+
+  // ----- Criador: aviso honesto do Paladino nível 1 -----
+  const f1c = await page.evaluate(() => {
+    try { localStorage.removeItem('dnd_rascunho_criador_' + (window.CAMPANHA_ID || 'local')); } catch (e) {}
+    window.Criador.abrir(null, {});
+    document.querySelector('[data-galeria-classe="Paladino"]').click();
+    // nível padrão é 1; lê o painel de classe na etapa de habilidades
+    const painel = document.getElementById('cClassePainel');
+    return painel ? painel.textContent : '';
+  });
+  ok(f1c.includes('Sentido Divino'), 'Painel do Paladino no Criador cita Sentido Divino');
+  ok(/nível 2/.test(f1c) && /Punição/.test(f1c), 'Criador avisa que magia + Punição chegam no nível 2 (não é ficha quebrada)');
+  await page.evaluate(() => document.getElementById('modalCriador').classList.add('hidden'));
+
   console.log(falhas.length ? `\n❌ ${falhas.length} falha(s)` : '\n✅ E2E do PDF: todas as verificações passaram');
   await browser.close();
   process.exit(falhas.length ? 1 : 0);

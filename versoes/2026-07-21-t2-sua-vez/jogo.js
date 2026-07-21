@@ -400,35 +400,6 @@ const Jogo = (function () {
     return 1 + (n >= 5 ? 1 : 0) + (n >= 11 ? 1 : 0) + (n >= 17 ? 1 : 0);
   }
 
-  // ----- T2: "é a sua vez" a partir do combate compartilhado -----
-  // Lê window.COMBATE_ATUAL (mantido pela sincronização do combate). Fonte
-  // ÚNICA do turno: o combate do Mestre. Devolve o estado da vez desta ficha.
-  function estadoTurno() {
-    const cb = window.COMBATE_ATUAL;
-    if (!cb || !cb.combatentes || !cb.combatentes.length) return null;
-    const ativo = !!cb.ativo;
-    const n = cb.combatentes.length;
-    const idx = (cb.turno || 0) % n;
-    const atual = cb.combatentes[idx];
-    const euNaVez = !!(atual && atual.tipo === 'pc' && atual.fichaId === ficha.id);
-    return { ativo, rodada: cb.rodada || 1, atualNome: atual ? atual.nome : '?', euNaVez, minhaFichaNoCombate: cb.combatentes.some(c => c.fichaId === ficha.id) };
-  }
-  function finalizarTurno() {
-    fetch('/api/combate/acao', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ acao: 'proximo_turno' }),
-    }).then(r => r.json()).then(d => {
-      if (d && d.ok) {
-        // reflete no COMBATE_ATUAL local até a sincronização chegar
-        if (window.COMBATE_ATUAL) { window.COMBATE_ATUAL.turno = d.turno; window.COMBATE_ATUAL.rodada = d.rodada; }
-        log(`✔️ Você finalizou o turno. Agora: ${d.proximo || '—'}.`);
-      } else if (d && d.erro === 'nao_e_sua_vez') {
-        log('Ainda não é a sua vez.');
-      }
-      render();
-    }).catch(() => {});
-  }
-
   // ----- C5: fórmula de dano jogável de uma magia -----
   // Extrai NdM do detalhe da magia, multiplica os dados pela escala do truque
   // e soma o modificador de conjuração quando a magia diz "+mod" (ex.: cura).
@@ -1258,15 +1229,6 @@ const Jogo = (function () {
         </div>
       </div>
 
-      ${(() => {
-        // T2: banner "é a sua vez" quando o combate está em andamento
-        const t = estadoTurno();
-        if (!t || !t.ativo || !t.minhaFichaNoCombate) return '';
-        return t.euNaVez
-          ? `<div class="jg-vez jg-vez-eu"><span>⚔️ <b>É a sua vez!</b> · Rodada ${t.rodada}</span>
-               <button id="jgFinalizarTurno" class="btn-primary">✔️ Finalizar meu turno</button></div>`
-          : `<div class="jg-vez jg-vez-aguarda"><span>⏳ Em combate (Rodada ${t.rodada}) · Vez de <b>${esc(t.atualNome)}</b></span></div>`;
-      })()}
       <div class="jg-pv">
         <div class="jg-pv-num">PV <b>${f.hpAtual}</b> / ${f.hpMax}${f.pvTemp ? ` <span class="jg-temp">+${f.pvTemp} temp</span>` : ''} · CA ${f.ca} · Inic ${fmt(f.iniciativa)} · Prof +${pb}</div>
         <div class="jg-pv-bar"><div style="width:${pctHp}%;background:${corHp}"></div></div>
@@ -1550,9 +1512,6 @@ const Jogo = (function () {
       ficha.pactoUsados = Math.max(0, Math.min(sm.pacto.slots, (ficha.pactoUsados || 0) + (+b.dataset.pacto)));
       salvar();
     });
-    // ----- T2: finalizar meu turno -----
-    if ($('jgFinalizarTurno')) $('jgFinalizarTurno').onclick = finalizarTurno;
-
     // ----- ✨ Conjuração (C1): botão Conjurar/Usar nos cards -----
     // T1: as ações vivem dentro do <summary> do card; clicar num botão NÃO deve
     // abrir/fechar o details (só o resto do summary abre a descrição "o que faz").
@@ -1926,11 +1885,6 @@ const Jogo = (function () {
     $('modalJogo').classList.remove('hidden');
   }
 
-  // T2: o combate compartilhado mudou (sincronização RT/polling) — se o modal
-  // está aberto, re-renderiza para o banner "é a sua vez" ficar ao vivo.
-  function estaAberto() { return !$('modalJogo').classList.contains('hidden'); }
-  function combateAtualizou() { if (ficha && estaAberto()) render(); }
-
   let montado = false;
   function montarUmaVez() {
     if (montado) return; montado = true;
@@ -1941,6 +1895,6 @@ const Jogo = (function () {
     });
   }
 
-  return { abrir, combateAtualizou, estaAberto };
+  return { abrir };
 })();
 window.Jogo = Jogo;

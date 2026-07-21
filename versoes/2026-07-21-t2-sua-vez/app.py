@@ -1615,43 +1615,7 @@ def api_combate_acao():
             combate['log'] = combate['log'][:40]
             salvar_estado(estado)
         return jsonify({'ok': True})
-
-    # T2: finalizar o turno atual e passar a vez. O jogador só finaliza a
-    # PRÓPRIA vez (o combatente da vez é um PJ da ficha dele); o Mestre pode
-    # sempre. A ordem/turno do combate é a fonte ÚNICA — não há 2º contador.
-    if acao == 'proximo_turno':
-        if not combatentes:
-            return jsonify({'ok': False, 'erro': 'sem_combate'}), 400
-        n = len(combatentes)
-        idx = combate.get('turno', 0) % n
-        atual = combatentes[idx]
-        if session.get('papel') != 'mestre':
-            dono_ok = False
-            if atual.get('tipo') == 'pc' and atual.get('fichaId'):
-                f = next((x for x in estado.get('fichas', []) if x.get('id') == atual.get('fichaId')), None)
-                dono_ok = bool(f and f.get('donoUid') in (None, uid_sessao()))
-            if not dono_ok:
-                return jsonify({'ok': False, 'erro': 'nao_e_sua_vez',
-                                'detalhe': 'só quem está na vez pode finalizar o turno'}), 403
-        nome_atual = atual.get('nome', '?')
-        combate['turno'] = combate.get('turno', 0) + 1
-        virou_rodada = False
-        if combate['turno'] >= n:
-            combate['turno'] = 0
-            combate['rodada'] = combate.get('rodada', 1) + 1
-            virou_rodada = True
-            for c in combatentes:
-                if c.get('chefe'):
-                    c['lendAtual'] = c.get('lendMax', 3)
-        prox = combatentes[combate['turno'] % n]
-        log = combate.setdefault('log', [])
-        if virou_rodada:
-            log.insert(0, f"R{combate['rodada']} · — Rodada {combate['rodada']} —")
-        log.insert(0, f"R{combate.get('rodada', 1)} · ✔️ {nome_atual} finalizou o turno. Agora: {prox.get('nome', '?')}.")
-        combate['log'] = log[:40]
-        salvar_estado(estado)
-        return jsonify({'ok': True, 'turno': combate['turno'], 'rodada': combate.get('rodada', 1), 'proximo': prox.get('nome')})
-
+        
     alvo_id = data.get('alvoId')
     alvo = next((c for c in combatentes if c['id'] == alvo_id), None)
     if not alvo:

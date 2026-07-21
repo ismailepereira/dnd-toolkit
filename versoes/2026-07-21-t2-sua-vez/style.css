@@ -1168,13 +1168,6 @@ input:focus, textarea:focus, select:focus {
 /* 🔥 Fúria do Bárbaro (C4): selo de dano no ataque corpo a corpo */
 .jg-furia-selo { color: #e94560; font-weight: 600; }
 .jg-furia-cab { color: #e94560; font-weight: 400; }
-
-/* ⚔️ T2: banner "é a sua vez" no Modo de Jogo */
-.jg-vez { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; }
-.jg-vez-eu { background: rgba(233, 69, 96, 0.16); border: 1px solid #e94560; }
-.jg-vez-aguarda { background: var(--bg); border: 1px solid var(--border); color: var(--text-dim); }
-@keyframes vezPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(233,69,96,0.5); } 50% { box-shadow: 0 0 0 4px rgba(233,69,96,0); } }
-.jg-vez-eu { animation: vezPulse 1.6s ease-in-out infinite; }
 .jg-rec small { color: var(--text-dim); }
 .jg-rec-ctrl { display: flex; align-items: center; gap: 6px; }
 

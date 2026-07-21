@@ -399,8 +399,6 @@ function sinalizarEstadoCombate(ativo) {
 
 function renderCombateJog(combate) {
   window.COMBATE_ATUAL = combate;
-  // T2: se o Modo de Jogo está aberto, atualiza o banner "é a sua vez" ao vivo
-  if (window.Jogo && typeof window.Jogo.combateAtualizou === 'function') window.Jogo.combateAtualizou();
   const ativo = !!(combate && combate.ativo && combate.combatentes && combate.combatentes.length);
   sinalizarEstadoCombate(ativo);
   // aviso só na TRANSIÇÃO para ativo (não ao carregar a página já em combate)

@@ -147,9 +147,12 @@ e cada magia (inclusive as que **não causam dano**) tem um botão que mostra **
   expansível (clica → mostra duração/defesa + a descrição completa da magia), com o selo "ⓘ o que faz"; o
   botão **Conjurar** (que já deduz o espaço) e os 🎲 seguem ao lado, e um guard impede que clicar nos botões
   abra/feche o card. Vale para magias de utilidade **sem dano** (Escudo da Fé etc.).
-- [ ] **T2 — "É a sua vez" no Modo de Jogo** (médio): quando o combate está ativo e a iniciativa aponta para
-  a ficha aberta, destaca no topo ("⚔️ É a sua vez — Rodada X") e mostra **✔️ Finalizar meu turno**, que
-  avança a iniciativa no painel do Mestre (fonte única do turno — sem segundo contador).
+- [x] **T2 — "É a sua vez" no Modo de Jogo** — ENTREGUE 21/07: banner no topo do Modo de Jogo quando o
+  combate está ativo — **⚔️ "É a sua vez! · Rodada X"** (pulsando) com **✔️ Finalizar meu turno** quando a
+  iniciativa aponta para a ficha; **⏳ "Vez de <nome>"** quando é de outro. O botão chama a ação
+  `proximo_turno` no servidor, que **avança o mesmo `combate.turno` do Mestre** (fonte única) e só deixa o
+  jogador finalizar a PRÓPRIA vez (o Mestre finaliza qualquer uma). O banner atualiza ao vivo pela
+  sincronização RT/polling do combate (`window.Jogo.combateAtualizou`).
 - [ ] **T3 — Painel de ações do turno unificado** (médio): ao iniciar o turno, reúne num só lugar as ações
   disponíveis do personagem — ataques, magias castáveis (com Conjurar/🎲) e poderes de classe — com
   marcadores de **Ação / Ação Bônus / Movimento / Reação** que registram o gasto; "Finalizar turno" limpa.

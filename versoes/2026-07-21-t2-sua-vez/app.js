@@ -576,8 +576,6 @@ function statusPct(c) { return c.hpMax > 0 ? (c.hpAtual / c.hpMax) * 100 : 0; }
 
 function renderCombate() {
   window.COMBATE_ATUAL = combate;
-  // T2: atualiza o banner "é a sua vez" no Modo de Jogo aberto (Mestre também joga PJs)
-  if (window.Jogo && typeof window.Jogo.combateAtualizou === 'function') window.Jogo.combateAtualizou();
   if (!listaCombate) return;
   // log
   combateLog.innerHTML = (combate.log || []).map(l => `<li>${escapeHtml(l)}</li>`).join('');

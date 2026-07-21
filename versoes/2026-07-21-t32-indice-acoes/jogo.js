@@ -653,7 +653,7 @@ const Jogo = (function () {
       if (ativa) {
         const pvF = Math.max(0, f.formaAtiva.pvAtual);
         const pct = Math.max(0, Math.min(100, (pvF / ativa.pv) * 100));
-        formaHtml = `<div class="jg-bloco jg-forma" data-bloco-acao="forma">
+        formaHtml = `<div class="jg-bloco jg-forma">
           <h4>🐺 Forma Selvagem — ${esc(ativa.nome)} <small>(ND ${ndRotulo(ativa.nd)})</small></h4>
           <div class="pv-linha">PV da fera <b>${pvF}</b> / ${ativa.pv} · CA <b>${ativa.ca}</b> · ${esc(ativa.desloc)}</div>
           <div class="jg-pv-bar"><div style="width:${pct}%;background:#3fb950"></div></div>
@@ -671,7 +671,7 @@ const Jogo = (function () {
       } else {
         const ops = formas.map(fs =>
           `<option value="${esc(fs.nome)}">ND ${ndRotulo(fs.nd)} — ${esc(fs.nome)} (CA ${fs.ca} · ${fs.pv} PV · ${esc(fs.desloc)})</option>`).join('');
-        formaHtml = `<div class="jg-bloco jg-forma" data-bloco-acao="forma">
+        formaHtml = `<div class="jg-bloco jg-forma">
           <h4>🐺 Forma Selvagem <small>(${restamFS}/2 usos · ND máx ${ndRotulo(lim.nd)}${lim.voo ? '' : ' · sem voo'}${lim.nado ? '' : ' · sem natação'})</small></h4>
           <div class="jg-pv-acoes">
             <select id="jgFsForma" style="flex:1;min-width:0">${ops}</select>
@@ -686,7 +686,7 @@ const Jogo = (function () {
     const recs = recursosClasse();
     let recHtml = '';
     if (recs.length) {
-      recHtml = '<div class="jg-bloco" data-bloco-acao="recursos"><h4>Recursos de Classe</h4>';
+      recHtml = '<div class="jg-bloco"><h4>Recursos de Classe</h4>';
       recs.forEach(r => {
         const usados = f.recursosUsados[r.nome] || 0, restantes = r.max - usados;
         recHtml += `<div class="jg-rec"><span>${esc(r.nome)} <small>(${r.rec})</small></span>
@@ -788,7 +788,7 @@ const Jogo = (function () {
         </details>`;
       };
       const castaveis = [...magiasCastaveis()].sort((a, b) => ((detalheMagia(a) || {}).nivel || 0) - ((detalheMagia(b) || {}).nivel || 0));
-      castHtml = `<div class="jg-bloco jg-conjuracao" data-bloco-acao="magias"><h4>✨ Conjuração ${cabecalho ? `<small>${cabecalho}</small>` : ''}</h4>
+      castHtml = `<div class="jg-bloco jg-conjuracao"><h4>✨ Conjuração ${cabecalho ? `<small>${cabecalho}</small>` : ''}</h4>
         ${truquesF.map(cardCast).join('')}
         ${castaveis.map(cardCast).join('')}
         ${(!castaveis.length && ehPreparador()) ? '<div class="criador-hint">Nenhuma magia preparada hoje — prepare no bloco 🧠 Magias, mais abaixo.</div>' : ''}
@@ -918,7 +918,7 @@ const Jogo = (function () {
           <span class="criador-hint-inline">${somaMod ? 'estilo Duas Armas: soma o mod no dano' : 'ação bônus · sem mod no dano'}</span></div>`;
       }
     }
-    const armasHtml = armas.length ? `<div class="jg-bloco" data-bloco-acao="armas"><h4>Ataques de Arma${emFuria ? ` <small class="jg-furia-cab">🔥 Em Fúria: +${furiaBonus} de dano corpo a corpo (Força)</small>` : ''}</h4>${armas.map(a => {
+    const armasHtml = armas.length ? `<div class="jg-bloco"><h4>Ataques de Arma${emFuria ? ` <small class="jg-furia-cab">🔥 Em Fúria: +${furiaBonus} de dano corpo a corpo (Força)</small>` : ''}</h4>${armas.map(a => {
       const it = catJogo(a.nome);
       const equipada = a.nome === eqJogo.maoPrincipal || a.nome === eqJogo.maoSecundaria;
       const usaMunicao = it && it.municaoTipo;
@@ -954,7 +954,7 @@ const Jogo = (function () {
         const dados = Math.min(5, 1 + c);
         return `<button class="btn-mini" data-punicao="${c}" ${livre ? '' : 'disabled'}>${c}º espaço → ${dados}d8</button>`;
       }).join('');
-      punicaoHtml = `<div class="jg-bloco jg-punicao" data-bloco-acao="punicao"><h4>⚡ Punição Divina <small>(após acertar corpo a corpo)</small></h4>
+      punicaoHtml = `<div class="jg-bloco jg-punicao"><h4>⚡ Punição Divina <small>(após acertar corpo a corpo)</small></h4>
         <div class="pv-linha">Gasta 1 espaço de magia por um golpe de dano <b>radiante</b> extra (2d8 no 1º, +1d8 por círculo acima, teto 5d8).</div>
         <label class="check-chip" style="margin:4px 0"><input type="checkbox" id="jgPunicaoMV"> 💀 alvo é morto-vivo ou ínfero (+1d8)</label>
         <div class="jg-punicao-botoes">${botoes || '<span class="criador-hint">Sem espaços de magia neste nível.</span>'}</div>
@@ -970,7 +970,7 @@ const Jogo = (function () {
       const dados = Math.ceil(ladino.nivel / 2);
       const et = f.estadoTatico || {};
       const condOk = !!(et.aliadoAdjacenteAoAlvo || et.inimigoAdjacente);
-      furtivoHtml = `<div class="jg-bloco jg-furtivo" data-bloco-acao="furtivo"><h4>🗡️ Ataque Furtivo <small>(${dados}d6 · 1×/turno)</small></h4>
+      furtivoHtml = `<div class="jg-bloco jg-furtivo"><h4>🗡️ Ataque Furtivo <small>(${dados}d6 · 1×/turno)</small></h4>
         <div class="pv-linha">Dano extra com arma <b>ágil</b> ou <b>à distância</b>, quando você tem <b>vantagem</b> no ataque OU um <b>aliado está adjacente ao alvo</b> (e você não está em desvantagem).</div>
         <div class="pv-linha jg-furtivo-cond ${condOk ? 'ok' : 'alerta'}">${condOk ? '✅ Condição possível agora (aliado adjacente ao alvo / você em corpo a corpo) — confirme a vantagem.' : '⚠️ Marque no painel "O teu turno" se há aliado adjacente ao alvo, ou confirme sua vantagem antes de usar.'}</div>
         <button class="btn-mini" id="jgFurtivo">🎲 Rolar Ataque Furtivo (${dados}d6)</button>
@@ -1290,22 +1290,9 @@ const Jogo = (function () {
         const g = acoesDoTurno(t.chave);
         const chips = ACOES_TURNO.map(a =>
           `<button class="jg-acao-chip ${g[a.chave] ? 'gasta' : ''}" data-acaoturno="${a.chave}" title="${g[a.chave] ? 'Usado — clique para desmarcar' : 'Disponível — clique ao usar'}">${a.icone} ${a.rotulo} ${g[a.chave] ? '✔' : ''}</button>`).join('');
-        // T3.2: índice das ações disponíveis nesta ficha — não duplica os cards,
-        // leva (rola + destaca) até o bloco existente de cada categoria.
-        const cats = [];
-        if (armas.length) cats.push(['armas', '⚔️', `Ataques (${armas.length})`]);
-        if (castHtml) cats.push(['magias', '✨', 'Magias']);
-        if (punicaoHtml) cats.push(['punicao', '⚡', 'Punição Divina']);
-        if (furtivoHtml) cats.push(['furtivo', '🗡️', 'Ataque Furtivo']);
-        if (formaHtml) cats.push(['forma', '🐺', 'Forma Selvagem']);
-        if (recHtml) cats.push(['recursos', '🎲', 'Recursos de Classe']);
-        const indice = cats.length
-          ? `<div class="jg-indice-acoes"><span class="jg-indice-rot">Suas ações:</span>${cats.map(([k, ic, txt]) =>
-              `<button class="jg-indice-btn" data-ir-acao="${k}">${ic} ${esc(txt)} →</button>`).join('')}</div>` : '';
         return `<div class="jg-vez jg-vez-eu"><span>⚔️ <b>É a sua vez!</b> · Rodada ${t.rodada}</span>
              <button id="jgFinalizarTurno" class="btn-primary">✔️ Finalizar meu turno</button></div>
-           <div class="jg-acoes-turno">${chips}</div>
-           ${indice}`;
+           <div class="jg-acoes-turno">${chips}</div>`;
       })()}
       <div class="jg-pv">
         <div class="jg-pv-num">PV <b>${f.hpAtual}</b> / ${f.hpMax}${f.pvTemp ? ` <span class="jg-temp">+${f.pvTemp} temp</span>` : ''} · CA ${f.ca} · Inic ${fmt(f.iniciativa)} · Prof +${pb}</div>
@@ -1597,17 +1584,6 @@ const Jogo = (function () {
     document.querySelectorAll('[data-acaoturno]').forEach(b => b.onclick = () => {
       const t = estadoTurno();
       if (t) alternarAcaoTurno(b.dataset.acaoturno, t.chave);
-    });
-
-    // ----- T3.2: índice de ações → rola até o bloco e o destaca (não duplica) -----
-    document.querySelectorAll('[data-ir-acao]').forEach(b => b.onclick = () => {
-      const alvo = document.querySelector(`[data-bloco-acao="${b.dataset.irAcao}"]`);
-      if (!alvo) return;
-      alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      alvo.classList.remove('jg-bloco-destaque');
-      void alvo.offsetWidth; // reinicia a animação se já estava destacando
-      alvo.classList.add('jg-bloco-destaque');
-      setTimeout(() => alvo.classList.remove('jg-bloco-destaque'), 1600);
     });
 
     // ----- ✨ Conjuração (C1): botão Conjurar/Usar nos cards -----

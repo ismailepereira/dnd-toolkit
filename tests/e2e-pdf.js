@@ -550,6 +550,48 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   });
   ok(t3d === 0, 'Fora da minha vez: sem marcadores de ação');
 
+  // ----- 🎬 T3.2: índice de ações no turno leva até cada bloco (sem duplicar) -----
+  const clerigoT32 = {
+    id: 'teste-t32', nome: 'Dom Aurélio', raca: 'Humano', classe: 'Clérigo', nivel: 3,
+    subclasse: 'Domínio da Guerra', antecedente: 'Acólito', divindade: 'Torm',
+    hpMax: 24, hpAtual: 24, ca: 16, iniciativa: 0,
+    atributos: { for: 14, des: 10, con: 14, int: 8, sab: 16, car: 10 },
+    pericias: ['Intuição', 'Religião'], truques: ['Chama Sagrada'],
+    magias1: ['Curar Ferimentos', 'Bênção (Bless)'], preparadas: ['Curar Ferimentos'],
+    itens: ['Maça'], equipado: { maoPrincipal: 'Maça', maoSecundaria: '', armadura: '', foco: '' },
+    ouro: 15, xp: 900, condicoes: [],
+  };
+  const t32a = await page.evaluate(f => {
+    window.COMBATE_ATUAL = { ativo: true, turno: 0, rodada: 1, log: [], combatentes: [
+      { id: 'z1', tipo: 'pc', fichaId: f.id, nome: f.nome, iniciativa: 15, hpAtual: 24, hpMax: 24, ca: 16 },
+      { id: 'z2', tipo: 'monstro', nome: 'Ogro', iniciativa: 6, hpAtual: 30, hpMax: 30, ca: 11 },
+    ] };
+    window.Jogo.abrir(f, {});
+    return {
+      cats: Array.from(document.querySelectorAll('[data-ir-acao]')).map(b => b.dataset.irAcao),
+      temBlocoMagias: !!document.querySelector('[data-bloco-acao="magias"]'),
+      temBlocoArmas: !!document.querySelector('[data-bloco-acao="armas"]'),
+    };
+  }, clerigoT32);
+  ok(t32a.cats.includes('armas') && t32a.cats.includes('magias') && t32a.cats.includes('recursos'), `Índice lista as categorias presentes (${t32a.cats.join(', ')})`);
+  ok(t32a.temBlocoMagias && t32a.temBlocoArmas, 'Blocos-alvo têm o marcador data-bloco-acao');
+
+  // clicar num atalho destaca o bloco correspondente
+  const t32b = await page.evaluate(() => {
+    document.querySelector('[data-ir-acao="magias"]').click();
+    const bloco = document.querySelector('[data-bloco-acao="magias"]');
+    return bloco ? bloco.classList.contains('jg-bloco-destaque') : null;
+  });
+  ok(t32b === true, 'Clicar em "Magias →" destaca o bloco ✨ Conjuração');
+
+  // fora da minha vez o índice não aparece
+  const t32c = await page.evaluate(() => {
+    window.COMBATE_ATUAL.turno = 1;
+    window.Jogo.combateAtualizou();
+    return document.querySelectorAll('[data-ir-acao]').length;
+  });
+  ok(t32c === 0, 'Fora da minha vez: índice de ações some');
+
   console.log(falhas.length ? `\n❌ ${falhas.length} falha(s)` : '\n✅ E2E do PDF: todas as verificações passaram');
   await browser.close();
   process.exit(falhas.length ? 1 : 0);

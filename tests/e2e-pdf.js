@@ -411,6 +411,55 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   });
   ok(/Raio de Gelo.*dano/.test(c5b), `Rolar dano da magia registra no histórico: "${c5b.slice(0, 60)}"`);
 
+  // ----- ⓘ T1: card de magia expande "o que faz" (inclusive magia sem dano) -----
+  const clerigoT1 = {
+    id: 'teste-clerigo-t1', nome: 'Frei Bento', raca: 'Anão da Colina', classe: 'Clérigo', nivel: 3,
+    subclasse: 'Domínio da Vida', antecedente: 'Acólito', divindade: 'Lathander',
+    hpMax: 24, hpAtual: 24, ca: 16, iniciativa: 0,
+    atributos: { for: 12, des: 10, con: 15, int: 8, sab: 16, car: 10 },
+    pericias: ['Intuição', 'Religião'], truques: ['Chama Sagrada'],
+    magias1: ['Escudo da Fé', 'Bênção (Bless)', 'Curar Ferimentos'],
+    preparadas: ['Escudo da Fé', 'Bênção (Bless)'], // Escudo da Fé é magia SEM dano (utilidade)
+    itens: [], equipado: { maoPrincipal: '', maoSecundaria: '', armadura: '', foco: '' },
+    ouro: 15, xp: 900, condicoes: [],
+  };
+  const t1a = await page.evaluate(f => {
+    window.__f = f;
+    window.Jogo.abrir(f, {});
+    const card = Array.from(document.querySelectorAll('.jg-cast')).find(c => c.querySelector('b').textContent === 'Escudo da Fé');
+    return {
+      ehDetails: card ? card.tagName.toLowerCase() : '',
+      temOQueFaz: !!(card && card.querySelector('.jg-cast-oquefaz')),
+      abertoInicial: card ? card.hasAttribute('open') : null,
+      temConjurar: !!(card && card.querySelector('[data-conjurar]')),
+    };
+  }, clerigoT1);
+  ok(t1a.ehDetails === 'details', 'Card de magia agora é <details> expansível');
+  ok(t1a.temOQueFaz, 'Card mostra o selo "ⓘ o que faz" (magia sem dano também)');
+  ok(t1a.abertoInicial === false, 'Card começa fechado');
+  ok(t1a.temConjurar, 'Botão ✨ Conjurar continua presente (magia de utilidade sem dano)');
+
+  // abrir o card mostra a descrição
+  const t1b = await page.evaluate(() => {
+    const card = Array.from(document.querySelectorAll('.jg-cast')).find(c => c.querySelector('b').textContent === 'Escudo da Fé');
+    card.querySelector('summary').click();
+    const desc = card.querySelector('.jg-cast-desc');
+    return { aberto: card.hasAttribute('open'), texto: desc ? desc.textContent.replace(/\s+/g, ' ').trim() : '' };
+  });
+  ok(t1b.aberto, 'Clicar no card abre a descrição');
+  ok(/CA/i.test(t1b.texto) && t1b.texto.length > 20, `Descrição "o que faz" aparece: "${t1b.texto.slice(0, 60)}"`);
+
+  // clicar no botão Conjurar NÃO deve fechar o card (guard de stopPropagation) e deve gastar o espaço
+  const t1c = await page.evaluate(() => {
+    const card = Array.from(document.querySelectorAll('.jg-cast')).find(c => c.querySelector('b').textContent === 'Escudo da Fé');
+    const abertoAntes = card.hasAttribute('open');
+    card.querySelector('[data-conjurar]').click();
+    const cardDepois = Array.from(document.querySelectorAll('.jg-cast')).find(c => c.querySelector('b').textContent === 'Escudo da Fé');
+    return { abertoAntes, gastou: (window.__f.slotsUsados && window.__f.slotsUsados[1]) || 0 };
+  });
+  ok(t1c.abertoAntes === true, 'Card seguia aberto antes de conjurar (o clique nos botões não togglou)');
+  ok(t1c.gastou === 1, `Conjurar a magia sem dano deduziu o espaço do 1º círculo (usados: ${t1c.gastou})`);
+
   console.log(falhas.length ? `\n❌ ${falhas.length} falha(s)` : '\n✅ E2E do PDF: todas as verificações passaram');
   await browser.close();
   process.exit(falhas.length ? 1 : 0);

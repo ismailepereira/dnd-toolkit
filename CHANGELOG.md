@@ -4,6 +4,38 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-21 — F2 (auditoria kit de estreia): tabela das 12 classes + Clérigo — Expulsar Mortos-Vivos ✨
+
+**Backup:** `versoes/2026-07-21-f2-clerigo-expulsar/` (jogo.js, e2e-pdf.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** Abre a **FASE F2** — auditoria "kit de estreia" das 12 classes (níveis 1-3) contra 3 critérios:
+(a) painel do Criador explica as características, (b) recurso gastável rastreável no Modo de Jogo, (c) ação
+especial com botão/card, não só texto.
+- **Tabela de auditoria** preenchida e commitada em `docs/ROADMAP-FICHAS-COMBATE.md`. Retrato: (a) e (b) já
+  cobertos nas 12 classes; as lacunas reais estão no critério (c). Ordem de correção definida (Clérigo →
+  Bardo → Feiticeiro → Monge → Guerreiro).
+- **1ª correção — Clérigo · Expulsar Mortos-Vivos:** card **✨ Expulsar Mortos-Vivos** (Canalizar Divindade)
+  no Modo de Jogo (`jogo.js`), a partir do N2. Mostra a **CD (8 + PB + mod SAB)**, alcance **9m**, salva de
+  **Sabedoria** e o efeito **Expulso** (foge por 1 min, quebra ao sofrer dano). O botão **gasta 1 uso de
+  Canalizar Divindade** — o mesmo contador do bloco "Recursos de Classe" (fonte única `recursosDeClasse5e`),
+  então os dois refletem o gasto — e **registra no Histórico** com a CD. Linha **💀 Destruir Mortos-Vivos
+  (N5+)** com o limiar de ND por nível (½ no N5 → 4 no N17). Entrou também no índice de ações da T3.
+
+**Ficheiros:** `static/js/jogo.js` (função `expulsarMortosVivos`/`clerigoDaFicha`/`ndDestruir`, card, handler,
+índice T3, inserção no HTML), `tests/e2e-pdf.js` (+3 asserts F2), `docs/ROADMAP-FICHAS-COMBATE.md` (tabela + item 1).
+
+**Verificação:** `node --check` OK · `npm run test:sintaxe` ✅ · `npm test` **29/29** ✅. E2E em **navegador real**
+(Browser pane, conta mestre): Clérigo N3 (SAB 16) → card com **CD 13**, botão **1/1**; clicar gasta 1 Canalizar,
+loga "Expulsar Mortos-Vivos: salva de Sabedoria CD 13", botão vira **0/1 desabilitado**; o bloco genérico
+"Recursos de Classe" reflete **0/1** (contador compartilhado). Clérigo N5 (SAB 18) → **CD 15** + linha
+"💀 Destruir ND ≤ ½". Caso de regressão adicionado ao `e2e-pdf.js` (roda no CI).
+
+**Como reverter:** restaurar `versoes/2026-07-21-f2-clerigo-expulsar/`, ou `git revert`.
+
+**Próximo (F2):** Bardo — Inspiração Bárdica com registro de "a quem" e o dado.
+
+---
+
 ## 2026-07-21 — Combate T5: 🪄 Mestre vê as Magias & Poderes do PJ no tracker (conclui a Fase T)
 
 **Backup antes da alteração:** `versoes/2026-07-21-t5-magias-poderes-tracker/` (`app.js`, `jogo.js`, `regras-ficha.js`, `style.css`).

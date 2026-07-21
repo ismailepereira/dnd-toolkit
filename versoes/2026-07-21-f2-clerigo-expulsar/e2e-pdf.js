@@ -460,40 +460,6 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   ok(t1c.abertoAntes === true, 'Card seguia aberto antes de conjurar (o clique nos botões não togglou)');
   ok(t1c.gastou === 1, `Conjurar a magia sem dano deduziu o espaço do 1º círculo (usados: ${t1c.gastou})`);
 
-  // ----- ✨ F2: Expulsar Mortos-Vivos do Clérigo (Canalizar Divindade) -----
-  // Frei Bento (nv3, SAB 16 → +3, PB +2) → CD 8+2+3 = 13; 1 uso de Canalizar.
-  const f2a = await page.evaluate(f => {
-    window.__f = Object.assign({}, f, { recursosUsados: {} });
-    window.Jogo.abrir(window.__f, {});
-    const bloco = document.querySelector('.jg-expulsar');
-    const btn = document.getElementById('jgExpulsar');
-    return {
-      temBloco: !!bloco,
-      texto: bloco ? bloco.textContent.replace(/\s+/g, ' ').trim() : '',
-      rotuloBtn: btn ? btn.textContent.replace(/\s+/g, ' ').trim() : '',
-      desabilitado: btn ? btn.disabled : null,
-    };
-  }, clerigoT1);
-  ok(f2a.temBloco, 'Clérigo nv3 ganha o card ✨ Expulsar Mortos-Vivos no Modo de Jogo');
-  ok(/CD 13/.test(f2a.texto), `Card mostra a CD correta (8+PB+SAB = 13): "${f2a.texto.slice(0, 80)}"`);
-  ok(/9m/.test(f2a.texto), 'Card explica o alcance de 9m e a salva de Sabedoria');
-  ok(/1\/1/.test(f2a.rotuloBtn) && f2a.desabilitado === false, `Botão começa com 1/1 uso disponível: "${f2a.rotuloBtn}"`);
-
-  // clicar Expulsar gasta 1 Canalizar Divindade, registra no histórico e desabilita o botão
-  const f2b = await page.evaluate(() => {
-    document.getElementById('jgExpulsar').click();
-    const btn = document.getElementById('jgExpulsar');
-    return {
-      gasto: (window.__f.recursosUsados && window.__f.recursosUsados['Canalizar Divindade']) || 0,
-      log: Array.from(document.querySelectorAll('.jg-log li')).map(li => li.textContent).join(' | '),
-      desabilitado: btn ? btn.disabled : null,
-      rotuloBtn: btn ? btn.textContent.replace(/\s+/g, ' ').trim() : '',
-    };
-  });
-  ok(f2b.gasto === 1, `Expulsar gastou 1 uso de Canalizar Divindade (usados: ${f2b.gasto})`);
-  ok(/Expulsar Mortos-Vivos.*CD 13/.test(f2b.log), `Registra no histórico com a CD: "${f2b.log.slice(0, 70)}"`);
-  ok(f2b.desabilitado === true && /0\/1/.test(f2b.rotuloBtn), `Botão fica 0/1 e desabilitado sem usos: "${f2b.rotuloBtn}"`);
-
   // ----- ⚔️ T2: banner "é a sua vez" no Modo de Jogo -----
   const heroi = {
     id: 'teste-t2', nome: 'Aria', raca: 'Humano', classe: 'Guerreiro', nivel: 3,

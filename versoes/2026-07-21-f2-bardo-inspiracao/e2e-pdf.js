@@ -494,60 +494,6 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   ok(/Expulsar Mortos-Vivos.*CD 13/.test(f2b.log), `Registra no histórico com a CD: "${f2b.log.slice(0, 70)}"`);
   ok(f2b.desabilitado === true && /0\/1/.test(f2b.rotuloBtn), `Botão fica 0/1 e desabilitado sem usos: "${f2b.rotuloBtn}"`);
 
-  // ----- 🎵 F2: Inspiração Bárdica do Bardo (registra a QUEM deu) -----
-  // Lyra (nv3, CAR 16 → +3) → 3 usos, dado d6.
-  const bardoF2 = {
-    id: 'teste-bardo-f2', nome: 'Lyra', raca: 'Humano', classe: 'Bardo', nivel: 3,
-    subclasse: 'Colégio do Conhecimento', antecedente: 'Artista', divindade: 'Ateu (sem divindade)',
-    hpMax: 21, hpAtual: 21, ca: 14, iniciativa: 2,
-    atributos: { for: 8, des: 14, con: 13, int: 10, sab: 12, car: 16 },
-    pericias: ['Atuação', 'Persuasão'], truques: ['Zombaria Viciosa'],
-    magias1: ['Enfeitiçar Pessoa', 'Curar Ferimentos'], preparadas: [],
-    itens: [], equipado: { maoPrincipal: '', maoSecundaria: '', armadura: '', foco: '' },
-    ouro: 20, xp: 900, condicoes: [], recursosUsados: {}, inspiracoesDadas: [],
-  };
-  const bf2a = await page.evaluate(f => {
-    window.__b = Object.assign({}, f, { recursosUsados: {}, inspiracoesDadas: [] });
-    window.Jogo.abrir(window.__b, {});
-    const bloco = document.querySelector('.jg-inspiracao');
-    const btn = document.getElementById('jgInspDar');
-    return { temBloco: !!bloco, dado: bloco ? /d6/.test(bloco.querySelector('h4').textContent) : false, rotulo: btn ? btn.textContent.replace(/\s+/g, ' ').trim() : '' };
-  }, bardoF2);
-  ok(bf2a.temBloco, 'Bardo nv3 ganha o card 🎵 Inspiração Bárdica no Modo de Jogo');
-  ok(bf2a.dado, 'Card mostra o dado d6 (nv3)');
-  ok(/3\/3/.test(bf2a.rotulo), `Botão começa com 3/3 usos (CAR +3): "${bf2a.rotulo}"`);
-
-  // dar inspiração ao "Thorin" gasta 1 uso e registra o nome + dado na lista de pendentes
-  const bf2b = await page.evaluate(() => {
-    document.getElementById('jgInspAlvo').value = 'Thorin';
-    document.getElementById('jgInspDar').click();
-    const chip = document.querySelector('.jg-insp-chip');
-    return {
-      gasto: (window.__b.recursosUsados && window.__b.recursosUsados['Inspiração Bárdica']) || 0,
-      pend: (window.__b.inspiracoesDadas || []).map(p => `${p.nome}:${p.dado}`).join(','),
-      chipTexto: chip ? chip.textContent.replace(/\s+/g, ' ').trim() : '',
-      log: Array.from(document.querySelectorAll('.jg-log li')).map(li => li.textContent).join(' | '),
-      rotulo: (document.getElementById('jgInspDar') || {}).textContent.replace(/\s+/g, ' ').trim(),
-    };
-  });
-  ok(bf2b.gasto === 1, `Dar inspiração gastou 1 uso (usados: ${bf2b.gasto})`);
-  ok(bf2b.pend === 'Thorin:d6', `Registra a QUEM deu e o dado: "${bf2b.pend}"`);
-  ok(/Thorin/.test(bf2b.chipTexto) && /d6/.test(bf2b.chipTexto), `Chip mostra quem segura o dado: "${bf2b.chipTexto}"`);
-  ok(/Inspiração Bárdica.*Thorin/.test(bf2b.log), `Histórico registra o destinatário: "${bf2b.log.slice(0, 60)}"`);
-  ok(/2\/3/.test(bf2b.rotulo), `Botão passa a 2/3: "${bf2b.rotulo}"`);
-
-  // marcar como usada remove da lista de pendentes (sem devolver o uso)
-  const bf2c = await page.evaluate(() => {
-    document.querySelector('[data-inspusada]').click();
-    return {
-      pend: (window.__b.inspiracoesDadas || []).length,
-      gasto: (window.__b.recursosUsados && window.__b.recursosUsados['Inspiração Bárdica']) || 0,
-      temChip: !!document.querySelector('.jg-insp-chip'),
-    };
-  });
-  ok(bf2c.pend === 0 && !bf2c.temChip, 'Marcar "usada" remove o dado da lista de pendentes');
-  ok(bf2c.gasto === 1, `Usar o dado NÃO devolve o uso gasto (segue 1): ${bf2c.gasto}`);
-
   // ----- ⚔️ T2: banner "é a sua vez" no Modo de Jogo -----
   const heroi = {
     id: 'teste-t2', nome: 'Aria', raca: 'Humano', classe: 'Guerreiro', nivel: 3,

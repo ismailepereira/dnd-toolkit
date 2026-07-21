@@ -75,10 +75,7 @@ Legenda: ✅ ok · ⚠️ parcial · ❌ falta · 🔎 = alvo de correção.
    alcance 9m, salva de Sabedoria e efeito Expulso; botão gasta 1 Canalizar Divindade (contador compartilhado
    com o bloco "Recursos de Classe") e registra no Histórico. Linha "💀 Destruir Mortos-Vivos (N5+)" com o
    limiar de ND por nível. Índice de ações da T3 ganhou a entrada ✨.
-2. [x] **Bardo — Inspiração Bárdica** — ENTREGUE 21/07: card 🎵 no Modo de Jogo com o dado (d6→d12 por nível),
-   campo "a quem?" e botão que gasta 1 uso (contador compartilhado com "Recursos de Classe") + Histórico.
-   Lista de **inspirações pendentes** (quem segura o dado) com botão ✔ "usada" que remove sem devolver o uso.
-   Descanso limpa os dados pendentes.
+2. [ ] **Bardo — Inspiração Bárdica**: ao gastar, registra "dei a quem?" e o dado (d6→d12); mostra quem tem inspiração pendente.
 3. [ ] **Feiticeiro — Pontos de Feitiçaria**: botões de conversão espaço↔ponto (1º=2pt, 2º=3pt, 3º=5pt; criar espaço 2/3/5pt).
 4. [ ] **Monge — Opções de Ki**: 3 botões (Rajada de Golpes/Defesa Paciente/Passo do Vento) que gastam 1 Ki cada.
 5. [ ] **Guerreiro — Retomar o Fôlego**: botão que rola 1d10+nível e cura; chip de Surto de Ação.

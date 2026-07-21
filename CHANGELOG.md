@@ -4,6 +4,33 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-21 — F2 · Monge — Opções de Ki com botão 👊
+
+**Backup:** `versoes/2026-07-21-f2-monge-ki/` (jogo.js, e2e-pdf.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** 4ª correção da FASE F2. Novo card **👊 Opções de Ki** no Modo de Jogo (`jogo.js`) para o Monge
+(N2+) — fecha a lacuna "as opções de Ki eram só texto, sem botão que gaste o ponto".
+- **N2:** três botões — **Rajada de Golpes** (2 ataques desarmados bônus), **Defesa Paciente** (Esquiva bônus)
+  e **Passo do Vento** (Disparar/Desengajar bônus, salto dobra) — cada um **gasta 1 Ponto de Ki** e registra
+  no Histórico. Cada opção tem a explicação de mesa acima dos botões.
+- **N5:** ganha o **Golpe Atordoante** (também 1 Ki), com a **CD de Ki (8 + PB + mod SAB)** no texto.
+- **Guard:** sem Ki, todos os botões ficam desabilitados. Os pontos usam o **mesmo contador** de "Recursos de
+  Classe" (fonte única `recursosDeClasse5e`) — Ki é `rec: curto`, recupera no descanso curto. Cabeçalho mostra
+  os Ki restantes. Monge N1 não tem card (Ki começa no N2).
+
+**Ficheiros:** `static/js/jogo.js` (`mongeDaFicha`/`gastarKi`, card, handlers, índice T3, inserção no HTML),
+`tests/e2e-pdf.js` (+bloco F2 Monge), `docs/ROADMAP-FICHAS-COMBATE.md` (item 4 ✅).
+
+**Verificação:** `node --check` OK · `npm test` **29/29** ✅. E2E em **navegador real** (Browser pane): Monge N5 →
+card "5/5 Ki", 4 botões (3 base + Golpe Atordoante); Rajada gasta 1 → "4/5 Ki" e loga; N2 → só as 3 opções
+base; Ki esgotado → botões desabilitados; N1 sem card. Caso de regressão no `e2e-pdf.js` (roda no CI).
+
+**Como reverter:** restaurar `versoes/2026-07-21-f2-monge-ki/`, ou `git revert`.
+
+**Próximo (F2):** Guerreiro — Retomar o Fôlego (rola 1d10+nível e cura) + chip de Surto de Ação.
+
+---
+
 ## 2026-07-21 — F2 · Feiticeiro — Fontes de Feitiçaria: conversão espaço↔ponto ✴️
 
 **Backup:** `versoes/2026-07-21-f2-feiticeiro-feiticaria/` (jogo.js, e2e-pdf.js, ROADMAP-FICHAS-COMBATE.md).

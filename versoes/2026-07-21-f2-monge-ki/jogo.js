@@ -585,20 +585,6 @@ const Jogo = (function () {
     salvar();
   }
 
-  // ----- F2: Opções de Ki do Monge (nv2+) -----
-  // Cada opção gasta 1 Ponto de Ki (contador único de "Recursos de Classe").
-  // N2: Rajada de Golpes, Defesa Paciente, Passo do Vento. N5: Golpe Atordoante.
-  function mongeDaFicha() { return classesFicha().find(c => c.classe === 'Monge' && c.nivel >= 2); }
-  function gastarKi(qtd, rotulo) {
-    if (!mongeDaFicha()) return;
-    const r = recursosClasse().find(x => x.nome === 'Pontos de Ki');
-    const max = r ? r.max : 0, usados = ficha.recursosUsados['Pontos de Ki'] || 0;
-    if (max - usados < qtd) { log('Sem Pontos de Ki suficientes — recupere num descanso curto.'); render(); return; }
-    ficha.recursosUsados['Pontos de Ki'] = usados + qtd;
-    log(`👊 ${rotulo} (−${qtd} Ki).`);
-    salvar();
-  }
-
   // ----- F1: Punição Divina do Paladino (nv2+) -----
   // Gasta 1 espaço de magia DEPOIS de acertar um golpe corpo a corpo:
   // 2d8 radiante (1º), +1d8 por círculo acima (máx 5d8), +1d8 vs mortos-vivos/ínferos.
@@ -1151,30 +1137,6 @@ const Jogo = (function () {
       </div>`;
     }
 
-    // ----- 👊 Opções de Ki do Monge (F2) — botões que gastam 1 Ponto de Ki -----
-    let kiHtml = '';
-    const mongeAtq = mongeDaFicha();
-    if (mongeAtq) {
-      const r = recs.find(x => x.nome === 'Pontos de Ki');
-      const max = r ? r.max : 0;
-      const restam = max - (f.recursosUsados['Pontos de Ki'] || 0);
-      const off = restam < 1 ? 'disabled' : '';
-      const cdKi = 8 + pb + m(f.atributos.sab);
-      const opcoes = [
-        ['rajada', 'Rajada de Golpes', 'ação bônus: <b>2</b> ataques desarmados extras após o Ataque'],
-        ['defesa', 'Defesa Paciente', 'ação bônus: <b>Esquiva</b> (ataques contra você ficam em desvantagem)'],
-        ['vento', 'Passo do Vento', 'ação bônus: <b>Disparar</b> ou <b>Desengajar</b>; salto dobra'],
-      ];
-      if (mongeAtq.nivel >= 5) opcoes.push(['atordoar', 'Golpe Atordoante', `ao acertar corpo a corpo: alvo faz salva de CON (CD <b>${cdKi}</b>) ou fica <b>Atordoado</b> até seu próximo turno`]);
-      const botoes = opcoes.map(([k, nome]) => `<button class="btn-mini" data-ki="${k}" ${off}>👊 ${nome} <small>(−1 Ki)</small></button>`).join('');
-      const linhas = opcoes.map(([, nome, desc]) => `<div class="pv-linha"><b>${nome}:</b> ${desc}.</div>`).join('');
-      kiHtml = `<div class="jg-bloco jg-ki" data-bloco-acao="ki"><h4>👊 Opções de Ki <small>(${restam}/${max} Ki)</small></h4>
-        ${linhas}
-        <div class="jg-ki-botoes">${botoes}</div>
-        ${restam < 1 ? '<div class="criador-hint">Sem Pontos de Ki — recupere num descanso curto.</div>' : ''}
-      </div>`;
-    }
-
     // ----- 🛡️ Auras do Paladino (F1) — passivas sempre visíveis a partir do N6 -----
     let aurasHtml = '';
     if (palad && palad.nivel >= 6) {
@@ -1501,7 +1463,6 @@ const Jogo = (function () {
         if (expulsarHtml) cats.push(['expulsar', '✨', 'Expulsar Mortos-Vivos']);
         if (inspiracaoHtml) cats.push(['inspiracao', '🎵', 'Inspiração Bárdica']);
         if (feiticariaHtml) cats.push(['feiticaria', '✴️', 'Fontes de Feitiçaria']);
-        if (kiHtml) cats.push(['ki', '👊', 'Opções de Ki']);
         if (formaHtml) cats.push(['forma', '🐺', 'Forma Selvagem']);
         if (recHtml) cats.push(['recursos', '🎲', 'Recursos de Classe']);
         const indice = cats.length
@@ -1550,7 +1511,7 @@ const Jogo = (function () {
           </div>
           ${condHtml}${logHtml}
         </div>
-        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${expulsarHtml}${inspiracaoHtml}${feiticariaHtml}${kiHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
+        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${expulsarHtml}${inspiracaoHtml}${feiticariaHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
       </div>
     `;
 
@@ -1859,10 +1820,6 @@ const Jogo = (function () {
     // ----- 🎵 Inspiração Bárdica (F2) -----
     if ($('jgInspDar')) $('jgInspDar').onclick = () => darInspiracao(($('jgInspAlvo') || {}).value);
     document.querySelectorAll('[data-inspusada]').forEach(b => b.onclick = () => inspiracaoUsada(+b.dataset.inspusada));
-
-    // ----- 👊 Opções de Ki (F2) -----
-    const KI_ROTULO = { rajada: 'Rajada de Golpes', defesa: 'Defesa Paciente', vento: 'Passo do Vento', atordoar: 'Golpe Atordoante' };
-    document.querySelectorAll('[data-ki]').forEach(b => b.onclick = () => gastarKi(1, KI_ROTULO[b.dataset.ki] || 'Ki'));
 
     // ----- ✴️ Fontes de Feitiçaria (F2) -----
     document.querySelectorAll('[data-esp2pt]').forEach(b => b.onclick = () => espacoParaPontos(+b.dataset.esp2pt));

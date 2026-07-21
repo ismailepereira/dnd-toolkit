@@ -83,9 +83,7 @@ Legenda: ✅ ok · ⚠️ parcial · ❌ falta · 🔎 = alvo de correção.
    direções — **espaço → pontos** (rende o nível do círculo, até o teto) e **pontos → espaço** (custo PHB
    2/3/5/6/7 para 1º-5º, recupera um espaço gasto). Guards: pontos cheios travam ganhar; sem espaço gasto
    trava criar. Pontos = mesmo contador de "Recursos de Classe".
-4. [x] **Monge — Opções de Ki** — ENTREGUE 21/07: card 👊 com 3 botões N2 (Rajada de Golpes/Defesa Paciente/
-   Passo do Vento) + Golpe Atordoante (N5, com a CD de Ki), cada um gastando 1 Ponto de Ki (contador único de
-   "Recursos de Classe") + Histórico. Guard: sem Ki, botões desabilitados.
+4. [ ] **Monge — Opções de Ki**: 3 botões (Rajada de Golpes/Defesa Paciente/Passo do Vento) que gastam 1 Ki cada.
 5. [ ] **Guerreiro — Retomar o Fôlego**: botão que rola 1d10+nível e cura; chip de Surto de Ação.
 
 As "menores" (Ataque Descuidado, Ação Ladina, Recuperação Arcana, Imposição das Mãos-cura, Consciência

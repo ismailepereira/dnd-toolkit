@@ -607,58 +607,6 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   });
   ok(ff2d === true, 'Guard: pontos no máximo → todos os botões espaço→ponto desabilitados');
 
-  // ----- 👊 F2: Opções de Ki do Monge (gasta 1 Ponto de Ki por opção) -----
-  const mongeF2 = {
-    id: 'teste-monge-f2', nome: 'Rin', raca: 'Humano', classe: 'Monge', nivel: 5,
-    subclasse: 'Caminho da Mão Aberta', antecedente: 'Eremita', divindade: 'Ateu (sem divindade)',
-    hpMax: 33, hpAtual: 33, ca: 15, iniciativa: 3,
-    atributos: { for: 12, des: 16, con: 13, int: 10, sab: 14, car: 8 },
-    pericias: ['Acrobacia'], itens: [], equipado: { maoPrincipal: '', maoSecundaria: '', armadura: '', foco: '' },
-    ouro: 0, xp: 6500, condicoes: [], recursosUsados: {},
-  };
-  const mf2a = await page.evaluate(f => {
-    window.__m = Object.assign({}, f, { recursosUsados: {} });
-    window.Jogo.abrir(window.__m, {});
-    const bloco = document.querySelector('.jg-ki');
-    return {
-      temBloco: !!bloco,
-      cab: bloco ? bloco.querySelector('h4').textContent.replace(/\s+/g, ' ').trim() : '',
-      nBotoes: bloco ? bloco.querySelectorAll('[data-ki]').length : 0,
-      temAtordoar: !!document.querySelector('[data-ki="atordoar"]'),
-    };
-  }, mongeF2);
-  ok(mf2a.temBloco, 'Monge nv5 ganha o card 👊 Opções de Ki no Modo de Jogo');
-  ok(/5\/5 Ki/.test(mf2a.cab), `Cabeçalho mostra os Ki (5/5): "${mf2a.cab}"`);
-  ok(mf2a.nBotoes === 4 && mf2a.temAtordoar, 'N5 mostra as 3 opções base + Golpe Atordoante');
-
-  // gastar Rajada de Golpes desconta 1 Ki e registra no histórico
-  const mf2b = await page.evaluate(() => {
-    document.querySelector('[data-ki="rajada"]').click();
-    return {
-      ki: window.__m.recursosUsados['Pontos de Ki'],
-      log: document.querySelector('.jg-log li').textContent,
-      cab: document.querySelector('.jg-ki h4').textContent.replace(/\s+/g, ' ').trim(),
-    };
-  });
-  ok(mf2b.ki === 1, `Rajada de Golpes gastou 1 Ki (usados: ${mf2b.ki})`);
-  ok(/Rajada de Golpes.*Ki/.test(mf2b.log) && /4\/5 Ki/.test(mf2b.cab), `Loga e atualiza para 4/5: "${mf2b.cab}"`);
-
-  // N2 mostra só as 3 opções base (sem Golpe Atordoante)
-  const mf2c = await page.evaluate(() => {
-    const n2 = { id: 'monge-n2', nome: 'Kai', classe: 'Monge', nivel: 2, atributos: { for: 12, des: 16, con: 13, int: 10, sab: 14, car: 8 }, itens: [], equipado: {}, condicoes: [], hpMax: 16, hpAtual: 16, ca: 15, iniciativa: 3, recursosUsados: {} };
-    window.Jogo.abrir(n2, {});
-    return { n: document.querySelectorAll('.jg-ki [data-ki]').length, temAtordoar: !!document.querySelector('[data-ki="atordoar"]') };
-  });
-  ok(mf2c.n === 3 && !mf2c.temAtordoar, 'N2 mostra só as 3 opções (Golpe Atordoante só a partir do N5)');
-
-  // Ki esgotado → botões desabilitados
-  const mf2d = await page.evaluate(() => {
-    const esg = { id: 'monge-esg', nome: 'Zo', classe: 'Monge', nivel: 5, atributos: { for: 12, des: 16, con: 13, int: 10, sab: 14, car: 8 }, itens: [], equipado: {}, condicoes: [], hpMax: 33, hpAtual: 33, ca: 15, iniciativa: 3, recursosUsados: { 'Pontos de Ki': 5 } };
-    window.Jogo.abrir(esg, {});
-    return Array.from(document.querySelectorAll('.jg-ki [data-ki]')).every(b => b.disabled);
-  });
-  ok(mf2d === true, 'Guard: sem Ki → todas as opções desabilitadas');
-
   // ----- ⚔️ T2: banner "é a sua vez" no Modo de Jogo -----
   const heroi = {
     id: 'teste-t2', nome: 'Aria', raca: 'Humano', classe: 'Guerreiro', nivel: 3,

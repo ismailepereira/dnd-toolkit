@@ -435,17 +435,6 @@ const Jogo = (function () {
     ficha.acoesGastas = a;
     salvar();
   }
-  // T4: entrar no combate rolando a própria iniciativa (ou rerrolar)
-  function entrarCombate() {
-    fetch('/api/combate/acao', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ acao: 'entrar_combate', fichaId: ficha.id }),
-    }).then(r => r.json()).then(d => {
-      if (d && d.ok) log(`🎲 Você entrou no combate (iniciativa ${d.iniciativa}).`);
-      // a sincronização RT/polling traz o COMBATE_ATUAL novo; força um refresh já
-      return fetch('/api/combate').then(r => r.json()).then(cb => { window.COMBATE_ATUAL = cb; render(); });
-    }).catch(() => {});
-  }
   function finalizarTurno() {
     fetch('/api/combate/acao', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1295,10 +1284,7 @@ const Jogo = (function () {
       ${(() => {
         // T2: banner "é a sua vez" quando o combate está em andamento
         const t = estadoTurno();
-        if (!t || !t.ativo) return '';
-        // T4: combate rolando mas esta ficha ainda não entrou → botão de entrar
-        if (!t.minhaFichaNoCombate) return `<div class="jg-vez jg-vez-entrar"><span>⚔️ Combate em andamento (Rodada ${t.rodada}) · Vez de <b>${esc(t.atualNome)}</b></span>
-             <button id="jgEntrarCombate" class="btn-primary">🎲 Entrar no combate</button></div>`;
+        if (!t || !t.ativo || !t.minhaFichaNoCombate) return '';
         if (!t.euNaVez) return `<div class="jg-vez jg-vez-aguarda"><span>⏳ Em combate (Rodada ${t.rodada}) · Vez de <b>${esc(t.atualNome)}</b></span></div>`;
         // T3: marcadores de economia de ação (só na minha vez), atrelados à chave do turno
         const g = acoesDoTurno(t.chave);
@@ -1606,8 +1592,6 @@ const Jogo = (function () {
     });
     // ----- T2: finalizar meu turno -----
     if ($('jgFinalizarTurno')) $('jgFinalizarTurno').onclick = finalizarTurno;
-    // ----- T4: entrar no combate (rolar iniciativa) -----
-    if ($('jgEntrarCombate')) $('jgEntrarCombate').onclick = entrarCombate;
 
     // ----- T3: marcadores de economia de ação -----
     document.querySelectorAll('[data-acaoturno]').forEach(b => b.onclick = () => {

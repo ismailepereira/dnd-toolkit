@@ -165,8 +165,11 @@ e cada magia (inclusive as que **não causam dano**) tem um botão que mostra **
     categoria presente na ficha (⚔️ Ataques (N) · ✨ Magias · ⚡ Punição · 🗡️ Furtivo · 🐺 Forma Selvagem ·
     🎲 Recursos). Clicar **rola até o bloco existente e o destaca** — reúne a visão sem duplicar os cards.
     Some fora da sua vez. Com isso a T3 (e a antiga C7) está concluída.
-- [ ] **T4 — Iniciativa pelo jogador** (pequeno/médio): o próprio jogador rola e entra na iniciativa (hoje é
-  o Mestre que monta a ordem), e vê "quem é o próximo".
+- [x] **T4 — Iniciativa pelo jogador** — ENTREGUE 21/07: quando há combate em andamento e a ficha aberta
+  ainda **não está na ordem**, o Modo de Jogo mostra **🎲 Entrar no combate**; clicar rola d20 + iniciativa
+  da ficha no servidor (ação `entrar_combate`), insere o PJ e **reordena por iniciativa preservando a vez
+  atual**. Rerrolar não duplica; o jogador só entra com a **própria** ficha (Mestre pode qualquer uma).
+  A ordem/"quem é o próximo" continua no painel de combate (T2/T3).
 - [ ] **T5 — Ações do PC visíveis no tracker do Mestre** (médio): no combatente PC, o Mestre vê as magias/
   poderes escolhidos (não só os ataques), para conduzir o turno do jogador presencial.
 

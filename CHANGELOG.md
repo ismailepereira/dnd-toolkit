@@ -4,6 +4,22 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-21 — Combate T4: 🎲 jogador entra no combate rolando a própria iniciativa
+
+**Backup antes da alteração:** `versoes/2026-07-21-t4-entrar-combate/` (`jogo.js`, `style.css`, `app.py`).
+
+**Resumo:** parte T4 da Fase T — antes só o Mestre montava a ordem; agora o jogador entra sozinho.
+- Quando há **combate em andamento** e a ficha aberta ainda **não está na ordem**, o Modo de Jogo mostra o banner **🎲 Entrar no combate** (com "Vez de <nome>"). Clicar chama a ação de servidor `entrar_combate`: rola **d20 + iniciativa da ficha**, insere o PJ na lista e **reordena por iniciativa desc preservando a vez atual** (o combatente que estava na vez continua na vez após a reordenação). Assim que entra, o banner vira o de turno normal (T2/T3).
+- **Segurança:** o jogador só entra com a **própria** ficha (`donoUid`); o Mestre pode por qualquer PJ. **Rerrolar não duplica** o combatente — só troca a iniciativa e reordena.
+
+**Ficheiros:** `app.py` (ação `entrar_combate`), `static/js/jogo.js` (`entrarCombate` + banner de entrada), `static/css/style.css`, `docs/ROADMAP-FICHAS-COMBATE.md` (T4 ✅), `tests/test-servidor.py` (+5), `tests/e2e-pdf.js` (+2).
+
+**Verificação:** **35/35** servidor (entra e rola iniciativa; lista reordenada desc; rerrolar não duplica; ficha de outro dono → 403) · E2E completo verde (botão de entrar quando fora da ordem → some ao entrar) · 25/25 unit · sintaxe OK.
+
+**Como reverter:** restaurar `versoes/2026-07-21-t4-entrar-combate/`, ou `git revert`.
+
+---
+
 ## 2026-07-21 — Combate T3.2: 🎬 índice de ações no turno (conclui a T3)
 
 **Backup antes da alteração:** `versoes/2026-07-21-t32-indice-acoes/` (`jogo.js`, `style.css`).

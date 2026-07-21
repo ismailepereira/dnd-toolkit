@@ -24,7 +24,7 @@ const ctx = vm.runInContext(`({
   CLASSES_RESUMO, RACAS_DETALHE, RACAS_RESUMO, CONJURACAO, mod, PB,
   DIVINDADES, SEM_DIVINDADE, CLASSES_DEVOTAS, listaDivindades, divindadeDados,
   PATRONOS_PACTO, patronoDados, SUBCLASSES, antecedentesDisponiveis, antecedenteDados,
-  calcularCA, percepcaoPassiva, cdConjuracao, pvMaximoMonoclasse,
+  calcularCA, percepcaoPassiva, cdConjuracao, pvMaximoMonoclasse, recursosDeClasse5e,
   FORMAS_SELVAGENS, limiteFormaSelvagem, formasSelvagensDisponiveis, formaSelvagemDados,
 })`, sandbox);
 // guarda contra testes vácuos: nada aqui pode estar indefinido
@@ -257,6 +257,36 @@ t('SUBCLASSES: toda classe listada existe e nível de escolha é 1-3', () => {
     assert.ok(ctx.SUBCLASSES[c].nivel >= 1 && ctx.SUBCLASSES[c].nivel <= 3, c);
     assert.ok(ctx.SUBCLASSES[c].opcoes.length >= 2, c);
   }
+});
+
+// ----- T5: recursos/poderes de classe (fonte única, usada por jogo.js e app.js) -----
+t('recursosDeClasse5e: Fúria do Bárbaro escala com o nível', () => {
+  const nome = 'Fúria';
+  const fur = n => ctx.recursosDeClasse5e('Bárbaro', n, 0).find(r => r.nome === nome).max;
+  assert.strictEqual(fur(1), 2);
+  assert.strictEqual(fur(3), 3);
+  assert.strictEqual(fur(6), 4);
+  assert.strictEqual(fur(12), 5);
+  assert.strictEqual(fur(17), 6);
+});
+
+t('recursosDeClasse5e: Ki do Monge só a partir do nível 2 (= nível)', () => {
+  assert.strictEqual(ctx.recursosDeClasse5e('Monge', 1, 0).length, 0);
+  const ki = ctx.recursosDeClasse5e('Monge', 5, 0).find(r => r.nome === 'Pontos de Ki');
+  assert.strictEqual(ki.max, 5);
+  assert.strictEqual(ki.rec, 'curto');
+});
+
+t('recursosDeClasse5e: Paladino tem Sentido Divino (1+CAR), Imposição das Mãos e Canalizar (nv3)', () => {
+  const rs = ctx.recursosDeClasse5e('Paladino', 5, 3); // CAR +3
+  assert.strictEqual(rs.find(r => r.nome === 'Sentido Divino').max, 4); // 1 + 3
+  assert.strictEqual(rs.find(r => r.nome === 'Imposição das Mãos (PV)').max, 25); // nível × 5
+  assert.ok(rs.some(r => r.nome === 'Canalizar Divindade'));
+  assert.strictEqual(ctx.recursosDeClasse5e('Paladino', 2, 3).some(r => r.nome === 'Canalizar Divindade'), false);
+});
+
+t('recursosDeClasse5e: classe sem recursos de pool devolve lista vazia', () => {
+  assert.strictEqual(ctx.recursosDeClasse5e('Mago', 20, 5).length, 0);
 });
 
 console.log(`\n${process.exitCode ? '❌ Houve falhas' : `✅ ${total} testes passaram`}`);

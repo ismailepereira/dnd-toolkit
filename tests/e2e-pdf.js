@@ -622,6 +622,47 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   }, novato);
   ok(!t4b.temEntrar && t4b.temBanner, 'Já na ordem → some o botão de entrar e aparece o banner de turno');
 
+  // ---------- T5: Mestre vê as Magias & Poderes do PJ no tracker de combate ----------
+  const clerigoT5 = {
+    id: 'teste-clerigo-t5', nome: 'Sacerdote Teste', classe: 'Clérigo', raca: 'Humano',
+    nivel: 5, hpMax: 33, hpAtual: 33, ca: 16,
+    atributos: { for: 12, des: 10, con: 14, int: 10, sab: 16, car: 12 },
+    truques: ['Chama Sagrada', 'Luz'],
+    magias1: ['Curar Ferimentos', 'Arma Espiritual'],
+    preparadas: ['Curar Ferimentos', 'Arma Espiritual'],
+    itens: ['Maça'], pericias: [], condicoes: [], xp: 6500,
+  };
+  const t5 = await page.evaluate(f => {
+    // registra a ficha e monta um combate com o PJ como combatente
+    fichas = [f];
+    combate = { ativo: true, turno: 0, rodada: 1, log: [], combatentes: [
+      { id: 'pc1', tipo: 'pc', fichaId: f.id, nome: f.nome, iniciativa: 15, hpAtual: f.hpMax, hpMax: f.hpMax, ca: f.ca, condicoes: [], acoes: [] },
+    ] };
+    window.COMBATE_ATUAL = combate;
+    renderCombate();
+    const card = document.querySelector('.comb-card');
+    const det = card ? card.querySelector('.comb-mp') : null;
+    // também exercita o helper puro direto
+    const mp = window.magiasEPoderesDoPC(f);
+    return {
+      temDetalhe: !!det,
+      texto: det ? det.textContent : '',
+      cd: mp.conj[0] && mp.conj[0].cd, // Clérigo nv5: 8 + PB(3) + SAB(+3) = 14
+      truques: mp.truques.map(t => t.nome),
+      circulos: mp.circulos.map(s => `${s.nome}:${s.nivel}`),
+      poderes: mp.recursos.map(r => r.nome),
+      preparadas: mp.preparadas,
+    };
+  }, clerigoT5);
+  ok(t5.temDetalhe, 'T5: card do PJ tem o bloco 🪄 Magias & Poderes no tracker do Mestre');
+  ok(/Magias & Poderes/.test(t5.texto), 'T5: o resumo traz o título Magias & Poderes');
+  ok(t5.cd === 14, `T5: CD de conjuração do Clérigo nv5 (SAB+3) = 14 (veio ${t5.cd})`);
+  ok(t5.truques.includes('Chama Sagrada') && t5.texto.includes('Chama Sagrada'), 'T5: lista os truques (Chama Sagrada) e aparece no card');
+  ok(t5.circulos.includes('Curar Ferimentos:1') && t5.circulos.includes('Arma Espiritual:2'), 'T5: magias de círculo com o nível certo (1º e 2º)');
+  ok(t5.preparadas === true, 'T5: Clérigo é reconhecido como preparador (mostra Preparadas)');
+  ok(t5.poderes.includes('Canalizar Divindade'), 'T5: lista os poderes de classe (Canalizar Divindade)');
+  ok(/executa no próprio Modo de Jogo/.test(t5.texto), 'T5: nota deixa claro que o jogador executa na própria ficha');
+
   console.log(falhas.length ? `\n❌ ${falhas.length} falha(s)` : '\n✅ E2E do PDF: todas as verificações passaram');
   await browser.close();
   process.exit(falhas.length ? 1 : 0);

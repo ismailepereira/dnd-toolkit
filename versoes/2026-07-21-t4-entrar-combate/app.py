@@ -1616,42 +1616,6 @@ def api_combate_acao():
             salvar_estado(estado)
         return jsonify({'ok': True})
 
-    # T4: o jogador rola a PRÓPRIA iniciativa e entra na ordem (ou rerrola se já
-    # está). Só a própria ficha (dono); o Mestre pode por qualquer PJ. A vez
-    # atual é preservada após reordenar (o combatente da vez continua na vez).
-    if acao == 'entrar_combate':
-        fid = data.get('fichaId')
-        f = next((x for x in estado.get('fichas', []) if x.get('id') == fid), None)
-        if not f:
-            return jsonify({'ok': False, 'erro': 'ficha_nao_encontrada'}), 404
-        if session.get('papel') != 'mestre' and f.get('donoUid') not in (None, uid_sessao()):
-            return jsonify({'ok': False, 'erro': 'sem_permissao',
-                            'detalhe': 'esta ficha pertence a outro jogador'}), 403
-        atual_id = combatentes[combate.get('turno', 0) % len(combatentes)]['id'] if combatentes else None
-        ini = secrets.randbelow(20) + 1 + int(f.get('iniciativa') or 0)
-        existente = next((c for c in combatentes if c.get('fichaId') == fid), None)
-        if existente:
-            existente['iniciativa'] = ini
-            verbo = 'rerrolou a iniciativa'
-        else:
-            combatentes.append({
-                'id': 'c_' + uuid.uuid4().hex[:8], 'tipo': 'pc', 'fichaId': fid,
-                'nome': f.get('nome', 'PJ'), 'iniciativa': ini,
-                'hpAtual': f.get('hpAtual', f.get('hpMax', 1)), 'hpMax': f.get('hpMax', 1),
-                'ca': f.get('ca', 10), 'condicoes': [], 'resist': [], 'vuln': [], 'imune': [],
-            })
-            verbo = 'entrou no combate'
-        combatentes.sort(key=lambda c: -int(c.get('iniciativa', 0)))
-        combate['ativo'] = True
-        # preserva a vez: reencontra o índice do combatente que estava na vez
-        if atual_id:
-            combate['turno'] = next((i for i, c in enumerate(combatentes) if c.get('id') == atual_id), combate.get('turno', 0))
-        nome = f.get('nome', 'PJ')
-        combate.setdefault('log', []).insert(0, f"R{combate.get('rodada', 1)} · 🎲 {nome} {verbo} (iniciativa {ini}).")
-        combate['log'] = combate['log'][:40]
-        salvar_estado(estado)
-        return jsonify({'ok': True, 'iniciativa': ini, 'turno': combate.get('turno', 0)})
-
     # T2: finalizar o turno atual e passar a vez. O jogador só finaliza a
     # PRÓPRIA vez (o combatente da vez é um PJ da ficha dele); o Mestre pode
     # sempre. A ordem/turno do combate é a fonte ÚNICA — não há 2º contador.

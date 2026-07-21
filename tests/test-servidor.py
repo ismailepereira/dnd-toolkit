@@ -136,6 +136,29 @@ r = mestre.post('/api/combate/acao', json={'acao': 'proximo_turno'})
 cb = mestre.get('/api/combate').get_json()
 t('Mestre finaliza qualquer vez; vira a rodada', r.status_code == 200 and cb.get('turno') == 0 and cb.get('rodada') == 2, f"turno={cb.get('turno')} rodada={cb.get('rodada')}")
 
+# ----- T4: entrar no combate (rolar a própria iniciativa) -----
+# começa um combate só com o Goblin; o jogador entra com a ficha f3 (legada, dele)
+mestre.put('/api/combate', json={
+    'combatentes': [{'id': 'g1', 'tipo': 'monstro', 'nome': 'Goblin', 'iniciativa': 12, 'hpAtual': 7, 'hpMax': 7, 'ca': 15}],
+    'turno': 0, 'rodada': 1, 'log': [], 'ativo': True,
+})
+r = jogador.post('/api/combate/acao', json={'acao': 'entrar_combate', 'fichaId': 'f3'})
+t('jogador entra no combate rolando iniciativa (200)', r.status_code == 200 and 1 <= r.get_json().get('iniciativa', 0) <= 40, str(r.status_code))
+cb = mestre.get('/api/combate').get_json()
+pjs = [c for c in cb['combatentes'] if c.get('fichaId') == 'f3']
+t('o PJ do jogador entrou na lista de combatentes', len(pjs) == 1, str(len(cb['combatentes'])))
+t('combatentes ficam ordenados por iniciativa (desc)',
+  all(cb['combatentes'][i]['iniciativa'] >= cb['combatentes'][i + 1]['iniciativa'] for i in range(len(cb['combatentes']) - 1)), str([c['iniciativa'] for c in cb['combatentes']]))
+
+# rerrolar não duplica (continua 1 PJ), só troca a iniciativa
+r = jogador.post('/api/combate/acao', json={'acao': 'entrar_combate', 'fichaId': 'f3'})
+cb = mestre.get('/api/combate').get_json()
+t('rerrolar não duplica o combatente', len([c for c in cb['combatentes'] if c.get('fichaId') == 'f3']) == 1, str(len(cb['combatentes'])))
+
+# jogador NÃO pode pôr a ficha de OUTRO dono (f2)
+r = jogador.post('/api/combate/acao', json={'acao': 'entrar_combate', 'fichaId': 'f2'})
+t('jogador NÃO entra com ficha de outro dono (403)', r.status_code == 403, str(r.status_code))
+
 # ----- MODO LIVRE (temporário): limitação e cobrança desligadas -----
 t('MODO_LIVRE está LIGADO por padrão (pedido de 2026-07-19)', servidor.MODO_LIVRE is True)
 with app.test_request_context('/'):

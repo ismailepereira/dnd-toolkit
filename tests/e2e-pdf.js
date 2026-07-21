@@ -592,6 +592,36 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   });
   ok(t32c === 0, 'Fora da minha vez: índice de ações some');
 
+  // ----- 🎲 T4: botão "Entrar no combate" quando a ficha ainda não está na ordem -----
+  const novato = {
+    id: 'teste-t4', nome: 'Kai', raca: 'Humano', classe: 'Ladino', nivel: 2,
+    subclasse: 'Ladrão', antecedente: 'Criminoso', divindade: 'Ateu (sem divindade)',
+    hpMax: 17, hpAtual: 17, ca: 14, iniciativa: 3,
+    atributos: { for: 10, des: 16, con: 14, int: 12, sab: 10, car: 13 },
+    pericias: ['Furtividade', 'Acrobacia'], itens: ['Adaga'],
+    equipado: { maoPrincipal: 'Adaga', maoSecundaria: '', armadura: '', foco: '' },
+    ouro: 10, xp: 300, condicoes: [],
+  };
+  const t4a = await page.evaluate(f => {
+    // combate ativo só com um monstro — a ficha ainda NÃO entrou
+    window.COMBATE_ATUAL = { ativo: true, turno: 0, rodada: 1, log: [], combatentes: [
+      { id: 'm1', tipo: 'monstro', nome: 'Goblin', iniciativa: 12, hpAtual: 7, hpMax: 7, ca: 15 },
+    ] };
+    window.Jogo.abrir(f, {});
+    const banner = document.querySelector('.jg-vez');
+    return { classe: banner ? banner.className : '', temEntrar: !!document.getElementById('jgEntrarCombate') };
+  }, novato);
+  ok(/jg-vez-entrar/.test(t4a.classe) && t4a.temEntrar, 'Combate ativo sem a ficha na ordem → botão 🎲 Entrar no combate');
+
+  // depois de entrar (aparece na ordem), o botão dá lugar ao banner de turno
+  const t4b = await page.evaluate(f => {
+    window.COMBATE_ATUAL.combatentes.push({ id: 'p1', tipo: 'pc', fichaId: f.id, nome: f.nome, iniciativa: 19, hpAtual: 17, hpMax: 17, ca: 14 });
+    window.COMBATE_ATUAL.turno = 0; // ordenado, o Ladino (ini 19) fica antes? aqui só validamos o estado
+    window.Jogo.combateAtualizou();
+    return { temEntrar: !!document.getElementById('jgEntrarCombate'), temBanner: !!document.querySelector('.jg-vez') };
+  }, novato);
+  ok(!t4b.temEntrar && t4b.temBanner, 'Já na ordem → some o botão de entrar e aparece o banner de turno');
+
   console.log(falhas.length ? `\n❌ ${falhas.length} falha(s)` : '\n✅ E2E do PDF: todas as verificações passaram');
   await browser.close();
   process.exit(falhas.length ? 1 : 0);

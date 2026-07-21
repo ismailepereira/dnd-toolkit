@@ -4,6 +4,23 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-21 — Combate T3.2: 🎬 índice de ações no turno (conclui a T3)
+
+**Backup antes da alteração:** `versoes/2026-07-21-t32-indice-acoes/` (`jogo.js`, `style.css`).
+
+**Resumo:** segunda sub-parte da T3 — reúne a visão das ações do personagem quando é a sua vez, sem duplicar os cards.
+- Na barra **"⚔️ É a sua vez"**, uma linha **"Suas ações:"** com um atalho por categoria presente na ficha: **⚔️ Ataques (N) · ✨ Magias · ⚡ Punição Divina · 🗡️ Ataque Furtivo · 🐺 Forma Selvagem · 🎲 Recursos de Classe**. Só aparecem as que o personagem realmente tem.
+- Clicar num atalho **rola até o bloco existente e o destaca** (flash) — a fonte de cada ação continua sendo o seu próprio bloco (Ataques de Arma, ✨ Conjuração, etc.), então nada é duplicado. O índice some fora da sua vez.
+- Cada bloco de ação ganhou um marcador `data-bloco-acao` para o atalho encontrá-lo. **Com isso a T3 (e a antiga C7) está concluída.**
+
+**Ficheiros:** `static/js/jogo.js` (índice no banner + `data-bloco-acao` nos blocos + handler de scroll/flash), `static/css/style.css`, `docs/ROADMAP-FICHAS-COMBATE.md` (T3 ✅), `tests/e2e-pdf.js` (+4).
+
+**Verificação:** E2E completo verde — Clérigo nv3 real no navegador: índice lista Ataques/Magias/Recursos, clicar em "Magias →" destaca o bloco ✨ Conjuração, e o índice some quando não é a vez · 25/25 unit · 30/30 servidor · sintaxe OK.
+
+**Como reverter:** restaurar `versoes/2026-07-21-t32-indice-acoes/`, ou `git revert`.
+
+---
+
 ## 2026-07-21 — Combate T3.1: 🎯 marcadores de economia de ação do turno
 
 **Backup antes da alteração:** `versoes/2026-07-21-t3-economia-acao/` (`jogo.js`, `style.css`).

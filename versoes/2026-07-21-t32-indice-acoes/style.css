@@ -1180,13 +1180,6 @@ input:focus, textarea:focus, select:focus {
 .jg-acoes-turno { display: flex; flex-wrap: wrap; gap: 6px; margin: -2px 0 8px; }
 .jg-acao-chip { font-size: 0.8rem; padding: 3px 9px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; }
 .jg-acao-chip.gasta { background: rgba(63,185,80,0.16); border-color: #3fb950; color: #3fb950; text-decoration: line-through; }
-
-/* T3.2: índice de ações (atalho para os blocos) */
-.jg-indice-acoes { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 10px; }
-.jg-indice-rot { font-size: 0.8rem; color: var(--text-dim); }
-.jg-indice-btn { font-size: 0.8rem; padding: 3px 9px; border-radius: 8px; border: 1px solid var(--accent, #e94560); background: rgba(233,69,96,0.10); color: var(--text); cursor: pointer; }
-@keyframes blocoDestaque { 0%, 100% { box-shadow: 0 0 0 0 rgba(233,69,96,0); } 30% { box-shadow: 0 0 0 3px rgba(233,69,96,0.55); } }
-.jg-bloco-destaque { animation: blocoDestaque 1.6s ease-in-out; border-radius: 8px; }
 .jg-rec small { color: var(--text-dim); }
 .jg-rec-ctrl { display: flex; align-items: center; gap: 6px; }
 

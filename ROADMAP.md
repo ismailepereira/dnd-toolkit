@@ -12,8 +12,13 @@ Mapa de tarefas do projeto, organizado por fases. Marque `[x]` conforme for conc
 
 Feedback da mesa de 18/07 (Paladino confuso no nv1, magias invisíveis no combate, azagaias repetidas,
 arma arremessada sem controle) virou um roadmap próprio e priorizado:
-**→ `docs/ROADMAP-FICHAS-COMBATE.md`** (Fase F = fichas, Fase C = combate; ordem sugerida C1 → F1 → C2+C3 → F2 → C4…).
-Já entregues dessa leva: 🐺 Forma Selvagem do Druida completa, bug das magias do Clérigo, ⛩️ Divindades & Pactos.
+**→ `docs/ROADMAP-FICHAS-COMBATE.md`** (Fase F = fichas, Fase C = combate, **Fase T = fluxo de turno**).
+**Entregues:** ⛩️ Divindades & Pactos · 🐺 Forma Selvagem · bug do Clérigo · C1 magias como cards ·
+F1 Paladino claro · C2 quantidade (×4) · C3 arremesso · C4 golpes pós-acerto (Punição/Furtivo/Fúria) ·
+C5 rolagem 🎲 nas magias.
+**A fazer:** F2 (auditoria das 12 classes) · C6 (condição no alvo) · **Fase T** (turno em combate:
+"é a sua vez", finalizar turno, ações do personagem num só lugar, descrição+usar nas magias sem dano —
+grande parte já pronta desde a C1, ver a fase no doc).
 
 ---
 

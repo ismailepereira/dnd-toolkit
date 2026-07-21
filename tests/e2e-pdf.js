@@ -505,6 +505,51 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   });
   ok(t2c === false, 'Fora de combate: nenhum banner de turno');
 
+  // ----- 🎯 T3: marcadores de economia de ação (Ação/Bônus/Movimento/Reação) -----
+  const lutador = {
+    id: 'teste-t3', nome: 'Bruno', raca: 'Humano', classe: 'Guerreiro', nivel: 3,
+    subclasse: 'Campeão', antecedente: 'Soldado', divindade: 'Ateu (sem divindade)',
+    hpMax: 28, hpAtual: 28, ca: 16, iniciativa: 2,
+    atributos: { for: 16, des: 14, con: 15, int: 10, sab: 12, car: 8 },
+    pericias: ['Atletismo'], itens: ['Espada Longa'],
+    equipado: { maoPrincipal: 'Espada Longa', maoSecundaria: '', armadura: '', foco: '' },
+    ouro: 10, xp: 900, condicoes: [],
+  };
+  const t3a = await page.evaluate(f => {
+    window.COMBATE_ATUAL = { ativo: true, turno: 0, rodada: 1, log: [], combatentes: [
+      { id: 'y1', tipo: 'pc', fichaId: f.id, nome: f.nome, iniciativa: 18, hpAtual: 28, hpMax: 28, ca: 16 },
+      { id: 'y2', tipo: 'monstro', nome: 'Ogro', iniciativa: 6, hpAtual: 30, hpMax: 30, ca: 11 },
+    ] };
+    window.Jogo.abrir(f, {});
+    return { chips: document.querySelectorAll('[data-acaoturno]').length, gastas: document.querySelectorAll('.jg-acao-chip.gasta').length };
+  }, lutador);
+  ok(t3a.chips === 4, `4 marcadores de ação na minha vez (${t3a.chips})`);
+  ok(t3a.gastas === 0, 'Marcadores começam todos disponíveis');
+
+  const t3b = await page.evaluate(() => {
+    document.querySelector('[data-acaoturno="acao"]').click();
+    const chip = document.querySelector('[data-acaoturno="acao"]');
+    return { marcado: chip.classList.contains('gasta'), estado: window.__f ? null : null, ag: (window.COMBATE_ATUAL, document.querySelector('[data-acaoturno="movimento"]').classList.contains('gasta')) };
+  });
+  ok(t3b.marcado, 'Clicar em "Ação" marca como gasta');
+  ok(t3b.ag === false, 'Outros marcadores seguem disponíveis (só o clicado marca)');
+
+  // vira o turno (nova rodada = nova chave) → marcadores auto-resetam
+  const t3c = await page.evaluate(() => {
+    window.COMBATE_ATUAL.rodada = 2; // chave do turno muda de "1:0" para "2:0"
+    window.Jogo.combateAtualizou();
+    return document.querySelectorAll('.jg-acao-chip.gasta').length;
+  });
+  ok(t3c === 0, 'Ao virar o turno (nova rodada), os marcadores auto-resetam');
+
+  // na vez de outro, os marcadores não aparecem
+  const t3d = await page.evaluate(() => {
+    window.COMBATE_ATUAL.turno = 1; // vez do Ogro
+    window.Jogo.combateAtualizou();
+    return document.querySelectorAll('[data-acaoturno]').length;
+  });
+  ok(t3d === 0, 'Fora da minha vez: sem marcadores de ação');
+
   console.log(falhas.length ? `\n❌ ${falhas.length} falha(s)` : '\n✅ E2E do PDF: todas as verificações passaram');
   await browser.close();
   process.exit(falhas.length ? 1 : 0);

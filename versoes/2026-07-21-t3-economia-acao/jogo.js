@@ -411,29 +411,7 @@ const Jogo = (function () {
     const idx = (cb.turno || 0) % n;
     const atual = cb.combatentes[idx];
     const euNaVez = !!(atual && atual.tipo === 'pc' && atual.fichaId === ficha.id);
-    // chave do turno: muda a cada nova vez (rodada+índice) → os marcadores de
-    // ação (T3) auto-resetam quando o turno vira, mesmo que o Mestre avance.
-    return { ativo, rodada: cb.rodada || 1, atualNome: atual ? atual.nome : '?', euNaVez, chave: `${cb.rodada || 1}:${idx}`, minhaFichaNoCombate: cb.combatentes.some(c => c.fichaId === ficha.id) };
-  }
-
-  // ----- T3: economia de ação do turno (Ação / Bônus / Movimento / Reação) -----
-  // Guardado em ficha.acoesGastas, atrelado à CHAVE do turno atual: se a chave
-  // muda (novo turno/rodada), os marcadores começam limpos automaticamente.
-  const ACOES_TURNO = [
-    { chave: 'acao', rotulo: 'Ação', icone: '🎯' },
-    { chave: 'bonus', rotulo: 'Ação Bônus', icone: '⚡' },
-    { chave: 'movimento', rotulo: 'Movimento', icone: '👟' },
-    { chave: 'reacao', rotulo: 'Reação', icone: '↩️' },
-  ];
-  function acoesDoTurno(chaveTurno) {
-    const a = ficha.acoesGastas;
-    return (a && a.chave === chaveTurno) ? a : { chave: chaveTurno, acao: false, bonus: false, movimento: false, reacao: false };
-  }
-  function alternarAcaoTurno(qual, chaveTurno) {
-    const a = acoesDoTurno(chaveTurno);
-    a[qual] = !a[qual];
-    ficha.acoesGastas = a;
-    salvar();
+    return { ativo, rodada: cb.rodada || 1, atualNome: atual ? atual.nome : '?', euNaVez, minhaFichaNoCombate: cb.combatentes.some(c => c.fichaId === ficha.id) };
   }
   function finalizarTurno() {
     fetch('/api/combate/acao', {
@@ -443,7 +421,6 @@ const Jogo = (function () {
       if (d && d.ok) {
         // reflete no COMBATE_ATUAL local até a sincronização chegar
         if (window.COMBATE_ATUAL) { window.COMBATE_ATUAL.turno = d.turno; window.COMBATE_ATUAL.rodada = d.rodada; }
-        ficha.acoesGastas = null; // T3: turno acabou → zera os marcadores de ação
         log(`✔️ Você finalizou o turno. Agora: ${d.proximo || '—'}.`);
       } else if (d && d.erro === 'nao_e_sua_vez') {
         log('Ainda não é a sua vez.');
@@ -1285,14 +1262,10 @@ const Jogo = (function () {
         // T2: banner "é a sua vez" quando o combate está em andamento
         const t = estadoTurno();
         if (!t || !t.ativo || !t.minhaFichaNoCombate) return '';
-        if (!t.euNaVez) return `<div class="jg-vez jg-vez-aguarda"><span>⏳ Em combate (Rodada ${t.rodada}) · Vez de <b>${esc(t.atualNome)}</b></span></div>`;
-        // T3: marcadores de economia de ação (só na minha vez), atrelados à chave do turno
-        const g = acoesDoTurno(t.chave);
-        const chips = ACOES_TURNO.map(a =>
-          `<button class="jg-acao-chip ${g[a.chave] ? 'gasta' : ''}" data-acaoturno="${a.chave}" title="${g[a.chave] ? 'Usado — clique para desmarcar' : 'Disponível — clique ao usar'}">${a.icone} ${a.rotulo} ${g[a.chave] ? '✔' : ''}</button>`).join('');
-        return `<div class="jg-vez jg-vez-eu"><span>⚔️ <b>É a sua vez!</b> · Rodada ${t.rodada}</span>
-             <button id="jgFinalizarTurno" class="btn-primary">✔️ Finalizar meu turno</button></div>
-           <div class="jg-acoes-turno">${chips}</div>`;
+        return t.euNaVez
+          ? `<div class="jg-vez jg-vez-eu"><span>⚔️ <b>É a sua vez!</b> · Rodada ${t.rodada}</span>
+               <button id="jgFinalizarTurno" class="btn-primary">✔️ Finalizar meu turno</button></div>`
+          : `<div class="jg-vez jg-vez-aguarda"><span>⏳ Em combate (Rodada ${t.rodada}) · Vez de <b>${esc(t.atualNome)}</b></span></div>`;
       })()}
       <div class="jg-pv">
         <div class="jg-pv-num">PV <b>${f.hpAtual}</b> / ${f.hpMax}${f.pvTemp ? ` <span class="jg-temp">+${f.pvTemp} temp</span>` : ''} · CA ${f.ca} · Inic ${fmt(f.iniciativa)} · Prof +${pb}</div>
@@ -1579,12 +1552,6 @@ const Jogo = (function () {
     });
     // ----- T2: finalizar meu turno -----
     if ($('jgFinalizarTurno')) $('jgFinalizarTurno').onclick = finalizarTurno;
-
-    // ----- T3: marcadores de economia de ação -----
-    document.querySelectorAll('[data-acaoturno]').forEach(b => b.onclick = () => {
-      const t = estadoTurno();
-      if (t) alternarAcaoTurno(b.dataset.acaoturno, t.chave);
-    });
 
     // ----- ✨ Conjuração (C1): botão Conjurar/Usar nos cards -----
     // T1: as ações vivem dentro do <summary> do card; clicar num botão NÃO deve

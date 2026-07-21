@@ -153,10 +153,15 @@ e cada magia (inclusive as que **não causam dano**) tem um botão que mostra **
   `proximo_turno` no servidor, que **avança o mesmo `combate.turno` do Mestre** (fonte única) e só deixa o
   jogador finalizar a PRÓPRIA vez (o Mestre finaliza qualquer uma). O banner atualiza ao vivo pela
   sincronização RT/polling do combate (`window.Jogo.combateAtualizou`).
-- [ ] **T3 — Painel de ações do turno unificado** (médio): ao iniciar o turno, reúne num só lugar as ações
+- [~] **T3 — Painel de ações do turno unificado** (médio): ao iniciar o turno, reúne num só lugar as ações
   disponíveis do personagem — ataques, magias castáveis (com Conjurar/🎲) e poderes de classe — com
   marcadores de **Ação / Ação Bônus / Movimento / Reação** que registram o gasto; "Finalizar turno" limpa.
   (junta o "O teu turno" atual com os cards já existentes; **absorve a C7**.)
+  - [x] **T3.1 — marcadores de economia de ação** (21/07): 4 chips (🎯 Ação · ⚡ Ação Bônus · 👟 Movimento ·
+    ↩️ Reação) na barra "É a sua vez"; clica ao usar (fica riscado/verde). Atrelados à **chave do turno**
+    (rodada+índice) → **auto-resetam** quando o turno vira (você finaliza OU o Mestre avança); some fora da
+    sua vez. Estado em `ficha.acoesGastas`.
+  - [ ] **T3.2 — reunir as ações** (ataques/magias/poderes) nesse painel, com atalho para cada card.
 - [ ] **T4 — Iniciativa pelo jogador** (pequeno/médio): o próprio jogador rola e entra na iniciativa (hoje é
   o Mestre que monta a ordem), e vê "quem é o próximo".
 - [ ] **T5 — Ações do PC visíveis no tracker do Mestre** (médio): no combatente PC, o Mestre vê as magias/

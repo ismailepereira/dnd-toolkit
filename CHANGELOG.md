@@ -4,6 +4,22 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-21 — Combate T1: ⓘ card de magia expansível ("o que faz" + usar)
+
+**Backup antes da alteração:** `versoes/2026-07-21-t1-magia-descricao/` (`jogo.js`, `style.css`).
+
+**Resumo:** primeira parte da Fase T (fluxo de turno) — fecha o pedido do Ismaile de "um botão que mostra o que a magia faz e outro de usar, inclusive as sem dano".
+- Cada card do bloco **✨ Conjuração** virou um `<details>` expansível: clicar mostra **duração, defesa e a descrição completa** da magia, com o selo **"ⓘ o que faz"** e a escola no resumo. Os botões **✨ Conjurar** (que já desconta o espaço de magia) e **🎲 atacar/dano** continuam ao lado; um guard (`stopPropagation` na área de ações) impede que clicar num botão abra/feche o card.
+- Vale para as magias de **utilidade sem dano** (Escudo da Fé, Bênção, Comando…), que era a lacuna sentida — elas já apareciam e já descontavam o espaço desde a C1; agora também explicam o efeito ali no combate.
+
+**Ficheiros:** `static/js/jogo.js` (cardCast vira details + guard), `static/css/style.css`, `docs/ROADMAP-FICHAS-COMBATE.md` (T1 ✅), `tests/e2e-pdf.js` (+8 checagens).
+
+**Verificação:** E2E completo verde — Clérigo nv3 real no navegador: Escudo da Fé (sem dano) é `<details>` fechado com "ⓘ o que faz", abre e mostra "+2 na CA…", o botão Conjurar não fecha o card e desconta o espaço do 1º círculo · 25/25 unit · 26/26 servidor · sintaxe OK.
+
+**Como reverter:** restaurar `versoes/2026-07-21-t1-magia-descricao/`, ou `git revert`.
+
+---
+
 ## 2026-07-20 — Combate C5: ✨🎲 rolagem integrada nos cards de magia
 
 **Backup antes da alteração:** `versoes/2026-07-20-c5-rolagem-magia/` (`jogo.js`, `style.css`).

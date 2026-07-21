@@ -718,22 +718,14 @@ const Jogo = (function () {
         const fd = formulaMagia(d, mult, kMagia ? (kMagia.ataque - pb) : 0);
         const btnAtq = (ehAtaqueMagico && kMagia) ? `<button class="btn-mini" data-magiaataque="${kMagia.ataque}" data-magianome="${esc(nome)}">🎲 atacar</button>` : '';
         const btnDano = fd ? `<button class="btn-mini" data-magiadano="${esc(fd.formula)}" data-magiatipo="${esc(fd.tipo)}" data-magianome="${esc(nome)}">🎲 ${fd.tipo === 'cura' ? 'cura' : 'dano'}</button>` : '';
-        // T1: "ⓘ o que faz" — <details> nativo com a descrição completa da magia;
-        // o botão Conjurar (que já deduz o espaço) e os 🎲 ficam ao lado.
-        return `<details class="jg-cast${sem ? ' esgotado' : ''}">
-          <summary>
-            <div class="jg-cast-info"><b>${esc(nome)}</b> <span class="jg-cast-oquefaz">ⓘ o que faz</span>
-              <small>${d.nivel === 0 ? 'truque' : d.nivel + 'º círculo'} · ${esc(d.escola || '')} · ${tempoIcone(d.tempo)} ${esc(d.tempo)} · ${esc(d.alcance)}${dano ? ` · <span class="jg-dano">${esc(dano)}</span>` : ''}${dt ? ' · ' + esc(dt) : ''}${/concentração/i.test(d.duracao || '') ? ' · 🧠 concentração' : ''}</small>
-            </div>
-            <div class="jg-cast-acoes">${btnAtq}${btnDano}
-              <button class="btn-mini jg-cast-btn" data-conjurar="${esc(nome)}" ${sem ? 'disabled title="Sem espaço de magia — recupere num descanso"' : ''}>${d.nivel === 0 ? '✨ Usar' : (sem ? 'Sem espaço' : `✨ Conjurar${esp && esp.circulo > d.nivel ? ` (${esp.circulo}º↑)` : ''}`)}</button>
-            </div>
-          </summary>
-          <div class="jg-cast-desc">
-            <div class="jg-cast-linha"><b>Duração:</b> ${esc(d.duracao || '—')}${d.salva && d.salva !== '—' ? ` · <b>Defesa:</b> ${esc(d.salva)}` : ''}</div>
-            <p>${esc(d.descricao || 'Sem descrição no compêndio.')}</p>
+        return `<div class="jg-cast${sem ? ' esgotado' : ''}">
+          <div class="jg-cast-info"><b>${esc(nome)}</b>
+            <small>${d.nivel === 0 ? 'truque' : d.nivel + 'º círculo'} · ${tempoIcone(d.tempo)} ${esc(d.tempo)} · ${esc(d.alcance)}${dano ? ` · <span class="jg-dano">${esc(dano)}</span>` : ''}${dt ? ' · ' + esc(dt) : ''}${/concentração/i.test(d.duracao || '') ? ' · 🧠 concentração' : ''}</small>
           </div>
-        </details>`;
+          <div class="jg-cast-acoes">${btnAtq}${btnDano}
+            <button class="btn-mini jg-cast-btn" data-conjurar="${esc(nome)}" ${sem ? 'disabled title="Sem espaço de magia — recupere num descanso"' : ''}>${d.nivel === 0 ? '✨ Usar' : (sem ? 'Sem espaço' : `✨ Conjurar${esp && esp.circulo > d.nivel ? ` (${esp.circulo}º↑)` : ''}`)}</button>
+          </div>
+        </div>`;
       };
       const castaveis = [...magiasCastaveis()].sort((a, b) => ((detalheMagia(a) || {}).nivel || 0) - ((detalheMagia(b) || {}).nivel || 0));
       castHtml = `<div class="jg-bloco jg-conjuracao"><h4>✨ Conjuração ${cabecalho ? `<small>${cabecalho}</small>` : ''}</h4>
@@ -1513,9 +1505,6 @@ const Jogo = (function () {
       salvar();
     });
     // ----- ✨ Conjuração (C1): botão Conjurar/Usar nos cards -----
-    // T1: as ações vivem dentro do <summary> do card; clicar num botão NÃO deve
-    // abrir/fechar o details (só o resto do summary abre a descrição "o que faz").
-    document.querySelectorAll('.jg-cast-acoes').forEach(el => el.addEventListener('click', e => e.stopPropagation()));
     document.querySelectorAll('[data-conjurar]').forEach(b => b.onclick = () => conjurarMagia(b.dataset.conjurar));
 
     // ----- C5: rolagem 🎲 nos cards de magia (ataque mágico e dano/cura) -----

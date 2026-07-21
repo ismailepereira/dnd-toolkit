@@ -1135,19 +1135,10 @@ input:focus, textarea:focus, select:focus {
 
 .jg-rec { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 5px; }
 
-/* ✨ Conjuração em combate (C1): cards de magia com botão de gasto de slot.
-   T1: o card é um <details> — o <summary> é a linha, a descrição abre embaixo. */
-.jg-cast { margin-bottom: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
-.jg-cast > summary { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; cursor: pointer; list-style: none; }
-.jg-cast > summary::-webkit-details-marker { display: none; }
-.jg-cast[open] > summary { border-bottom: 1px solid var(--border); }
+/* ✨ Conjuração em combate (C1): cards de magia com botão de gasto de slot */
+.jg-cast { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; margin-bottom: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
 .jg-cast-info { min-width: 0; }
 .jg-cast-info small { display: block; color: var(--text-dim); }
-.jg-cast-oquefaz { font-size: 0.72rem; color: var(--accent, #e94560); border: 1px solid var(--border); border-radius: 10px; padding: 0 5px; white-space: nowrap; }
-.jg-cast[open] .jg-cast-oquefaz { opacity: 0.5; }
-.jg-cast-desc { padding: 4px 10px 8px; font-size: 0.85rem; }
-.jg-cast-desc .jg-cast-linha { color: var(--text-dim); margin-bottom: 3px; }
-.jg-cast-desc p { margin: 0; }
 .jg-cast.esgotado { opacity: 0.45; }
 .jg-cast-btn { white-space: nowrap; flex-shrink: 0; }
 .jg-cast-acoes { display: flex; flex-wrap: wrap; gap: 4px; flex-shrink: 0; align-items: center; justify-content: flex-end; }

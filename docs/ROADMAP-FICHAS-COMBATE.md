@@ -143,9 +143,10 @@ e cada magia (inclusive as que **não causam dano**) tem um botão que mostra **
   as magias do PC), não o Modo de Jogo do jogador.
 
 **O que realmente falta (as partes desta fase, uma por vez):**
-- [ ] **T1 — "o que faz" no card de magia** (pequeno): cada card da ✨ Conjuração vira expansível (clica →
-  mostra a descrição completa da magia), com o botão **Conjurar** (que já deduz o espaço) ao lado. Cobre o
-  pedido "um botão que mostra o que ela faz e outro de usar" — vale para magias de utilidade sem dano.
+- [x] **T1 — "o que faz" no card de magia** — ENTREGUE 21/07: cada card da ✨ Conjuração virou `<details>`
+  expansível (clica → mostra duração/defesa + a descrição completa da magia), com o selo "ⓘ o que faz"; o
+  botão **Conjurar** (que já deduz o espaço) e os 🎲 seguem ao lado, e um guard impede que clicar nos botões
+  abra/feche o card. Vale para magias de utilidade **sem dano** (Escudo da Fé etc.).
 - [ ] **T2 — "É a sua vez" no Modo de Jogo** (médio): quando o combate está ativo e a iniciativa aponta para
   a ficha aberta, destaca no topo ("⚔️ É a sua vez — Rodada X") e mostra **✔️ Finalizar meu turno**, que
   avança a iniciativa no painel do Mestre (fonte única do turno — sem segundo contador).

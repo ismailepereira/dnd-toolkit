@@ -4,6 +4,22 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-21 — Combate T3.1: 🎯 marcadores de economia de ação do turno
+
+**Backup antes da alteração:** `versoes/2026-07-21-t3-economia-acao/` (`jogo.js`, `style.css`).
+
+**Resumo:** primeira sub-parte da T3 — o "já usei minha ação?" da mesa remota.
+- Na barra **"⚔️ É a sua vez"**, quatro chips: **🎯 Ação · ⚡ Ação Bônus · 👟 Movimento · ↩️ Reação**. Clica ao usar → o chip fica riscado/verde (clica de novo para desmarcar).
+- Os marcadores ficam atrelados à **chave do turno** (rodada + índice na iniciativa), então **auto-resetam** sozinhos quando o turno vira — seja você finalizando (o `Finalizar meu turno` já zera), seja o Mestre avançando a ordem. Somem quando não é a sua vez. Estado persistido em `ficha.acoesGastas` (via PATCH da C1).
+
+**Ficheiros:** `static/js/jogo.js` (`acoesDoTurno`/`alternarAcaoTurno` + chips no banner), `static/css/style.css`, `docs/ROADMAP-FICHAS-COMBATE.md` (T3.1 ✅), `tests/e2e-pdf.js` (+5 checagens).
+
+**Verificação:** E2E completo verde — Guerreiro nv3 real no navegador: 4 chips na vez, clicar em "Ação" marca só ele, virar a rodada auto-reseta, fora da vez os chips somem · 25/25 unit · 30/30 servidor · sintaxe OK.
+
+**Como reverter:** restaurar `versoes/2026-07-21-t3-economia-acao/`, ou `git revert`.
+
+---
+
 ## 2026-07-21 — Combate T2: ⚔️ "É a sua vez" no Modo de Jogo + finalizar turno
 
 **Backup antes da alteração:** `versoes/2026-07-21-t2-sua-vez/` (`jogo.js`, `jogador.js`, `app.js`, `style.css`, `app.py`).

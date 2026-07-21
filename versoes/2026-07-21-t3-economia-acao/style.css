@@ -1175,11 +1175,6 @@ input:focus, textarea:focus, select:focus {
 .jg-vez-aguarda { background: var(--bg); border: 1px solid var(--border); color: var(--text-dim); }
 @keyframes vezPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(233,69,96,0.5); } 50% { box-shadow: 0 0 0 4px rgba(233,69,96,0); } }
 .jg-vez-eu { animation: vezPulse 1.6s ease-in-out infinite; }
-
-/* T3: marcadores de economia de ação do turno */
-.jg-acoes-turno { display: flex; flex-wrap: wrap; gap: 6px; margin: -2px 0 8px; }
-.jg-acao-chip { font-size: 0.8rem; padding: 3px 9px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; }
-.jg-acao-chip.gasta { background: rgba(63,185,80,0.16); border-color: #3fb950; color: #3fb950; text-decoration: line-through; }
 .jg-rec small { color: var(--text-dim); }
 .jg-rec-ctrl { display: flex; align-items: center; gap: 6px; }
 

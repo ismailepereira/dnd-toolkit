@@ -4,6 +4,40 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-21 — F2 · Feiticeiro — Fontes de Feitiçaria: conversão espaço↔ponto ✴️
+
+**Backup:** `versoes/2026-07-21-f2-feiticeiro-feiticaria/` (jogo.js, e2e-pdf.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** 3ª correção da FASE F2. Novo card **✴️ Fontes de Feitiçaria** no Modo de Jogo (`jogo.js`) para o
+Feiticeiro (N2+) — fecha a lacuna "Pontos de Feitiçaria sem conversão no clique". Antes só havia o contador
++/− genérico; agora as duas conversões do PHB estão jogáveis num clique:
+- **Espaço → pontos:** um botão por círculo com espaço livre; gasta o espaço e **ganha pontos iguais ao
+  número do círculo** (1º→1, 2º→2…), sem passar do teto de pontos (= nível).
+- **Pontos → espaço:** botões até o 5º com o **custo do PHB (1º=2 · 2º=3 · 3º=5 · 4º=6 · 5º=7)**; gasta os
+  pontos e **recupera um espaço já gasto** daquele círculo.
+- **Guards:** com os pontos no máximo, os botões espaço→ponto ficam desabilitados (não desperdiça); sem um
+  espaço gasto do círculo, o botão de criar fica desabilitado. Os pontos usam o **mesmo contador** de
+  "Recursos de Classe" (fonte única `recursosDeClasse5e`). O cabeçalho mostra os **pontos restantes**.
+
+**Ficheiros:** `static/js/jogo.js` (`feiticeiroDaFicha`/`pontosFeiticariaMax`/`espacoParaPontos`/
+`pontosParaEspaco` + `CUSTO_ESPACO_FEIT`, card, handlers, índice T3, inserção no HTML), `tests/e2e-pdf.js`
+(+bloco F2 Feiticeiro), `docs/ROADMAP-FICHAS-COMBATE.md` (item 3 ✅).
+
+**Verificação:** `node --check` OK · `npm test` **29/29** ✅. E2E em **navegador real** (Browser pane): Feiticeiro
+N5 (5 pontos), com 3 pontos usados + 2 espaços de 1º gastos → card "2/5 pontos"; espaço 1º→+1pt vira "3/5" e
+gasta o espaço; pontos→espaço 1º (custo 2) volta a "1/5" e devolve o espaço; guards conferidos (pontos cheios
+travam ganhar; N2 sem espaço gasto trava criar). Caso de regressão no `e2e-pdf.js` (roda no CI).
+
+**Nota de modelo:** "criar espaço" recupera um espaço **gasto** do círculo (o modelo de fichas rastreia
+espaços usados até o máximo diário); criar espaços *além* do máximo diário não é representável hoje — cobre o
+uso comum de mesa (reconverter pontos num espaço queimado). Documentado na UI.
+
+**Como reverter:** restaurar `versoes/2026-07-21-f2-feiticeiro-feiticaria/`, ou `git revert`.
+
+**Próximo (F2):** Monge — botões das opções de Ki (Rajada de Golpes/Defesa Paciente/Passo do Vento).
+
+---
+
 ## 2026-07-21 — F2 · Bardo — Inspiração Bárdica com registro de "a quem" 🎵
 
 **Backup:** `versoes/2026-07-21-f2-bardo-inspiracao/` (jogo.js, e2e-pdf.js, ROADMAP-FICHAS-COMBATE.md).

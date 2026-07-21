@@ -120,7 +120,53 @@ Um item por sessão de trabalho; cada entrega com teste de regressão (a suíte 
 
 ### C7 🟡 Economia de ação do turno
 - [ ] Marcadores Ação/Bônus/Movimento/Reação no painel do turno: clicar num card marca o gasto; "▶ Próxima
-  rodada" limpa. Evita o "já ataquei este turno?" da mesa remota.
+  rodada" limpa. Evita o "já ataquei este turno?" da mesa remota. (absorvido pela FASE T abaixo)
+
+---
+
+## FASE T — Fluxo de turno em combate (pedido do Ismaile, 20/07)
+
+**A visão:** ao iniciar o combate, o personagem da vez vê **todas as suas ações e habilidades** num só lugar,
+com controle de turno ("é a sua vez" → agir → **finalizar turno** → passa para o próximo pela iniciativa),
+e cada magia (inclusive as que **não causam dano**) tem um botão que mostra **o que ela faz** e outro para
+**usar** — já descontando o espaço de magia na ficha.
+
+**O que JÁ existe hoje (não rebuildar):**
+- **Painel "Combate" do Mestre** (`app.js`): iniciativa, ordena por iniciativa, "próximo turno", rodadas,
+  dano/cura, ações de monstro, alvo selecionado.
+- **Modo de Jogo do jogador** (`jogo.js`): blocos ricos já prontos — **✨ Conjuração** (um card por magia,
+  **incluindo as sem dano**, com botão **✨ Conjurar que já desconta o espaço** + 🎲 atacar/dano da C5),
+  Ataques de Arma, Punição/Furtivo/Fúria, recursos de classe, e o painel **"O teu turno"** (ações/bônus/
+  movimento/reação com dicas).
+- **Conclusão:** o "botão de usar a magia que deduz o espaço, inclusive as sem dano" **já está pronto** desde a
+  C1. Provavelmente só falta o **deploy** dessa leva — ou você estava vendo o painel do Mestre (que não mostra
+  as magias do PC), não o Modo de Jogo do jogador.
+
+**O que realmente falta (as partes desta fase, uma por vez):**
+- [ ] **T1 — "o que faz" no card de magia** (pequeno): cada card da ✨ Conjuração vira expansível (clica →
+  mostra a descrição completa da magia), com o botão **Conjurar** (que já deduz o espaço) ao lado. Cobre o
+  pedido "um botão que mostra o que ela faz e outro de usar" — vale para magias de utilidade sem dano.
+- [ ] **T2 — "É a sua vez" no Modo de Jogo** (médio): quando o combate está ativo e a iniciativa aponta para
+  a ficha aberta, destaca no topo ("⚔️ É a sua vez — Rodada X") e mostra **✔️ Finalizar meu turno**, que
+  avança a iniciativa no painel do Mestre (fonte única do turno — sem segundo contador).
+- [ ] **T3 — Painel de ações do turno unificado** (médio): ao iniciar o turno, reúne num só lugar as ações
+  disponíveis do personagem — ataques, magias castáveis (com Conjurar/🎲) e poderes de classe — com
+  marcadores de **Ação / Ação Bônus / Movimento / Reação** que registram o gasto; "Finalizar turno" limpa.
+  (junta o "O teu turno" atual com os cards já existentes; **absorve a C7**.)
+- [ ] **T4 — Iniciativa pelo jogador** (pequeno/médio): o próprio jogador rola e entra na iniciativa (hoje é
+  o Mestre que monta a ordem), e vê "quem é o próximo".
+- [ ] **T5 — Ações do PC visíveis no tracker do Mestre** (médio): no combatente PC, o Mestre vê as magias/
+  poderes escolhidos (não só os ataques), para conduzir o turno do jogador presencial.
+
+**Ideias/decisões de projeto (recomendações):**
+- **Reusar, não duplicar:** os cards de magia/arma já existem e já descontam recursos. A FASE T deve
+  *rotear* esses cards para o fluxo de turno, nunca recriar um segundo sistema de magia.
+- **Uma fonte única de "de quem é a vez":** o `combate.turno`/iniciativa do painel do Mestre manda; o "é a
+  sua vez" do jogador apenas lê e reflete. Evita dessincronizar dois contadores.
+- **Guiar, nunca travar:** o fluxo sugere e marca gastos, mas o jogador/Mestre sempre pode agir fora da
+  ordem (a mesa improvisa). Nada de bloquear ações.
+- **Ordem sugerida:** T1 (rápido, fecha o pedido das magias sem dano) → T2 (liga jogador↔turno) → T3 (o
+  painel unificado, o coração da fase) → T4/T5.
 
 ---
 

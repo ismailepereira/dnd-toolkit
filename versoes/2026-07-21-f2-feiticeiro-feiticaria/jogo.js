@@ -550,41 +550,6 @@ const Jogo = (function () {
     salvar();
   }
 
-  // ----- F2: Fontes de Feitiçaria do Feiticeiro (nv2+) -----
-  // Ação bônus: converte Pontos de Feitiçaria em espaços de magia e vice-versa.
-  // Criar espaço custa pontos (PHB): 1º=2, 2º=3, 3º=5, 4º=6, 5º=7 (teto no 5º).
-  // Espaço → pontos rende o nível do círculo (1º=1pt…), até o teto de pontos.
-  const CUSTO_ESPACO_FEIT = { 1: 2, 2: 3, 3: 5, 4: 6, 5: 7 };
-  function feiticeiroDaFicha() { return classesFicha().find(c => c.classe === 'Feiticeiro' && c.nivel >= 2); }
-  function pontosFeiticariaMax() { const r = recursosClasse().find(x => x.nome === 'Pontos de Feitiçaria'); return r ? r.max : 0; }
-  function espacoParaPontos(circulo) { // gasta um espaço livre e ganha pontos = círculo
-    if (!feiticeiroDaFicha()) return;
-    const sm = slotsMax();
-    if (!sm || !sm.normal) return;
-    const max = sm.normal[circulo - 1] || 0, usados = ficha.slotsUsados[circulo] || 0;
-    if (usados >= max) { log('Nenhum espaço livre nesse círculo para converter.'); render(); return; }
-    const usadosPt = ficha.recursosUsados['Pontos de Feitiçaria'] || 0;
-    if (usadosPt <= 0) { log('Seus Pontos de Feitiçaria já estão no máximo.'); render(); return; }
-    ficha.slotsUsados[circulo] = usados + 1;
-    const ganho = Math.min(circulo, usadosPt); // não passa do teto de pontos
-    ficha.recursosUsados['Pontos de Feitiçaria'] = usadosPt - ganho;
-    log(`✴️ Converteu um espaço de ${circulo}º em ${ganho} Ponto(s) de Feitiçaria.`);
-    salvar();
-  }
-  function pontosParaEspaco(circulo) { // gasta pontos e devolve um espaço já gasto
-    if (!feiticeiroDaFicha()) return;
-    const custo = CUSTO_ESPACO_FEIT[circulo];
-    if (!custo) return;
-    const maxPt = pontosFeiticariaMax(), usadosPt = ficha.recursosUsados['Pontos de Feitiçaria'] || 0;
-    if (maxPt - usadosPt < custo) { log('Pontos de Feitiçaria insuficientes.'); render(); return; }
-    const usados = ficha.slotsUsados[circulo] || 0;
-    if (usados <= 0) { log(`Você já tem todos os espaços de ${circulo}º disponíveis.`); render(); return; }
-    ficha.recursosUsados['Pontos de Feitiçaria'] = usadosPt + custo;
-    ficha.slotsUsados[circulo] = usados - 1;
-    log(`✴️ Gastou ${custo} Pontos de Feitiçaria e recuperou um espaço de ${circulo}º.`);
-    salvar();
-  }
-
   // ----- F1: Punição Divina do Paladino (nv2+) -----
   // Gasta 1 espaço de magia DEPOIS de acertar um golpe corpo a corpo:
   // 2d8 radiante (1º), +1d8 por círculo acima (máx 5d8), +1d8 vs mortos-vivos/ínferos.
@@ -1104,39 +1069,6 @@ const Jogo = (function () {
       </div>`;
     }
 
-    // ----- ✴️ Fontes de Feitiçaria do Feiticeiro (F2) — conversão espaço↔ponto -----
-    let feiticariaHtml = '';
-    const feitAtq = feiticeiroDaFicha();
-    if (feitAtq) {
-      const sm = slotsMax();
-      const normal = (sm && sm.normal) || [];
-      const maxPt = pontosFeiticariaMax();
-      const restamPt = maxPt - (f.recursosUsados['Pontos de Feitiçaria'] || 0);
-      // espaço → pontos: círculos com espaço LIVRE (e pontos abaixo do teto)
-      const botoesGanhar = normal.map((qtd, i) => {
-        const c = i + 1;
-        if (!qtd) return '';
-        const livre = (f.slotsUsados[c] || 0) < qtd;
-        const podeGanhar = livre && restamPt < maxPt;
-        return `<button class="btn-mini" data-esp2pt="${c}" ${podeGanhar ? '' : 'disabled'}>${c}º → +${c} pt</button>`;
-      }).join('');
-      // pontos → espaço: só até o 5º, círculos com espaço GASTO para devolver
-      const botoesCriar = normal.map((qtd, i) => {
-        const c = i + 1;
-        if (!qtd || c > 5) return '';
-        const custo = CUSTO_ESPACO_FEIT[c];
-        const temGasto = (f.slotsUsados[c] || 0) > 0;
-        const pode = temGasto && restamPt >= custo;
-        return `<button class="btn-mini" data-pt2esp="${c}" ${pode ? '' : 'disabled'}>Espaço ${c}º (${custo} pt)</button>`;
-      }).join('');
-      feiticariaHtml = `<div class="jg-bloco jg-feiticaria" data-bloco-acao="feiticaria"><h4>✴️ Fontes de Feitiçaria <small>(${restamPt}/${maxPt} pontos · ação bônus)</small></h4>
-        <div class="pv-linha"><b>Espaço → pontos:</b> gaste um espaço livre e ganhe pontos iguais ao círculo.</div>
-        <div class="jg-feit-botoes">${botoesGanhar || '<span class="criador-hint">Nenhum espaço livre para converter.</span>'}</div>
-        <div class="pv-linha" style="margin-top:6px"><b>Pontos → espaço:</b> gaste pontos (1º=2 · 2º=3 · 3º=5 · 4º=6 · 5º=7) para recuperar um espaço gasto (até o 5º).</div>
-        <div class="jg-feit-botoes">${botoesCriar || '<span class="criador-hint">Nenhum espaço gasto para recuperar (ou pontos insuficientes).</span>'}</div>
-      </div>`;
-    }
-
     // ----- 🛡️ Auras do Paladino (F1) — passivas sempre visíveis a partir do N6 -----
     let aurasHtml = '';
     if (palad && palad.nivel >= 6) {
@@ -1462,7 +1394,6 @@ const Jogo = (function () {
         if (furtivoHtml) cats.push(['furtivo', '🗡️', 'Ataque Furtivo']);
         if (expulsarHtml) cats.push(['expulsar', '✨', 'Expulsar Mortos-Vivos']);
         if (inspiracaoHtml) cats.push(['inspiracao', '🎵', 'Inspiração Bárdica']);
-        if (feiticariaHtml) cats.push(['feiticaria', '✴️', 'Fontes de Feitiçaria']);
         if (formaHtml) cats.push(['forma', '🐺', 'Forma Selvagem']);
         if (recHtml) cats.push(['recursos', '🎲', 'Recursos de Classe']);
         const indice = cats.length
@@ -1511,7 +1442,7 @@ const Jogo = (function () {
           </div>
           ${condHtml}${logHtml}
         </div>
-        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${expulsarHtml}${inspiracaoHtml}${feiticariaHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
+        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${expulsarHtml}${inspiracaoHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
       </div>
     `;
 
@@ -1820,10 +1751,6 @@ const Jogo = (function () {
     // ----- 🎵 Inspiração Bárdica (F2) -----
     if ($('jgInspDar')) $('jgInspDar').onclick = () => darInspiracao(($('jgInspAlvo') || {}).value);
     document.querySelectorAll('[data-inspusada]').forEach(b => b.onclick = () => inspiracaoUsada(+b.dataset.inspusada));
-
-    // ----- ✴️ Fontes de Feitiçaria (F2) -----
-    document.querySelectorAll('[data-esp2pt]').forEach(b => b.onclick = () => espacoParaPontos(+b.dataset.esp2pt));
-    document.querySelectorAll('[data-pt2esp]').forEach(b => b.onclick = () => pontosParaEspaco(+b.dataset.pt2esp));
 
     // ----- Forma Selvagem: transformar / dano-cura da fera / reverter -----
     const fsBtn = $('jgFsTransformar');

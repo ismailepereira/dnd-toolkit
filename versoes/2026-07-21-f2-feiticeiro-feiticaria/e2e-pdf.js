@@ -548,65 +548,6 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   ok(bf2c.pend === 0 && !bf2c.temChip, 'Marcar "usada" remove o dado da lista de pendentes');
   ok(bf2c.gasto === 1, `Usar o dado NÃO devolve o uso gasto (segue 1): ${bf2c.gasto}`);
 
-  // ----- ✴️ F2: Fontes de Feitiçaria do Feiticeiro (conversão espaço↔ponto) -----
-  // Sable (nv5, 5 pontos; espaços 4×1º/3×2º/2×3º). Começa com 3 pontos usados
-  // (2 restantes) e 2 espaços de 1º gastos, para exercitar as duas direções.
-  const feitF2 = {
-    id: 'teste-feit-f2', nome: 'Sable', raca: 'Humano', classe: 'Feiticeiro', nivel: 5,
-    subclasse: 'Linhagem Dracônica', antecedente: 'Nobre', divindade: 'Ateu (sem divindade)',
-    hpMax: 32, hpAtual: 32, ca: 13, iniciativa: 2,
-    atributos: { for: 8, des: 14, con: 14, int: 10, sab: 11, car: 16 },
-    pericias: ['Arcanismo'], truques: ['Raio de Gelo'], magias1: ['Mísseis Mágicos'], preparadas: [],
-    itens: [], equipado: { maoPrincipal: '', maoSecundaria: '', armadura: '', foco: '' },
-    ouro: 0, xp: 6500, condicoes: [], recursosUsados: { 'Pontos de Feitiçaria': 3 }, slotsUsados: { 1: 2 },
-  };
-  const ff2a = await page.evaluate(f => {
-    window.__ff = Object.assign({}, f, { recursosUsados: { 'Pontos de Feitiçaria': 3 }, slotsUsados: { 1: 2 } });
-    window.Jogo.abrir(window.__ff, {});
-    const bloco = document.querySelector('.jg-feiticaria');
-    return {
-      temBloco: !!bloco,
-      cab: bloco ? bloco.querySelector('h4').textContent.replace(/\s+/g, ' ').trim() : '',
-      criar2Off: (document.querySelector('[data-pt2esp="2"]') || {}).disabled,
-      criar1On: !(document.querySelector('[data-pt2esp="1"]') || {}).disabled,
-    };
-  }, feitF2);
-  ok(ff2a.temBloco, 'Feiticeiro nv5 ganha o card ✴️ Fontes de Feitiçaria no Modo de Jogo');
-  ok(/2\/5 pontos/.test(ff2a.cab), `Cabeçalho mostra os pontos restantes (2/5): "${ff2a.cab}"`);
-  ok(ff2a.criar1On, 'Botão "criar espaço 1º" habilitado (há espaço gasto e pontos bastam)');
-  ok(ff2a.criar2Off === true, 'Botão "criar espaço 2º" desabilitado (5 pt custam mais que os 2 restantes)');
-
-  // espaço 1º → +1 ponto (restam sobe para 3/5; um espaço a mais gasto)
-  const ff2b = await page.evaluate(() => {
-    document.querySelector('[data-esp2pt="1"]').click();
-    return {
-      pt: window.__ff.recursosUsados['Pontos de Feitiçaria'], slot1: window.__ff.slotsUsados[1],
-      log: document.querySelector('.jg-log li').textContent,
-      cab: document.querySelector('.jg-feiticaria h4').textContent.replace(/\s+/g, ' ').trim(),
-    };
-  });
-  ok(ff2b.pt === 2 && ff2b.slot1 === 3, `Espaço→ponto: gasta 1 espaço de 1º e ganha 1 ponto (usados 2, slot 3): pt=${ff2b.pt} slot1=${ff2b.slot1}`);
-  ok(/em 1 Ponto/.test(ff2b.log) && /3\/5 pontos/.test(ff2b.cab), `Loga e atualiza para 3/5: "${ff2b.cab}"`);
-
-  // pontos → espaço 1º (custa 2; recupera um espaço gasto)
-  const ff2c = await page.evaluate(() => {
-    document.querySelector('[data-pt2esp="1"]').click();
-    return {
-      pt: window.__ff.recursosUsados['Pontos de Feitiçaria'], slot1: window.__ff.slotsUsados[1],
-      log: document.querySelector('.jg-log li').textContent,
-    };
-  });
-  ok(ff2c.pt === 4 && ff2c.slot1 === 2, `Ponto→espaço: gasta 2 pontos e devolve um espaço de 1º (usados 4, slot 2): pt=${ff2c.pt} slot1=${ff2c.slot1}`);
-  ok(/Gastou 2 Pontos.*espaço de 1º/.test(ff2c.log), `Loga a conversão de volta: "${ff2c.log.slice(0, 60)}"`);
-
-  // guard: com pontos cheios, espaço→ponto fica desabilitado
-  const ff2d = await page.evaluate(() => {
-    const full = Object.assign({}, window.__ff, { recursosUsados: {}, slotsUsados: { 1: 1 } });
-    window.Jogo.abrir(full, {});
-    return Array.from(document.querySelectorAll('.jg-feiticaria [data-esp2pt]')).every(b => b.disabled);
-  });
-  ok(ff2d === true, 'Guard: pontos no máximo → todos os botões espaço→ponto desabilitados');
-
   // ----- ⚔️ T2: banner "é a sua vez" no Modo de Jogo -----
   const heroi = {
     id: 'teste-t2', nome: 'Aria', raca: 'Humano', classe: 'Guerreiro', nivel: 3,

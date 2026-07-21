@@ -45,43 +45,11 @@ Um item por sessão de trabalho; cada entrega com teste de regressão (a suíte 
 (a) painel do Criador explica TODAS as características iniciais em linguagem de mesa;
 (b) todo recurso gastável aparece rastreável no Modo de Jogo; (c) toda ação especial tem botão ou card, não só texto.
 
-- [x] Tabela de auditoria (classe × o que falta) preenchida e commitada neste doc — **21/07** (abaixo).
+- [ ] Tabela de auditoria (classe × o que falta) preenchida e commitada neste doc.
+- [ ] Lacunas conhecidas já mapeadas: **Sentido Divino** (Paladino, → F1) · **Destruir Mortos-Vivos** do
+  Clérigo nv5 sem botão · **Ataque Furtivo** do Ladino é só dica (→ C4) · **Bardo**: Inspiração existe, mas
+  sem lembrete de a QUEM deu · **Feiticeiro**: Pontos de Feitiçaria sem conversão slot↔ponto no clique.
 - [ ] Cada classe corrigida = 1 commit pequeno com caso E2E.
-
-**Retrato da auditoria (níveis 1-3):** o critério **(a)** está coberto — as 12 classes têm painel próprio no
-Criador com as características em linguagem de mesa. O **(b)** também — todo recurso de `recursosDeClasse5e`
-ganha contador +/− no bloco "Recursos de Classe" do Modo de Jogo. As lacunas reais estão quase todas no
-critério **(c): ação especial que existe só como contador ou só como texto, sem botão que a execute.**
-
-Legenda: ✅ ok · ⚠️ parcial · ❌ falta · 🔎 = alvo de correção.
-
-| Classe | (a) Criador | (b) Rastreável | (c) Botão | Lacuna a corrigir (níveis 1-3) |
-|---|:--:|:--:|:--:|---|
-| **Bárbaro** | ✅ | ✅ | ⚠️ | Fúria e dano ✅ (C4). **Ataque Descuidado** (N2) só texto → falta *toggle* de vantagem. (menor) |
-| **Bardo** | ✅ | ✅ | ⚠️ | 🔎 **Inspiração Bárdica**: gasta o uso, mas **não registra a QUEM** deu nem o dado. |
-| **Clérigo** | ✅ | ✅ | ❌ | 🔎 **Expulsar Mortos-Vivos** (N2) sem card: contador existe, mas nada mostra CD/efeito nem rola. (Destruir N5 fica p/ depois) |
-| **Druida** | ✅ | ✅ | ✅ | Coberto (Forma Selvagem completa). Sem lacuna 1-3. |
-| **Feiticeiro** | ✅ | ⚠️ | ❌ | 🔎 **Pontos de Feitiçaria**: só +/−, **sem conversão espaço↔ponto** (N2). |
-| **Guerreiro** | ✅ | ⚠️ | ❌ | 🔎 **Retomar o Fôlego** é contador, não **rola/cura 1d10+nível**. Surto de Ação sem chip. |
-| **Ladino** | ✅ | ✅ | ⚠️ | Furtivo ✅ (C4). **Ação Ladina** (N2) só texto → lembrete. (menor) |
-| **Mago** | ✅ | ✅ | ⚠️ | **Recuperação Arcana** (N1) sem botão no descanso curto. (menor) |
-| **Monge** | ✅ | ✅ | ❌ | 🔎 **Opções de Ki** (Rajada/Defesa Paciente/Passo do Vento — N2) só texto, sem botão que gaste 1 Ki. |
-| **Paladino** | ✅ | ✅ | ✅ | Coberto (F1). Melhoria: botão de distribuir cura da **Imposição das Mãos**. (menor) |
-| **Patrulheiro** | ✅ | ✅ | ⚠️ | **Consciência Primitiva** (N3, gasta espaço) só texto. (menor) |
-| **Bruxo** | ✅ | ✅ | ⚠️ | Magia de Pacto ✅ (C1). Invocações/Pacto Místico são passivos/escolha — sem ação gastável 1-3. (menor) |
-
-**Ordem de correção (1 classe = 1 commit), por dor real na mesa:**
-1. [x] **Clérigo — Expulsar Mortos-Vivos** — ENTREGUE 21/07: card ✨ no Modo de Jogo com CD (8+PB+SAB),
-   alcance 9m, salva de Sabedoria e efeito Expulso; botão gasta 1 Canalizar Divindade (contador compartilhado
-   com o bloco "Recursos de Classe") e registra no Histórico. Linha "💀 Destruir Mortos-Vivos (N5+)" com o
-   limiar de ND por nível. Índice de ações da T3 ganhou a entrada ✨.
-2. [ ] **Bardo — Inspiração Bárdica**: ao gastar, registra "dei a quem?" e o dado (d6→d12); mostra quem tem inspiração pendente.
-3. [ ] **Feiticeiro — Pontos de Feitiçaria**: botões de conversão espaço↔ponto (1º=2pt, 2º=3pt, 3º=5pt; criar espaço 2/3/5pt).
-4. [ ] **Monge — Opções de Ki**: 3 botões (Rajada de Golpes/Defesa Paciente/Passo do Vento) que gastam 1 Ki cada.
-5. [ ] **Guerreiro — Retomar o Fôlego**: botão que rola 1d10+nível e cura; chip de Surto de Ação.
-
-As "menores" (Ataque Descuidado, Ação Ladina, Recuperação Arcana, Imposição das Mãos-cura, Consciência
-Primitiva) entram numa passada de fecho depois, se valer a pena.
 
 ### F3 🟠 Druida — fechamento das pendências da Forma Selvagem
 - [x] Catálogo por nível + transformar/reverter (19/07).

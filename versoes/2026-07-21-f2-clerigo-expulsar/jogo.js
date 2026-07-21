@@ -499,27 +499,6 @@ const Jogo = (function () {
     salvar();
   }
 
-  // ----- F2: Expulsar Mortos-Vivos do Clérigo (Canalizar Divindade, nv2+) -----
-  // Gasta 1 uso de Canalizar Divindade. Cada morto-vivo a 9m que veja/ouça o
-  // Clérigo faz salva de Sabedoria (CD 8 + PB + mod SAB); quem falha fica Expulso
-  // por 1 min. No N5+ os de ND baixo são destruídos (limiar cresce por nível).
-  function clerigoDaFicha() { return classesFicha().find(c => c.classe === 'Clérigo' && c.nivel >= 2); }
-  function ndDestruir(nivel) {
-    return nivel >= 17 ? '4' : nivel >= 14 ? '3' : nivel >= 11 ? '2' : nivel >= 8 ? '1' : nivel >= 5 ? '½' : null;
-  }
-  function expulsarMortosVivos() {
-    const cl = clerigoDaFicha();
-    if (!cl) return;
-    const maxCanal = cl.nivel >= 18 ? 3 : cl.nivel >= 6 ? 2 : 1;
-    const usados = ficha.recursosUsados['Canalizar Divindade'] || 0;
-    if (usados >= maxCanal) { log('Sem usos de Canalizar Divindade — recupere num descanso curto.'); render(); return; }
-    ficha.recursosUsados['Canalizar Divindade'] = usados + 1;
-    const cd = 8 + pbAtual() + m(ficha.atributos.sab);
-    const nd = ndDestruir(cl.nivel);
-    log(`✨ Expulsar Mortos-Vivos: salva de Sabedoria CD ${cd} (mortos-vivos a 9m). Quem falha foge por 1 min${nd ? `; ND ≤ ${nd} são destruídos` : ''}.`);
-    salvar();
-  }
-
   // ----- F1: Punição Divina do Paladino (nv2+) -----
   // Gasta 1 espaço de magia DEPOIS de acertar um golpe corpo a corpo:
   // 2d8 radiante (1º), +1d8 por círculo acima (máx 5d8), +1d8 vs mortos-vivos/ínferos.
@@ -997,22 +976,6 @@ const Jogo = (function () {
       </div>`;
     }
 
-    // ----- ✨ Expulsar Mortos-Vivos do Clérigo (F2) — botão que gasta Canalizar Divindade -----
-    let expulsarHtml = '';
-    const clerigoAtq = clerigoDaFicha();
-    if (clerigoAtq) {
-      const cd = 8 + pb + m(f.atributos.sab);
-      const maxCanal = clerigoAtq.nivel >= 18 ? 3 : clerigoAtq.nivel >= 6 ? 2 : 1;
-      const restam = maxCanal - (f.recursosUsados['Canalizar Divindade'] || 0);
-      const nd = ndDestruir(clerigoAtq.nivel);
-      expulsarHtml = `<div class="jg-bloco jg-expulsar" data-bloco-acao="expulsar"><h4>✨ Expulsar Mortos-Vivos <small>(Canalizar Divindade)</small></h4>
-        <div class="pv-linha">Como ação, cada morto-vivo a até <b>9m</b> que possa ver ou ouvir você faz uma salva de <b>Sabedoria</b> (CD <b>${cd}</b>). Quem falhar fica <b>Expulso</b> por 1 minuto: gasta o turno fugindo de você e não pode se aproximar (quebra se sofrer dano).</div>
-        ${nd ? `<div class="criador-hint">💀 <b>Destruir Mortos-Vivos (N5+):</b> ao expulsar, os de ND ≤ <b>${nd}</b> são <b>destruídos</b> na hora.</div>` : ''}
-        <button class="btn-mini" id="jgExpulsar" ${restam > 0 ? '' : 'disabled'}>✨ Expulsar (gasta 1 · ${restam}/${maxCanal})</button>
-        ${restam > 0 ? '' : '<div class="criador-hint">Sem Canalizar Divindade — recupere num descanso curto.</div>'}
-      </div>`;
-    }
-
     // ----- 🛡️ Auras do Paladino (F1) — passivas sempre visíveis a partir do N6 -----
     let aurasHtml = '';
     if (palad && palad.nivel >= 6) {
@@ -1336,7 +1299,6 @@ const Jogo = (function () {
         if (castHtml) cats.push(['magias', '✨', 'Magias']);
         if (punicaoHtml) cats.push(['punicao', '⚡', 'Punição Divina']);
         if (furtivoHtml) cats.push(['furtivo', '🗡️', 'Ataque Furtivo']);
-        if (expulsarHtml) cats.push(['expulsar', '✨', 'Expulsar Mortos-Vivos']);
         if (formaHtml) cats.push(['forma', '🐺', 'Forma Selvagem']);
         if (recHtml) cats.push(['recursos', '🎲', 'Recursos de Classe']);
         const indice = cats.length
@@ -1385,7 +1347,7 @@ const Jogo = (function () {
           </div>
           ${condHtml}${logHtml}
         </div>
-        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${expulsarHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
+        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
       </div>
     `;
 
@@ -1687,9 +1649,6 @@ const Jogo = (function () {
 
     // ----- 🗡️ Ataque Furtivo (C4) -----
     if ($('jgFurtivo')) $('jgFurtivo').onclick = rolarFurtivo;
-
-    // ----- ✨ Expulsar Mortos-Vivos (F2) -----
-    if ($('jgExpulsar')) $('jgExpulsar').onclick = expulsarMortosVivos;
 
     // ----- Forma Selvagem: transformar / dano-cura da fera / reverter -----
     const fsBtn = $('jgFsTransformar');

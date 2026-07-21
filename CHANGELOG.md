@@ -4,6 +4,23 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-21 — Combate T2: ⚔️ "É a sua vez" no Modo de Jogo + finalizar turno
+
+**Backup antes da alteração:** `versoes/2026-07-21-t2-sua-vez/` (`jogo.js`, `jogador.js`, `app.js`, `style.css`, `app.py`).
+
+**Resumo:** parte T2 da Fase T (fluxo de turno) — liga o Modo de Jogo do jogador à iniciativa do combate.
+- **Banner no topo do Modo de Jogo** quando o combate está ativo: **⚔️ "É a sua vez! · Rodada X"** (pulsando) com **✔️ Finalizar meu turno** quando a iniciativa aponta para a ficha aberta; **⏳ "Em combate · Vez de <nome>"** quando é de outro; nada fora de combate.
+- **Servidor — nova ação `proximo_turno`** em `/api/combate/acao` (acessível ao jogador): avança o **mesmo `combate.turno` do painel do Mestre** (fonte ÚNICA — sem segundo contador), vira a rodada e recarrega ações lendárias como o Mestre já fazia. O jogador só finaliza a **própria vez** (o combatente da vez é um PJ cuja ficha é dele); o Mestre finaliza qualquer uma. Registra no log do combate.
+- **Ao vivo:** a sincronização do combate (RT/polling no jogador; render no Mestre) chama `window.Jogo.combateAtualizou()`, então o banner do modal aberto acompanha a mudança de turno feita por outros.
+
+**Ficheiros:** `app.py` (ação `proximo_turno`), `static/js/jogo.js` (`estadoTurno`/`finalizarTurno`/banner + hooks `combateAtualizou`/`estaAberto`), `static/js/jogador.js`, `static/js/app.js`, `static/css/style.css`, `docs/ROADMAP-FICHAS-COMBATE.md` (T2 ✅), `tests/test-servidor.py` (+4), `tests/e2e-pdf.js` (+6).
+
+**Verificação:** **30/30** servidor (jogador finaliza a própria vez → turno avança; NÃO finaliza a de outro → 403; Mestre finaliza qualquer uma e vira a rodada) · E2E completo verde (banner "é a sua vez" com botão; vira "aguardando" na vez do Ogro; some fora de combate) · 25/25 unit · sintaxe OK.
+
+**Como reverter:** restaurar `versoes/2026-07-21-t2-sua-vez/`, ou `git revert`.
+
+---
+
 ## 2026-07-21 — Combate T1: ⓘ card de magia expansível ("o que faz" + usar)
 
 **Backup antes da alteração:** `versoes/2026-07-21-t1-magia-descricao/` (`jogo.js`, `style.css`).

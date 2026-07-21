@@ -460,6 +460,51 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   ok(t1c.abertoAntes === true, 'Card seguia aberto antes de conjurar (o clique nos botões não togglou)');
   ok(t1c.gastou === 1, `Conjurar a magia sem dano deduziu o espaço do 1º círculo (usados: ${t1c.gastou})`);
 
+  // ----- ⚔️ T2: banner "é a sua vez" no Modo de Jogo -----
+  const heroi = {
+    id: 'teste-t2', nome: 'Aria', raca: 'Humano', classe: 'Guerreiro', nivel: 3,
+    subclasse: 'Campeão', antecedente: 'Soldado', divindade: 'Ateu (sem divindade)',
+    hpMax: 28, hpAtual: 28, ca: 16, iniciativa: 2,
+    atributos: { for: 16, des: 14, con: 15, int: 10, sab: 12, car: 8 },
+    pericias: ['Atletismo', 'Percepção'], itens: ['Espada Longa'],
+    equipado: { maoPrincipal: 'Espada Longa', maoSecundaria: '', armadura: '', foco: '' },
+    ouro: 10, xp: 900, condicoes: [],
+  };
+  // simula o combate compartilhado com a vez na ficha do herói
+  const t2a = await page.evaluate(f => {
+    window.COMBATE_ATUAL = {
+      ativo: true, turno: 0, rodada: 2, log: [],
+      combatentes: [
+        { id: 'x1', tipo: 'pc', fichaId: f.id, nome: f.nome, iniciativa: 18, hpAtual: 28, hpMax: 28, ca: 16 },
+        { id: 'x2', tipo: 'monstro', nome: 'Ogro', iniciativa: 6, hpAtual: 30, hpMax: 30, ca: 11 },
+      ],
+    };
+    window.Jogo.abrir(f, {});
+    const banner = document.querySelector('.jg-vez');
+    return { classe: banner ? banner.className : '', texto: banner ? banner.textContent.replace(/\s+/g, ' ').trim() : '', temBotao: !!document.getElementById('jgFinalizarTurno') };
+  }, heroi);
+  ok(/jg-vez-eu/.test(t2a.classe), 'Banner "é a sua vez" destacado (jg-vez-eu) quando a iniciativa aponta pra ficha');
+  ok(/sua vez/i.test(t2a.texto) && /Rodada 2/.test(t2a.texto), `Banner mostra "É a sua vez · Rodada 2": "${t2a.texto.slice(0, 50)}"`);
+  ok(t2a.temBotao, 'Botão ✔️ Finalizar meu turno presente');
+
+  // quando a vez é de outro, o banner vira "aguardando" sem botão
+  const t2b = await page.evaluate(() => {
+    window.COMBATE_ATUAL.turno = 1; // vez do Ogro
+    window.Jogo.combateAtualizou();
+    const banner = document.querySelector('.jg-vez');
+    return { classe: banner ? banner.className : '', texto: banner ? banner.textContent.replace(/\s+/g, ' ').trim() : '', temBotao: !!document.getElementById('jgFinalizarTurno') };
+  });
+  ok(/jg-vez-aguarda/.test(t2b.classe) && !t2b.temBotao, 'Vez de outro → banner "aguardando" sem botão de finalizar');
+  ok(/Ogro/.test(t2b.texto), `Banner mostra de quem é a vez: "${t2b.texto.slice(0, 50)}"`);
+
+  // fora de combate, nenhum banner
+  const t2c = await page.evaluate(() => {
+    window.COMBATE_ATUAL = { ativo: false, combatentes: [] };
+    window.Jogo.combateAtualizou();
+    return !!document.querySelector('.jg-vez');
+  });
+  ok(t2c === false, 'Fora de combate: nenhum banner de turno');
+
   console.log(falhas.length ? `\n❌ ${falhas.length} falha(s)` : '\n✅ E2E do PDF: todas as verificações passaram');
   await browser.close();
   process.exit(falhas.length ? 1 : 0);

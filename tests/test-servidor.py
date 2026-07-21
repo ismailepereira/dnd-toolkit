@@ -109,6 +109,33 @@ t('xp do jogador é preservado do servidor (B2)', d.get('xp') == 100, str(d.get(
 t('ouro do jogador é preservado do servidor (B2)', d.get('ouro') == 20, str(d.get('ouro')))
 t('nome novo do jogador entrou', d.get('nome') == 'Legada Editada', str(d.get('nome')))
 
+# ----- T2: finalizar turno (proximo_turno) com permissão -----
+# monta um combate: jogador tem a ficha f3 (legada, sem dono → editável por ele);
+# a vez começa nela; um monstro em seguida.
+estado_atual = mestre.get('/api/combate').get_json()
+combate_teste = {
+    'combatentes': [
+        {'id': 'c1', 'tipo': 'pc', 'fichaId': 'f3', 'nome': 'Legada', 'iniciativa': 20, 'hpAtual': 10, 'hpMax': 10, 'ca': 12},
+        {'id': 'c2', 'tipo': 'monstro', 'nome': 'Goblin', 'iniciativa': 5, 'hpAtual': 7, 'hpMax': 7, 'ca': 15},
+    ], 'turno': 0, 'rodada': 1, 'log': [], 'ativo': True,
+}
+mestre.put('/api/combate', json=combate_teste)
+
+# na vez da ficha do jogador (turno 0 = c1/f3): ele finaliza → passa para o Goblin
+r = jogador.post('/api/combate/acao', json={'acao': 'proximo_turno'})
+t('jogador finaliza a PRÓPRIA vez (200)', r.status_code == 200, str(r.status_code))
+cb = mestre.get('/api/combate').get_json()
+t('turno avançou para o próximo combatente', cb.get('turno') == 1, str(cb.get('turno')))
+
+# agora é a vez do Goblin (não é PJ do jogador) → jogador NÃO pode finalizar
+r = jogador.post('/api/combate/acao', json={'acao': 'proximo_turno'})
+t('jogador NÃO finaliza a vez de outro (403 nao_e_sua_vez)', r.status_code == 403 and r.get_json().get('erro') == 'nao_e_sua_vez', str(r.status_code))
+
+# o Mestre pode finalizar qualquer turno → volta o ciclo e incrementa a rodada
+r = mestre.post('/api/combate/acao', json={'acao': 'proximo_turno'})
+cb = mestre.get('/api/combate').get_json()
+t('Mestre finaliza qualquer vez; vira a rodada', r.status_code == 200 and cb.get('turno') == 0 and cb.get('rodada') == 2, f"turno={cb.get('turno')} rodada={cb.get('rodada')}")
+
 # ----- MODO LIVRE (temporário): limitação e cobrança desligadas -----
 t('MODO_LIVRE está LIGADO por padrão (pedido de 2026-07-19)', servidor.MODO_LIVRE is True)
 with app.test_request_context('/'):

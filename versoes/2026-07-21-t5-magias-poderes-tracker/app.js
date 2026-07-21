@@ -426,41 +426,6 @@ function acoesDoPC(f) {
   return out;
 }
 
-// T5 — resumo (só-leitura) das magias e poderes escolhidos do PJ, para o Mestre
-// conduzir o turno do jogador presencial. Calculado ao vivo da ficha (não fica
-// guardado no combatente), então nunca desatualiza e vale para PJs entrados
-// pelo próprio jogador. { conj:[{classe,cd,ataque,atributo}], truques:[{nome,dano}],
-// circulos:[{nome,nivel}], recursos:[{nome,max,rec}], preparadas:bool }
-function magiasEPoderesDoPC(f) {
-  if (!f) return null;
-  const classes = (typeof classesAtuais === 'function') ? classesAtuais(f)
-    : [{ classe: f.classe, nivel: f.nivel || 1, subclasse: f.subclasse || '' }];
-  const pb = (typeof PB === 'function') ? PB(f.nivel || 1) : 2;
-  const cm = (typeof mod === 'function') ? mod((f.atributos || {}).car || 10) : 0;
-  // cabeçalho de conjuração por classe conjuradora (CD e ataque mágico)
-  const conj = [];
-  if (typeof cdConjuracao === 'function') {
-    classes.forEach(c => {
-      const k = cdConjuracao(c.classe, c.nivel, f.atributos || {}, pb);
-      if (k) conj.push({ classe: c.classe, cd: k.cd, ataque: k.ataque, atributo: k.atributo });
-    });
-  }
-  const ehConj = conj.length > 0;
-  const det = (typeof MAGIAS_DETALHE !== 'undefined') ? MAGIAS_DETALHE : {};
-  // truques (sempre prontos)
-  const truques = ehConj ? (f.truques || []).map(n => ({ nome: n, dano: (det[n] && det[n].dano && det[n].dano !== '—') ? det[n].dano : null })) : [];
-  // magias de círculo realmente lançáveis hoje: preparadas (quem prepara) ou o grimório/conhecidas
-  const preparador = (typeof PREPARA !== 'undefined') && classes.some(c => !!PREPARA[c.classe]);
-  const lista = ehConj ? (preparador ? (f.preparadas || []) : (f.magias1 || [])) : [];
-  const circulos = lista.map(n => ({ nome: n, nivel: (det[n] && det[n].nivel) || 1 }))
-    .sort((a, b) => a.nivel - b.nivel || a.nome.localeCompare(b.nome));
-  // recursos/poderes de classe (Fúria, Ki, Canalizar Divindade, ...)
-  let recursos = [];
-  if (typeof recursosDeClasse5e === 'function') classes.forEach(c => { recursos = recursos.concat(recursosDeClasse5e(c.classe, c.nivel, cm)); });
-  if (!conj.length && !truques.length && !circulos.length && !recursos.length) return null;
-  return { conj, truques, circulos, recursos, preparadas: preparador };
-}
-
 function addPersonagens() {
   let n = 0;
   fichas.forEach(f => {
@@ -644,21 +609,6 @@ function renderCombate() {
       return `<label class="comb-def-row"><span>${escapeHtml(t)}</span><select data-def="${escapeHtml(t)}"><option value="">—</option><option value="resist"${cur === 'resist' ? ' selected' : ''}>½ Resist</option><option value="vuln"${cur === 'vuln' ? ' selected' : ''}>×2 Vuln</option><option value="imune"${cur === 'imune' ? ' selected' : ''}>∅ Imune</option></select></label>`;
     }).join('');
     const tipoOpts = `<option value="">— tipo —</option>` + DANOS_TIPOS.map(t => `<option>${t}</option>`).join('');
-    // T5: magias & poderes do PJ (só-leitura), calculadas ao vivo da ficha
-    let resumoMPHtml = '';
-    if (c.tipo === 'pc' && c.fichaId) {
-      const mp = magiasEPoderesDoPC(fichas.find(x => x.id === c.fichaId));
-      if (mp) {
-        const nTot = mp.truques.length + mp.circulos.length + mp.recursos.length;
-        const conjTxt = mp.conj.map(k => `<span class="comb-mp-cd">${escapeHtml(k.classe)}: CD ${k.cd} · ataque +${k.ataque}</span>`).join('');
-        const truqTxt = mp.truques.length ? `<div class="comb-mp-linha"><b>Truques</b> ${mp.truques.map(t => `<span class="comb-mp-chip">${escapeHtml(t.nome)}${t.dano ? ` <i>${escapeHtml(t.dano)}</i>` : ''}</span>`).join('')}</div>` : '';
-        const circTxt = mp.circulos.length ? `<div class="comb-mp-linha"><b>${mp.preparadas ? 'Preparadas' : 'Magias'}</b> ${mp.circulos.map(s => `<span class="comb-mp-chip">${escapeHtml(s.nome)} <small>${s.nivel}º</small></span>`).join('')}</div>` : '';
-        const recTxt = mp.recursos.length ? `<div class="comb-mp-linha"><b>Poderes</b> ${mp.recursos.map(r => `<span class="comb-mp-chip">${escapeHtml(r.nome)} <small>×${r.max}${r.rec === 'curto' ? ' (curto)' : ''}</small></span>`).join('')}</div>` : '';
-        resumoMPHtml = `<details class="comb-mp"><summary>🪄 Magias & Poderes${nTot ? ' (' + nTot + ')' : ''}</summary>
-          ${conjTxt ? `<div class="comb-mp-linha">${conjTxt}</div>` : ''}${truqTxt}${circTxt}${recTxt}
-          <div class="comb-mp-nota">O jogador executa no próprio Modo de Jogo (gasta espaço/recurso na ficha).</div></details>`;
-      }
-    }
     div.innerHTML = `
       <div class="comb-top">
         <span class="comb-ini" title="Iniciativa">${c.iniciativa}</span>
@@ -676,7 +626,6 @@ function renderCombate() {
         <button class="btn-primary comb-cura" data-cura>+ Cura</button>
       </div>
       ${acoesHtml || multiBtn ? `<div class="comb-ataques">${multiBtn}${acoesHtml}</div>` : ''}
-      ${resumoMPHtml}
       <details class="comb-cond"><summary>Condições${c.condicoes.length ? ' (' + c.condicoes.length + ')' : ''}</summary><div class="jg-cond-grid">${condChips}</div></details>
       <details class="comb-def"><summary>Defesas${nDef ? ' (' + nDef + ')' : ''}</summary><div class="comb-def-grid">${defEditor}</div></details>
       <details class="comb-chefe"><summary>Chefe${c.chefe ? ' ⭐' : ''}</summary>

@@ -4,6 +4,23 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-21 — Combate T5: 🪄 Mestre vê as Magias & Poderes do PJ no tracker (conclui a Fase T)
+
+**Backup antes da alteração:** `versoes/2026-07-21-t5-magias-poderes-tracker/` (`app.js`, `jogo.js`, `regras-ficha.js`, `style.css`).
+
+**Resumo:** última parte da Fase T — antes o card de combate do PJ só mostrava os **ataques**; agora o Mestre também vê as **magias e poderes escolhidos**, para conduzir o turno do jogador presencial.
+- No card de cada **PJ** do tracker de combate, um bloco recolhível **🪄 Magias & Poderes** (só-leitura) traz: o **cabeçalho de conjuração** por classe (CD e ataque mágico), os **truques** (com o dano quando houver), as **magias de círculo lançáveis hoje** — **Preparadas** para quem prepara (Clérigo, Druida, Mago, Paladino) ou o grimório/conhecidas para os demais, cada uma com o **círculo** (1º, 2º…) — e os **poderes de classe** (Fúria, Ki, Canalizar Divindade, Imposição das Mãos, etc.) com os usos por descanso.
+- **Calculado ao vivo da ficha** (`fichas.find(...)` pelo `fichaId`), não guardado no combatente: nunca desatualiza e vale igual para PJs que o próprio jogador colocou na ordem (T4). Uma nota lembra que **o jogador executa a magia/poder no próprio Modo de Jogo** (é lá que o espaço/recurso é gasto na ficha) — o tracker é só o painel de condução do Mestre.
+- **Fonte única (DRY):** a tabela de recursos/poderes por classe saiu do fecho do `jogo.js` para `regras-ficha.js` como `recursosDeClasse5e(classe, nivel, modCarisma)`; o Modo de Jogo passou a delegar para ela, então Mestre e jogador leem exatamente os mesmos números. **Com isso a Fase T está concluída.**
+
+**Ficheiros:** `static/js/regras-ficha.js` (`recursosDeClasse5e` compartilhada + export), `static/js/jogo.js` (delega recursos à regra única), `static/js/app.js` (`magiasEPoderesDoPC` + bloco no card do tracker), `static/css/style.css`, `docs/ROADMAP-FICHAS-COMBATE.md` (T5 ✅, Fase T concluída), `tests/unit-regras.js` (+4), `tests/e2e-pdf.js` (+8).
+
+**Verificação:** **29/29** unit (recursosDeClasse5e: Fúria escala, Ki ≥ nv2, Paladino com Sentido Divino/Imposição/Canalizar, classe sem pool vazia) · **E2E completo verde** (card do PJ tem o bloco; CD 14 do Clérigo nv5; truques + magias com círculo; preparador reconhecido; poder Canalizar Divindade listado; nota de execução) · 35/35 servidor · sintaxe OK.
+
+**Como reverter:** restaurar `versoes/2026-07-21-t5-magias-poderes-tracker/`, ou `git revert`.
+
+---
+
 ## 2026-07-21 — Combate T4: 🎲 jogador entra no combate rolando a própria iniciativa
 
 **Backup antes da alteração:** `versoes/2026-07-21-t4-entrar-combate/` (`jogo.js`, `style.css`, `app.py`).

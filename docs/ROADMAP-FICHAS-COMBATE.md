@@ -170,8 +170,19 @@ e cada magia (inclusive as que **não causam dano**) tem um botão que mostra **
   da ficha no servidor (ação `entrar_combate`), insere o PJ e **reordena por iniciativa preservando a vez
   atual**. Rerrolar não duplica; o jogador só entra com a **própria** ficha (Mestre pode qualquer uma).
   A ordem/"quem é o próximo" continua no painel de combate (T2/T3).
-- [ ] **T5 — Ações do PC visíveis no tracker do Mestre** (médio): no combatente PC, o Mestre vê as magias/
-  poderes escolhidos (não só os ataques), para conduzir o turno do jogador presencial.
+- [x] **T5 — Ações do PC visíveis no tracker do Mestre** — ENTREGUE 21/07: no card de combate do PJ, um bloco
+  recolhível **🪄 Magias & Poderes** (só-leitura) mostra o cabeçalho de conjuração (CD + ataque mágico por
+  classe), os **truques** (com dano quando houver), as **magias de círculo lançáveis hoje** (Preparadas para
+  quem prepara, senão o grimório/conhecidas) cada uma com o **círculo**, e os **poderes de classe** (Fúria,
+  Ki, Canalizar Divindade, Imposição das Mãos…) com os usos por descanso. **Calculado ao vivo da ficha**
+  (`fichas.find` pelo `fichaId`) — nunca desatualiza e vale para PJs entrados pelo próprio jogador (T4). O
+  jogador continua **executando no próprio Modo de Jogo** (é lá que o espaço/recurso é gasto); o tracker é o
+  painel de condução do Mestre. A tabela de recursos por classe virou regra única `recursosDeClasse5e` em
+  `regras-ficha.js` (Modo de Jogo e Mestre leem os mesmos números). **Conclui a Fase T.**
+
+**✅ Fase T concluída (21/07)** — T1→T5 entregues: o combate agora expõe as ações do personagem da vez
+(magias com/sem dano, poderes de classe), liga jogador↔turno com "É a sua vez"/Finalizar, reúne as ações num
+índice, deixa o jogador rolar a própria iniciativa e dá ao Mestre a visão das magias/poderes do PJ no tracker.
 
 **Ideias/decisões de projeto (recomendações):**
 - **Reusar, não duplicar:** os cards de magia/arma já existem e já descontam recursos. A FASE T deve

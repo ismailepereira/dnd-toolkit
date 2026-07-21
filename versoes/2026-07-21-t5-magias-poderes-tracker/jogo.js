@@ -202,9 +202,21 @@ const Jogo = (function () {
 
   // Recursos de classe: soma os recursos de CADA classe do personagem (Fúria
   // do Bárbaro e Ki do Monge, por exemplo, são pools separadas por classe).
-  // Regra única em regras-ficha.js (compartilhada com o tracker do Mestre).
   function recursosDeClasse(cl, nivel, cm) {
-    return (typeof recursosDeClasse5e === 'function') ? recursosDeClasse5e(cl, nivel, cm) : [];
+    const r = [];
+    if (cl === 'Bárbaro') r.push({ nome: 'Fúria', max: nivel >= 17 ? 6 : nivel >= 12 ? 5 : nivel >= 6 ? 4 : nivel >= 3 ? 3 : 2, rec: 'longo' });
+    if (cl === 'Monge' && nivel >= 2) r.push({ nome: 'Pontos de Ki', max: nivel, rec: 'curto' });
+    if (cl === 'Guerreiro') { if (nivel >= 2) r.push({ nome: 'Surto de Ação', max: nivel >= 17 ? 2 : 1, rec: 'curto' }); r.push({ nome: 'Retomar o Fôlego', max: 1, rec: 'curto' }); }
+    if (cl === 'Bardo') r.push({ nome: 'Inspiração Bárdica', max: Math.max(1, cm), rec: nivel >= 5 ? 'curto' : 'longo' });
+    if (cl === 'Clérigo' && nivel >= 2) r.push({ nome: 'Canalizar Divindade', max: nivel >= 18 ? 3 : nivel >= 6 ? 2 : 1, rec: 'curto' });
+    if (cl === 'Druida' && nivel >= 2) r.push({ nome: 'Forma Selvagem', max: 2, rec: 'curto' });
+    if (cl === 'Feiticeiro' && nivel >= 2) r.push({ nome: 'Pontos de Feitiçaria', max: nivel, rec: 'longo' });
+    if (cl === 'Paladino') {
+      r.push({ nome: 'Sentido Divino', max: Math.max(1, 1 + cm), rec: 'longo' }); // 1 + mod CAR usos/descanso longo — F1
+      r.push({ nome: 'Imposição das Mãos (PV)', max: nivel * 5, rec: 'longo', pool: true });
+      if (nivel >= 3) r.push({ nome: 'Canalizar Divindade', max: 1, rec: 'curto' });
+    }
+    return r;
   }
   function recursosClasse() {
     const cm = m(ficha.atributos.car);

@@ -4,6 +4,35 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-21 — F2 · Bardo — Inspiração Bárdica com registro de "a quem" 🎵
+
+**Backup:** `versoes/2026-07-21-f2-bardo-inspiracao/` (jogo.js, e2e-pdf.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** 2ª correção da FASE F2. Novo card **🎵 Inspiração Bárdica** no Modo de Jogo (`jogo.js`) para o Bardo
+(N1+) — fecha a lacuna "a Inspiração some sem lembrar a QUEM foi dada".
+- **Dar Inspiração:** mostra o **dado por nível** (d6 → d8 no N5 → d10 no N10 → d12 no N15), um campo **"a quem?"**
+  e o botão que **gasta 1 uso** (o mesmo contador de "Recursos de Classe" — fonte única `recursosDeClasse5e` —
+  então os dois refletem o gasto) e **registra no Histórico** com o nome do aliado.
+- **Lista de pendentes:** cada dado dado vira um chip "**Nome (dX)**" na seção "Segurando o dado", com botão
+  **✔** que marca como usada e remove da lista (loga "Fulano usou a Inspiração") — **sem devolver o uso**
+  (o dado foi gasto ao ser concedido, regra do PHB).
+- **Descanso** (curto e longo) limpa os dados pendentes — eles duram só ~1 min.
+
+**Ficheiros:** `static/js/jogo.js` (`bardoDaFicha`/`dadoInspiracao`/`darInspiracao`/`inspiracaoUsada`, card,
+handlers, índice T3, limpeza nos descansos, inserção no HTML), `tests/e2e-pdf.js` (+bloco F2 Bardo),
+`docs/ROADMAP-FICHAS-COMBATE.md` (item 2 ✅).
+
+**Verificação:** `node --check` OK · `npm test` **29/29** ✅. E2E em **navegador real** (Browser pane): Bardo N3
+(CAR +3) → card d6, botão **3/3**; dar a "Thorin" → gasta 1, pendente **Thorin:d6**, chip visível, loga
+"Inspiração Bárdica (d6) para Thorin", botão **2/3**; marcar usada → lista zera, uso **segue 1** (não devolve).
+Escalonamento do dado conferido (d6/d8/d10/d12 nos N1/5/10/15). Caso de regressão no `e2e-pdf.js` (roda no CI).
+
+**Como reverter:** restaurar `versoes/2026-07-21-f2-bardo-inspiracao/`, ou `git revert`.
+
+**Próximo (F2):** Feiticeiro — conversão espaço↔ponto de Feitiçaria.
+
+---
+
 ## 2026-07-21 — F2 (auditoria kit de estreia): tabela das 12 classes + Clérigo — Expulsar Mortos-Vivos ✨
 
 **Backup:** `versoes/2026-07-21-f2-clerigo-expulsar/` (jogo.js, e2e-pdf.js, ROADMAP-FICHAS-COMBATE.md).

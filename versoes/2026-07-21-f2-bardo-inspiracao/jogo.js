@@ -520,36 +520,6 @@ const Jogo = (function () {
     salvar();
   }
 
-  // ----- F2: Inspiração Bárdica do Bardo (nv1+) -----
-  // Ação bônus: dá um dado (d6→d12 por nível) a um aliado, que gasta 1 uso do
-  // recurso. O aliado guarda o dado até somá-lo a um teste/ataque/salva (1 min).
-  // Aqui registramos A QUEM foi dada e mantemos a lista de dados pendentes —
-  // era a lacuna: o Bardo esquecia quem estava segurando a inspiração.
-  function bardoDaFicha() { return classesFicha().find(c => c.classe === 'Bardo'); }
-  function dadoInspiracao(nivel) { return nivel >= 15 ? 'd12' : nivel >= 10 ? 'd10' : nivel >= 5 ? 'd8' : 'd6'; }
-  function darInspiracao(nome) {
-    const b = bardoDaFicha();
-    if (!b) return;
-    const alvo = (nome || '').trim();
-    if (!alvo) { log('Diga a quem dar a Inspiração Bárdica.'); return; }
-    const max = Math.max(1, m(ficha.atributos.car));
-    const usados = ficha.recursosUsados['Inspiração Bárdica'] || 0;
-    if (usados >= max) { log('Sem Inspiração Bárdica — recupere no descanso.'); render(); return; }
-    ficha.recursosUsados['Inspiração Bárdica'] = usados + 1;
-    const dado = dadoInspiracao(b.nivel);
-    if (!ficha.inspiracoesDadas) ficha.inspiracoesDadas = [];
-    ficha.inspiracoesDadas.push({ nome: alvo, dado });
-    log(`🎵 Inspiração Bárdica (${dado}) para ${alvo}.`);
-    salvar();
-  }
-  function inspiracaoUsada(i) {
-    if (!ficha.inspiracoesDadas || !ficha.inspiracoesDadas[i]) return;
-    const { nome, dado } = ficha.inspiracoesDadas[i];
-    ficha.inspiracoesDadas.splice(i, 1);
-    log(`🎵 ${nome} usou a Inspiração (${dado}).`);
-    salvar();
-  }
-
   // ----- F1: Punição Divina do Paladino (nv2+) -----
   // Gasta 1 espaço de magia DEPOIS de acertar um golpe corpo a corpo:
   // 2d8 radiante (1º), +1d8 por círculo acima (máx 5d8), +1d8 vs mortos-vivos/ínferos.
@@ -576,7 +546,6 @@ const Jogo = (function () {
     recursosClasse().forEach(r => { if (r.rec === 'curto') ficha.recursosUsados[r.nome] = 0; });
     const max = slotsMax();
     if (max && max.pacto) ficha.pactoUsados = 0; // Bruxo recupera no descanso curto
-    ficha.inspiracoesDadas = []; // F2: dados de Inspiração já expiraram (duram ~1 min)
     salvar();
   }
   function descansoLongo() {
@@ -585,7 +554,6 @@ const Jogo = (function () {
     ficha.slotsUsados = {};
     ficha.pactoUsados = 0;
     ficha.recursosUsados = {};
-    ficha.inspiracoesDadas = []; // F2: limpa os dados de Inspiração pendentes
     ficha.formaAtiva = null; // a Forma Selvagem dura nível/2 horas — não sobrevive à noite
     ficha.arremessadas = {}; // C3: no descanso longo, recolhe tudo que foi arremessado
     const c = classeObj();
@@ -1045,30 +1013,6 @@ const Jogo = (function () {
       </div>`;
     }
 
-    // ----- 🎵 Inspiração Bárdica do Bardo (F2) — dar a um aliado e lembrar a quem -----
-    let inspiracaoHtml = '';
-    const bardoAtq = bardoDaFicha();
-    if (bardoAtq) {
-      const dado = dadoInspiracao(bardoAtq.nivel);
-      const max = Math.max(1, m(f.atributos.car));
-      const restam = max - (f.recursosUsados['Inspiração Bárdica'] || 0);
-      const rec = bardoAtq.nivel >= 5 ? 'descanso curto/longo' : 'descanso longo';
-      const pend = f.inspiracoesDadas || [];
-      const pendHtml = pend.length
-        ? `<div class="pv-linha jg-insp-pend"><b>Segurando o dado:</b> ${pend.map((p, i) =>
-            `<span class="jg-insp-chip">${esc(p.nome)} <small>(${esc(p.dado)})</small> <button class="btn-mini" data-inspusada="${i}" title="marcar como usada">✔</button></span>`).join(' ')}</div>`
-        : '<div class="criador-hint">Ninguém está segurando um dado agora.</div>';
-      inspiracaoHtml = `<div class="jg-bloco jg-inspiracao" data-bloco-acao="inspiracao"><h4>🎵 Inspiração Bárdica <small>(${dado} · ação bônus)</small></h4>
-        <div class="pv-linha">Dá um dado <b>${dado}</b> a um aliado que possa ouvir você; ele soma a um teste, ataque ou salvaguarda à escolha dele (até 1 min). Recupera em ${rec}.</div>
-        <div class="pv-linha jg-insp-dar">
-          <input type="text" id="jgInspAlvo" placeholder="a quem? (nome do aliado)" maxlength="40" ${restam > 0 ? '' : 'disabled'}>
-          <button class="btn-mini" id="jgInspDar" ${restam > 0 ? '' : 'disabled'}>🎵 Dar Inspiração (${restam}/${max})</button>
-        </div>
-        ${restam > 0 ? '' : '<div class="criador-hint">Sem usos — recupere no descanso.</div>'}
-        ${pendHtml}
-      </div>`;
-    }
-
     // ----- 🛡️ Auras do Paladino (F1) — passivas sempre visíveis a partir do N6 -----
     let aurasHtml = '';
     if (palad && palad.nivel >= 6) {
@@ -1393,7 +1337,6 @@ const Jogo = (function () {
         if (punicaoHtml) cats.push(['punicao', '⚡', 'Punição Divina']);
         if (furtivoHtml) cats.push(['furtivo', '🗡️', 'Ataque Furtivo']);
         if (expulsarHtml) cats.push(['expulsar', '✨', 'Expulsar Mortos-Vivos']);
-        if (inspiracaoHtml) cats.push(['inspiracao', '🎵', 'Inspiração Bárdica']);
         if (formaHtml) cats.push(['forma', '🐺', 'Forma Selvagem']);
         if (recHtml) cats.push(['recursos', '🎲', 'Recursos de Classe']);
         const indice = cats.length
@@ -1442,7 +1385,7 @@ const Jogo = (function () {
           </div>
           ${condHtml}${logHtml}
         </div>
-        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${expulsarHtml}${inspiracaoHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
+        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${expulsarHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
       </div>
     `;
 
@@ -1747,10 +1690,6 @@ const Jogo = (function () {
 
     // ----- ✨ Expulsar Mortos-Vivos (F2) -----
     if ($('jgExpulsar')) $('jgExpulsar').onclick = expulsarMortosVivos;
-
-    // ----- 🎵 Inspiração Bárdica (F2) -----
-    if ($('jgInspDar')) $('jgInspDar').onclick = () => darInspiracao(($('jgInspAlvo') || {}).value);
-    document.querySelectorAll('[data-inspusada]').forEach(b => b.onclick = () => inspiracaoUsada(+b.dataset.inspusada));
 
     // ----- Forma Selvagem: transformar / dano-cura da fera / reverter -----
     const fsBtn = $('jgFsTransformar');

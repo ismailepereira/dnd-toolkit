@@ -26,7 +26,6 @@ const ctx = vm.runInContext(`({
   PATRONOS_PACTO, patronoDados, SUBCLASSES, antecedentesDisponiveis, antecedenteDados,
   calcularCA, percepcaoPassiva, cdConjuracao, pvMaximoMonoclasse, recursosDeClasse5e, resumoCombate5e, cartaoCombateHtml,
   FORMAS_SELVAGENS, FORMAS_ELEMENTAIS, formasElementaisDisponiveis, limiteFormaSelvagem, formasSelvagensDisponiveis, formaSelvagemDados,
-  CONDICOES, efeitosDoAtaque,
 })`, sandbox);
 // guarda contra testes vácuos: nada aqui pode estar indefinido
 for (const k in ctx) assert.ok(ctx[k] != null, `binding indefinida no contexto: ${k}`);
@@ -275,30 +274,6 @@ t('F3b: formaSelvagemDados também encontra os elementais (p/ o painel/PV)', () 
 t('F3b: elementais NÃO entram na lista normal de feras (ND 5 acima do teto)', () => {
   const lua20 = ctx.formasSelvagensDisponiveis(20, 'Círculo da Lua').map(f => f.nome);
   assert.ok(!lua20.some(n => n.startsWith('Elemental')), 'nenhum elemental na lista de feras');
-});
-
-t('C6: efeitosDoAtaque detecta condição, CD e salva no texto do ataque', () => {
-  const lobo = ctx.efeitosDoAtaque('Mordida: +4 para acertar. Dano: 7 (2d4+2) perfurante; FOR CD 11 ou o alvo cai.');
-  assert.strictEqual(lobo.length, 1);
-  assert.strictEqual(lobo[0].cond, 'Caído');
-  assert.strictEqual(lobo[0].cd, 11);
-  assert.strictEqual(lobo[0].salva, 'FOR');
-  // teia → Impedido (Restrained)
-  const teia = ctx.efeitosDoAtaque('Teia (recarga 5-6): prende o alvo (DES CD 12 p/ escapar).');
-  assert.ok(teia.some(e => e.cond === 'Impedido' && e.cd === 12));
-  // crocodilo agarra
-  assert.ok(ctx.efeitosDoAtaque('Mordida: 1d10+2 perfurante + agarrado (CD 12).').some(e => e.cond === 'Agarrado'));
-  // veneno da aranha
-  assert.ok(ctx.efeitosDoAtaque('Picada: 1 perfurante + veneno (CD 9, 1d4).').some(e => e.cond === 'Envenenado'));
-  // ataque sem efeito → vazio
-  assert.strictEqual(ctx.efeitosDoAtaque('Cimitarra: +4 para acertar. Dano: 5 (1d6+2) corte.').length, 0);
-});
-
-t('C6: toda condição devolvida por efeitosDoAtaque existe em CONDICOES', () => {
-  const amostras = ['o alvo cai', 'fica agarrado', 'preso na teia', 'atordoado', 'amedrontado', 'envenenado', 'paralisado', 'cego', 'inconsciente'];
-  amostras.forEach(txt => ctx.efeitosDoAtaque('CD 10 ' + txt).forEach(e =>
-    assert.ok(ctx.CONDICOES[e.cond], `condição desconhecida: ${e.cond}`)));
-  assert.ok(ctx.CONDICOES['Impedido'], 'Impedido (Restrained) foi adicionada às CONDICOES');
 });
 
 t('SUBCLASSES: toda classe listada existe e nível de escolha é 1-3', () => {

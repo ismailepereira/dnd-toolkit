@@ -4,6 +4,36 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-22 — C6 · Efeitos de ataque → condição com 1 toque ⤷
+
+**Backup:** `versoes/2026-07-22-c6-efeitos-condicoes/` (compendio.js, app.js, unit-regras.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** Fase C6 do roadmap Fichas & Combate. No rastreador de combate do Mestre, ataques com efeito conhecido
+agora sugerem aplicar a condição no alvo — antes o Mestre lembrava e marcava na mão.
+- **Detecção pura:** novo `efeitosDoAtaque(texto)` (`compendio.js`) lê o texto do ataque e devolve
+  `[{cond, cd, salva}]` — reconhece derrubar (Caído), agarrar (Agarrado), prender/teia (Impedido), envenenar,
+  atordoar, amedrontar, paralisar, cegar, adormecer (Inconsciente), enfeitiçar, surdo. Extrai a **CD** e o
+  **atributo da salva** (ex.: "FOR CD 11").
+- **Nova condição Impedido** (Restrained) adicionada às `CONDICOES` — faltava no toolkit (usada por teia/redes).
+- **UI (`app.js`):** cada ação de ataque no card do combatente ganha, ao lado, um botão tracejado
+  **"⤷ {Condição} CD X"** (título explica a salva). Clicar **aplica a condição no alvo selecionado** (🎯) e
+  registra no log ("Lobo → Goblin 2: aplicou Caído"). Sem alvo, avisa para selecionar um. Estilo `.comb-efeito`
+  em `style.css`.
+
+**Ficheiros:** `static/js/compendio.js` (+`efeitosDoAtaque`, +condição Impedido), `static/js/app.js` (botões no
+render + handler), `static/css/style.css` (`.comb-efeito`), `tests/unit-regras.js` (+2 casos),
+`docs/ROADMAP-FICHAS-COMBATE.md` (C6 ✅).
+
+**Verificação:** `node --check` OK · `npm test` **37/37** ✅ (detecção de cond/CD/salva; toda condição devolvida
+existe em CONDICOES; Impedido presente). E2E em **navegador real** (Browser pane, Mestre): combate com Lobo +
+Goblin alvo → a Mordida do Lobo mostrou "⤷ Caído CD 11" (título "falha em FOR CD 11"); clicar aplicou Caído no
+Goblin e logou; ataque sem efeito (Cimitarra) não gera botão.
+
+**Como reverter:** restaurar `versoes/2026-07-22-c6-efeitos-condicoes/`, ou `git revert`.
+
+**Próximo (roadmap Fichas & Combate):** **C7** (economia de ação do turno no Mestre — parte já absorvida pela
+Fase T no jogador) ou **F5** (subclasses com efeito mecânico completo).
+
 ## 2026-07-22 — F3b · Druida — Forma Elemental 🌙 (Círculo da Lua N10)
 
 **Backup:** `versoes/2026-07-22-f3b-forma-elemental/` (formaselvagem.js, jogo.js, unit-regras.js, ROADMAP-FICHAS-COMBATE.md).

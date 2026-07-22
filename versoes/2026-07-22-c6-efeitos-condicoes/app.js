@@ -632,14 +632,7 @@ function renderCombate() {
     const div = document.createElement('div');
     div.className = 'comb-card' + (i === idxAtual ? ' turno' : '') + (c.id === alvoSelecionado ? ' alvo' : '') + (c.hpAtual === 0 ? ' morto' : '');
     const condChips = Object.keys(CONDICOES).map(cd => `<label class="check-chip mini ${c.condicoes.includes(cd) ? 'on' : ''}" title="${escapeHtml(CONDICOES[cd])}"><input type="checkbox" data-cond="${escapeHtml(cd)}" ${c.condicoes.includes(cd) ? 'checked' : ''}>${escapeHtml(cd)}</label>`).join('');
-    const acoesHtml = (c.acoes || []).map((a, ai) => {
-      // C6: se o ataque tem efeito conhecido (derruba, agarra, envenena…), oferece
-      // um botão que aplica a condição no alvo selecionado com 1 toque.
-      const efeitos = (typeof efeitosDoAtaque === 'function') ? efeitosDoAtaque(a.texto) : [];
-      const efeitosHtml = efeitos.map(ef =>
-        `<button class="comb-efeito" data-efeito-cond="${escapeHtml(ef.cond)}" title="Aplicar '${escapeHtml(ef.cond)}' no alvo${ef.cd ? ` (falha em ${ef.salva ? ef.salva + ' ' : ''}CD ${ef.cd})` : ''}">⤷ ${escapeHtml(ef.cond)}${ef.cd ? ` CD ${ef.cd}` : ''}</button>`).join('');
-      return `<button class="comb-acao" data-acao="${ai}" title="${escapeHtml(a.texto)}">${escapeHtml(a.nome)}${a.bonus != null ? ` (${a.bonus >= 0 ? '+' : ''}${a.bonus})` : ''}${a.dano ? ` ${escapeHtml(a.dano)}` : ''}${a.dmgTipo ? ` <i>${escapeHtml(a.dmgTipo)}</i>` : ''}</button>${efeitosHtml}`;
-    }).join('');
+    const acoesHtml = (c.acoes || []).map((a, ai) => `<button class="comb-acao" data-acao="${ai}" title="${escapeHtml(a.texto)}">${escapeHtml(a.nome)}${a.bonus != null ? ` (${a.bonus >= 0 ? '+' : ''}${a.bonus})` : ''}${a.dano ? ` ${escapeHtml(a.dano)}` : ''}${a.dmgTipo ? ` <i>${escapeHtml(a.dmgTipo)}</i>` : ''}</button>`).join('');
     const multiBtn = (c.multi > 1 && (c.acoes || []).some(a => a.dano)) ? `<button class="comb-acao multi" data-multi title="Repete o 1º ataque com dano, ${c.multi}×">⚔ Multiataque ×${c.multi}</button>` : '';
     // defesas
     const defs = [...(c.resist || []).map(t => `<span class="def-chip r" title="Resistência">½ ${escapeHtml(t)}</span>`),
@@ -711,17 +704,6 @@ function renderCombate() {
     });
     div.querySelector('[data-cura]').addEventListener('click', () => { curarComb(c, val()); logCombate(`${c.nome} curou ${val()}. PV ${c.hpAtual}/${c.hpMax}`); salvarCombate(); renderCombate(); });
     div.querySelectorAll('[data-acao]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); atacar(c, c.acoes[+b.dataset.acao]); }));
-    // C6: aplica a condição do efeito no alvo selecionado
-    div.querySelectorAll('[data-efeito-cond]').forEach(b => b.addEventListener('click', e => {
-      e.stopPropagation();
-      const cond = b.dataset.efeitoCond;
-      const alvo = combate.combatentes.find(x => x.id === alvoSelecionado);
-      if (!alvo) { logCombate(`Selecione um alvo 🎯 para aplicar ${cond}`); renderCombate(); return; }
-      if (alvo.condicoes.includes(cond)) { logCombate(`${alvo.nome} já estava ${cond}`); renderCombate(); return; }
-      alvo.condicoes.push(cond);
-      logCombate(`${c.nome} → ${alvo.nome}: aplicou ${cond}`);
-      salvarCombate(); renderCombate();
-    }));
     const bMulti = div.querySelector('[data-multi]');
     if (bMulti) bMulti.addEventListener('click', e => { e.stopPropagation(); atacar(c, (c.acoes || []).find(a => a.dano), c.multi); });
     div.querySelectorAll('[data-cond]').forEach(chk => chk.addEventListener('change', () => {

@@ -163,11 +163,9 @@ toggle/botão no Modo de Jogo. **Com isso a FASE F2 está 100% concluída** (as 
   por nível, +modificador de conjuração na cura); tudo registra no Histórico. Respeita o modo Dado Físico.
 - [x] **Armas** já tinham 🎲 atacar / 🎲 dano (pré-existente) — C5 estendeu o padrão às magias.
 
-### C6 ✅ Efeitos dos ataques → condições com 1 toque — ENTREGUE 22/07
-- [x] No rastreador de combate do Mestre, todo ataque com efeito conhecido (Lobo derruba CD 11, teia prende,
-  crocodilo agarra, aranha envenena…) ganha um **botão-sugestão "⤷ {Condição} CD X"** que **aplica a condição
-  no alvo selecionado** com 1 toque. Detecção pura em `efeitosDoAtaque(texto)` (compendio.js) sobre o texto do
-  ataque; nova condição **Impedido** (Restrained) adicionada às `CONDICOES` (faltava).
+### C6 🟡 Efeitos dos ataques → condições com 1 toque
+- [ ] Ataque com efeito conhecido (Lobo derruba CD 11, teia prende…) sugere aplicar a condição no alvo
+  selecionado do combate ("Aplicar 'Caído' em Goblin 2?").
 
 ### C7 🟡 Economia de ação do turno
 - [ ] Marcadores Ação/Bônus/Movimento/Reação no painel do turno: clicar num card marca o gasto; "▶ Próxima

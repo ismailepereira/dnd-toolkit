@@ -412,7 +412,6 @@ const CONDICOES = {
   'Cego': 'Não enxerga, falha em testes que exijam visão; seus ataques têm desvantagem e ataques contra ele têm vantagem.',
   'Enfeitiçado': 'Não pode atacar o enfeitiçador; este tem vantagem em testes sociais com ele.',
   'Envenenado': 'Desvantagem em jogadas de ataque e testes de atributo.',
-  'Impedido': 'Deslocamento = 0; desvantagem em ataques e em salvas de Destreza; ataques contra ele têm vantagem (ex.: preso em teia).',
   'Incapacitado': 'Não pode realizar ações nem reações.',
   'Inconsciente': 'Incapacitado, caído, larga o que segura; ataques têm vantagem e acertos a 1,5m são críticos.',
   'Invisível': 'Impossível de ver sem ajuda; ataques contra ele têm desvantagem, seus ataques têm vantagem.',
@@ -421,36 +420,6 @@ const CONDICOES = {
   'Surdo': 'Não ouve e falha em testes que exijam audição.',
   'Exausto': 'Níveis de exaustão acumulam penalidades (desvantagem em testes, deslocamento reduzido, etc.).',
 };
-
-// C6: detecta condições implícitas no texto de um ataque (ex.: "FOR CD 11 ou o
-// alvo cai" → Caído CD 11 FOR). Devolve um array de { cond, cd, salva } — cond é
-// uma chave de CONDICOES. Função PURA (usada pelo rastreador de combate e testes).
-function efeitosDoAtaque(texto) {
-  if (!texto) return [];
-  const t = String(texto).toLowerCase();
-  const cdM = String(texto).match(/CD\s*(\d+)/i);
-  const cd = cdM ? parseInt(cdM[1], 10) : null;
-  const salvaM = String(texto).match(/\b(FOR|DES|CON|INT|SAB|CAR)\s*CD/i);
-  const salva = salvaM ? salvaM[1].toUpperCase() : null;
-  // ordem: mais específico primeiro; cada condição entra no máximo uma vez
-  const regras = [
-    [/paralisad/, 'Paralisado'],
-    [/inconscient|adormec/, 'Inconsciente'],
-    [/atordoad/, 'Atordoado'],
-    [/amedront|apavora|assombr/, 'Amedrontado'],
-    [/impedid|enredad|preso|prende|teia|restrain/, 'Impedido'],
-    [/agarrad|agarra\b|constri[cç]/, 'Agarrado'],
-    [/envenenad|veneno|poison/, 'Envenenado'],
-    [/\bcego\b|cegueira|\bcega\b|blind/, 'Cego'],
-    [/\bsurd/, 'Surdo'],
-    [/enfeiti[cç]ad|encantad|charm/, 'Enfeitiçado'],
-    [/incapacitad/, 'Incapacitado'],
-    [/\bcai\b|derruba|ca[íi]d[oa]|ao ch[ãa]o|no ch[ãa]o|prone/, 'Caído'],
-  ];
-  const achados = [];
-  regras.forEach(([re, cond]) => { if (re.test(t) && !achados.some(a => a.cond === cond)) achados.push({ cond, cd, salva }); });
-  return achados;
-}
 
 // =====================================================
 // TALENTOS (Feats) - PHB (resumo dos efeitos)

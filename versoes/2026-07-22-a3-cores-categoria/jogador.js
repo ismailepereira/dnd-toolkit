@@ -23,9 +23,6 @@ function escapeHtml(str) {
     if (!modo) return;
     document.querySelectorAll('[data-modo]').forEach(m => m.classList.toggle('on', m.dataset.modo === modo));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('tab-oculta', b.dataset.mode !== modo));
-    // A3: o modo ativo tinge a interface (faixa do topo, abas). Atributo em vez
-    // de :has() — o :has() não reinvalida de forma confiável ao trocar de modo.
-    document.body.dataset.modoAtivo = modo;
   }
 
   document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => {

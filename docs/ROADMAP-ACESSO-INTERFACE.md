@@ -90,7 +90,7 @@ alcança tudo sem ceder senha a ninguém.
 → **Metade feita:** o *acesso administrativo* está trancado e testado. A parte de **ouro/itens/nível** é a
 **A4** (ouro) e a **Fase B** (nível) — ainda abertas.
 
-### A3 🔴 Menus por categoria e cor (a linguagem visual)
+### A3 ✅ Menus por categoria e cor (a linguagem visual) — ENTREGUE 22/07
 **Dor:** "organizar a interface dos menus, por cores e categorias... botões que façam mais sentido para o público."
 
 - [ ] **Uma cor por categoria**, aplicada de forma consistente em aba, chip, botão e borda de card — reusando
@@ -102,13 +102,25 @@ alcança tudo sem ceder senha a ninguém.
   | 📚 **Consultar** | roxo/cinza | "referência, não muda nada" |
   | 💰 **ADM / Finanças** | verde | "dinheiro, do dono" |
   | 👑 **Controle Total** | dourado | "poder máximo, use com cuidado" |
-- [ ] **Hierarquia de botão:** primário (ação da vez) × secundário (apoio) × perigo (destrutivo, sempre
-      vermelho e sempre com confirmação). Hoje há `btn-primary`/`btn-secondary`/`btn-danger` — falta *usar com
-      critério*, não por acaso.
-- [ ] **Faixa de modo no topo** com a cor da categoria, para nunca haver dúvida de onde se está.
-- [ ] Acessibilidade: contraste AA e **nunca cor sozinha** como informação (sempre ícone + texto junto).
+- [x] **Faixa de modo no topo** (`.topbar` com borda inferior de 3px na cor da categoria) — a pista "onde estou".
+- [x] **Botão de modo com a própria cor** (barra lateral colorida mesmo desligado; fundo cheio quando ligado).
+- [x] **Abas herdam a cor do modo** a que pertencem.
+- [x] Acessibilidade: **texto escuro (`--cat-tinta`) sobre a cor viva** (contraste melhor que o branco que havia
+      antes) e **nunca cor sozinha** — todo botão de modo já tem ícone + texto (🎲 Jogar, 📝 Preparar, 📖 Consultar).
+- [ ] **Hierarquia de botão:** primário × secundário × perigo (sempre com confirmação) — usar com critério nas
+      telas. **Fica para a A3b**, é uma passada de revisão tela a tela.
 
-**Pronto quando:** dá para saber, olhando 1 segundo, se a tela é de jogar, preparar, consultar ou de dinheiro.
+**Pronto quando:** dá para saber, olhando 1 segundo, se a tela é de jogar, preparar, consultar ou de dinheiro. ✅
+
+**Como foi feito:** o JS (`app.js`/`jogador.js`, função `mostrarModo`) marca `body[data-modo-ativo]`; o CSS
+deriva `--cat`/`--cat-soft` disso. **Não usei `:has()`** de propósito (ver nota abaixo).
+
+⚠️ **Nota de verificação (honesta):** o navegador embutido do preview devolve **valores em cache** no
+`getComputedStyle` — provei injetando uma regra `!important` nova que não alterou a leitura. Então: as cores
+foram **verificadas em carregamento limpo** (`/jogador` modo *mesa* → tudo vermelho; `/mestre` modo *preparar*
+→ tudo azul; aba de *consultar* → roxo), e a **troca dinâmica** foi verificada no DOM (o atributo muda, a
+classe `.on` anda, as abas recolorem). O repaint da faixa ao trocar de modo **não pôde ser medido** nesse
+navegador — vale o Ismaile dar uma olhada ao vivo uma vez.
 
 ### A4 🔴 Trancar a economia (o ouro sai da mão do jogador)
 **Dor:** "remova a opção do player adicionar ouro, o ouro quem dá é o mestre ou o loot."

@@ -4,6 +4,38 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-22 — A3 · Cores por categoria nos menus 🎨
+
+**Backup:** `versoes/2026-07-22-a3-cores-categoria/` (style.css, app.js, jogador.js, mestre.html, jogador.html).
+
+**Resumo:** terceira entrega do roadmap de Acesso & Interface. Os menus ganharam **linguagem de cor por
+categoria**, reusando o `data-mode` das Fases 17.1/17.2 (nada de navegação nova).
+- **Faixa no topo:** `.topbar` com borda inferior de 3px na cor do modo atual — a pista "onde estou".
+- **Botão de modo:** barra lateral na própria cor mesmo desligado; quando ligado, **fundo cheio** na cor.
+- **Abas herdam a cor do modo** a que pertencem (🎲 Jogar/Mesa vermelho · 📝 Preparar azul · 📖 Consultar roxo).
+- **Contraste:** o texto sobre a cor viva passou de branco para **escuro (`--cat-tinta`)** — bem melhor para AA.
+  E a cor **nunca é a única pista**: todo botão de modo já tem ícone + texto.
+- **Como liga:** `mostrarModo()` (em `app.js` e `jogador.js`) marca **`body[data-modo-ativo]`**; o CSS deriva
+  `--cat`/`--cat-soft` daí. **Não usei `:has()`** de propósito — já tinha apanhado, na A2, que este motor não
+  reinvalida `:has()` de forma confiável.
+
+**Ficheiros:** `static/css/style.css` (bloco A3 + `--cat-*-soft`, `--cat-tinta`), `static/js/app.js` e
+`static/js/jogador.js` (1 linha em `mostrarModo`), `docs/ROADMAP-ACESSO-INTERFACE.md` (A3 ✅).
+
+**Verificação:** `node --check` OK · sintaxe de todos os JS OK. Cores conferidas em **carregamento limpo**:
+`/jogador` (modo *mesa*) → faixa, botão de modo e aba **todos vermelhos** com texto escuro `rgb(18,18,31)`;
+`/mestre` (modo *preparar*) → **todos azuis**; aba de *consultar* → **roxo**. Troca dinâmica conferida no DOM
+(`data-modo-ativo` muda, `.on` anda, abas recolorem).
+
+⚠️ **Limite da verificação (honesto):** o navegador embutido do preview devolve `getComputedStyle` **em cache** —
+provei injetando uma regra `!important` nova que **não** alterou a leitura. Por isso o **repaint da faixa do
+topo ao trocar de modo não pôde ser medido** ali. O CSS está correto (comprovado no carregamento) e o DOM muda
+certo, mas **vale uma olhada ao vivo** no navegador de verdade.
+
+**Fica para a A3b:** hierarquia de botão (primário × secundário × perigo) revista tela a tela.
+
+**Como reverter:** restaurar `versoes/2026-07-22-a3-cores-categoria/`, ou `git revert`.
+
 ## 2026-07-22 — A2 · Papéis globais + gate central de admin 🛡️
 
 **Backup:** `versoes/2026-07-22-a2-papeis-gate/` (app.py, registro.html).

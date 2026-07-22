@@ -8,6 +8,28 @@ Mapa de tarefas do projeto, organizado por fases. Marque `[x]` conforme for conc
 
 ---
 
+## 🚨 PRIORIDADE MÁXIMA (22/07/2026) — Acesso, Perfis & Interface
+
+Pedido direto do Ismaile: **a interface não comunica o produto** (menus sem cor/categoria; a página de admin
+"ficou perdida no meio da campanha", só acessível digitando `/admin`) e **os papéis não estão trancados**
+(jogador edita o próprio ouro; não há tela de "entrar como quê"; o Mestre não controla a evolução).
+
+**→ `docs/ROADMAP-ACESSO-INTERFACE.md`** — este é o roadmap ATIVO. Ordem decidida pelo Ismaile:
+
+- **Fase A (🔴 primeiro):** A1 login isolado + **hub de cards** (💰 ADM · 👑 Mestre Controle Total · 🎲 Mestre ·
+  🧝 Jogador) · A2 papéis de verdade (`papelGlobal` = admin/mestre/jogador, escolha no cadastro, gate central
+  no servidor) · A3 **cores por categoria** nos menus (reusa o `data-mode` das Fases 17.1/17.2) · A4 **tirar o
+  ouro da mão do jogador** (botão E servidor).
+- **Fase B (🟠):** evolução **só com permissão do Mestre** — o jogador planeja a subida até o nv20, fica salvo
+  em `ficha.progressaoPlanejada`, e o Mestre libera com 1 clique aplicando o preset.
+- **Fase C (🟡):** saquear alvo abatido (NPC/PJ, além do loot de monstro que já existe) e **furto com CD
+  variável** por peso/raridade/importância do item.
+
+> O roadmap `docs/ROADMAP-FICHAS-COMBATE.md` fica **em pausa** nesta parte: entregou Fases T, F1, F2, F3b, F4,
+> C1–C6 e F5a. Restam lá F5b (patronos do Bruxo), F5c (Canalizar do juramento) e a Conjuração Atemporal (N18).
+
+---
+
 ## 🎯 NOVO (19/07/2026) — Fichas por classe & Combate
 
 Feedback da mesa de 18/07 (Paladino confuso no nv1, magias invisíveis no combate, azagaias repetidas,

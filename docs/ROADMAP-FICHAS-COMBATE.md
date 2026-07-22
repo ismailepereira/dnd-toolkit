@@ -1,5 +1,10 @@
 # 🗺️ Roadmap — Fichas por Classe & Combate
 
+> ⏸️ **EM PAUSA desde 22/07/2026** — a prioridade passou para
+> **`docs/ROADMAP-ACESSO-INTERFACE.md`** (acesso, perfis e interface), a pedido do Ismaile.
+> Já entregue aqui: Fases **T, F1, F2, F3b, F4, C1–C6 e F5a**. Ficam abertos: **F5b** (patronos do Bruxo),
+> **F5c** (Canalizar Divindade do juramento/domínio) e a **Conjuração Atemporal (N18)** da F3.
+
 Plano de melhoria nascido da **mesa de 18/07/2026**: dificuldades reais com Paladino,
 Clérigo e Druida na criação, e fricções no combate (magias invisíveis, azagaias
 repetidas, arma arremessada sem controle). Cada item aponta a dor que o originou.

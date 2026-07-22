@@ -40,7 +40,7 @@ Um item por sessão de trabalho; cada entrega com teste de regressão (a suíte 
 - [x] **Auras (nv6+)** como bloco passivo "🛡️ Auras (sempre ativas)" com o valor do Carisma e o alcance
   (3m, 9m no N18) — Proteção (N6) e Coragem (N10).
 
-### F2 ✅ Auditoria "kit de estreia" das 12 classes (níveis 1-3) — CONCLUÍDA 21/07
+### F2 🔴 Auditoria "kit de estreia" das 12 classes (níveis 1-3)
 **Dor generalizada:** classes cuja abertura confunde. Para CADA classe, garantir os 3 pontos:
 (a) painel do Criador explica TODAS as características iniciais em linguagem de mesa;
 (b) todo recurso gastável aparece rastreável no Modo de Jogo; (c) toda ação especial tem botão ou card, não só texto.
@@ -63,11 +63,11 @@ Legenda: ✅ ok · ⚠️ parcial · ❌ falta · 🔎 = alvo de correção.
 | **Druida** | ✅ | ✅ | ✅ | Coberto (Forma Selvagem completa). Sem lacuna 1-3. |
 | **Feiticeiro** | ✅ | ⚠️ | ❌ | 🔎 **Pontos de Feitiçaria**: só +/−, **sem conversão espaço↔ponto** (N2). |
 | **Guerreiro** | ✅ | ⚠️ | ❌ | 🔎 **Retomar o Fôlego** é contador, não **rola/cura 1d10+nível**. Surto de Ação sem chip. |
-| **Ladino** | ✅ | ✅ | ✅ | Furtivo ✅ (C4). **Ação Ladina** ✅ (card-lembrete das 3 opções, 21/07). |
+| **Ladino** | ✅ | ✅ | ⚠️ | Furtivo ✅ (C4). **Ação Ladina** (N2) só texto → lembrete. (menor) |
 | **Mago** | ✅ | ✅ | ✅ | **Recuperação Arcana** ✅ (botão 1×/descanso longo, 21/07). |
 | **Monge** | ✅ | ✅ | ❌ | 🔎 **Opções de Ki** (Rajada/Defesa Paciente/Passo do Vento — N2) só texto, sem botão que gaste 1 Ki. |
 | **Paladino** | ✅ | ✅ | ✅ | Coberto (F1). **Imposição das Mãos** ✅ (botão de distribuir cura + doença/veneno, 21/07). |
-| **Patrulheiro** | ✅ | ✅ | ✅ | **Consciência Primitiva** ✅ (botão que gasta 1 espaço + sondagem, 21/07). |
+| **Patrulheiro** | ✅ | ✅ | ⚠️ | **Consciência Primitiva** (N3, gasta espaço) só texto. (menor) |
 | **Bruxo** | ✅ | ✅ | ⚠️ | Magia de Pacto ✅ (C1). Invocações/Pacto Místico são passivos/escolha — sem ação gastável 1-3. (menor) |
 
 **Ordem de correção (1 classe = 1 commit), por dor real na mesa:**
@@ -91,9 +91,8 @@ Legenda: ✅ ok · ⚠️ parcial · ❌ falta · 🔎 = alvo de correção.
    com "Recursos de Classe", 1×/descanso curto) + Histórico. Guerreiro N2+ ganha no mesmo card o botão
    **⚡ Surto de Ação** (gasta 1 uso, registra a ação adicional). Guards: botões desabilitam sem uso.
 
-✅ **Passada de fecho das "menores" concluída (21/07):** Ataque Descuidado (Bárbaro), Recuperação Arcana (Mago),
-Imposição das Mãos-cura (Paladino), Ação Ladina (Ladino) e Consciência Primitiva (Patrulheiro) — todas com card/
-toggle/botão no Modo de Jogo. **Com isso a FASE F2 está 100% concluída** (as 12 classes têm (a)(b)(c) cobertos).
+As "menores" (Ataque Descuidado, Ação Ladina, Recuperação Arcana, Imposição das Mãos-cura, Consciência
+Primitiva) entram numa passada de fecho depois, se valer a pena.
 
 ### F3 🟠 Druida — fechamento das pendências da Forma Selvagem
 - [x] Catálogo por nível + transformar/reverter (19/07).

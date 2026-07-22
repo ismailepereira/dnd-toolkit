@@ -4,6 +4,30 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-21 — F2 (fecho) · Ladino 🃏 + Patrulheiro 🐾 — FASE F2 CONCLUÍDA
+
+**Backup:** `versoes/2026-07-21-f2-ladino-patrulheiro/` (jogo.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** 4ª e 5ª "menores" da FASE F2 (num commit — ambas eram "só texto"). **Conclui a FASE F2** — as 12
+classes têm agora (a) painel no Criador, (b) recurso rastreável e (c) ação com card/botão/toggle.
+- **🃏 Ação Ladina (Ladino N2+):** card-lembrete das 3 opções de **ação bônus** (Disparar, Desengajar,
+  Esconder-se), deixando claro que é grátis a cada turno (não gasta recurso). Fecha o "só texto".
+- **🐾 Consciência Primitiva (Patrulheiro N3+):** card com botão **🐾 Sondar** que **gasta o menor espaço de
+  magia disponível** e registra no Histórico a sondagem (aberrações, celestiais, corruptores, dragões,
+  elementais, fadas ou mortos-vivos a até 1,5 km / 6 km em terreno favorito; sem número nem localização, 1 min
+  por nível do espaço). Botão desabilita sem espaço.
+
+**Ficheiros:** `static/js/jogo.js` (`patrulheiroConsciencia`/`conscienciaPrimitiva`, os 2 cards, handler, índice
+T3, inserção no HTML), `docs/ROADMAP-FICHAS-COMBATE.md` (linhas Ladino/Patrulheiro ✅, F2 marcada CONCLUÍDA).
+
+**Verificação:** `node --check` OK · `npm test` **29/29** ✅. E2E em **navegador real** (Browser pane): Ladino N3 →
+card com as 3 opções; Patrulheiro N3 com espaço de 1º → botão gastou o espaço ({1:1}) e logou a sondagem com os
+tipos corretos.
+
+**Como reverter:** restaurar `versoes/2026-07-21-f2-ladino-patrulheiro/`, ou `git revert`.
+
+**Próximo (roadmap Fichas & Combate):** **F4** — cartão-resumo de combate no fim do Criador ("cola" do jogador).
+
 ## 2026-07-21 — F2 (fecho) · Paladino — Imposição das Mãos 🙏 (distribuir cura)
 
 **Backup:** `versoes/2026-07-21-f2-paladino-impmaos/` (jogo.js, ROADMAP-FICHAS-COMBATE.md).

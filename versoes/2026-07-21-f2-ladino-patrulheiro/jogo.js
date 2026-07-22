@@ -690,18 +690,6 @@ const Jogo = (function () {
     salvar();
   }
 
-  // ----- menor F2: Consciência Primitiva do Patrulheiro (N3) -----
-  // Gasta um espaço de magia (1º+) para sentir tipos de criatura por perto.
-  function patrulheiroConsciencia() { return classesFicha().find(c => c.classe === 'Patrulheiro' && c.nivel >= 3); }
-  function conscienciaPrimitiva() {
-    if (!patrulheiroConsciencia()) return;
-    const esp = espacoParaMagia(1);
-    if (!esp || esp.tipo === 'pacto') { log('Sem espaço de magia para a Consciência Primitiva.'); render(); return; }
-    ficha.slotsUsados[esp.circulo] = (ficha.slotsUsados[esp.circulo] || 0) + 1;
-    log(`🐾 Consciência Primitiva (espaço do ${esp.circulo}º): sente se há aberrações, celestiais, corruptores, dragões, elementais, fadas ou mortos-vivos a até 1,5 km (6 km em terreno favorito), por ${esp.circulo} min. Não revela número nem localização.`);
-    salvar();
-  }
-
   // ----- F1: Punição Divina do Paladino (nv2+) -----
   // Gasta 1 espaço de magia DEPOIS de acertar um golpe corpo a corpo:
   // 2d8 radiante (1º), +1d8 por círculo acima (máx 5d8), +1d8 vs mortos-vivos/ínferos.
@@ -1346,29 +1334,6 @@ const Jogo = (function () {
       </div>`;
     }
 
-    // ----- 🃏 Ação Ladina do Ladino (menor F2) — lembrete das opções de ação bônus -----
-    let acaoLadinaHtml = '';
-    if (classesFicha().find(c => c.classe === 'Ladino' && c.nivel >= 2)) {
-      acaoLadinaHtml = `<div class="jg-bloco jg-acaoladina" data-bloco-acao="acaoladina"><h4>🃏 Ação Ladina <small>(ação bônus, todo turno)</small></h4>
-        <div class="pv-linha"><b>Disparar:</b> dobra seu deslocamento neste turno.</div>
-        <div class="pv-linha"><b>Desengajar:</b> seus movimentos não provocam ataques de oportunidade.</div>
-        <div class="pv-linha"><b>Esconder-se:</b> teste de Furtividade para ficar oculto.</div>
-        <div class="criador-hint">Você ganha uma dessas como <b>ação bônus</b> a cada turno — não gasta recurso.</div>
-      </div>`;
-    }
-
-    // ----- 🐾 Consciência Primitiva do Patrulheiro (menor F2) -----
-    let conscienciaHtml = '';
-    if (patrulheiroConsciencia()) {
-      const esp = espacoParaMagia(1);
-      const off = (!esp || esp.tipo === 'pacto') ? 'disabled' : '';
-      conscienciaHtml = `<div class="jg-bloco jg-consciencia" data-bloco-acao="consciencia"><h4>🐾 Consciência Primitiva <small>(ação · gasta 1 espaço)</small></h4>
-        <div class="pv-linha">Gaste um espaço de magia para sentir se há <b>aberrações, celestiais, corruptores, dragões, elementais, fadas ou mortos-vivos</b> a até <b>1,5 km</b> (6 km em terreno favorito), por 1 min por nível do espaço. Não revela número nem localização.</div>
-        <button id="jgConsciencia" class="btn-mini" ${off}>🐾 Sondar (gasta 1 espaço)</button>
-        ${off ? '<div class="criador-hint">Sem espaço de magia disponível.</div>' : ''}
-      </div>`;
-    }
-
     // ----- 🛡️ Auras do Paladino (F1) — passivas sempre visíveis a partir do N6 -----
     let aurasHtml = '';
     if (palad && palad.nivel >= 6) {
@@ -1700,8 +1665,6 @@ const Jogo = (function () {
         if (guerreiroHtml) cats.push(['guerreiro', '💨', 'Retomar o Fôlego']);
         if (magoHtml) cats.push(['mago', '🔮', 'Recuperação Arcana']);
         if (impMaosHtml) cats.push(['impmaos', '🙏', 'Imposição das Mãos']);
-        if (acaoLadinaHtml) cats.push(['acaoladina', '🃏', 'Ação Ladina']);
-        if (conscienciaHtml) cats.push(['consciencia', '🐾', 'Consciência Primitiva']);
         if (formaHtml) cats.push(['forma', '🐺', 'Forma Selvagem']);
         if (recHtml) cats.push(['recursos', '🎲', 'Recursos de Classe']);
         const indice = cats.length
@@ -1750,7 +1713,7 @@ const Jogo = (function () {
           </div>
           ${condHtml}${logHtml}
         </div>
-        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${expulsarHtml}${inspiracaoHtml}${feiticariaHtml}${kiHtml}${guerreiroHtml}${magoHtml}${impMaosHtml}${acaoLadinaHtml}${conscienciaHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
+        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${expulsarHtml}${inspiracaoHtml}${feiticariaHtml}${kiHtml}${guerreiroHtml}${magoHtml}${impMaosHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
       </div>
     `;
 
@@ -2074,9 +2037,6 @@ const Jogo = (function () {
     // ----- 🙏 Imposição das Mãos do Paladino (F2) -----
     if ($('jgImpMaosCurar')) $('jgImpMaosCurar').onclick = () => imposicaoDasMaos(Number(($('jgImpMaosVal') || {}).value) || 1);
     if ($('jgImpMaosDoenca')) $('jgImpMaosDoenca').onclick = imposicaoDoencaVeneno;
-
-    // ----- 🐾 Consciência Primitiva do Patrulheiro (F2) -----
-    if ($('jgConsciencia')) $('jgConsciencia').onclick = conscienciaPrimitiva;
 
     // ----- ✴️ Fontes de Feitiçaria (F2) -----
     document.querySelectorAll('[data-esp2pt]').forEach(b => b.onclick = () => espacoParaPontos(+b.dataset.esp2pt));

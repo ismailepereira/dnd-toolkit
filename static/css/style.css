@@ -2425,3 +2425,38 @@ body.alto-contraste a { color: #ffd400; }
   .hub-cards { grid-template-columns: 1fr; }
   .hub-card { min-height: 0; }
 }
+
+/* FASE A2 — escolha de papel no cadastro (Mestre ou Jogador) */
+.papel-escolha {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px 12px;
+  margin: 6px 0 4px;
+}
+.papel-escolha legend { font-size: 0.82rem; color: var(--text-dim); padding: 0 6px; }
+.papel-opcao {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  grid-template-areas: "radio icone nome" "radio icone desc";
+  align-items: center;
+  gap: 2px 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.papel-opcao + .papel-opcao { margin-top: 8px; }
+.papel-opcao input { grid-area: radio; accent-color: var(--cat-jogar); }
+.papel-icone { grid-area: icone; font-size: 1.5rem; }
+.papel-nome { grid-area: nome; font-weight: 600; align-self: end; }
+.papel-desc { grid-area: desc; font-size: 0.78rem; color: var(--text-dim); align-self: start; }
+.papel-opcao:hover { border-color: var(--cat-preparar); }
+.papel-opcao:has(input:checked) {
+  border-color: var(--cat-jogar);
+  background: rgba(233, 69, 96, 0.08);
+}
+/* Feedback de seleção que não depende de :has() (alguns motores não
+   reinvalidam :has() ao trocar o radio): o irmão reage sempre. */
+.papel-opcao input:checked ~ .papel-nome { color: var(--cat-jogar); font-weight: 700; }
+.papel-opcao input:checked ~ .papel-icone { transform: scale(1.12); }

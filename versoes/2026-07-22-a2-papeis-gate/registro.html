@@ -20,24 +20,6 @@
         <label>CPF <input type="text" name="cpf" inputmode="numeric" required minlength="11" maxlength="14" placeholder="000.000.000-00" title="Usado só para identificar a assinatura — não é partilhado"></label>
         <label>WhatsApp <input type="tel" name="whatsapp" inputmode="numeric" maxlength="15" placeholder="(opcional) p/ contato sobre o pagamento"></label>
         <label>Senha <input type="password" name="senha" autocomplete="new-password" required minlength="6"></label>
-
-        <!-- A2: a conta nasce Mestre OU Jogador (divisão limpa dos módulos) -->
-        <fieldset class="papel-escolha">
-          <legend>Você vai usar o app como…</legend>
-          <label class="papel-opcao">
-            <input type="radio" name="papelGlobal" value="jogador" checked>
-            <span class="papel-icone">🧝</span>
-            <span class="papel-nome">Jogador</span>
-            <span class="papel-desc">Crio meus personagens e entro nas mesas com o código do Mestre.</span>
-          </label>
-          <label class="papel-opcao">
-            <input type="radio" name="papelGlobal" value="mestre">
-            <span class="papel-icone">🎲</span>
-            <span class="papel-nome">Mestre</span>
-            <span class="papel-desc">Crio e conduzo as minhas mesas: combate, aventuras, NPCs e tesouro.</span>
-          </label>
-        </fieldset>
-
         <button type="submit" class="btn-primary">Criar conta (+{{ credito_inicial }} créditos grátis)</button>
       </form>
       <p class="login-sub" style="margin-top:14px">Já tem conta? <a href="/login">Entrar</a></p>

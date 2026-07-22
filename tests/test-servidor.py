@@ -169,6 +169,65 @@ with app.test_request_context('/'):
     t('ciclo de vida não marca inativa nem apaga no modo livre',
       servidor.ciclo_campanha('camp_x', dict(vencida)) is not None)
 
+# ----- FASE A1/A2: hub de modos, papéis globais e gate de admin -----
+jog = app.test_client()
+logar(jog, 'jogador-teste', 'senha-teste-456')
+
+# hub: admin vê os 4 modos; jogador vê 1 só
+r = mestre.get('/hub?escolher=1')
+t('A1: hub do admin mostra os 4 cards de modo', r.data.count(b'class="hub-card cor-') == 4,
+  f'achou {r.data.count(b"class=\"hub-card cor-")}')
+r = jog.get('/hub?escolher=1')
+t('A1: hub do jogador mostra só 1 card', r.data.count(b'class="hub-card cor-') == 1)
+
+# guard de modo: jogador não entra em adm nem em controle total
+for chave in ('adm', 'total', 'mestre'):
+    r = jog.get(f'/modo/{chave}', follow_redirects=False)
+    t(f'A1: jogador é barrado do modo "{chave}"', r.headers.get('Location', '').endswith('/hub?escolher=1'),
+      r.headers.get('Location'))
+r = jog.get('/modo/jogador', follow_redirects=False)
+t('A1: jogador entra no próprio modo', r.status_code in (301, 302)
+  and not r.headers.get('Location', '').endswith('/hub?escolher=1'))
+
+# gate central: só admin abre o painel de finanças
+r = jog.get('/admin/dashboard', follow_redirects=False)
+t('A2: jogador NÃO abre /admin/dashboard', r.headers.get('Location', '').endswith('/hub?escolher=1'),
+  r.headers.get('Location'))
+r = jog.get('/admin/assinaturas', follow_redirects=False)
+t('A2: jogador NÃO abre /admin/assinaturas', r.headers.get('Location', '').endswith('/hub?escolher=1'))
+r = mestre.get('/admin/dashboard')
+t('A2: admin abre /admin/dashboard', r.status_code == 200)
+
+# papéis globais: 'admin' nunca sai do formulário de cadastro
+with app.test_request_context('/'):
+    t('A2: cadastro só aceita mestre|jogador', servidor.PAPEIS_CADASTRO == ('mestre', 'jogador'))
+    t("A2: 'admin' não é papel de cadastro", 'admin' not in servidor.PAPEIS_CADASTRO)
+
+# quem tenta injetar papelGlobal=admin no POST do cadastro vira jogador
+novo = app.test_client()
+r = novo.post('/registro', data={
+    'usuario': 'espertinho', 'senha': 'senha123', 'nome': 'Esperto',
+    'nomeCompleto': 'Esperto da Silva', 'email': 'e@e.com', 'cpf': '11144477735',
+    'papelGlobal': 'admin',
+}, follow_redirects=False)
+_uid, _u = None, None
+for k, v in servidor.carregar_usuarios_reg().items():
+    if v.get('usuario') == 'espertinho':
+        _uid, _u = k, v
+t('A2: papelGlobal=admin injetado no cadastro é recusado (vira jogador)',
+  bool(_u) and _u.get('papelGlobal') == 'jogador', (_u or {}).get('papelGlobal'))
+
+# cadastro como mestre grava o papel escolhido
+novo2 = app.test_client()
+novo2.post('/registro', data={
+    'usuario': 'mestrinho', 'senha': 'senha123', 'nome': 'Mestrinho',
+    'nomeCompleto': 'Mestre Novato', 'email': 'm@m.com', 'cpf': '52998224725',
+    'papelGlobal': 'mestre',
+}, follow_redirects=False)
+_um = next((v for v in servidor.carregar_usuarios_reg().values() if v.get('usuario') == 'mestrinho'), None)
+t('A2: cadastro como Mestre grava papelGlobal=mestre', bool(_um) and _um.get('papelGlobal') == 'mestre',
+  (_um or {}).get('papelGlobal'))
+
 print()
 print(f'❌ {len(falhas)} falha(s) de {total}' if falhas else f'✅ {total} testes do servidor passaram')
 sys.exit(1 if falhas else 0)

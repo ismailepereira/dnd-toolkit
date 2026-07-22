@@ -4,6 +4,44 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-22 — A2 · Papéis globais + gate central de admin 🛡️
+
+**Backup:** `versoes/2026-07-22-a2-papeis-gate/` (app.py, registro.html).
+
+**Resumo:** segunda entrega do roadmap de Acesso & Interface. O "admin" deixou de ser uma dedução espalhada
+pelo código e virou papel de verdade, com uma porta única.
+- **`papelGlobal` = `admin` | `mestre` | `jogador`** (`PAPEIS_GLOBAIS`), com
+  **`PAPEIS_CADASTRO = ('mestre','jogador')`** — o formulário **nunca** cria admin.
+- **Escolha no cadastro:** dois cartões-rádio "🧝 Jogador" / "🎲 Mestre" no `registro.html`. O servidor valida:
+  quem **injetar `papelGlobal=admin` no POST vira jogador** (tem teste).
+- **Gate central `@exige_papel(*papeis)`:** responde **403 JSON** em `/api/` e redireciona ao hub no resto.
+  Aplicado a `/admin/dashboard` e `/admin/assinaturas`, substituindo o `if not eh_legado_mestre(...)` repetido.
+  *(Eixos diferentes, registrado no código: `exige_papel` = papel GLOBAL; `login_obrigatorio(papeis=...)` =
+  papel DENTRO da campanha.)*
+- **`eh_admin()` é o único ponto que decide quem é dono.** Os 4 usos de `eh_legado_mestre` espalhados (bypass
+  de escrita em campanha inativa, lista de campanhas, renovar campanha, flag do template) passaram a chamá-lo —
+  e `papel_na_campanha()` devolve `mestre` para o admin em **qualquer** campanha, o que já libera as fichas de
+  todos (o `_pode_usar_ficha` confia no papel da campanha).
+- **Migração:** `legacy:Ismaile` segue admin automaticamente; nenhuma conta existente muda de papel.
+
+**Ficheiros:** `app.py` (`PAPEIS_*`, `eh_admin`, `papel_global_efetivo`, `exige_papel`, registo com papel),
+`templates/registro.html` (escolha de papel), `static/css/style.css` (`.papel-*`),
+`tests/test-servidor.py` (+13 casos), `docs/ROADMAP-ACESSO-INTERFACE.md` (A2 ✅).
+
+**Verificação:** `ast.parse` OK · **48/48 testes do servidor** ✅ (era 35). Os 13 novos cobrem: hub com 4 cards
+p/ admin e 1 p/ jogador; jogador barrado dos modos `adm`/`total`/`mestre` e liberado no próprio; jogador
+**não abre** `/admin/dashboard` nem `/admin/assinaturas` e o admin abre; `admin` fora de `PAPEIS_CADASTRO`;
+injeção de `papelGlobal=admin` recusada; cadastro como Mestre grava `mestre`. E2E no navegador: formulário com
+as 2 opções, padrão Jogador, **sem** opção admin, e o realce acompanha a seleção.
+
+**Nota técnica:** o realce do cartão usava só `:has(input:checked)`; o navegador embutido não reinvalida `:has()`
+ao trocar o rádio (funciona no carregamento, não no clique). Somei um seletor de irmão
+(`input:checked ~ .papel-nome`), que invalida sempre. Comportamento do formulário nunca esteve afetado.
+
+**Como reverter:** restaurar `versoes/2026-07-22-a2-papeis-gate/`, ou `git revert`.
+
+**Próximo (A3):** cores por categoria nos menus, reusando as variáveis `--cat-*` e o `data-mode` das Fases 17.x.
+
 ## 2026-07-22 — A1 · Hub de modos depois do login 🔐 (Acesso & Interface)
 
 **Backup:** `versoes/2026-07-22-a1-hub-acesso/` (app.py, login.html, campanhas.html, mestre.html, jogador.html,

@@ -338,45 +338,14 @@ def eh_legado_mestre(uid):
     return isinstance(uid, str) and uid.startswith('legacy:') and session.get('papelGlobal') == 'mestre'
 
 
-# ----- FASE A2: papéis globais de verdade (admin | mestre | jogador) -----
-# PAPÉIS VÁLIDOS no cadastro: mestre ou jogador. 'admin' NUNCA é escolhível —
-# é concedido só pelo dono (editando o utilizador), e o mestre legado de env
-# continua a ser admin automaticamente (migração sem quebrar nada).
-PAPEIS_CADASTRO = ('mestre', 'jogador')
-PAPEIS_GLOBAIS = ('admin',) + PAPEIS_CADASTRO
-
-
-def eh_admin(uid=None):
-    """Dono do produto: vê finanças e manda em qualquer campanha/ficha.
-    ÚNICO ponto que decide isso — não espalhar a regra por aí."""
-    uid = session.get('uid', '') if uid is None else uid
-    return eh_legado_mestre(uid) or session.get('papelGlobal') == 'admin'
-
-
+# ----- FASE A1: papel global efetivo e modos de acesso (hub de cards) -----
+# Hoje o "admin" é deduzido de ser o mestre legado; a Fase A2 vai transformar
+# isso num papelGlobal='admin' de verdade. Este helper isola essa decisão num
+# lugar só, para a A2 mexer aqui e nada mais.
 def papel_global_efetivo():
-    if eh_admin():
+    if eh_legado_mestre(session.get('uid', '')):
         return 'admin'
-    papel = session.get('papelGlobal')
-    return papel if papel in PAPEIS_GLOBAIS else 'jogador'
-
-
-def exige_papel(*papeis):
-    """Gate central de papel GLOBAL (admin/mestre/jogador). Diferente do
-    `login_obrigatorio(papeis=...)`, que valida o papel DENTRO da campanha.
-    Responde 403 em /api/ e manda para o hub no resto."""
-    def decorador(fn):
-        @wraps(fn)
-        def wrapper(*args, **kwargs):
-            if 'usuario' not in session:
-                return redirect(url_for('login'))
-            if papel_global_efetivo() not in papeis:
-                if request.path.startswith('/api/'):
-                    return jsonify({'erro': 'sem_permissao',
-                                    'detalhe': f'requer papel: {", ".join(papeis)}'}), 403
-                return redirect(url_for('hub', escolher=1))
-            return fn(*args, **kwargs)
-        return wrapper
-    return decorador
+    return session.get('papelGlobal') or 'jogador'
 
 
 # Cada modo: chave, rótulo, ícone, descrição, cor (categoria visual da Fase A3).
@@ -406,7 +375,7 @@ def modos_disponiveis():
 def papel_na_campanha(uid, camp_id):
     """'mestre' | 'jogador' | None. Mestre legado manda em qualquer campanha;
     campanhas sem metadados (ex.: 'principal') são legadas: só contas fixas entram."""
-    if eh_admin(uid):
+    if eh_legado_mestre(uid):
         return 'mestre'
     metas = carregar_campanhas_meta()
     meta = metas.get(camp_id)
@@ -741,7 +710,7 @@ def login_obrigatorio(papeis=None, exigir_assinatura=True):
             if (request.method in ('POST', 'PUT', 'PATCH', 'DELETE')
                     and request.path.startswith('/api/')
                     and not request.path.startswith('/api/creditos')
-                    and not eh_admin(uid)
+                    and not eh_legado_mestre(uid)
                     and not campanha_ativa_para_escrita(campanha_atual())):
                 return jsonify({'erro': 'campanha_inativa',
                                 'detalhe': 'campanha sem pagamento em dia (só-leitura); renove com 20 créditos'}), 403
@@ -861,11 +830,6 @@ def registro():
         email = request.form.get('email', '').strip().lower()
         cpf = validar_cpf(request.form.get('cpf', ''))
         whatsapp = re.sub(r'\D', '', request.form.get('whatsapp', ''))
-        # A2: papel escolhido no cadastro — só 'mestre' ou 'jogador'. Qualquer
-        # outra coisa (inclusive alguém injetando 'admin') cai para 'jogador'.
-        papel_escolhido = request.form.get('papelGlobal', 'jogador')
-        if papel_escolhido not in PAPEIS_CADASTRO:
-            papel_escolhido = 'jogador'
         todos = carregar_usuarios_reg()
         if not re.fullmatch(r'[A-Za-z0-9_.-]{3,24}', usuario):
             erro = 'Usuário inválido: 3–24 caracteres, só letras/números/._-'
@@ -893,9 +857,7 @@ def registro():
                 'cpf': cpf,
                 'whatsapp': whatsapp,
                 'senhaHash': generate_password_hash(senha),
-                # A2: a pessoa escolhe Mestre OU Jogador. 'admin' nunca vem do
-                # formulário — é concedido só pelo dono.
-                'papelGlobal': papel_escolhido,
+                'papelGlobal': 'jogador',
                 'criadoEm': _agora(),
                 # Fase 10.9: acesso grátis de TRIAL_DIAS; depois bloqueia até
                 # o admin confirmar o pagamento manualmente
@@ -914,7 +876,7 @@ def registro():
             session['usuario'] = usuario
             session['nomeExibicao'] = nome
             session['uid'] = uid
-            session['papelGlobal'] = papel_escolhido  # A2: Mestre ou Jogador
+            session['papelGlobal'] = 'jogador'
             session['papel'] = 'jogador'
             session.pop('modo', None)  # A1: passa pela tela de cards
             return redirect(url_for('hub'))
@@ -1150,8 +1112,9 @@ def _dashboard_dados(dias=30):
 @app.route('/admin')
 @app.route('/admin/dashboard')
 @login_obrigatorio(exigir_assinatura=False)
-@exige_papel('admin')
 def admin_dashboard():
+    if not eh_legado_mestre(session.get('uid', '')):
+        return redirect(url_for('index'))
     varrer_ciclo_campanhas()  # mantém os números coerentes ao abrir o painel
     return render_template('admin_dashboard.html', d=_dashboard_dados(),
                            preco=ASSINATURA_PRECO, credito_centavos=CREDITO_CENTAVOS)
@@ -1160,8 +1123,9 @@ def admin_dashboard():
 # ----- FASE 10.9: painel de administração de assinaturas (SÓ o mestre legado) -----
 @app.route('/admin/assinaturas', methods=['GET', 'POST'])
 @login_obrigatorio(exigir_assinatura=False)
-@exige_papel('admin')
 def admin_assinaturas():
+    if not eh_legado_mestre(session.get('uid', '')):
+        return redirect(url_for('index'))
     msg = None
     if request.method == 'POST':
         alvo = request.form.get('uid', '')
@@ -1299,7 +1263,7 @@ def pagina_campanhas():
     metas = carregar_campanhas_meta()
     minhas = []
     for cid, m in metas.items():
-        papel = 'mestre' if (m.get('mestreUid') == uid or eh_admin(uid)) else ('jogador' if uid in (m.get('membros') or {}) else None)
+        papel = 'mestre' if (m.get('mestreUid') == uid or eh_legado_mestre(uid)) else ('jogador' if uid in (m.get('membros') or {}) else None)
         if papel:
             paga = campanha_paga_em_dia(m)
             minhas.append({'id': cid, 'nome': m.get('nome', cid), 'papel': papel,
@@ -1313,7 +1277,7 @@ def pagina_campanhas():
     creditos = None if (not uid or uid.startswith('legacy:')) else saldo_creditos(carregar_usuario_reg(uid))
     return render_template('campanhas.html', campanhas=minhas, erro=request.args.get('erro'),
                            usuario=session.get('nomeExibicao') or session.get('usuario'),
-                           legado_mestre=eh_admin(uid), creditos=creditos,
+                           legado_mestre=eh_legado_mestre(uid), creditos=creditos,
                            custo_campanha=CAMPANHA_CREDITOS, modo_livre=MODO_LIVRE)
 
 
@@ -1396,7 +1360,7 @@ def campanha_renovar():
     meta = metas.get(cid)
     if not meta:
         return redirect(url_for('pagina_campanhas', erro='Campanha não encontrada.'))
-    if meta.get('mestreUid') != uid and not eh_admin(uid):
+    if meta.get('mestreUid') != uid and not eh_legado_mestre(uid):
         return redirect(url_for('pagina_campanhas', erro='Só o Mestre da campanha pode renová-la.'))
     if not str(meta.get('mestreUid', '')).startswith('legacy:') and not MODO_LIVRE:
         if saldo_creditos(carregar_usuario_reg(uid)) < CAMPANHA_CREDITOS:

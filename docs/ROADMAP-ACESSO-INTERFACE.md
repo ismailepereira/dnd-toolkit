@@ -66,24 +66,29 @@ Saque e furto (Fase C) vêm depois.
 login/registo/index passam pelo hub), `templates/hub.html` (novo), `static/css/style.css` (`.hub-*` + as
 variáveis **`--cat-*`** da paleta por categoria, que a A3 vai reusar nos menus).
 
-### A2 🔴 Papéis de verdade (segurança administrativa)
+### A2 ✅ Papéis de verdade (segurança administrativa) — ENTREGUE 22/07
 **Dor:** "somente o mestre pode adicionar xp itens abrir o acesso a lojas, ou upar o personagem".
 
-- [ ] **`papelGlobal` passa a ter 3 valores:** `admin` | `mestre` | `jogador` (hoje só existem os 2 últimos, e
-      o admin é deduzido de "é o legacy:Ismaile").
-- [ ] **No registo, a pessoa escolhe Mestre OU Jogador** — e é só isso que ela tem. `admin` **nunca** é
-      escolhível no cadastro; é concedido só pelo dono.
-- [ ] **Controle Total** = `papelGlobal = admin` ⇒ `papel_na_campanha()` devolve `mestre` em **qualquer**
-      campanha, e o acesso às fichas de todos é liberado.
-      ⚠️ **Nota de segurança (importante):** "sem senha" significa **sem uma segunda senha/PIN** — o poder vem
-      de *estar logado naquela conta*. A área continua **exigindo login**; não existe URL pública com poder de
-      admin. Se algum dia o Ismaile quiser uma trava a mais, o lugar é aqui.
-- [ ] **Gate central no servidor:** um decorator `@exige_papel('admin'|'mestre')` aplicado às rotas, em vez do
-      `if not eh_legado_mestre(...)` repetido. Toda rota de escrita sensível passa por ele.
-- [ ] **Migração:** `legacy:Ismaile` vira `admin` automaticamente (não quebra o que já existe).
+- [x] **`papelGlobal` com 3 valores:** `admin` | `mestre` | `jogador` (`PAPEIS_GLOBAIS`), sendo
+      **`PAPEIS_CADASTRO = ('mestre','jogador')`** — o cadastro nunca cria admin.
+- [x] **No registo, a pessoa escolhe Mestre OU Jogador** (dois cartões-rádio no formulário). Quem tentar
+      **injetar `papelGlobal=admin` no POST vira jogador** — validado no servidor e coberto por teste.
+- [x] **Controle Total** = `eh_admin()` ⇒ `papel_na_campanha()` devolve `mestre` em **qualquer** campanha
+      (logo `_pode_usar_ficha` libera as fichas de todos, porque ela já confia no papel da campanha).
+      ⚠️ **Nota de segurança:** "sem senha" = **sem uma segunda senha/PIN**; o poder vem de *estar logado
+      naquela conta*. Continua exigindo login — não existe URL de admin sem autenticação.
+- [x] **Gate central:** decorator **`@exige_papel(*papeis)`** — 403 JSON em `/api/`, redireciona ao hub no
+      resto. Aplicado a `/admin/dashboard` e `/admin/assinaturas`, no lugar do `if not eh_legado_mestre(...)`.
+      *(Distinção registrada: `exige_papel` = papel GLOBAL; `login_obrigatorio(papeis=...)` = papel DENTRO da
+      campanha. São eixos diferentes.)*
+- [x] **Um só ponto decide quem é admin:** `eh_admin()`. Todos os `eh_legado_mestre(...)` espalhados
+      (bypass de escrita, lista de campanhas, renovar campanha, flag do template) passaram a chamá-lo.
+- [x] **Migração:** `legacy:Ismaile` continua admin automaticamente; contas existentes não mudam de papel.
 
 **Pronto quando:** um jogador não consegue, nem pela API crua, tocar em XP/ouro/itens/nível; e o admin
 alcança tudo sem ceder senha a ninguém.
+→ **Metade feita:** o *acesso administrativo* está trancado e testado. A parte de **ouro/itens/nível** é a
+**A4** (ouro) e a **Fase B** (nível) — ainda abertas.
 
 ### A3 🔴 Menus por categoria e cor (a linguagem visual)
 **Dor:** "organizar a interface dos menus, por cores e categorias... botões que façam mais sentido para o público."

@@ -136,15 +136,6 @@ const Criador = (function () {
         <div class="pv-linha">CD de Magia <strong>${c.conj.cd}</strong> · Ataque <strong>${(c.conj.ataque >= 0 ? '+' : '') + c.conj.ataque}</strong></div>
         ${s.truques.length ? `<div class="pv-linha"><strong>Truques:</strong> ${s.truques.map(escHtml).join(', ')}</div>` : ''}
         ${s.magias1.length ? `<div class="pv-linha"><strong>1º Círculo:</strong> ${s.magias1.map(escHtml).join(', ')}</div>` : ''}
-        ${(() => {
-          // F5: magias do domínio/juramento — sempre preparadas, fora do limite
-          if (typeof magiasSubclasse5e !== 'function') return '';
-          const ms = magiasSubclasse5e(s.subclasse, s.nivel);
-          if (!ms.length) return '';
-          const rot = (typeof rotuloMagiaSubclasse === 'function') ? rotuloMagiaSubclasse(s.subclasse) : 'subclasse';
-          const ic = rot === 'juramento' ? '⚜️' : rot === 'domínio' ? '🕮' : '✨';
-          return `<div class="pv-linha"><strong>${ic} Do ${escHtml(rot)} (sempre preparadas):</strong> ${ms.map(escHtml).join(', ')}</div>`;
-        })()}
       </div>` : '';
 
     // bolsa com contagem (sem repetir nomes) + linha de equipado por slot

@@ -149,24 +149,8 @@ const Jogo = (function () {
       return soma + magiasNoNivel(c.classe, c.nivel, ficha.atributos, c.subclasse);
     }, 0);
   }
-  // F5: magias ganhas pela subclasse (domínio do Clérigo, juramento do Paladino).
-  // SEMPRE preparadas e NÃO contam no limite — por isso ficam fora de
-  // ficha.preparadas (são virtuais, derivadas da subclasse + nível).
-  function magiasSubclasseFicha() {
-    if (typeof magiasSubclasse5e !== 'function') return [];
-    const out = [];
-    classesFicha().forEach(c => {
-      if (!c.subclasse) return;
-      magiasSubclasse5e(c.subclasse, c.nivel).forEach(n => { if (!out.includes(n)) out.push(n); });
-    });
-    return out;
-  }
   // magias de círculo que o personagem realmente pode lançar hoje
-  function magiasCastaveis() {
-    const base = ehPreparador() ? (ficha.preparadas || []) : (ficha.magias1 || []);
-    const extra = magiasSubclasseFicha().filter(n => !base.includes(n));
-    return [...base, ...extra];
-  }
+  function magiasCastaveis() { return ehPreparador() ? (ficha.preparadas || []) : (ficha.magias1 || []); }
   function alternarPreparada(nome) {
     if (!ficha.preparadas) ficha.preparadas = [];
     const i = ficha.preparadas.indexOf(nome);
@@ -934,25 +918,14 @@ const Jogo = (function () {
     // magias detalhadas: truques (sempre prontos) + grimório/preparadas — só para conjuradores
     const truquesF = _ehConj ? (f.truques || []) : [];
     const grimorioF = _ehConj ? (f.magias1 || []) : [];
-    const subclasseF = _ehConj ? magiasSubclasseFicha() : []; // F5: domínio/juramento
     let magiasHtml = '';
-    if (_ehConj && (truquesF.length || grimorioF.length || subclasseF.length)) {
+    if (_ehConj && (truquesF.length || grimorioF.length)) {
       magiasHtml = '<div class="jg-bloco"><h4>Magias</h4>';
 
       // Truques — sempre disponíveis, não precisam ser preparados
       if (truquesF.length) {
         magiasHtml += `<div class="jg-magia-grupo"><h5>Truques <small>(sempre prontos)</small></h5>` +
           truquesF.map(n => cardMagia(n, false)).join('') + `</div>`;
-      }
-
-      // F5: magias do domínio/juramento — sempre preparadas, fora do limite
-      if (subclasseF.length) {
-        const scNomes = classesFicha().filter(c => c.subclasse && (typeof magiasSubclasse5e === 'function') && magiasSubclasse5e(c.subclasse, c.nivel).length);
-        const rotulo = scNomes.length === 1 && typeof rotuloMagiaSubclasse === 'function'
-          ? rotuloMagiaSubclasse(scNomes[0].subclasse) : 'subclasse';
-        const icone = rotulo === 'juramento' ? '⚜️' : rotulo === 'domínio' ? '🕮' : '✨';
-        magiasHtml += `<div class="jg-magia-grupo jg-magias-subclasse"><h5>${icone} Do seu ${esc(rotulo)}${scNomes.length === 1 ? ` — ${esc(scNomes[0].subclasse)}` : ''} <small>(sempre preparadas · não contam no limite)</small></h5>` +
-          subclasseF.map(n => cardMagia(n, false)).join('') + `</div>`;
       }
 
       if (ehPreparador() && grimorioF.length) {

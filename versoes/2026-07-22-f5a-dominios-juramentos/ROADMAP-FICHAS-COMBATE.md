@@ -111,15 +111,10 @@ toggle/botão no Modo de Jogo. **Com isso a FASE F2 está 100% concluída** (as 
   Lógica pura e testada em `resumoCombate5e`/`cartaoCombateHtml` (regras-ficha.js) — Criador e PDF renderizam o
   mesmo markup.
 
-### F5 🟡 Subclasses com efeito mecânico completo — F5a ENTREGUE 22/07
-- [x] **F5a — Domínios do Clérigo e Juramentos do Paladino**: magias de domínio/juramento ganhas
-  automaticamente por nível, **sempre preparadas e fora do limite**. Tabela `MAGIAS_SUBCLASSE` +
-  `magiasSubclasse5e(subclasse, nivel)` em `compendio.js` (7 domínios + 3 juramentos, só com magias que existem
-  no compêndio — teste de integridade garante). No Modo de Jogo viram **castáveis** (entram em
-  `magiasCastaveis()`) e ganham o grupo "🕮 Do seu domínio"/"⚜️ Do seu juramento"; o Criador mostra a linha
-  na Conjuração.
-- [ ] **F5b — Patronos do Bruxo**: magias expandidas do patrono aparecendo na lista de escolha.
-- [ ] **F5c — Canalizar Divindade específico do juramento** (Paladino nv3) e dos domínios.
+### F5 🟡 Subclasses com efeito mecânico completo
+- [ ] Domínios do Clérigo: magias de domínio ganhas automaticamente (sempre preparadas, sem contar no limite).
+- [ ] Juramentos do Paladino (nv3): magias de juramento + Canalizar Divindade específico do juramento.
+- [ ] Patronos do Bruxo: magias expandidas do patrono aparecendo na lista de escolha.
 
 ---
 

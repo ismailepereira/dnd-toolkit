@@ -26,7 +26,7 @@ const ctx = vm.runInContext(`({
   PATRONOS_PACTO, patronoDados, SUBCLASSES, antecedentesDisponiveis, antecedenteDados,
   calcularCA, percepcaoPassiva, cdConjuracao, pvMaximoMonoclasse, recursosDeClasse5e, resumoCombate5e, cartaoCombateHtml,
   FORMAS_SELVAGENS, FORMAS_ELEMENTAIS, formasElementaisDisponiveis, limiteFormaSelvagem, formasSelvagensDisponiveis, formaSelvagemDados,
-  CONDICOES, efeitosDoAtaque, MAGIAS_SUBCLASSE, magiasSubclasse5e, rotuloMagiaSubclasse, MAGIAS_DETALHE,
+  CONDICOES, efeitosDoAtaque,
 })`, sandbox);
 // guarda contra testes vácuos: nada aqui pode estar indefinido
 for (const k in ctx) assert.ok(ctx[k] != null, `binding indefinida no contexto: ${k}`);
@@ -299,47 +299,6 @@ t('C6: toda condição devolvida por efeitosDoAtaque existe em CONDICOES', () =>
   amostras.forEach(txt => ctx.efeitosDoAtaque('CD 10 ' + txt).forEach(e =>
     assert.ok(ctx.CONDICOES[e.cond], `condição desconhecida: ${e.cond}`)));
   assert.ok(ctx.CONDICOES['Impedido'], 'Impedido (Restrained) foi adicionada às CONDICOES');
-});
-
-t('F5: toda magia de subclasse existe no compêndio (nada de nome órfão)', () => {
-  Object.keys(ctx.MAGIAS_SUBCLASSE).forEach(sc => {
-    const tab = ctx.MAGIAS_SUBCLASSE[sc];
-    Object.keys(tab).forEach(n => {
-      assert.ok(Array.isArray(tab[n]) && tab[n].length, `${sc} nível ${n} vazio`);
-      tab[n].forEach(mg => assert.ok(ctx.MAGIAS_DETALHE[mg], `${sc} nv${n}: magia inexistente "${mg}"`));
-    });
-  });
-});
-
-t('F5: toda subclasse com magias está na lista oficial de SUBCLASSES da classe', () => {
-  const todas = [];
-  Object.keys(ctx.SUBCLASSES).forEach(cl => ctx.SUBCLASSES[cl].opcoes.forEach(o => todas.push(o.nome)));
-  Object.keys(ctx.MAGIAS_SUBCLASSE).forEach(sc =>
-    assert.ok(todas.includes(sc), `subclasse desconhecida na tabela de magias: ${sc}`));
-});
-
-t('F5: magiasSubclasse5e acumula por nível e respeita o nível de entrada', () => {
-  // Paladino: juramento só no N3 — antes disso, nada
-  // (nota: os arrays vêm do contexto vm — outro realm; comparar por tamanho/conteúdo,
-  //  nunca com deepStrictEqual, que checa o protótipo e falharia entre realms)
-  assert.strictEqual(ctx.magiasSubclasse5e('Juramento da Vingança', 2).length, 0);
-  const v3 = ctx.magiasSubclasse5e('Juramento da Vingança', 3);
-  assert.ok(v3.includes('Perdição (Bane)') && v3.includes('Marca do Caçador (Hunter\'s Mark)'));
-  assert.strictEqual(v3.length, 2, 'no N3 só a dupla do N3');
-  // acumula: no N5 entram as do N5 junto com as do N3
-  const v5 = ctx.magiasSubclasse5e('Juramento da Vingança', 5);
-  assert.ok(v5.includes('Perdição (Bane)') && v5.includes('Passo Enevoado (Misty Step)'));
-  assert.ok(v5.length > v3.length);
-  // Clérigo começa no N1
-  assert.ok(ctx.magiasSubclasse5e('Domínio da Vida', 1).includes('Curar Ferimentos'));
-  // subclasse sem tabela (ex.: Campeão) → vazio
-  assert.strictEqual(ctx.magiasSubclasse5e('Campeão', 20).length, 0);
-});
-
-t('F5: rotuloMagiaSubclasse distingue domínio (Clérigo) de juramento (Paladino)', () => {
-  assert.strictEqual(ctx.rotuloMagiaSubclasse('Domínio da Luz'), 'domínio');
-  assert.strictEqual(ctx.rotuloMagiaSubclasse('Juramento dos Anciões'), 'juramento');
-  assert.strictEqual(ctx.rotuloMagiaSubclasse('Campeão'), 'subclasse');
 });
 
 t('SUBCLASSES: toda classe listada existe e nível de escolha é 1-3', () => {

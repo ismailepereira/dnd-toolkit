@@ -4,6 +4,36 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-22 — F5a · Magias de domínio (Clérigo) e juramento (Paladino) 🕮⚜️
+
+**Backup:** `versoes/2026-07-22-f5a-dominios-juramentos/` (compendio.js, jogo.js, criador.js, unit-regras.js,
+ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** primeira parte da F5. Domínios e juramentos deixaram de ser só texto: as magias que eles concedem
+agora são **ganhas por nível, sempre preparadas e fora do limite** de preparadas.
+- **Dados (`compendio.js`):** `MAGIAS_SUBCLASSE` com **7 domínios do Clérigo** (níveis 1/3/5/7/9) e
+  **3 juramentos do Paladino** (3/5/9/13/17) + `magiasSubclasse5e(subclasse, nivel)` (acumula por nível) e
+  `rotuloMagiaSubclasse`. Só entram magias que **existem** no `MAGIAS_DETALHE` — um teste de integridade
+  bloqueia nome órfão; onde a magia oficial ainda não existe no compêndio, a dupla fica com uma só.
+- **Modo de Jogo (`jogo.js`):** `magiasSubclasseFicha()` alimenta `magiasCastaveis()` → as magias de
+  domínio/juramento viram **cards castáveis na ✨ Conjuração** (gastam espaço normalmente) e ganham o grupo
+  "🕮 Do seu domínio — X" / "⚜️ Do seu juramento — X (sempre preparadas · não contam no limite)". Como são
+  virtuais (derivadas de subclasse+nível), **não entram em `ficha.preparadas`** e por isso não inflam o contador.
+- **Criador (`criador.js`):** linha na Conjuração do preview listando as magias do domínio/juramento.
+
+**Ficheiros:** `static/js/compendio.js`, `static/js/jogo.js`, `static/js/criador.js`, `tests/unit-regras.js`
+(+4 casos), `docs/ROADMAP-FICHAS-COMBATE.md` (F5a ✅, F5b/F5c abertos).
+
+**Verificação:** `node --check` OK · `npm test` **41/41** ✅ (integridade contra o compêndio; subclasse existe em
+SUBCLASSES; acumulação por nível; rótulo domínio×juramento). E2E em **navegador real**: Clérigo N5 Domínio da
+Vida → grupo com as 5 magias certas e contador de preparadas ainda **1/8** (domínio não conta); Paladino N5
+Juramento da Vingança → as 4 magias do juramento (Bane, Marca do Caçador, Imobilizar Pessoa, Passo Enevoado).
+
+**Nota de teste:** arrays devolvidos pelo contexto `vm` são de outro realm — comparar com
+`assert.deepStrictEqual` falha na checagem de protótipo. Usar tamanho/`includes`.
+
+**Como reverter:** restaurar `versoes/2026-07-22-f5a-dominios-juramentos/`, ou `git revert`.
+
 ## 2026-07-22 — C6 · Efeitos de ataque → condição com 1 toque ⤷
 
 **Backup:** `versoes/2026-07-22-c6-efeitos-condicoes/` (compendio.js, app.js, unit-regras.js, ROADMAP-FICHAS-COMBATE.md).

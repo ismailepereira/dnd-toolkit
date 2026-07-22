@@ -57,7 +57,7 @@ Legenda: ✅ ok · ⚠️ parcial · ❌ falta · 🔎 = alvo de correção.
 
 | Classe | (a) Criador | (b) Rastreável | (c) Botão | Lacuna a corrigir (níveis 1-3) |
 |---|:--:|:--:|:--:|---|
-| **Bárbaro** | ✅ | ✅ | ✅ | Fúria e dano ✅ (C4). **Ataque Descuidado** ✅ (toggle de vantagem, 21/07). |
+| **Bárbaro** | ✅ | ✅ | ⚠️ | Fúria e dano ✅ (C4). **Ataque Descuidado** (N2) só texto → falta *toggle* de vantagem. (menor) |
 | **Bardo** | ✅ | ✅ | ⚠️ | 🔎 **Inspiração Bárdica**: gasta o uso, mas **não registra a QUEM** deu nem o dado. |
 | **Clérigo** | ✅ | ✅ | ❌ | 🔎 **Expulsar Mortos-Vivos** (N2) sem card: contador existe, mas nada mostra CD/efeito nem rola. (Destruir N5 fica p/ depois) |
 | **Druida** | ✅ | ✅ | ✅ | Coberto (Forma Selvagem completa). Sem lacuna 1-3. |

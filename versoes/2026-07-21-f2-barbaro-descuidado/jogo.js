@@ -45,30 +45,26 @@ const Jogo = (function () {
 
   // ----- rolagem com Vantagem/Desvantagem -----
   let modoRolagem = 'normal';
-  // forcarVantagem: Ataque Descuidado do Bárbaro força vantagem no ataque corpo a
-  // corpo; se o jogador já escolheu desvantagem, os dois se cancelam (→ normal).
-  function d20Modo(forcarVantagem) {
-    let modo = modoRolagem;
-    if (forcarVantagem) modo = modo === 'desvantagem' ? 'normal' : 'vantagem';
+  function d20Modo() {
     if (jgDadoFisico) {
-      if (modo === 'normal') {
+      if (modoRolagem === 'normal') {
         const val = parseInt(prompt("Digite o valor do d20 físico:") || "10");
         const a = isNaN(val) ? 10 : val;
         return { v: a, txt: `d20(físico)=${a}` };
       } else {
-        const valA = parseInt(prompt(`Digite o 1º d20 físico para ${modo}:`) || "10");
-        const valB = parseInt(prompt(`Digite o 2º d20 físico para ${modo}:`) || "10");
+        const valA = parseInt(prompt(`Digite o 1º d20 físico para ${modoRolagem}:`) || "10");
+        const valB = parseInt(prompt(`Digite o 2º d20 físico para ${modoRolagem}:`) || "10");
         const a = isNaN(valA) ? 10 : valA;
         const b = isNaN(valB) ? 10 : valB;
-        const v = modo === 'vantagem' ? Math.max(a, b) : Math.min(a, b);
-        return { v, txt: `d20 físico ${a}/${b}→${v} (${modo === 'vantagem' ? 'vant.' : 'desv.'})`, nat: v };
+        const v = modoRolagem === 'vantagem' ? Math.max(a, b) : Math.min(a, b);
+        return { v, txt: `d20 físico ${a}/${b}→${v} (${modoRolagem === 'vantagem' ? 'vant.' : 'desv.'})`, nat: v };
       }
     }
     const a = 1 + Math.floor(Math.random() * 20);
-    if (modo === 'normal') return { v: a, txt: `d20=${a}` };
+    if (modoRolagem === 'normal') return { v: a, txt: `d20=${a}` };
     const b = 1 + Math.floor(Math.random() * 20);
-    const v = modo === 'vantagem' ? Math.max(a, b) : Math.min(a, b);
-    return { v, txt: `d20 ${a}/${b}→${v} (${modo === 'vantagem' ? 'vant.' : 'desv.'})`, nat: v };
+    const v = modoRolagem === 'vantagem' ? Math.max(a, b) : Math.min(a, b);
+    return { v, txt: `d20 ${a}/${b}→${v} (${modoRolagem === 'vantagem' ? 'vant.' : 'desv.'})`, nat: v };
   }
   function rolarTeste(nome, bonus) {
     const r = d20Modo();
@@ -1024,10 +1020,6 @@ const Jogo = (function () {
     const barbaroFuria = classesFicha().find(c => c.classe === 'Bárbaro');
     const emFuria = !!(f.estadoTatico && f.estadoTatico.emFuria) && !!barbaroFuria;
     const furiaBonus = barbaroFuria ? (barbaroFuria.nivel >= 16 ? 4 : (barbaroFuria.nivel >= 9 ? 3 : 2)) : 0;
-    // menor F2: Ataque Descuidado (Bárbaro N2+) — vantagem no ataque corpo a corpo
-    // com Força; em troca, inimigos têm vantagem contra você até seu próximo turno.
-    const barbaroDescuidado = classesFicha().find(c => c.classe === 'Bárbaro' && c.nivel >= 2);
-    const descuidadoAtivo = !!(f.estadoTatico && f.estadoTatico.descuidado) && !!barbaroDescuidado;
     const armas = nomesArmas.map(n => {
       if (typeof ataqueArma !== 'function') return null;
       const base = ataqueArma(f, n, pb);
@@ -1056,7 +1048,7 @@ const Jogo = (function () {
           <span class="criador-hint-inline">${somaMod ? 'estilo Duas Armas: soma o mod no dano' : 'ação bônus · sem mod no dano'}</span></div>`;
       }
     }
-    const armasHtml = armas.length ? `<div class="jg-bloco" data-bloco-acao="armas"><h4>Ataques de Arma${emFuria ? ` <small class="jg-furia-cab">🔥 Em Fúria: +${furiaBonus} de dano corpo a corpo (Força)</small>` : ''}${descuidadoAtivo ? ` <small class="jg-desc-cab">💥 Descuidado: vantagem no corpo a corpo com Força — mas inimigos têm vantagem contra você até seu próximo turno</small>` : ''}</h4>${armas.map(a => {
+    const armasHtml = armas.length ? `<div class="jg-bloco" data-bloco-acao="armas"><h4>Ataques de Arma${emFuria ? ` <small class="jg-furia-cab">🔥 Em Fúria: +${furiaBonus} de dano corpo a corpo (Força)</small>` : ''}</h4>${armas.map(a => {
       const it = catJogo(a.nome);
       const equipada = a.nome === eqJogo.maoPrincipal || a.nome === eqJogo.maoSecundaria;
       const usaMunicao = it && it.municaoTipo;
@@ -1072,13 +1064,9 @@ const Jogo = (function () {
         : (arremesso && chao ? `<span class="jg-qtd"><small>(lançada — no chão)</small></span>` : '');
       const btnLancar = arremesso
         ? `<button class="btn-mini" data-lancararma="${esc(a.nome)}" ${semNaMao ? 'disabled title="sem unidades em mãos"' : ''}>🎯 lançar</button>` : '';
-      // Ataque Descuidado: só nos ataques corpo a corpo com Força (nem à distância, nem com Destreza)
-      const usaDescuidado = descuidadoAtivo && !a.distancia && !a.usaDes;
-      const seloFuria = a.furia ? ` <span class="jg-furia-selo" title="Fúria: +${a.furia} de dano corpo a corpo com Força">🔥+${a.furia}</span>` : '';
-      const seloDesc = usaDescuidado ? ` <span class="jg-desc-selo" title="Ataque Descuidado: rola com vantagem">💥 vant.</span>` : '';
-      const selo = seloFuria + seloDesc;
+      const selo = a.furia ? ` <span class="jg-furia-selo" title="Fúria: +${a.furia} de dano corpo a corpo com Força">🔥+${a.furia}</span>` : '';
       return `<div class="pv-linha${equipada ? ' arma-equipada' : ''}"><strong>${equipada ? '✋ ' : ''}${getArmaIcone(a.nome)} ${esc(a.nome)}:</strong> ${a.ataque >= 0 ? '+' : ''}${a.ataque} · ${esc(a.dano)}${selo} ${contagem}
-      <button class="btn-mini" data-atacararma="${a.ataque}" data-arma="${esc(a.nome)}"${usaDescuidado ? ' data-descuidado="1"' : ''}${(usaMunicao && !municaoOk) || semNaMao ? ' disabled' : ''}${semNaMao ? ' title="sem unidades em mãos"' : ''}${usaMunicao ? ` data-municao="${esc(it.municaoTipo)}"` : ''}>🎲 atacar</button>
+      <button class="btn-mini" data-atacararma="${a.ataque}" data-arma="${esc(a.nome)}"${(usaMunicao && !municaoOk) || semNaMao ? ' disabled' : ''}${semNaMao ? ' title="sem unidades em mãos"' : ''}${usaMunicao ? ` data-municao="${esc(it.municaoTipo)}"` : ''}>🎲 atacar</button>
       ${btnLancar}
       ${/\d+d\d+/.test(a.dano) ? `<button class="btn-mini" data-rolararma="${esc(a.dano)}" data-arma="${esc(a.nome)}">🎲 dano</button>` : ''}${a.semProf ? ' <span class="pv-warn">⚠ sem prof.</span>' : ''}${usaMunicao && !municaoOk ? ' <span class="pv-warn">sem munição</span>' : ''}${semNaMao ? ' <span class="pv-warn">nenhuma em mãos</span>' : ''}</div>`;
     }).join('')}${bonusDuasArmas}${temArremessadas ? `<div class="pv-linha jg-recuperar"><button class="btn-mini" id="jgRecuperarArrem">↩️ Recuperar armas arremessadas</button> <span class="criador-hint-inline">após o combate, junta o que foi lançado no chão</span></div>` : ''}</div>` : '';
@@ -1501,7 +1489,6 @@ const Jogo = (function () {
         <div class="jg-turno-toggles">
           <label class="check-chip ${et.emCombate ? 'on' : ''}"><input type="checkbox" id="jgEtCombate" ${et.emCombate ? 'checked' : ''}> ⚔️ Em combate</label>
           <label class="check-chip ${et.emFuria ? 'on' : ''}"><input type="checkbox" id="jgEtFuria" ${et.emFuria ? 'checked' : ''}> 🔥 Em Fúria</label>
-          ${classesFicha().find(c => c.classe === 'Bárbaro' && c.nivel >= 2) ? `<label class="check-chip ${et.descuidado ? 'on' : ''}" title="Vantagem nos ataques corpo a corpo com Força; em troca, ataques contra você têm vantagem até seu próximo turno"><input type="checkbox" id="jgEtDescuidado" ${et.descuidado ? 'checked' : ''}> 💥 Ataque Descuidado</label>` : ''}
           ${autoAdj
             ? `<span class="check-chip auto ${etEfetivo.inimigoAdjacente ? 'on' : ''}" title="Detetado pelo mapa tático">🎯 Inimigo adjacente: ${etEfetivo.inimigoAdjacente ? 'sim' : 'não'} <small>(auto)</small></span>
                <span class="check-chip auto ${etEfetivo.aliadoAdjacenteAoAlvo ? 'on' : ''}" title="${autoAdj.temAlvo ? 'Detetado pelo mapa tático' : 'Selecione um alvo no combate'}">🤝 Aliado adj. ao alvo: ${autoAdj.temAlvo ? (etEfetivo.aliadoAdjacenteAoAlvo ? 'sim' : 'não') : '—'} <small>(auto)</small></span>`
@@ -1808,7 +1795,7 @@ const Jogo = (function () {
         salvar();
       }
       
-      const r = d20Modo(b.dataset.descuidado === '1');
+      const r = d20Modo();
       const total = r.v + bonus;
       const isCrit = r.v === 20;
       const isMiss = r.v === 1;
@@ -2045,7 +2032,6 @@ const Jogo = (function () {
     // Recomputam o painel na hora (dicas/combos dependem destes estados).
     if ($('jgEtCombate')) $('jgEtCombate').onchange = () => { ficha.estadoTatico.emCombate = $('jgEtCombate').checked; salvar(); render(); };
     if ($('jgEtFuria')) $('jgEtFuria').onchange = () => { ficha.estadoTatico.emFuria = $('jgEtFuria').checked; salvar(); render(); };
-    if ($('jgEtDescuidado')) $('jgEtDescuidado').onchange = () => { ficha.estadoTatico.descuidado = $('jgEtDescuidado').checked; salvar(); render(); };
     if ($('jgEtInimigo')) $('jgEtInimigo').onchange = () => { ficha.estadoTatico.inimigoAdjacente = $('jgEtInimigo').checked; salvar(); render(); };
     if ($('jgEtAliado')) $('jgEtAliado').onchange = () => { ficha.estadoTatico.aliadoAdjacenteAoAlvo = $('jgEtAliado').checked; salvar(); render(); };
     if ($('jgEtCaido')) $('jgEtCaido').onchange = () => { ficha.estadoTatico.caido = $('jgEtCaido').checked; salvar(); render(); };

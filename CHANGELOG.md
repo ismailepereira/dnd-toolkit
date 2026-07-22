@@ -4,6 +4,30 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-21 — F2 (fecho) · Bárbaro — Ataque Descuidado 💥 (toggle de vantagem)
+
+**Backup:** `versoes/2026-07-21-f2-barbaro-descuidado/` (jogo.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** 1ª das "menores" da FASE F2. O Ataque Descuidado (Bárbaro N2) era só texto; agora é um **toggle**
+funcional no Modo de Jogo (`jogo.js`).
+- **Toggle 💥 Ataque Descuidado** na barra "🎯 O teu turno" (só aparece p/ Bárbaro N2+), estado em
+  `ficha.estadoTatico.descuidado`.
+- **Efeito real:** ligado, os ataques **corpo a corpo com Força** (nem à distância, nem com Destreza) passam a
+  **rolar com vantagem** — botão 🎲 atacar ganha `data-descuidado` e o handler força vantagem via
+  `d20Modo(forcarVantagem)`; se o jogador já escolheu desvantagem, os dois se cancelam (→ normal, regra do PHB).
+  Selo "💥 vant." no ataque afetado.
+- **Aviso honesto:** cabeçalho de Ataques mostra "inimigos têm vantagem contra você até seu próximo turno".
+
+**Ficheiros:** `static/js/jogo.js` (`d20Modo` com override, cálculo `descuidadoAtivo`, selo/`data-descuidado` nos
+ataques, chip + handler, aviso no cabeçalho), `docs/ROADMAP-FICHAS-COMBATE.md` (linha do Bárbaro ✅).
+
+**Verificação:** `node --check` OK · `npm test` **29/29** ✅. E2E em **navegador real** (Browser pane): Bárbaro N2 com
+Machado Grande (corpo a corpo) + Arco Curto (distância) → toggle liga `estadoTatico.descuidado`, aviso no
+cabeçalho, só o Machado recebe `data-descuidado="1"`; ataque do Machado logou "d20 1/20→20 (vant.)" (pegou o
+maior); o Arco continua normal.
+
+**Como reverter:** restaurar `versoes/2026-07-21-f2-barbaro-descuidado/`, ou `git revert`.
+
 ## 2026-07-21 — F2 · Guerreiro — Retomar o Fôlego 💨 + Surto de Ação ⚡
 
 **Backup:** `versoes/2026-07-21-f2-guerreiro-folego/` (jogo.js, ROADMAP-FICHAS-COMBATE.md).

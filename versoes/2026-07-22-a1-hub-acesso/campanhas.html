@@ -16,7 +16,7 @@
   <div class="login-wrap">
     <div class="login-box campanhas-box">
       <h1>🗺️ Minhas Campanhas</h1>
-      <p class="login-sub">Olá, {{ usuario }}! Escolha a mesa onde vai jogar. <a href="{{ url_for('hub', escolher=1) }}">⇄ Trocar de modo</a> · {% if legado_mestre %}<a href="{{ url_for('admin_dashboard') }}">📊 Admin</a> · {% endif %}<a href="{{ url_for('logout') }}">Sair</a></p>
+      <p class="login-sub">Olá, {{ usuario }}! Escolha a mesa onde vai jogar. {% if legado_mestre %}<a href="{{ url_for('admin_dashboard') }}">📊 Admin</a> · {% endif %}<a href="{{ url_for('logout') }}">Sair</a></p>
       {# MODO LIVRE (temporário): esconde créditos/cobrança — o servidor também não debita nada #}
       {% if modo_livre %}<p class="creditos-linha">🎉 <b>Período livre:</b> criar e jogar campanhas está grátis, sem limite de fichas.</p>
       {% elif creditos is not none %}<p class="creditos-linha">💳 Seus créditos: <b>{{ creditos }}</b> <small>(1 crédito = R$ 0,25)</small> · <a href="{{ url_for('pagina_creditos') }}">+ Comprar créditos</a></p>{% endif %}

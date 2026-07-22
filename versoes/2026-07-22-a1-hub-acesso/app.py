@@ -338,40 +338,6 @@ def eh_legado_mestre(uid):
     return isinstance(uid, str) and uid.startswith('legacy:') and session.get('papelGlobal') == 'mestre'
 
 
-# ----- FASE A1: papel global efetivo e modos de acesso (hub de cards) -----
-# Hoje o "admin" é deduzido de ser o mestre legado; a Fase A2 vai transformar
-# isso num papelGlobal='admin' de verdade. Este helper isola essa decisão num
-# lugar só, para a A2 mexer aqui e nada mais.
-def papel_global_efetivo():
-    if eh_legado_mestre(session.get('uid', '')):
-        return 'admin'
-    return session.get('papelGlobal') or 'jogador'
-
-
-# Cada modo: chave, rótulo, ícone, descrição, cor (categoria visual da Fase A3).
-MODOS = {
-    'adm': {'chave': 'adm', 'nome': 'ADM — Créditos & Finanças', 'icone': '💰', 'cor': 'financas',
-            'desc': 'Receita, compras por Pix, créditos e campanhas. O painel do dono.'},
-    'total': {'chave': 'total', 'nome': 'Mestre — Controle Total', 'icone': '👑', 'cor': 'total',
-              'desc': 'Manda em todas as campanhas e fichas, sem pedir mais nada a ninguém.'},
-    'mestre': {'chave': 'mestre', 'nome': 'Mestre', 'icone': '🎲', 'cor': 'jogar',
-               'desc': 'Conduza as suas mesas: combate, aventuras, NPCs, XP e tesouro.'},
-    'jogador': {'chave': 'jogador', 'nome': 'Jogador', 'icone': '🧝', 'cor': 'preparar',
-                'desc': 'Crie e jogue os seus personagens nas mesas em que você entra.'},
-}
-
-
-def modos_disponiveis():
-    """Modos que ESTA conta pode usar. Divisão pedida pelo Ismaile: quem se
-    cadastra fica só com Mestre OU só com Jogador; o dono (admin) vê os 4."""
-    papel = papel_global_efetivo()
-    if papel == 'admin':
-        return [MODOS['adm'], MODOS['total'], MODOS['mestre'], MODOS['jogador']]
-    if papel == 'mestre':
-        return [MODOS['mestre']]
-    return [MODOS['jogador']]
-
-
 def papel_na_campanha(uid, camp_id):
     """'mestre' | 'jogador' | None. Mestre legado manda em qualquer campanha;
     campanhas sem metadados (ex.: 'principal') são legadas: só contas fixas entram."""
@@ -744,9 +710,6 @@ def web_manifest():
 def index():
     if 'usuario' not in session:
         return redirect(url_for('login'))
-    # A1: sem modo escolhido, passa pela tela de cards primeiro
-    if not session.get('modo'):
-        return redirect(url_for('hub'))
     # contas registadas precisam de uma campanha ativa válida (senão: Minhas Campanhas)
     uid = session.get('uid', '')
     if uid and not uid.startswith('legacy:'):
@@ -757,37 +720,6 @@ def index():
     if session.get('papel') == 'mestre':
         return redirect(url_for('mestre'))
     return redirect(url_for('jogador'))
-
-
-# ----- FASE A1: hub de modos (a tela de cards logo depois do login) -----
-@app.route('/hub')
-def hub():
-    if 'usuario' not in session:
-        return redirect(url_for('login'))
-    modos = modos_disponiveis()
-    # Conta com um modo só não fica presa numa tela extra — entra direto.
-    # ?escolher=1 força mostrar os cards (é o link "trocar de modo").
-    if len(modos) == 1 and not request.args.get('escolher'):
-        return redirect(url_for('entrar_modo', chave=modos[0]['chave']))
-    return render_template('hub.html', modos=modos,
-                           usuario=session.get('nomeExibicao') or session.get('usuario'),
-                           modo_atual=session.get('modo'))
-
-
-@app.route('/modo/<chave>')
-def entrar_modo(chave):
-    if 'usuario' not in session:
-        return redirect(url_for('login'))
-    permitidos = {m['chave'] for m in modos_disponiveis()}
-    if chave not in permitidos:
-        return redirect(url_for('hub', escolher=1))
-    session['modo'] = chave
-    if chave == 'adm':
-        return redirect(url_for('admin_dashboard'))
-    # 'total' e 'mestre' entram como mestre; 'jogador' como jogador. O
-    # index() já sabe levar para /mestre, /jogador ou /campanhas conforme a conta.
-    session['papel'] = 'jogador' if chave == 'jogador' else 'mestre'
-    return redirect(url_for('index'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -803,8 +735,7 @@ def login():
             session['papel'] = dados['papel']
             session['papelGlobal'] = dados['papel']
             session['uid'] = f'legacy:{usuario}'
-            session.pop('modo', None)  # A1: escolhe o modo na tela de cards
-            return redirect(url_for('hub'))
+            return redirect(url_for('index'))
         uid, u = buscar_usuario_reg(usuario)
         if u and senha_confere(u.get('senhaHash', ''), senha):
             session['usuario'] = u.get('usuario')
@@ -813,8 +744,7 @@ def login():
             session['papelGlobal'] = u.get('papelGlobal', 'jogador')
             session['papel'] = 'jogador'
             session.pop('campanha', None)  # escolhe a campanha ativa na tela seguinte
-            session.pop('modo', None)      # A1: escolhe o modo na tela de cards
-            return redirect(url_for('hub'))
+            return redirect(url_for('pagina_campanhas'))
         erro = 'Usuário ou senha inválidos.'
     return render_template('login.html', erro=erro)
 
@@ -878,8 +808,7 @@ def registro():
             session['uid'] = uid
             session['papelGlobal'] = 'jogador'
             session['papel'] = 'jogador'
-            session.pop('modo', None)  # A1: passa pela tela de cards
-            return redirect(url_for('hub'))
+            return redirect(url_for('pagina_campanhas'))
     return render_template('registro.html', erro=erro, trial_dias=TRIAL_DIAS, preco=ASSINATURA_PRECO,
                            credito_inicial=CREDITO_INICIAL)
 

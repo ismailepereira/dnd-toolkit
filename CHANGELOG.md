@@ -4,6 +4,45 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-22 — A1 · Hub de modos depois do login 🔐 (Acesso & Interface)
+
+**Backup:** `versoes/2026-07-22-a1-hub-acesso/` (app.py, login.html, campanhas.html, mestre.html, jogador.html,
+style.css).
+
+**Resumo:** primeira entrega do novo roadmap `docs/ROADMAP-ACESSO-INTERFACE.md`. O admin deixou de ser um
+endereço secreto e o login passou a ter uma porta de entrada clara.
+- **Nova tela `/hub`** (`templates/hub.html`): cards grandes, um por modo — **💰 ADM Créditos & Finanças**,
+  **👑 Mestre Controle Total**, **🎲 Mestre**, **🧝 Jogador** — cada um com ícone, descrição e **cor da
+  categoria**. Só aparecem os modos a que a conta tem direito.
+- **Divisão de papéis** (`modos_disponiveis`): admin vê os 4; conta `mestre` vê só Mestre; conta `jogador` vê
+  só Jogador — a divisão limpa que o Ismaile pediu.
+- **Sem tela extra para quem tem 1 papel só:** `/hub` entra direto; **`/hub?escolher=1`** força os cards e é o
+  link **"⇄ Trocar de modo"** posto no topo do Mestre, Jogador, Campanhas e Admin.
+- **Guard no servidor:** `/modo/<chave>` só aceita modo permitido — jogador que tenta `/modo/adm` ou
+  `/modo/total` volta ao hub. Esconder o card seria só UI; a trava é no servidor.
+- **`papel_global_efetivo()`** isola "quem é admin" (hoje deduz do mestre legado) num ponto só — é onde a
+  **Fase A2** vai plugar o `papelGlobal='admin'` de verdade, sem caçar `eh_legado_mestre` espalhado.
+- **Paleta por categoria** em `style.css` (`--cat-jogar/preparar/consultar/financas/total`) — nasce aqui e
+  será reusada pela **A3** nos menus/abas (`data-mode` das Fases 17.1/17.2).
+
+**Ficheiros:** `app.py` (helpers + rotas `/hub` e `/modo/<chave>`; login, registo e `index` passam pelo hub),
+`templates/hub.html` (novo), `templates/{mestre,jogador,campanhas,admin_dashboard}.html` (link trocar de modo),
+`static/css/style.css` (`.hub-*`, `.trocar-modo`, `--cat-*`), `docs/ROADMAP-ACESSO-INTERFACE.md` (A1 ✅).
+
+**Verificação:** `python -c ast.parse` OK · **35/35 testes do servidor** ✅. E2E em **navegador real**: login como
+admin → `/hub` com os 4 cards nas cores certas (verde/dourado/vermelho/azul); `/modo/adm`→`/admin/dashboard`,
+`total`→`/mestre`, `mestre`→`/mestre`, `jogador`→`/jogador`, modo inválido→hub. Conta `jogador`: login cai
+direto em `/jogador` (sem tela extra), `?escolher=1` mostra **1 card só**, e `/modo/adm` e `/modo/total` são
+**barrados** de volta ao hub.
+
+**Nota:** rodar `tests/test-servidor.py` no Windows exige `PYTHONIOENCODING=utf-8` (o cp1252 do console quebra
+ao imprimir ✅/❌) — não é falha do código.
+
+**Como reverter:** restaurar `versoes/2026-07-22-a1-hub-acesso/` (e apagar `templates/hub.html`), ou `git revert`.
+
+**Próximo (A2):** `papelGlobal` = admin|mestre|jogador de verdade, escolha Mestre-ou-Jogador no cadastro e
+decorator `@exige_papel` central.
+
 ## 2026-07-22 — F5a · Magias de domínio (Clérigo) e juramento (Paladino) 🕮⚜️
 
 **Backup:** `versoes/2026-07-22-f5a-dominios-juramentos/` (compendio.js, jogo.js, criador.js, unit-regras.js,

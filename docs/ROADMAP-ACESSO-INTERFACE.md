@@ -38,11 +38,11 @@ Saque e furto (Fase C) vêm depois.
 
 ## FASE A — Acesso e identidade visual 🔴 (PRIMEIRO)
 
-### A1 🔴 Login isolado + Hub de modos (cards)
+### A1 ✅ Login isolado + Hub de modos (cards) — ENTREGUE 22/07
 **Dor:** "queria separar o local que se faz login, e quando fizer login ter cards pra mim ter as opções."
 
-- [ ] **`/login` vira só login.** Nada de conteúdo de campanha na tela; identidade limpa do produto.
-- [ ] Nova rota **`/hub`** (tela de escolha) logo após autenticar — cards grandes, um por modo, mostrando só
+- [x] **`/login` é só login** (já era — confirmado: nenhum conteúdo de campanha na tela).
+- [x] Nova rota **`/hub`** (tela de escolha) logo após autenticar — cards grandes, um por modo, mostrando só
       os que a conta realmente tem direito:
   | Card | Quem vê | Leva para |
   |---|---|---|
@@ -50,12 +50,21 @@ Saque e furto (Fase C) vêm depois.
   | 👑 **Mestre — Controle Total** | só `papelGlobal = admin` | qualquer campanha como mestre, sem pedir mais nada |
   | 🎲 **Mestre** | `papelGlobal = mestre` | `/campanhas` (as que ele mestra) |
   | 🧝 **Jogador** | `papelGlobal = jogador` | `/campanhas` (as que participa) + suas fichas |
-- [ ] Conta com **um papel só** não fica presa numa tela extra: pode pular direto (com um link "trocar de
-      modo" no topo para quem tem mais de um).
-- [ ] O modo escolhido fica na sessão (`session['modo']`) e o **topo da tela mostra em qual modo você está**.
+- [x] Conta com **um papel só** não fica presa numa tela extra: `/hub` entra direto no único modo dela;
+      **`/hub?escolher=1`** força a tela (é o link **"⇄ Trocar de modo"**, posto no topo do Mestre, do Jogador,
+      das Campanhas e do Admin).
+- [x] O modo escolhido fica em **`session['modo']`**; o card do modo atual aparece marcado no hub.
+- [x] **Guard no servidor:** `/modo/<chave>` só aceita modo que a conta pode usar — um jogador que tenta
+      `/modo/adm` ou `/modo/total` é devolvido ao hub. (Verificado ao vivo.)
+- [x] Helper **`papel_global_efetivo()`** isola a decisão de "quem é admin" num lugar só (hoje deduz do mestre
+      legado) — é exatamente aí que a **A2** vai plugar o `papelGlobal='admin'` de verdade.
 
 **Pronto quando:** ao logar, aparece a tela de cards; o admin vê os 4; um jogador registado vê só o dele;
-`/admin` deixa de ser um endereço secreto e passa a ter porta de entrada.
+`/admin` deixa de ser um endereço secreto e passa a ter porta de entrada. ✅
+
+**Onde ficou:** `app.py` (`papel_global_efetivo`, `MODOS`, `modos_disponiveis`, rotas `/hub` e `/modo/<chave>`;
+login/registo/index passam pelo hub), `templates/hub.html` (novo), `static/css/style.css` (`.hub-*` + as
+variáveis **`--cat-*`** da paleta por categoria, que a A3 vai reusar nos menus).
 
 ### A2 🔴 Papéis de verdade (segurança administrativa)
 **Dor:** "somente o mestre pode adicionar xp itens abrir o acesso a lojas, ou upar o personagem".

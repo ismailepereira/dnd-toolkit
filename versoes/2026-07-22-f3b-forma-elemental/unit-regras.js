@@ -25,7 +25,7 @@ const ctx = vm.runInContext(`({
   DIVINDADES, SEM_DIVINDADE, CLASSES_DEVOTAS, listaDivindades, divindadeDados,
   PATRONOS_PACTO, patronoDados, SUBCLASSES, antecedentesDisponiveis, antecedenteDados,
   calcularCA, percepcaoPassiva, cdConjuracao, pvMaximoMonoclasse, recursosDeClasse5e, resumoCombate5e, cartaoCombateHtml,
-  FORMAS_SELVAGENS, FORMAS_ELEMENTAIS, formasElementaisDisponiveis, limiteFormaSelvagem, formasSelvagensDisponiveis, formaSelvagemDados,
+  FORMAS_SELVAGENS, limiteFormaSelvagem, formasSelvagensDisponiveis, formaSelvagemDados,
 })`, sandbox);
 // guarda contra testes vácuos: nada aqui pode estar indefinido
 for (const k in ctx) assert.ok(ctx[k] != null, `binding indefinida no contexto: ${k}`);
@@ -249,31 +249,6 @@ t('formasSelvagensDisponiveis filtra ND, natação e voo por nível', () => {
 t('formaSelvagemDados devolve a forma pelo nome (e null p/ inexistente)', () => {
   assert.strictEqual(ctx.formaSelvagemDados('Urso-Pardo').pv, 34);
   assert.strictEqual(ctx.formaSelvagemDados('Fênix'), null);
-});
-
-t('F3b: formas elementais só na Lua a partir do N10 (gastam 2 usos)', () => {
-  assert.strictEqual(ctx.formasElementaisDisponiveis(9, 'Círculo da Lua').length, 0); // N9 ainda não
-  assert.strictEqual(ctx.formasElementaisDisponiveis(10, '').length, 0);              // outro círculo não
-  const elem = ctx.formasElementaisDisponiveis(10, 'Círculo da Lua');
-  assert.strictEqual(elem.length, 4, 'Ar/Terra/Fogo/Água');
-  const nomesElem = elem.map(f => f.nome);
-  ['Elemental do Ar', 'Elemental da Terra', 'Elemental do Fogo', 'Elemental da Água'].forEach(n =>
-    assert.ok(nomesElem.includes(n), `falta ${n}`));
-  elem.forEach(f => {
-    assert.strictEqual(f.nd, 5, `${f.nome} é ND 5`);
-    assert.ok(f.elemental === true, `${f.nome} marcado como elemental`);
-    assert.ok(f.pv >= 90 && f.ca && f.atributos && f.ataques.length && f.tracos.length, `${f.nome} com stats completos`);
-  });
-});
-
-t('F3b: formaSelvagemDados também encontra os elementais (p/ o painel/PV)', () => {
-  assert.strictEqual(ctx.formaSelvagemDados('Elemental do Fogo').pv, 102);
-  assert.strictEqual(ctx.formaSelvagemDados('Elemental da Terra').ca, 17);
-});
-
-t('F3b: elementais NÃO entram na lista normal de feras (ND 5 acima do teto)', () => {
-  const lua20 = ctx.formasSelvagensDisponiveis(20, 'Círculo da Lua').map(f => f.nome);
-  assert.ok(!lua20.some(n => n.startsWith('Elemental')), 'nenhum elemental na lista de feras');
 });
 
 t('SUBCLASSES: toda classe listada existe e nível de escolha é 1-3', () => {

@@ -859,7 +859,7 @@ const Jogo = (function () {
         const pvF = Math.max(0, f.formaAtiva.pvAtual);
         const pct = Math.max(0, Math.min(100, (pvF / ativa.pv) * 100));
         formaHtml = `<div class="jg-bloco jg-forma" data-bloco-acao="forma">
-          <h4>${ativa.elemental ? '🌙' : '🐺'} ${ativa.elemental ? 'Forma Elemental' : 'Forma Selvagem'} — ${esc(ativa.nome)} <small>(ND ${ndRotulo(ativa.nd)})</small></h4>
+          <h4>🐺 Forma Selvagem — ${esc(ativa.nome)} <small>(ND ${ndRotulo(ativa.nd)})</small></h4>
           <div class="pv-linha">PV da fera <b>${pvF}</b> / ${ativa.pv} · CA <b>${ativa.ca}</b> · ${esc(ativa.desloc)}</div>
           <div class="jg-pv-bar"><div style="width:${pct}%;background:#3fb950"></div></div>
           <div class="jg-pv-acoes">
@@ -876,26 +876,12 @@ const Jogo = (function () {
       } else {
         const ops = formas.map(fs =>
           `<option value="${esc(fs.nome)}">ND ${ndRotulo(fs.nd)} — ${esc(fs.nome)} (CA ${fs.ca} · ${fs.pv} PV · ${esc(fs.desloc)})</option>`).join('');
-        // F3b: Forma Elemental (Círculo da Lua N10) — gasta 2 usos
-        const elementais = (typeof formasElementaisDisponiveis === 'function') ? formasElementaisDisponiveis(druida.nivel, druida.subclasse) : [];
-        const podeElemental = druida.nivel >= 20 || restamFS >= 2;
-        const opsElem = elementais.map(fe =>
-          `<option value="${esc(fe.nome)}">${esc(fe.nome)} (CA ${fe.ca} · ${fe.pv} PV · ${esc(fe.desloc)})</option>`).join('');
-        const elementalHtml = elementais.length ? `
-          <div class="jg-forma-elemental">
-            <div class="pv-linha"><b>🌙 Forma Elemental</b> <small>(gasta 2 usos · ND 5)</small></div>
-            <div class="jg-pv-acoes">
-              <select id="jgFsElemental" style="flex:1;min-width:0">${opsElem}</select>
-              <button id="jgFsTransformarElem" class="btn-primary" ${podeElemental ? '' : 'disabled title="Precisa de 2 usos — recupera em descanso curto"'}>🌙 Virar Elemental</button>
-            </div>
-          </div>` : '';
         formaHtml = `<div class="jg-bloco jg-forma" data-bloco-acao="forma">
           <h4>🐺 Forma Selvagem <small>(${restamFS}/2 usos · ND máx ${ndRotulo(lim.nd)}${lim.voo ? '' : ' · sem voo'}${lim.nado ? '' : ' · sem natação'})</small></h4>
           <div class="jg-pv-acoes">
             <select id="jgFsForma" style="flex:1;min-width:0">${ops}</select>
             <button id="jgFsTransformar" class="btn-primary" ${restamFS <= 0 && druida.nivel < 20 ? 'disabled title="Sem usos — recupera em descanso curto"' : ''}>🐾 Transformar</button>
           </div>
-          ${elementalHtml}
           <div class="criador-hint">${druida.subclasse === 'Círculo da Lua' ? '🌙 Círculo da Lua: feras de combate (ND acima do padrão)' : `Melhora nos níveis 4 (ND ½ + natação) e 8 (ND 1 + voo)`}${druida.nivel >= 20 ? ' · Arquidruida: usos ILIMITADOS' : ' · 2 usos, recupera em descanso curto'}.</div>
         </div>`;
       }
@@ -2097,22 +2083,19 @@ const Jogo = (function () {
     document.querySelectorAll('[data-pt2esp]').forEach(b => b.onclick = () => pontosParaEspaco(+b.dataset.pt2esp));
 
     // ----- Forma Selvagem: transformar / dano-cura da fera / reverter -----
-    // custo = usos de Forma Selvagem gastos (1 fera; 2 elemental na Lua N10).
-    function transformarEm(nome, custo) {
+    const fsBtn = $('jgFsTransformar');
+    if (fsBtn) fsBtn.onclick = () => {
+      const nome = ($('jgFsForma') || {}).value;
       const dados = (typeof formaSelvagemDados === 'function') ? formaSelvagemDados(nome) : null;
       if (!dados) return;
       const nivelDruida = (classesFicha().find(c => c.classe === 'Druida') || {}).nivel || 0;
       const usados = ficha.recursosUsados['Forma Selvagem'] || 0;
-      if (nivelDruida < 20 && (usados + custo) > 2) return; // Arquidruida (N20): ilimitado
-      if (nivelDruida < 20) ficha.recursosUsados['Forma Selvagem'] = usados + custo;
+      if (usados >= 2 && nivelDruida < 20) return; // Arquidruida (N20): ilimitado
+      if (nivelDruida < 20) ficha.recursosUsados['Forma Selvagem'] = usados + 1;
       ficha.formaAtiva = { nome: dados.nome, pvAtual: dados.pv };
-      log(`${dados.elemental ? '🌙 Assumiu a' : '🐺 Transformou-se em'} ${dados.nome} (${dados.pv} PV da forma${custo > 1 ? `, ${custo} usos` : ''})`);
+      log(`🐺 Transformou-se em ${dados.nome} (${dados.pv} PV da fera)`);
       salvar();
-    }
-    const fsBtn = $('jgFsTransformar');
-    if (fsBtn) fsBtn.onclick = () => transformarEm(($('jgFsForma') || {}).value, 1);
-    const fsBtnElem = $('jgFsTransformarElem');
-    if (fsBtnElem) fsBtnElem.onclick = () => transformarEm(($('jgFsElemental') || {}).value, 2);
+    };
     const fsRev = $('jgFsReverter');
     if (fsRev) fsRev.onclick = () => {
       log(`↩️ Reverteu da forma de ${(ficha.formaAtiva || {}).nome || 'fera'}`);

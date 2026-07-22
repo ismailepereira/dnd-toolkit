@@ -97,10 +97,8 @@ toggle/botão no Modo de Jogo. **Com isso a FASE F2 está 100% concluída** (as 
 
 ### F3 🟠 Druida — fechamento das pendências da Forma Selvagem
 - [x] Catálogo por nível + transformar/reverter (19/07).
-- [x] **F3b — Forma Elemental** (Círculo da Lua nv10) — ENTREGUE 22/07: 4 elementais (Ar/Terra/Fogo/Água, ND 5,
-  stats do MM) em `FORMAS_ELEMENTAIS` (`formaselvagem.js`); seletor **🌙 Forma Elemental** no Modo de Jogo que
-  **gasta 2 usos** de Forma Selvagem (guard: precisa de 2; só Lua N10+). Reusa o painel de forma ativa (PV/CA/
-  ataques/reverter) com cabeçalho 🌙.
+- [ ] **F3b — Forma Elemental** (Círculo da Lua nv10): gastar 2 usos para virar Elemental do Ar/Terra/Fogo/Água
+  (4 formas novas no catálogo com stats).
 - [ ] Conjuração Atemporal (nv18): liberar o painel de magias mesmo com forma ativa.
 
 ### F4 ✅ Cartão-resumo de combate no fim do Criador ("cola" do jogador) — ENTREGUE 21/07

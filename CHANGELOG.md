@@ -4,6 +4,36 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-22 — F3b · Druida — Forma Elemental 🌙 (Círculo da Lua N10)
+
+**Backup:** `versoes/2026-07-22-f3b-forma-elemental/` (formaselvagem.js, jogo.js, unit-regras.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** Fase F3b do roadmap Fichas & Combate. O Druida do Círculo da Lua (N10) agora pode gastar **2 usos**
+de Forma Selvagem para virar um **Elemental**.
+- **4 elementais** (Ar/Terra/Fogo/Água, ND 5, stats do MM em metros) num catálogo próprio `FORMAS_ELEMENTAIS`
+  (`formaselvagem.js`), com CA/PV/deslocamento/atributos físicos/ataques (Multiataque + Golpe/Toque)/traços
+  (Forma Aérea, Deslizar na Terra, Forma Ígnea, Sorver, resistências…).
+- **Separados das feras:** não entram na lista normal (que filtra por ND ≤ teto — elementais são ND 5), mas
+  `formaSelvagemDados` os encontra para o painel/PV da forma ativa. Novo `formasElementaisDisponiveis(nivel,
+  subclasse)` só devolve as 4 na **Lua N10+**.
+- **Modo de Jogo (`jogo.js`):** seletor **🌙 Forma Elemental (2 usos)** abaixo do seletor de feras; transformar
+  reusa o painel da forma ativa (dano/cura/reverter) com cabeçalho 🌙. `transformarEm(nome, custo)` unifica fera
+  (1 uso) e elemental (2); guard rejeita se faltam usos (Arquidruida N20 = ilimitado).
+
+**Ficheiros:** `static/js/formaselvagem.js` (+catálogo, +helper, `formaSelvagemDados`+exports), `static/js/jogo.js`
+(seletor elemental, `transformarEm`, cabeçalho 🌙), `tests/unit-regras.js` (+3 casos), `docs/ROADMAP-FICHAS-COMBATE.md`
+(F3b ✅).
+
+**Verificação:** `node --check` OK · `npm test` **35/35** ✅ (elementais só na Lua N10; achados por
+formaSelvagemDados; fora da lista de feras). E2E em **navegador real** (Browser pane): Druida Lua N10 → seletor
+com os 4 elementais e botão ativo (2/2); virar Elemental do Fogo gastou 2 usos, painel "🌙 Forma Elemental —
+Elemental do Fogo · 102 PV · Multiataque", log correto; N9 e outro Círculo sem o bloco; N10 com 1 uso → botão
+travado.
+
+**Como reverter:** restaurar `versoes/2026-07-22-f3b-forma-elemental/`, ou `git revert`.
+
+**Próximo (roadmap Fichas & Combate):** F3 (Conjuração Atemporal N18) ou **C6** (efeitos → condições com 1 toque).
+
 ## 2026-07-21 — F4 · Cartão-resumo de combate ⚔️ (Criador + PDF)
 
 **Backup:** `versoes/2026-07-21-f4-cartao-combate/` (regras-ficha.js, criador.js, jogo.js, _criador.html,

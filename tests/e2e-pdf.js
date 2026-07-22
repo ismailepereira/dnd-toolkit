@@ -659,6 +659,52 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   });
   ok(mf2d === true, 'Guard: sem Ki → todas as opções desabilitadas');
 
+  // ----- 💨 F2: Guerreiro — Retomar o Fôlego (1d10+nível) e Surto de Ação -----
+  const gf2a = await page.evaluate(() => {
+    const g = { id: 'guerreiro-f2', nome: 'Aldric', classe: 'Guerreiro', nivel: 3, atributos: { for: 16, des: 12, con: 14, int: 10, sab: 10, car: 8 }, itens: [], equipado: {}, condicoes: [], hpMax: 28, hpAtual: 10, ca: 18, iniciativa: 1, recursosUsados: {} };
+    window.__g = g;
+    window.Jogo.abrir(g, {});
+    const bloco = document.querySelector('.jg-guerreiro');
+    return {
+      temBloco: !!bloco,
+      temFolego: !!document.getElementById('jgFolego'),
+      temSurto: !!document.getElementById('jgSurto'),
+      rotuloFolego: document.getElementById('jgFolego') ? document.getElementById('jgFolego').textContent.replace(/\s+/g, ' ').trim() : '',
+    };
+  });
+  ok(gf2a.temBloco && gf2a.temFolego, 'Guerreiro nv3 ganha o card 💨 Retomar o Fôlego com botão');
+  ok(gf2a.temSurto, 'Guerreiro nv3 (N2+) mostra o botão ⚡ Surto de Ação');
+  ok(/1d10\+3/.test(gf2a.rotuloFolego), `Botão do Fôlego usa 1d10+nível: "${gf2a.rotuloFolego}"`);
+
+  // Retomar o Fôlego cura (respeitando o máximo), gasta o uso e desabilita
+  const gf2b = await page.evaluate(() => {
+    document.getElementById('jgFolego').click();
+    return {
+      hp: window.__g.hpAtual, usado: window.__g.recursosUsados['Retomar o Fôlego'],
+      off: document.getElementById('jgFolego').disabled,
+      log: document.querySelector('.jg-log li').textContent,
+    };
+  });
+  ok(gf2b.hp > 10 && gf2b.hp <= 28, `Retomar o Fôlego curou dentro do teto de PV (10 → ${gf2b.hp}/28)`);
+  ok(gf2b.usado === 1 && gf2b.off === true, 'Fôlego gastou 1 uso (1×/descanso curto) e desabilitou o botão');
+  ok(/Retomar o F[oô]lego/.test(gf2b.log) && /PV/.test(gf2b.log), `Loga a cura no histórico: "${gf2b.log}"`);
+
+  // Surto de Ação gasta o uso e registra
+  const gf2c = await page.evaluate(() => {
+    document.getElementById('jgSurto').click();
+    return { usado: window.__g.recursosUsados['Surto de Ação'], off: document.getElementById('jgSurto').disabled, log: document.querySelector('.jg-log li').textContent };
+  });
+  ok(gf2c.usado === 1 && gf2c.off === true, 'Surto de Ação gastou 1 uso e desabilitou o botão');
+  ok(/Surto de A[cç][aã]o/.test(gf2c.log), `Loga o Surto de Ação: "${gf2c.log}"`);
+
+  // Guerreiro N1: tem Fôlego, mas ainda não o Surto de Ação (N2+)
+  const gf2d = await page.evaluate(() => {
+    const g1 = { id: 'guerreiro-n1', nome: 'Bree', classe: 'Guerreiro', nivel: 1, atributos: { for: 15, des: 12, con: 14, int: 10, sab: 10, car: 8 }, itens: [], equipado: {}, condicoes: [], hpMax: 12, hpAtual: 12, ca: 16, iniciativa: 1, recursosUsados: {} };
+    window.Jogo.abrir(g1, {});
+    return { temFolego: !!document.getElementById('jgFolego'), temSurto: !!document.getElementById('jgSurto') };
+  });
+  ok(gf2d.temFolego && !gf2d.temSurto, 'Guerreiro N1 tem Retomar o Fôlego, mas Surto de Ação só a partir do N2');
+
   // ----- ⚔️ T2: banner "é a sua vez" no Modo de Jogo -----
   const heroi = {
     id: 'teste-t2', nome: 'Aria', raca: 'Humano', classe: 'Guerreiro', nivel: 3,

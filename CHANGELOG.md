@@ -4,6 +4,34 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-21 — F2 · Guerreiro — Retomar o Fôlego 💨 + Surto de Ação ⚡
+
+**Backup:** `versoes/2026-07-21-f2-guerreiro-folego/` (jogo.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** 5ª (e última das "grandes") correção da FASE F2. Novo card **💨 Retomar o Fôlego** no Modo de Jogo
+(`jogo.js`) para o Guerreiro — fecha a lacuna "Retomar o Fôlego era só um contador, não rolava/curava".
+- **Retomar o Fôlego (N1):** botão que rola **1d10 + nível de Guerreiro**, **cura de fato** (respeitando o PV
+  máximo) e gasta 1 uso — `rec: curto`, 1×/descanso curto — registrando no Histórico o detalhe da rolagem
+  (`1d10+3 = 11 [8+3] → +11 PV`).
+- **Surto de Ação (N2+):** no mesmo card, botão **⚡ Surto de Ação** que gasta 1 uso (2 usos no N17) e loga a
+  ação adicional do turno.
+- **Guards:** cada botão desabilita quando não há uso; ambos os pontos usam o **mesmo contador** de "Recursos
+  de Classe" (fonte única `recursosDeClasse5e`). Guerreiro N1 tem só o Fôlego (Surto chega no N2). Entrada no
+  índice de ações do turno (T3.2).
+
+**Ficheiros:** `static/js/jogo.js` (`guerreiroDaFicha`/`retomarFolego`/`surtoDeAcao`, card, handlers, índice T3,
+inserção no HTML), `tests/e2e-pdf.js` (+bloco F2 Guerreiro), `docs/ROADMAP-FICHAS-COMBATE.md` (item 5 ✅).
+
+**Verificação:** `node --check` OK · `npm test` **29/29** ✅. E2E em **navegador real** (Browser pane, preview
+local): Guerreiro N3 ferido (10/28) → card com "1/1", botões 💨 (1d10+3) e ⚡; Fôlego rolou 8+3 e curou p/ 21/28,
+gastou o uso e desabilitou + logou; Surto gastou 1 uso e logou; N1 tem Fôlego mas não o Surto. Caso de
+regressão adicionado ao `e2e-pdf.js` (roda no CI).
+
+**Como reverter:** restaurar `versoes/2026-07-21-f2-guerreiro-folego/`, ou `git revert`.
+
+**Próximo (F2):** passada de fecho das "menores" (Ataque Descuidado, Ação Ladina, Recuperação Arcana, Imposição
+das Mãos-cura, Consciência Primitiva), se valer a pena — depois a fase segue p/ F3b/F4.
+
 ## 2026-07-21 — F2 · Monge — Opções de Ki com botão 👊
 
 **Backup:** `versoes/2026-07-21-f2-monge-ki/` (jogo.js, e2e-pdf.js, ROADMAP-FICHAS-COMBATE.md).

@@ -86,10 +86,7 @@ Legenda: ✅ ok · ⚠️ parcial · ❌ falta · 🔎 = alvo de correção.
 4. [x] **Monge — Opções de Ki** — ENTREGUE 21/07: card 👊 com 3 botões N2 (Rajada de Golpes/Defesa Paciente/
    Passo do Vento) + Golpe Atordoante (N5, com a CD de Ki), cada um gastando 1 Ponto de Ki (contador único de
    "Recursos de Classe") + Histórico. Guard: sem Ki, botões desabilitados.
-5. [x] **Guerreiro — Retomar o Fôlego** — ENTREGUE 21/07: card 💨 no Modo de Jogo com botão que rola
-   **1d10+nível de Guerreiro**, cura de fato (respeitando o PV máximo) e gasta 1 uso (contador compartilhado
-   com "Recursos de Classe", 1×/descanso curto) + Histórico. Guerreiro N2+ ganha no mesmo card o botão
-   **⚡ Surto de Ação** (gasta 1 uso, registra a ação adicional). Guards: botões desabilitam sem uso.
+5. [ ] **Guerreiro — Retomar o Fôlego**: botão que rola 1d10+nível e cura; chip de Surto de Ação.
 
 As "menores" (Ataque Descuidado, Ação Ladina, Recuperação Arcana, Imposição das Mãos-cura, Consciência
 Primitiva) entram numa passada de fecho depois, se valer a pena.

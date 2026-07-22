@@ -599,35 +599,6 @@ const Jogo = (function () {
     salvar();
   }
 
-  // ----- F2: Retomar o Fôlego / Surto de Ação do Guerreiro -----
-  // Retomar o Fôlego (N1): ação bônus, cura 1d10 + nível de Guerreiro, 1×/descanso curto.
-  // Surto de Ação (N2+): gasta 1 uso para ganhar uma ação adicional no turno.
-  function guerreiroDaFicha() { return classesFicha().find(c => c.classe === 'Guerreiro'); }
-  function retomarFolego() {
-    const g = guerreiroDaFicha();
-    if (!g) return;
-    const usados = ficha.recursosUsados['Retomar o Fôlego'] || 0;
-    if (usados >= 1) { log('Retomar o Fôlego já foi usado — recupere num descanso curto.'); render(); return; }
-    ficha.recursosUsados['Retomar o Fôlego'] = usados + 1;
-    const rolo = 1 + Math.floor(Math.random() * 10);
-    const cura = rolo + g.nivel;
-    const antes = ficha.hpAtual;
-    ficha.hpAtual = Math.min(ficha.hpMax, ficha.hpAtual + cura);
-    const efetiva = ficha.hpAtual - antes;
-    log(`💨 Retomar o Fôlego: 1d10+${g.nivel} = ${cura} [${rolo}+${g.nivel}] → +${efetiva} PV.`);
-    salvar();
-  }
-  function surtoDeAcao() {
-    const g = guerreiroDaFicha();
-    if (!g || g.nivel < 2) return;
-    const r = recursosClasse().find(x => x.nome === 'Surto de Ação');
-    const max = r ? r.max : 0, usados = ficha.recursosUsados['Surto de Ação'] || 0;
-    if (max - usados < 1) { log('Sem Surto de Ação — recupere num descanso curto.'); render(); return; }
-    ficha.recursosUsados['Surto de Ação'] = usados + 1;
-    log('⚡ Surto de Ação: uma ação adicional neste turno.');
-    salvar();
-  }
-
   // ----- F1: Punição Divina do Paladino (nv2+) -----
   // Gasta 1 espaço de magia DEPOIS de acertar um golpe corpo a corpo:
   // 2d8 radiante (1º), +1d8 por círculo acima (máx 5d8), +1d8 vs mortos-vivos/ínferos.
@@ -1204,31 +1175,6 @@ const Jogo = (function () {
       </div>`;
     }
 
-    // ----- 💨 Retomar o Fôlego / ⚡ Surto de Ação do Guerreiro (F2) -----
-    let guerreiroHtml = '';
-    const guerr = guerreiroDaFicha();
-    if (guerr) {
-      const rF = recs.find(x => x.nome === 'Retomar o Fôlego');
-      const folMax = rF ? rF.max : 1;
-      const folRestam = folMax - (f.recursosUsados['Retomar o Fôlego'] || 0);
-      const folOff = folRestam < 1 ? 'disabled' : '';
-      let surtoLinha = '';
-      if (guerr.nivel >= 2) {
-        const rS = recs.find(x => x.nome === 'Surto de Ação');
-        const sMax = rS ? rS.max : 1;
-        const sRestam = sMax - (f.recursosUsados['Surto de Ação'] || 0);
-        const sOff = sRestam < 1 ? 'disabled' : '';
-        surtoLinha = `<div class="pv-linha"><b>Surto de Ação:</b> ganhe <b>uma ação adicional</b> neste turno.</div>
-          <button id="jgSurto" class="btn-mini" ${sOff}>⚡ Surto de Ação <small>(${sRestam}/${sMax})</small></button>`;
-      }
-      guerreiroHtml = `<div class="jg-bloco jg-guerreiro" data-bloco-acao="guerreiro"><h4>💨 Retomar o Fôlego <small>(${folRestam}/${folMax})</small></h4>
-        <div class="pv-linha"><b>Retomar o Fôlego:</b> ação bônus, recupera <b>1d10+${guerr.nivel}</b> PV (1×/descanso curto).</div>
-        <button id="jgFolego" class="btn-mini" ${folOff}>💨 Retomar o Fôlego <small>(1d10+${guerr.nivel})</small></button>
-        ${folRestam < 1 ? '<div class="criador-hint">Já usado — recupere num descanso curto.</div>' : ''}
-        ${surtoLinha}
-      </div>`;
-    }
-
     // ----- 🛡️ Auras do Paladino (F1) — passivas sempre visíveis a partir do N6 -----
     let aurasHtml = '';
     if (palad && palad.nivel >= 6) {
@@ -1556,7 +1502,6 @@ const Jogo = (function () {
         if (inspiracaoHtml) cats.push(['inspiracao', '🎵', 'Inspiração Bárdica']);
         if (feiticariaHtml) cats.push(['feiticaria', '✴️', 'Fontes de Feitiçaria']);
         if (kiHtml) cats.push(['ki', '👊', 'Opções de Ki']);
-        if (guerreiroHtml) cats.push(['guerreiro', '💨', 'Retomar o Fôlego']);
         if (formaHtml) cats.push(['forma', '🐺', 'Forma Selvagem']);
         if (recHtml) cats.push(['recursos', '🎲', 'Recursos de Classe']);
         const indice = cats.length
@@ -1605,7 +1550,7 @@ const Jogo = (function () {
           </div>
           ${condHtml}${logHtml}
         </div>
-        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${expulsarHtml}${inspiracaoHtml}${feiticariaHtml}${kiHtml}${guerreiroHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
+        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${expulsarHtml}${inspiracaoHtml}${feiticariaHtml}${kiHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
       </div>
     `;
 
@@ -1918,10 +1863,6 @@ const Jogo = (function () {
     // ----- 👊 Opções de Ki (F2) -----
     const KI_ROTULO = { rajada: 'Rajada de Golpes', defesa: 'Defesa Paciente', vento: 'Passo do Vento', atordoar: 'Golpe Atordoante' };
     document.querySelectorAll('[data-ki]').forEach(b => b.onclick = () => gastarKi(1, KI_ROTULO[b.dataset.ki] || 'Ki'));
-
-    // ----- 💨 Retomar o Fôlego / ⚡ Surto de Ação (F2) -----
-    if ($('jgFolego')) $('jgFolego').onclick = retomarFolego;
-    if ($('jgSurto')) $('jgSurto').onclick = surtoDeAcao;
 
     // ----- ✴️ Fontes de Feitiçaria (F2) -----
     document.querySelectorAll('[data-esp2pt]').forEach(b => b.onclick = () => espacoParaPontos(+b.dataset.esp2pt));

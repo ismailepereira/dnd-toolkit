@@ -217,15 +217,6 @@ const Criador = (function () {
         ${im.descricao ? `<div class="pv-linha">${escHtml(im.descricao)}</div>` : ''}</div>`; })()}
       ${avisosHtml}
     `;
-
-    // F4: cartão "Seu personagem em combate" na etapa final (a "cola" do jogador)
-    const elResumo = $('cResumoCombate');
-    if (elResumo) {
-      const fichaResumo = { classe: s.classe, nivel: s.nivel, subclasse: s.subclasse, atributos: c.attrs, itens: s.itens, equipado: s.equipado, truques: s.truques, magias1: s.magias1 };
-      elResumo.innerHTML = (typeof cartaoCombateHtml === 'function')
-        ? cartaoCombateHtml(fichaResumo, { ca: c.ca, pv: c.hp, deslocamento: c.deslocamento + penDesloc, iniciativa: c.iniciativa })
-        : '';
-    }
   }
 
   // ---------- Render das escolhas dinâmicas ----------

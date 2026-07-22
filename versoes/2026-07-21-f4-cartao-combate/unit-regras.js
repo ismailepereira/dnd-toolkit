@@ -24,7 +24,7 @@ const ctx = vm.runInContext(`({
   CLASSES_RESUMO, RACAS_DETALHE, RACAS_RESUMO, CONJURACAO, mod, PB,
   DIVINDADES, SEM_DIVINDADE, CLASSES_DEVOTAS, listaDivindades, divindadeDados,
   PATRONOS_PACTO, patronoDados, SUBCLASSES, antecedentesDisponiveis, antecedenteDados,
-  calcularCA, percepcaoPassiva, cdConjuracao, pvMaximoMonoclasse, recursosDeClasse5e, resumoCombate5e, cartaoCombateHtml,
+  calcularCA, percepcaoPassiva, cdConjuracao, pvMaximoMonoclasse, recursosDeClasse5e,
   FORMAS_SELVAGENS, limiteFormaSelvagem, formasSelvagensDisponiveis, formaSelvagemDados,
 })`, sandbox);
 // guarda contra testes vácuos: nada aqui pode estar indefinido
@@ -287,28 +287,6 @@ t('recursosDeClasse5e: Paladino tem Sentido Divino (1+CAR), Imposição das Mão
 
 t('recursosDeClasse5e: classe sem recursos de pool devolve lista vazia', () => {
   assert.strictEqual(ctx.recursosDeClasse5e('Mago', 20, 5).length, 0);
-});
-
-t('resumoCombate5e (F4): pega a melhor CD de magia e o recurso de classe a lembrar', () => {
-  // Clérigo nv5, SAB 16 (+3): CD = 8 + PB(3) + 3 = 14; recurso = Canalizar Divindade
-  const r = ctx.resumoCombate5e({ classe: 'Clérigo', nivel: 5, atributos: { for: 10, des: 12, con: 14, int: 8, sab: 16, car: 10 }, truques: ['Chama Sagrada'], magias1: ['Curar Ferimentos'] });
-  assert.ok(r.conj && r.conj.cd === 14, `CD esperada 14, veio ${r.conj && r.conj.cd}`);
-  assert.strictEqual(r.magiaDestaque, 'Chama Sagrada'); // truque tem prioridade
-  assert.ok(r.recurso && r.recurso.nome === 'Canalizar Divindade');
-});
-
-t('resumoCombate5e (F4): guerreiro puro não conjura → conj nulo, recurso presente', () => {
-  const r = ctx.resumoCombate5e({ classe: 'Guerreiro', nivel: 3, atributos: { for: 16, des: 12, con: 14, int: 10, sab: 10, car: 8 } });
-  assert.strictEqual(r.conj, null);
-  assert.ok(r.recurso && r.recurso.nome === 'Surto de Ação'); // primeiro recurso do Guerreiro nv3
-});
-
-t('cartaoCombateHtml (F4): monta o cartão com CA/PV e o título, escapando o que precisa', () => {
-  const html = ctx.cartaoCombateHtml({ classe: 'Mago', nivel: 6, atributos: { for: 8, des: 14, con: 14, int: 16, sab: 12, car: 10 }, truques: ['Raio de Fogo'] }, { ca: 12, pv: 32, deslocamento: 9, iniciativa: 2 });
-  assert.ok(/Seu personagem em combate/.test(html), 'tem o título do cartão');
-  assert.ok(/CA <b>12<\/b>/.test(html) && /PV <b>32<\/b>/.test(html), 'mostra CA e PV');
-  assert.ok(/CD <b>14<\/b>/.test(html), 'Mago nv6 INT 16 → CD 14 no cartão');
-  assert.ok(/Raio de Fogo/.test(html), 'destaca o truque');
 });
 
 console.log(`\n${process.exitCode ? '❌ Houve falhas' : `✅ ${total} testes passaram`}`);

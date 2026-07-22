@@ -2368,7 +2368,6 @@ const Jogo = (function () {
       <div class="sub">${e(f.raca)} · ${e(f.classe)} nível ${f.nivel}${f.subclasse ? ' (' + e(f.subclasse) + ')' : ''}${f.antecedente ? ' · ' + e(f.antecedente) : ''}${f.divindade ? ' · ⛩️ ' + e(f.divindade) : ''}${f.patrono ? ' · 👁️ ' + e(f.patrono) : ''}</div>
       <div class="attrs">${attrCards}</div>
       <div class="stats"><span>PV <b>${f.hpMax}</b></span><span>CA <b>${f.ca}</b></span><span>Inic. <b>${fmtMod(f.iniciativa || 0)}</b></span><span>Prof. <b>+${pb}</b></span><span>XP <b>${(f.xp || 0).toLocaleString('pt-BR')}</b></span><span>Ouro <b>${f.ouro || 0} po</b></span></div>
-      ${(typeof cartaoCombateHtml === 'function') ? cartaoCombateHtml(f, { ca: f.ca, pv: f.hpMax, deslocamento: (rd.deslocamento || 30), iniciativa: f.iniciativa || 0 }) : ''}
       <p><b>Sentidos:</b> ${sentidosTxt}${idiomasTxt ? `<br><b>Idiomas:</b> ${e(idiomasTxt)}` : ''}</p>
       <div class="grid">
         <div><h3>Salvaguardas</h3><ul>${salvas}</ul>

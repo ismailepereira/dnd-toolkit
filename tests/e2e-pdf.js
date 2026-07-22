@@ -69,6 +69,10 @@ const SENHA = process.env.MESTRE_SENHA || 'senha-teste-123';
   ok(html.includes('Magia de Pacto') || html.includes('Patrono Sobrenatural'), 'Características de classe acumuladas (nível 1-3)');
   ok(html.includes('Anotações') && html.includes('Nota de teste do PDF.'), 'Anotações');
   ok(html.includes('Antecedente') && html.includes('História Prévia') && html.includes('Medalhão'), 'Antecedente, história e item de memória');
+  // F4: cartão-resumo de combate ("cola" do jogador) — o mesmo do fim do Criador
+  ok(html.includes('Seu personagem em combate'), 'F4: cartão-resumo de combate presente no PDF');
+  ok(html.includes('Ataque principal') && html.includes('Adaga'), 'F4: cartão mostra o ataque principal (Adaga equipada)');
+  ok(/✨ <b>Magia|Magia:<\/b> CD/.test(html) || html.includes('CD <b>'), 'F4: cartão do Bruxo (conjurador) mostra a CD de magia');
 
   // ----- salvamento por ficha (PATCH com trava otimista) de ponta a ponta -----
   const resultadoPatch = await page.evaluate(async f => {

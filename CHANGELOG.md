@@ -4,6 +4,38 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-21 — F4 · Cartão-resumo de combate ⚔️ (Criador + PDF)
+
+**Backup:** `versoes/2026-07-21-f4-cartao-combate/` (regras-ficha.js, criador.js, jogo.js, _criador.html,
+unit-regras.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** Fase F4 do roadmap Fichas & Combate. O jogador novo terminava a ficha sem saber o que faz no turno;
+agora a **etapa final do Criador** (passo 6) e o **PDF** mostram o mesmo cartão **"⚔️ Seu personagem em combate"**.
+- **Conteúdo (a "cola" do turno):** CA · PV · deslocamento · iniciativa; **ataque principal** (arma da mão
+  principal, ou a de maior bônus de acerto) com acerto/dano; **melhor magia** (maior CD entre as classes +
+  ataque mágico + truque/magia de destaque); e o **recurso de classe a não esquecer** (Fúria, Ki, Canalizar,
+  Retomar o Fôlego…).
+- **Fonte única:** `resumoCombate5e(f)` escolhe os números (função PURA em `regras-ficha.js`, cai no modo
+  monoclasse sem `ataqueArma`/`classesAtuais`) e `cartaoCombateHtml(f, {ca,pv,deslocamento,iniciativa})` monta o
+  **mesmo markup** (estilos inline, tema-resiliente) para os dois lugares — Criador e PDF não divergem.
+- **Criador:** novo `#cResumoCombate` no topo do passo 6 (`_criador.html`), populado no `renderPreview` (criador.js).
+- **PDF:** cartão inserido logo após a linha de stats em `exportarFichaPDF` (jogo.js).
+
+**Ficheiros:** `static/js/regras-ficha.js` (+`resumoCombate5e`, +`cartaoCombateHtml`, exports), `static/js/criador.js`
+(render no passo 6), `static/js/jogo.js` (card no PDF), `templates/_criador.html` (container), `tests/unit-regras.js`
+(+3 casos), `tests/e2e-pdf.js` (+asserções do card no PDF), `docs/ROADMAP-FICHAS-COMBATE.md` (F4 ✅).
+
+**Verificação:** `node --check` OK · `npm test` **32/32** ✅ (3 novos: melhor CD + recurso; guerreiro sem conj;
+markup do cartão). E2E em **navegador real** (Browser pane): funções globais pegam a Espada Longa equipada
+(+5 · 1d10+3) e o recurso; Criador com Guerreiro → `#cResumoCombate` renderiza "CA 18 · PV 13 · 30m · Inic +2 ·
+Ataque: Espada Longa +5 · Não esqueça: Retomar o Fôlego". Asserções do card no PDF adicionadas ao `e2e-pdf.js`
+(roda no CI). Nota: disparar o print do PDF na aba do preview trava o diálogo nativo — verifiquei o card pelo
+caminho puro + Criador + teste de CI, sem imprimir ao vivo.
+
+**Como reverter:** restaurar `versoes/2026-07-21-f4-cartao-combate/`, ou `git revert`.
+
+**Próximo (roadmap Fichas & Combate):** **F3b** (Forma Elemental do Druida, Círculo da Lua N10) ou **C6/C7**.
+
 ## 2026-07-21 — F2 (fecho) · Ladino 🃏 + Patrulheiro 🐾 — FASE F2 CONCLUÍDA
 
 **Backup:** `versoes/2026-07-21-f2-ladino-patrulheiro/` (jogo.js, ROADMAP-FICHAS-COMBATE.md).

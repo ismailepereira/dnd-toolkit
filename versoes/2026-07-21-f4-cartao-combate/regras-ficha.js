@@ -117,38 +117,7 @@ function resumoCombate5e(f) {
   return { ataque, conj, magiaDestaque, recurso };
 }
 
-// F4: HTML do cartão "Seu personagem em combate" — o MESMO markup (com estilos
-// inline, para servir tanto na etapa final do Criador quanto no PDF impresso).
-// extras = { ca, pv, deslocamento, iniciativa } que o chamador já tem à mão.
-function cartaoCombateHtml(f, extras) {
-  extras = extras || {};
-  const r = resumoCombate5e(f);
-  const escq = s => String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
-  const fmt = n => (typeof n === 'number' ? (n >= 0 ? '+' : '') + n : n);
-  const ca = extras.ca != null ? extras.ca : (f.ca != null ? f.ca : '—');
-  const pv = extras.pv != null ? extras.pv : (f.hpMax != null ? f.hpMax : (f.hp != null ? f.hp : '—'));
-  const desloc = extras.deslocamento != null ? extras.deslocamento : '';
-  const inic = extras.iniciativa != null ? extras.iniciativa : (f.iniciativa || 0);
-  const recNome = { curto: 'descanso curto', longo: 'descanso longo' };
-  const linhas = [];
-  linhas.push(`<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:14px;margin-bottom:6px">
-    <span>🛡️ CA <b>${escq(ca)}</b></span><span>❤️ PV <b>${escq(pv)}</b></span>${desloc !== '' ? `<span>👟 ${escq(desloc)}m</span>` : ''}<span>⚡ Inic. <b>${fmt(inic)}</b></span></div>`);
-  if (r.ataque) linhas.push(`<div style="margin:3px 0"><b>🗡️ Ataque principal:</b> ${escq(r.ataque.nome)} — <b>${fmt(r.ataque.ataque)}</b> p/ acertar · ${escq(r.ataque.dano)}${r.ataque.semProf ? ' ⚠ sem proficiência' : ''}</div>`);
-  else linhas.push(`<div style="margin:3px 0;opacity:.75"><b>🗡️ Ataque principal:</b> nenhuma arma na bolsa — equipe uma na etapa de equipamento.</div>`);
-  if (r.conj) linhas.push(`<div style="margin:3px 0"><b>✨ Magia:</b> CD <b>${escq(r.conj.cd)}</b> · ataque mágico <b>${fmt(r.conj.ataque)}</b>${r.magiaDestaque ? ` · destaque: ${escq(r.magiaDestaque)}` : ''}</div>`);
-  if (r.recurso) {
-    const usos = (r.recurso.max != null && !r.recurso.pool) ? ` — ${r.recurso.max}×` : '';
-    const quando = r.recurso.rec ? ` por ${recNome[r.recurso.rec] || r.recurso.rec}` : '';
-    linhas.push(`<div style="margin:3px 0"><b>🎲 Não esqueça:</b> ${escq(r.recurso.nome)}${usos}${quando}</div>`);
-  }
-  return `<div style="border:2px solid #c85a35;border-radius:10px;padding:10px 12px;margin:0 0 12px;background:rgba(200,90,53,.08)">
-    <div style="font-weight:bold;color:#c85a35;font-size:15px;margin-bottom:4px">⚔️ Seu personagem em combate</div>
-    ${linhas.join('')}
-    <div style="font-size:11px;opacity:.6;margin-top:5px">Cola rápida do turno: seu ataque, sua magia e o recurso a não esquecer.</div>
-  </div>`;
-}
-
 // Export p/ os testes em Node (no navegador vira global como os demais módulos)
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { calcularCA, percepcaoPassiva, cdConjuracao, pvMaximoMonoclasse, recursosDeClasse5e, resumoCombate5e, cartaoCombateHtml };
+  module.exports = { calcularCA, percepcaoPassiva, cdConjuracao, pvMaximoMonoclasse, recursosDeClasse5e, resumoCombate5e };
 }

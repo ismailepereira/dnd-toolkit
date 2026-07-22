@@ -101,13 +101,10 @@ toggle/botão no Modo de Jogo. **Com isso a FASE F2 está 100% concluída** (as 
   (4 formas novas no catálogo com stats).
 - [ ] Conjuração Atemporal (nv18): liberar o painel de magias mesmo com forma ativa.
 
-### F4 ✅ Cartão-resumo de combate no fim do Criador ("cola" do jogador) — ENTREGUE 21/07
+### F4 🟠 Cartão-resumo de combate no fim do Criador ("cola" do jogador)
 **Dor de fundo:** jogador novo termina a ficha sem saber o que faz no turno.
-- [x] Etapa final (passo 6) ganha o cartão **"⚔️ Seu personagem em combate"**: CA/PV/deslocamento/iniciativa,
-  **ataque principal** (arma da mão principal ou a de maior bônus) com acerto/dano, **melhor magia** (CD +
-  ataque mágico + truque de destaque) e o **recurso de classe a não esquecer**. **O mesmo cartão sai no PDF.**
-  Lógica pura e testada em `resumoCombate5e`/`cartaoCombateHtml` (regras-ficha.js) — Criador e PDF renderizam o
-  mesmo markup.
+- [ ] Etapa final ganha um cartão gerado: "Seu personagem em combate" — ataque principal com bônus/dano,
+  melhor truque/magia com CD, recurso de classe a lembrar, CA/PV/deslocamento. O mesmo cartão sai no PDF.
 
 ### F5 🟡 Subclasses com efeito mecânico completo
 - [ ] Domínios do Clérigo: magias de domínio ganhas automaticamente (sempre preparadas, sem contar no limite).

@@ -661,35 +661,6 @@ const Jogo = (function () {
     salvar();
   }
 
-  // ----- menor F2: Imposição das Mãos do Paladino (N1) -----
-  // Reserva de 5×nível PV; gasta N pontos p/ curar (aqui, o próprio PV do PJ) ou
-  // 5 pontos para neutralizar uma doença OU um veneno. Volta no descanso longo.
-  const IMP_MAOS = 'Imposição das Mãos (PV)';
-  function paladinoImpMaos() { return classesFicha().find(c => c.classe === 'Paladino'); }
-  function impMaosRestam() {
-    const g = paladinoImpMaos(); if (!g) return 0;
-    return (g.nivel * 5) - (ficha.recursosUsados[IMP_MAOS] || 0);
-  }
-  function imposicaoDasMaos(qtd) {
-    if (!paladinoImpMaos()) return;
-    const restam = impMaosRestam();
-    if (restam < 1) { log('Imposição das Mãos esgotada — recupere num descanso longo.'); render(); return; }
-    qtd = Math.max(1, Math.min(Math.round(qtd) || 1, restam));
-    ficha.recursosUsados[IMP_MAOS] = (ficha.recursosUsados[IMP_MAOS] || 0) + qtd;
-    const antes = ficha.hpAtual;
-    ficha.hpAtual = Math.min(ficha.hpMax, ficha.hpAtual + qtd);
-    const efet = ficha.hpAtual - antes;
-    log(`🙏 Imposição das Mãos: gastou ${qtd} da reserva → curou +${efet} PV em si.`);
-    salvar();
-  }
-  function imposicaoDoencaVeneno() {
-    if (!paladinoImpMaos()) return;
-    if (impMaosRestam() < 5) { log('Precisa de 5 pontos na reserva para curar doença/veneno.'); render(); return; }
-    ficha.recursosUsados[IMP_MAOS] = (ficha.recursosUsados[IMP_MAOS] || 0) + 5;
-    log('🙏 Imposição das Mãos: gastou 5 da reserva para neutralizar uma doença OU um veneno.');
-    salvar();
-  }
-
   // ----- F1: Punição Divina do Paladino (nv2+) -----
   // Gasta 1 espaço de magia DEPOIS de acertar um golpe corpo a corpo:
   // 2d8 radiante (1º), +1d8 por círculo acima (máx 5d8), +1d8 vs mortos-vivos/ínferos.
@@ -1315,25 +1286,6 @@ const Jogo = (function () {
       </div>`;
     }
 
-    // ----- 🙏 Imposição das Mãos do Paladino (menor F2) -----
-    let impMaosHtml = '';
-    const paladImp = paladinoImpMaos();
-    if (paladImp) {
-      const max = paladImp.nivel * 5;
-      const restam = max - (f.recursosUsados[IMP_MAOS] || 0);
-      const off = restam < 1 ? 'disabled' : '';
-      const offDoenca = restam < 5 ? 'disabled' : '';
-      impMaosHtml = `<div class="jg-bloco jg-impmaos" data-bloco-acao="impmaos"><h4>🙏 Imposição das Mãos <small>(${restam}/${max} PV na reserva)</small></h4>
-        <div class="pv-linha">Toque um alvo e gaste da reserva: <b>1 ponto = 1 PV</b> curado; ou <b>5 pontos</b> para neutralizar uma doença/veneno.</div>
-        <div class="jg-impmaos-linha">
-          <input type="number" id="jgImpMaosVal" value="5" min="1" max="${Math.max(1, restam)}" style="width:64px" ${off}>
-          <button id="jgImpMaosCurar" class="btn-mini" ${off}>🙏 Curar-me</button>
-          <button id="jgImpMaosDoenca" class="btn-mini" ${offDoenca}>🙏 −5: doença/veneno</button>
-        </div>
-        <div class="criador-hint">Para curar um <b>aliado</b>, gaste a mesma reserva aqui e o PV entra na ficha dele.${restam < 1 ? ' <b>Reserva esgotada</b> — volta no descanso longo.' : ''}</div>
-      </div>`;
-    }
-
     // ----- 🛡️ Auras do Paladino (F1) — passivas sempre visíveis a partir do N6 -----
     let aurasHtml = '';
     if (palad && palad.nivel >= 6) {
@@ -1664,7 +1616,6 @@ const Jogo = (function () {
         if (kiHtml) cats.push(['ki', '👊', 'Opções de Ki']);
         if (guerreiroHtml) cats.push(['guerreiro', '💨', 'Retomar o Fôlego']);
         if (magoHtml) cats.push(['mago', '🔮', 'Recuperação Arcana']);
-        if (impMaosHtml) cats.push(['impmaos', '🙏', 'Imposição das Mãos']);
         if (formaHtml) cats.push(['forma', '🐺', 'Forma Selvagem']);
         if (recHtml) cats.push(['recursos', '🎲', 'Recursos de Classe']);
         const indice = cats.length
@@ -1713,7 +1664,7 @@ const Jogo = (function () {
           </div>
           ${condHtml}${logHtml}
         </div>
-        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${expulsarHtml}${inspiracaoHtml}${feiticariaHtml}${kiHtml}${guerreiroHtml}${magoHtml}${impMaosHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
+        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${expulsarHtml}${inspiracaoHtml}${feiticariaHtml}${kiHtml}${guerreiroHtml}${magoHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
       </div>
     `;
 
@@ -2033,10 +1984,6 @@ const Jogo = (function () {
 
     // ----- 🔮 Recuperação Arcana do Mago (F2) -----
     if ($('jgRecArcana')) $('jgRecArcana').onclick = recuperacaoArcana;
-
-    // ----- 🙏 Imposição das Mãos do Paladino (F2) -----
-    if ($('jgImpMaosCurar')) $('jgImpMaosCurar').onclick = () => imposicaoDasMaos(Number(($('jgImpMaosVal') || {}).value) || 1);
-    if ($('jgImpMaosDoenca')) $('jgImpMaosDoenca').onclick = imposicaoDoencaVeneno;
 
     // ----- ✴️ Fontes de Feitiçaria (F2) -----
     document.querySelectorAll('[data-esp2pt]').forEach(b => b.onclick = () => espacoParaPontos(+b.dataset.esp2pt));

@@ -66,7 +66,7 @@ Legenda: ✅ ok · ⚠️ parcial · ❌ falta · 🔎 = alvo de correção.
 | **Ladino** | ✅ | ✅ | ⚠️ | Furtivo ✅ (C4). **Ação Ladina** (N2) só texto → lembrete. (menor) |
 | **Mago** | ✅ | ✅ | ✅ | **Recuperação Arcana** ✅ (botão 1×/descanso longo, 21/07). |
 | **Monge** | ✅ | ✅ | ❌ | 🔎 **Opções de Ki** (Rajada/Defesa Paciente/Passo do Vento — N2) só texto, sem botão que gaste 1 Ki. |
-| **Paladino** | ✅ | ✅ | ✅ | Coberto (F1). **Imposição das Mãos** ✅ (botão de distribuir cura + doença/veneno, 21/07). |
+| **Paladino** | ✅ | ✅ | ✅ | Coberto (F1). Melhoria: botão de distribuir cura da **Imposição das Mãos**. (menor) |
 | **Patrulheiro** | ✅ | ✅ | ⚠️ | **Consciência Primitiva** (N3, gasta espaço) só texto. (menor) |
 | **Bruxo** | ✅ | ✅ | ⚠️ | Magia de Pacto ✅ (C1). Invocações/Pacto Místico são passivos/escolha — sem ação gastável 1-3. (menor) |
 

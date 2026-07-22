@@ -4,6 +4,27 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-21 — F2 (fecho) · Paladino — Imposição das Mãos 🙏 (distribuir cura)
+
+**Backup:** `versoes/2026-07-21-f2-paladino-impmaos/` (jogo.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** 3ª das "menores" da FASE F2. A reserva da Imposição das Mãos já era rastreável (pool em Recursos de
+Classe), mas gastar era manual no −/+. Agora há um card no Modo de Jogo (`jogo.js`).
+- **Card 🙏 Imposição das Mãos** (só p/ Paladino) com a reserva (5×nível PV) no cabeçalho.
+- **Curar-me N:** input + botão que gasta N da reserva e **cura o próprio PV** (respeitando o máximo), logando.
+- **−5: doença/veneno:** botão que gasta 5 da reserva para neutralizar uma doença OU um veneno.
+- **Aliados:** hint explica que curar um aliado gasta a mesma reserva (o PV entra na ficha dele). Botões
+  desabilitam sem reserva; a reserva volta no descanso longo (`rec: longo`).
+
+**Ficheiros:** `static/js/jogo.js` (`paladinoImpMaos`/`impMaosRestam`/`imposicaoDasMaos`/`imposicaoDoencaVeneno`,
+card, handlers, índice T3), `docs/ROADMAP-FICHAS-COMBATE.md` (linha do Paladino ✅).
+
+**Verificação:** `node --check` OK · `npm test` **29/29** ✅. E2E em **navegador real** (Browser pane): Paladino N5
+(reserva 25/25), ferido 20/44 → "Curar-me 8" curou p/ 28/44 e baixou a reserva p/ 17; "−5 doença/veneno" baixou
+p/ 13; ambos logados.
+
+**Como reverter:** restaurar `versoes/2026-07-21-f2-paladino-impmaos/`, ou `git revert`.
+
 ## 2026-07-21 — F2 (fecho) · Mago — Recuperação Arcana 🔮 (botão)
 
 **Backup:** `versoes/2026-07-21-f2-mago-recuperacao/` (jogo.js, ROADMAP-FICHAS-COMBATE.md).

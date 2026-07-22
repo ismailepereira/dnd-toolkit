@@ -64,7 +64,7 @@ Legenda: ✅ ok · ⚠️ parcial · ❌ falta · 🔎 = alvo de correção.
 | **Feiticeiro** | ✅ | ⚠️ | ❌ | 🔎 **Pontos de Feitiçaria**: só +/−, **sem conversão espaço↔ponto** (N2). |
 | **Guerreiro** | ✅ | ⚠️ | ❌ | 🔎 **Retomar o Fôlego** é contador, não **rola/cura 1d10+nível**. Surto de Ação sem chip. |
 | **Ladino** | ✅ | ✅ | ⚠️ | Furtivo ✅ (C4). **Ação Ladina** (N2) só texto → lembrete. (menor) |
-| **Mago** | ✅ | ✅ | ✅ | **Recuperação Arcana** ✅ (botão 1×/descanso longo, 21/07). |
+| **Mago** | ✅ | ✅ | ⚠️ | **Recuperação Arcana** (N1) sem botão no descanso curto. (menor) |
 | **Monge** | ✅ | ✅ | ❌ | 🔎 **Opções de Ki** (Rajada/Defesa Paciente/Passo do Vento — N2) só texto, sem botão que gaste 1 Ki. |
 | **Paladino** | ✅ | ✅ | ✅ | Coberto (F1). Melhoria: botão de distribuir cura da **Imposição das Mãos**. (menor) |
 | **Patrulheiro** | ✅ | ✅ | ⚠️ | **Consciência Primitiva** (N3, gasta espaço) só texto. (menor) |

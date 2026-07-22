@@ -4,6 +4,27 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-21 — F2 (fecho) · Mago — Recuperação Arcana 🔮 (botão)
+
+**Backup:** `versoes/2026-07-21-f2-mago-recuperacao/` (jogo.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** 2ª das "menores" da FASE F2. A Recuperação Arcana (Mago N1) não tinha botão; agora é um card no
+Modo de Jogo (`jogo.js`).
+- **Card 🔮 Recuperação Arcana** (só p/ Mago) com o orçamento **⌈nível/2⌉ níveis de círculo** e um botão.
+- **Efeito real:** recupera os espaços gastos do **círculo mais alto para o mais baixo** (nenhum acima do 5º),
+  cabendo no orçamento — one-click, registrando no Histórico o que voltou (ex.: "1× 3º").
+- **Limite:** **1×/descanso longo** (`ficha.recArcanaUsada`, resetado no descanso longo). Botão desabilita se já
+  usada ou se não há espaço de 1º-5º gasto para recuperar.
+
+**Ficheiros:** `static/js/jogo.js` (`magoDaFicha`/`recuperacaoArcana`, card, handler, índice T3, reset no descanso
+longo), `docs/ROADMAP-FICHAS-COMBATE.md` (linha do Mago ✅).
+
+**Verificação:** `node --check` OK · `npm test` **29/29** ✅. E2E em **navegador real** (Browser pane): Mago N6
+(orçamento 3) com espaços gastos {1:2,2:1,3:1} → botão recuperou 1× 3º (o mais valioso que cabe), marcou como
+usada, desabilitou e logou.
+
+**Como reverter:** restaurar `versoes/2026-07-21-f2-mago-recuperacao/`, ou `git revert`.
+
 ## 2026-07-21 — F2 (fecho) · Bárbaro — Ataque Descuidado 💥 (toggle de vantagem)
 
 **Backup:** `versoes/2026-07-21-f2-barbaro-descuidado/` (jogo.js, ROADMAP-FICHAS-COMBATE.md).

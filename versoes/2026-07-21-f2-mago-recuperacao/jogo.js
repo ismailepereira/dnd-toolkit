@@ -632,35 +632,6 @@ const Jogo = (function () {
     salvar();
   }
 
-  // ----- menor F2: Recuperação Arcana do Mago (N1) -----
-  // 1×/descanso longo, ao terminar um descanso curto: recupera espaços de magia
-  // somando até ⌈nível/2⌉ níveis de círculo, nenhum acima do 5º.
-  function magoDaFicha() { return classesFicha().find(c => c.classe === 'Mago'); }
-  function recuperacaoArcana() {
-    const g = magoDaFicha();
-    if (!g) return;
-    if (ficha.recArcanaUsada) { log('Recuperação Arcana já usada — disponível após um descanso longo.'); render(); return; }
-    const sm = slotsMax();
-    if (!sm || !sm.normal) { log('Sem espaços de magia para recuperar.'); render(); return; }
-    let orcamento = Math.max(1, Math.ceil(g.nivel / 2));
-    const recuperados = [];
-    // recupera do círculo mais alto (≤5º) para o mais baixo, cabendo no orçamento
-    for (let c = 5; c >= 1 && orcamento > 0; c--) {
-      while (c <= orcamento && (ficha.slotsUsados[c] || 0) > 0) {
-        ficha.slotsUsados[c] -= 1;
-        orcamento -= c;
-        recuperados.push(c);
-      }
-    }
-    if (!recuperados.length) { log('Nenhum espaço de 1º-5º gasto para recuperar.'); render(); return; }
-    ficha.recArcanaUsada = true;
-    const resumo = {};
-    recuperados.forEach(c => { resumo[c] = (resumo[c] || 0) + 1; });
-    const txt = Object.keys(resumo).sort().map(c => `${resumo[c]}× ${c}º`).join(', ');
-    log(`🔮 Recuperação Arcana: recuperou ${txt}.`);
-    salvar();
-  }
-
   // ----- F1: Punição Divina do Paladino (nv2+) -----
   // Gasta 1 espaço de magia DEPOIS de acertar um golpe corpo a corpo:
   // 2d8 radiante (1º), +1d8 por círculo acima (máx 5d8), +1d8 vs mortos-vivos/ínferos.
@@ -699,7 +670,6 @@ const Jogo = (function () {
     ficha.inspiracoesDadas = []; // F2: limpa os dados de Inspiração pendentes
     ficha.formaAtiva = null; // a Forma Selvagem dura nível/2 horas — não sobrevive à noite
     ficha.arremessadas = {}; // C3: no descanso longo, recolhe tudo que foi arremessado
-    ficha.recArcanaUsada = false; // menor F2: Recuperação Arcana do Mago volta no descanso longo
     const c = classeObj();
     const dvMax = ficha.nivel;
     ficha.dvUsados = Math.max(0, ficha.dvUsados - Math.max(1, Math.floor(dvMax / 2)));
@@ -1271,21 +1241,6 @@ const Jogo = (function () {
       </div>`;
     }
 
-    // ----- 🔮 Recuperação Arcana do Mago (menor F2) -----
-    let magoHtml = '';
-    const mago = magoDaFicha();
-    if (mago) {
-      const orcamento = Math.max(1, Math.ceil(mago.nivel / 2));
-      const usada = !!f.recArcanaUsada;
-      const temGasto = f.slotsUsados && Object.keys(f.slotsUsados).some(c => +c >= 1 && +c <= 5 && (f.slotsUsados[c] || 0) > 0);
-      const off = (usada || !temGasto) ? 'disabled' : '';
-      magoHtml = `<div class="jg-bloco jg-mago" data-bloco-acao="mago"><h4>🔮 Recuperação Arcana <small>(1×/descanso longo)</small></h4>
-        <div class="pv-linha">No <b>descanso curto</b>, recupera espaços de magia somando até <b>${orcamento}</b> ${orcamento > 1 ? 'níveis de círculo' : 'nível de círculo'} (nenhum acima do 5º).</div>
-        <button id="jgRecArcana" class="btn-mini" ${off}>🔮 Recuperar espaços${usada ? ' (já usada)' : ''}</button>
-        ${usada ? '<div class="criador-hint">Já usada — volta após um descanso longo.</div>' : (!temGasto ? '<div class="criador-hint">Nenhum espaço de 1º-5º gasto para recuperar.</div>' : '')}
-      </div>`;
-    }
-
     // ----- 🛡️ Auras do Paladino (F1) — passivas sempre visíveis a partir do N6 -----
     let aurasHtml = '';
     if (palad && palad.nivel >= 6) {
@@ -1615,7 +1570,6 @@ const Jogo = (function () {
         if (feiticariaHtml) cats.push(['feiticaria', '✴️', 'Fontes de Feitiçaria']);
         if (kiHtml) cats.push(['ki', '👊', 'Opções de Ki']);
         if (guerreiroHtml) cats.push(['guerreiro', '💨', 'Retomar o Fôlego']);
-        if (magoHtml) cats.push(['mago', '🔮', 'Recuperação Arcana']);
         if (formaHtml) cats.push(['forma', '🐺', 'Forma Selvagem']);
         if (recHtml) cats.push(['recursos', '🎲', 'Recursos de Classe']);
         const indice = cats.length
@@ -1664,7 +1618,7 @@ const Jogo = (function () {
           </div>
           ${condHtml}${logHtml}
         </div>
-        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${expulsarHtml}${inspiracaoHtml}${feiticariaHtml}${kiHtml}${guerreiroHtml}${magoHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
+        <div>${armasHtml}${punicaoHtml}${furtivoHtml}${expulsarHtml}${inspiracaoHtml}${feiticariaHtml}${kiHtml}${guerreiroHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
       </div>
     `;
 
@@ -1981,9 +1935,6 @@ const Jogo = (function () {
     // ----- 💨 Retomar o Fôlego / ⚡ Surto de Ação (F2) -----
     if ($('jgFolego')) $('jgFolego').onclick = retomarFolego;
     if ($('jgSurto')) $('jgSurto').onclick = surtoDeAcao;
-
-    // ----- 🔮 Recuperação Arcana do Mago (F2) -----
-    if ($('jgRecArcana')) $('jgRecArcana').onclick = recuperacaoArcana;
 
     // ----- ✴️ Fontes de Feitiçaria (F2) -----
     document.querySelectorAll('[data-esp2pt]').forEach(b => b.onclick = () => espacoParaPontos(+b.dataset.esp2pt));

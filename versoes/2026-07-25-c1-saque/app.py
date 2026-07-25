@@ -2025,54 +2025,7 @@ def api_combate_acao():
         combate['log'] = combate['log'][:40]
         salvar_estado(estado)
         return jsonify({'ok': True, 'danoReal': dano_real, 'hpRestante': alvo['hpAtual'], 'mult': mult})
-
-    elif acao == 'saquear':
-        # C1: saquear um combatente CAÍDO (0 PV) — transfere ouro/itens para a
-        # ficha de quem saqueia. Validado no servidor: alvo caído; posse da ficha
-        # do saqueador; e saquear um PJ só com ele MORTO (memorial) ou pelo Mestre
-        # (evita griefing de um aliado só inconsciente). Monstro/NPC: transfere o
-        # ouro/itens que o combatente carregar (o loot de monstro da Fase 13 segue
-        # pelo envio do Mestre).
-        fid = data.get('fichaId')
-        looter = next((f for f in estado.get('fichas', []) if f.get('id') == fid), None)
-        if not looter:
-            return jsonify({'ok': False, 'erro': 'ficha_nao_encontrada'}), 404
-        eh_mestre = session.get('papel') == 'mestre'
-        if not eh_mestre and looter.get('donoUid') not in (None, uid_sessao()):
-            return jsonify({'ok': False, 'erro': 'sem_permissao', 'detalhe': 'essa ficha não é sua'}), 403
-        if int(alvo.get('hpAtual', 1) or 0) > 0:
-            return jsonify({'ok': False, 'erro': 'alvo_de_pe', 'detalhe': 'o alvo ainda está de pé'}), 400
-        if alvo.get('saqueado'):
-            return jsonify({'ok': False, 'erro': 'ja_saqueado', 'detalhe': 'este alvo já foi saqueado'}), 400
-        ouro_saq = 0
-        itens_saq = []
-        if alvo.get('tipo') == 'pc' and alvo.get('fichaId'):
-            src = next((f for f in estado.get('fichas', []) if f.get('id') == alvo.get('fichaId')), None)
-            if src is None:
-                return jsonify({'ok': False, 'erro': 'origem_nao_encontrada'}), 404
-            if not eh_mestre and src.get('status') != 'morto':
-                return jsonify({'ok': False, 'erro': 'pj_vivo',
-                                'detalhe': 'só o Mestre pode saquear um personagem que ainda não morreu'}), 403
-            ouro_saq = int(src.get('ouro', 0) or 0)
-            itens_saq = [x for x in (src.get('itens') or []) if isinstance(x, str)]
-            src['ouro'] = 0
-            src['itens'] = []
-        else:
-            ouro_saq = int(alvo.get('ouro', 0) or 0)
-            itens_saq = [x for x in (alvo.get('itens') or []) if isinstance(x, str)]
-            alvo['ouro'] = 0
-            alvo['itens'] = []
-        looter['ouro'] = int(looter.get('ouro', 0) or 0) + ouro_saq
-        looter.setdefault('itens', [])
-        looter['itens'].extend(itens_saq)
-        alvo['saqueado'] = True
-        det = f"{ouro_saq} po" + (f" e {len(itens_saq)} item(ns)" if itens_saq else "")
-        combate.setdefault('log', []).insert(0, f"R{combate.get('rodada', 1)} · 💰 {looter.get('nome', '?')} saqueou {alvo.get('nome', '?')}: {det}.")
-        combate['log'] = combate['log'][:40]
-        salvar_estado(estado)
-        return jsonify({'ok': True, 'ouro': ouro_saq, 'itens': itens_saq,
-                        'alvoNome': alvo.get('nome'), 'ficha': looter})
-
+        
     return jsonify({'erro': 'Ação inválida.'}), 400
 
 

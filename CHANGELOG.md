@@ -4,6 +4,34 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-25 — C1 · Saquear alvo abatido 💰
+
+**Backup:** `versoes/2026-07-25-c1-saque/` (app.py, jogo.js, test-servidor.py).
+
+**Resumo:** primeira metade da Fase C do roadmap de acesso. No combate, um alvo **caído (0 PV)** pode ser
+saqueado — o ouro e os itens dele passam para a ficha de quem saqueia, com a transferência **validada no
+servidor** (não é só cosmético).
+- **Ação `saquear` em `/api/combate/acao`** (servidor): valida que o alvo está caído (senão 400 `alvo_de_pe`),
+  que a ficha do saqueador é dele (ou Mestre), e que ainda não foi saqueado (senão 400 `ja_saqueado`).
+  Transfere `ouro` + `itens` para o saqueador e zera na origem; marca o alvo como `saqueado`.
+- **PJ caído:** saquear um personagem só é liberado ao **Mestre** ou quando o PJ já é **memorial (morto)** —
+  evita griefing de um aliado apenas inconsciente. Monstro/NPC: transfere o ouro/itens que o combatente
+  carregar (o loot de monstro da Fase 13 segue pelo envio do Mestre).
+- **Cliente (Modo de Jogo):** o alvo 🎯 já selecionado, se estiver caído, ganha o botão **"💰 Saquear <nome>"**
+  ao lado do seletor; o loot cai na ficha e o alvo passa a "já saqueado". (Selecionar o alvo agora
+  re-renderiza para o botão aparecer na hora.)
+
+**Ficheiros:** `app.py` (ação `saquear` no `api_combate_acao`), `static/js/jogo.js` (botão no `alvoHtml` +
+handler `jgSaquear`; `onchange` do alvo re-renderiza), `tests/test-servidor.py` (5 casos C1).
+
+**Verificação:** `py_compile` OK · **69/69** servidor (5 novos C1: não saqueia de pé; saqueia caído com
+ouro/itens; ouro entra na ficha; não saqueia de novo) · `node --check` OK · unit 47/47. **Falta verificação ao
+vivo** em combate.
+
+**Próximo (C2):** furto com CD variável (Percepção passiva + peso/raridade/importância do item).
+
+**Como reverter:** restaurar `versoes/2026-07-25-c1-saque/`, ou `git revert`.
+
 ## 2026-07-25 — Combate 2c · Poderes de classe entram na economia de ação 👊
 
 **Backup:** `versoes/2026-07-25-combate2c-poderes-economia/` (jogo.js).

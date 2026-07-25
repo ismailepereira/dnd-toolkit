@@ -346,34 +346,6 @@ _um = next((v for v in servidor.carregar_usuarios_reg().values() if v.get('usuar
 t('A2: cadastro como Mestre grava papelGlobal=mestre', bool(_um) and _um.get('papelGlobal') == 'mestre',
   (_um or {}).get('papelGlobal'))
 
-# ----- C1: saquear alvo caído (transfere ouro/itens no servidor) -----
-mestre.put('/api/combate', json={
-    'combatentes': [
-        {'id': 'cA', 'tipo': 'pc', 'fichaId': 'f3', 'nome': 'Legada', 'hpAtual': 10, 'hpMax': 18, 'ca': 14},
-        {'id': 'cB', 'tipo': 'npc', 'nome': 'Bandido Caído', 'hpAtual': 0, 'hpMax': 11, 'ca': 12,
-         'ouro': 25, 'itens': ['Adaga', 'Poção de Cura']},
-        {'id': 'cC', 'tipo': 'npc', 'nome': 'Bandido de Pé', 'hpAtual': 8, 'hpMax': 11, 'ca': 12, 'ouro': 5},
-    ], 'turno': 0, 'rodada': 1, 'log': [], 'ativo': True,
-})
-_ouro_antes = next(f for f in mestre.get('/api/fichas').get_json() if f['id'] == 'f3').get('ouro', 0)
-
-r = jogador.post('/api/combate/acao', json={'acao': 'saquear', 'alvoId': 'cC', 'fichaId': 'f3'})
-t('C1: não saqueia alvo de pé (400 alvo_de_pe)',
-  r.status_code == 400 and r.get_json().get('erro') == 'alvo_de_pe', str(r.status_code))
-
-r = jogador.post('/api/combate/acao', json={'acao': 'saquear', 'alvoId': 'cB', 'fichaId': 'f3'})
-d = r.get_json()
-t('C1: saqueia alvo caído (200, ouro 25)', r.status_code == 200 and d.get('ok') and d.get('ouro') == 25, str(d))
-t('C1: itens saqueados voltam na resposta',
-  sorted(d.get('itens', [])) == ['Adaga', 'Poção de Cura'], str(d.get('itens')))
-_f3s = next(f for f in mestre.get('/api/fichas').get_json() if f['id'] == 'f3')
-t('C1: ouro do saqueador subiu 25', _f3s.get('ouro', 0) == _ouro_antes + 25,
-  f"antes={_ouro_antes} depois={_f3s.get('ouro')}")
-
-r = jogador.post('/api/combate/acao', json={'acao': 'saquear', 'alvoId': 'cB', 'fichaId': 'f3'})
-t('C1: não saqueia de novo (400 ja_saqueado)',
-  r.status_code == 400 and r.get_json().get('erro') == 'ja_saqueado', str(r.status_code))
-
 print()
 print(f'❌ {len(falhas)} falha(s) de {total}' if falhas else f'✅ {total} testes do servidor passaram')
 sys.exit(1 if falhas else 0)

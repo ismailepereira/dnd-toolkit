@@ -1585,20 +1585,14 @@ const Jogo = (function () {
         .filter(c => c.fichaId !== ficha.id)
         .map(c => `<option value="${c.id}" ${jgAlvoId === c.id ? 'selected' : ''}>${esc(c.nome)} (CA ${c.ca})</option>`)
         .join('');
-      // C1: alvo CAÍDO (0 PV) pode ser saqueado — reusa o alvo 🎯 já selecionado
-      const alvoSel = jgAlvoId ? window.COMBATE_ATUAL.combatentes.find(c => c.id === jgAlvoId) : null;
-      const podeSaquear = alvoSel && (alvoSel.hpAtual || 0) <= 0 && !alvoSel.saqueado;
-      const jaSaqueado = alvoSel && alvoSel.saqueado;
       alvoHtml = `
         <div class="jg-modo" style="margin-top: 6px;">
-          <label>🎯 Mirar em:
+          <label>🎯 Mirar em: 
             <select id="jgAlvo" style="background:var(--bg-card); color:var(--text); border:1px solid var(--border); border-radius:6px; padding:4px;">
               <option value="">— Sem Alvo —</option>
               ${opsAlvo}
             </select>
           </label>
-          ${podeSaquear ? `<button id="jgSaquear" class="btn-mini" title="Saquear o ouro e os itens de ${esc(alvoSel.nome)} (caído)">💰 Saquear ${esc(alvoSel.nome)}</button>` : ''}
-          ${jaSaqueado ? '<span class="criador-hint-inline">já saqueado</span>' : ''}
         </div>
       `;
     }
@@ -2387,29 +2381,7 @@ const Jogo = (function () {
     if ($('jgItemMemDescricao')) $('jgItemMemDescricao').addEventListener('change', () => { ficha.itemMemoria.descricao = $('jgItemMemDescricao').value; salvar(); });
 
     if ($('jgDadoFisico')) $('jgDadoFisico').onchange = () => { jgDadoFisico = $('jgDadoFisico').checked; render(); };
-    if ($('jgAlvo')) $('jgAlvo').onchange = () => { jgAlvoId = $('jgAlvo').value; render(); };
-
-    // ----- 💰 C1: saquear o alvo caído -----
-    if ($('jgSaquear')) $('jgSaquear').onclick = async () => {
-      const b = $('jgSaquear'); b.disabled = true;
-      try {
-        const r = await fetch('/api/combate/acao', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ acao: 'saquear', alvoId: jgAlvoId, fichaId: ficha.id }),
-        });
-        const d = await r.json();
-        if (d.ok) {
-          const nItens = (d.itens || []).length;
-          log(`💰 Saqueou ${d.ouro || 0} po${nItens ? ` e ${nItens} item(ns)` : ''} de ${d.alvoNome || 'alvo'}.`);
-          if (d.ficha) Object.assign(ficha, d.ficha); // ficha já persistida no servidor
-          try { window.COMBATE_ATUAL = await (await fetch('/api/combate')).json(); } catch (e) { }
-          render();
-        } else {
-          log('🚫 ' + (d.detalhe || d.erro || 'não foi possível saquear.'));
-          render();
-        }
-      } catch (e) { log('Erro ao saquear.'); render(); }
-    };
+    if ($('jgAlvo')) $('jgAlvo').onchange = () => { jgAlvoId = $('jgAlvo').value; };
     
     if ($('jgDefBtn')) $('jgDefBtn').onclick = () => {
       const cd = Number($('jgDefCD').value) || 0;

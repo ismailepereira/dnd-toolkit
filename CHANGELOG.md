@@ -4,6 +4,37 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-25 — Combate 1/3 · Descanso só o Mestre ativa 😴
+
+**Backup:** `versoes/2026-07-25-combate1-descanso-mestre/` (jogo.js, app.js, regras-ficha.js, unit-regras.js).
+
+**Resumo:** primeiro estágio do retrabalho de combate pedido pelo Ismaile (magias/poderes disponíveis no
+turno, economia de ação com trava, e descanso pelo Mestre). Este estágio faz o **descanso ser ativado só pelo
+Mestre** — a base da recuperação para a "trava de verdade" dos próximos estágios.
+- **Jogador não descansa sozinho:** os botões ☕/🌙 no Modo de Jogo agora só aparecem para o Mestre
+  (`window.EH_MESTRE`); o jogador vê "😴 O descanso é ativado pelo Mestre".
+- **Descanso do grupo (Mestre):** nova barra na aba Fichas — "☕ Curto" / "🌙 Longo" concede descanso a todas
+  as fichas vivas de uma vez (o normal ao acampar; casa com a Fase 21.5 da Mesa Viva).
+- **Regra pura reutilizável:** a lógica de descanso saiu do closure do `jogo.js` para `regras-ficha.js`
+  (`aplicarDescansoCurto5e`/`aplicarDescansoLongo5e`, funções puras que mutam a ficha) — agora o Modo de Jogo
+  e o tracker do Mestre usam a MESMA regra. Curto: recupera recursos de recarga "curto" + espaços de pacto do
+  Bruxo (não cura PV nem devolve slots). Longo: cura PV, zera slots/pacto/recursos e devolve metade dos dados
+  de vida.
+
+**Ficheiros:** `static/js/regras-ficha.js` (`aplicarDescanso*5e`), `static/js/jogo.js` (delega + esconde os
+botões do jogador), `static/js/app.js` (barra de descanso do grupo na aba Fichas), `tests/unit-regras.js`
+(2 testes novos).
+
+**Verificação:** `node --check` em todos os JS OK · unit-regras **43/43** (2 novos: curto recupera recursos
+"curto"/pacto sem tocar em PV/slots; longo zera tudo e cura) · 64/64 testes do servidor (inalterados).
+**Falta verificação ao vivo** no navegador (esconder botão do jogador + barra de grupo do Mestre).
+
+**Próximo (Combate 2/3):** kit completo no turno (armas equipadas + magias + truques + poderes como botões que
+gastam ação/slot, com trava de verdade) — resolve o "clérigo só tem armas". **Combate 3/3:** armas equipadas
++ trocar de arma custa o turno.
+
+**Como reverter:** restaurar `versoes/2026-07-25-combate1-descanso-mestre/`, ou `git revert`.
+
 ## 2026-07-25 — B2 · Liberação de nível pelo Mestre (nível a nível) ⬆️
 
 **Backup:** `versoes/2026-07-25-b2-liberar-nivel/` (app.py, app.js, test-servidor.py).

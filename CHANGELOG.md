@@ -4,6 +4,31 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-25 — Combate 2c · Poderes de classe entram na economia de ação 👊
+
+**Backup:** `versoes/2026-07-25-combate2c-poderes-economia/` (jogo.js).
+
+**Resumo:** fecha a pendência anotada na 2b — os poderes de classe passam a **gastar a Ação/Ação Bônus** do
+turno, com o custo real de cada um em 5e. Reusa a trava da 2b (`comEconomia` envolve o handler; bloqueia se o
+slot já foi gasto).
+- **Custam a Ação:** Expulsar Mortos-Vivos (Canalizar Divindade), Imposição das Mãos (curar/doença),
+  Consciência Primitiva, Forma Selvagem (Druida).
+- **Custam a Ação Bônus:** Inspiração Bárdica (dar), Ki (Rajada de Golpes / Defesa Paciente / Passo do Vento),
+  Retomar o Fôlego, Fontes de Feitiçaria (converter espaço↔ponto).
+- **Não gastam a economia (riders/exceções):** Golpe Atordoante (rider num acerto, só Ki), Punição Divina e
+  Ataque Furtivo (parte de um ataque), Recuperação Arcana (fora de combate).
+- **Surto de Ação** faz o oposto: concede uma **Ação extra** — libera a Ação já gasta do turno (`liberarAcaoExtra`).
+
+**Ficheiros:** `static/js/jogo.js` (`comEconomia`/`liberarAcaoExtra`; wrap nos handlers de Expulsar, Inspiração,
+Ki, Retomar o Fôlego, Surto, Imposição das Mãos, Consciência, Fontes de Feitiçaria, Forma Selvagem).
+
+**Verificação:** `node --check` OK · unit-regras 47/47 · 64/64 servidor. **Falta verificação ao vivo**.
+
+**Com isto o retrabalho de combate está completo**, incluindo a pendência dos poderes. Resta só a nota de que a
+trava é client-side (economia por-turno; o servidor não a força — decisão consciente, ver 2b).
+
+**Como reverter:** restaurar `versoes/2026-07-25-combate2c-poderes-economia/`, ou `git revert`.
+
 ## 2026-07-25 — Combate 3/3 · Só a arma equipada ataca; sacar outra custa o turno 🤚
 
 **Backup:** `versoes/2026-07-25-combate3-armas-equipadas/` (jogo.js, regras-ficha.js, unit-regras.js).

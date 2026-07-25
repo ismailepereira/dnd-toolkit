@@ -4,6 +4,37 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-25 — C2 · Furto com CD variável (assistente) 🤏 — fecha a Fase C
+
+**Backup:** `versoes/2026-07-25-c2-furto/` (jogo.js, regras-ficha.js, unit-regras.js).
+
+**Resumo:** segunda metade da Fase C. O jogador tenta **furtar** um item do alvo com uma **CD calculada** (não
+fixa), rolando Prestidigitação e vendo **por que** foi difícil. Decisões do Ismaile: o **jogador** tenta direto
+no alvo; modo **assistente** (a app calcula/rola/explica, o **Mestre concede** o item — sem transferência
+automática).
+- **CD calculada (`cdFurto5e`, pura):** parte da **Percepção passiva do alvo** e sobe com **peso/volume**
+  (+2/+5), **raridade/valor** (+3 raro/mágico, +5 lendário), **importância** (+5 equipado, +3 sintonizado,
+  +4 de missão); **distração** (−3, automática em combate) e **ajuda** (−2) reduzem. Piso 5. Devolve os
+  **fatores** que explicam a dificuldade ("+5 está equipado, +3 raro").
+- **Grau do resultado (`resultadoFurto5e`, pura):** sucesso (≥ CD) · **quase** (faltou ≤3 → o alvo desconfia) ·
+  **flagrado** (falha grande).
+- **Cliente (Modo de Jogo):** o alvo 🎯 **vivo** ganha o botão **"🤏 Furtar"** → painel com o item (da lista do
+  alvo ou digitado) + toggles equipado/sintonizado/de missão → **"🎲 Tentar furto"** rola
+  Prestidigitação (DES + proficiência) e **loga no combate** (todos veem) o total, a CD, o detalhamento e o
+  grau. **O Mestre concede o item** pelas ferramentas de envio que já existem (assistente, não trava dura).
+
+**Ficheiros:** `static/js/regras-ficha.js` (`cdFurto5e`/`resultadoFurto5e` puras), `static/js/jogo.js` (botão
+"🤏 Furtar" + painel no `alvoHtml`; handlers de abrir e rolar; loga via `defesa_log`), `tests/unit-regras.js`
+(3 testes novos).
+
+**Verificação:** `node --check` OK · unit-regras **50/50** (3 novos C2: CD com fatores; distração/ajuda com
+piso 5; graus sucesso/quase/flagrado) · 69/69 servidor. **Falta verificação ao vivo**.
+
+**FASE C CONCLUÍDA** (C1 saque + C2 furto). Com A, B e C fechadas, o **roadmap de Acesso, Perfis & Interface
+está inteiro**.
+
+**Como reverter:** restaurar `versoes/2026-07-25-c2-furto/`, ou `git revert`.
+
 ## 2026-07-25 — C1 · Saquear alvo abatido 💰
 
 **Backup:** `versoes/2026-07-25-c1-saque/` (app.py, jogo.js, test-servidor.py).

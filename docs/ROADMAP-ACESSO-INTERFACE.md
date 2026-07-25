@@ -192,27 +192,37 @@ B1 (plano de progressão do jogador) + B2 (liberação nível a nível). Próxim
 
 ---
 
-## FASE C — Saque e furto 🟡 (depois da A e da B)
+## ✅ FASE C CONCLUÍDA (25/07/2026) — saque e furto
 
-### C1 🟡 Saquear alvo abatido
+### C1 ✅ Saquear alvo abatido — ENTREGUE 25/07
 **Pedido:** "opção de saque quando um inimigo npc ou player morre, de setar o alvo e saquear."
 
-- [ ] No combate, alvo com **0 PV** ganha a ação **"💰 Saquear"** (reusa o alvo 🎯 que já existe).
-- [ ] Já existe o loot de **monstro** (Fase 13, `loot.js`, 59/59 monstros). Falta: **NPC** e **PJ caído** —
-      saquear o que está de fato na bolsa/ouro da ficha, transferindo para quem saqueia.
-- [ ] Transferência validada no servidor (ninguém "saqueia" um vivo, nem à distância).
+- [x] No combate, alvo com **0 PV** ganha a ação **"💰 Saquear"** (reusa o alvo 🎯 já selecionado).
+- [x] **NPC/monstro:** transfere o ouro/itens que o combatente carrega. **PJ caído:** transfere o ouro/itens da
+      ficha (só o Mestre, ou se o PJ já é memorial — evita griefing de aliado inconsciente). O loot de monstro
+      da Fase 13 segue pelo envio do Mestre.
+- [x] Transferência validada no servidor (ação `saquear` em `/api/combate/acao`: alvo caído, posse da ficha do
+      saqueador, sem re-saque). Coberto por 5 testes.
 
-### C2 🟡 Furto com dificuldade variável
+### C2 ✅ Furto com dificuldade variável — ENTREGUE 25/07
 **Pedido:** "nivel de dificuldades de furto... pela classe do item peso e importancia, aplicar variabilidade
-de dificuldade no furto."
+de dificuldade no furto." · **Decisões:** jogador tenta direto no alvo; **assistente** (Mestre concede o item).
 
-- [ ] **CD do furto calculada**, não fixa — fórmula a partir de:
-      **base** (Percepção passiva do alvo) **+ peso/volume** do item **+ raridade/valor** **+ "importância"**
-      (item equipado, sintonizado ou de missão = muito mais difícil) **− distração/ajuda**.
-- [ ] Rolagem de **Prestidigitação** contra essa CD, com o resultado explicando *por que* foi difícil
-      ("+5 porque está equipado, +3 porque é raro").
-- [ ] Falha por margem: quase = alvo desconfia; falha feia = flagrado.
-- [ ] Vale para **qualquer classe** (o Ladino só é melhor nisso, não o único).
+- [x] **CD do furto calculada** (`cdFurto5e`, pura): **Percepção passiva** do alvo **+ peso/volume** (+2/+5)
+      **+ raridade/valor** (+3/+5) **+ importância** (+5 equipado, +3 sintonizado, +4 de missão) **− distração**
+      (−3, auto em combate) / **ajuda** (−2), piso 5.
+- [x] Rolagem de **Prestidigitação** (DES + proficiência) contra a CD, com os **fatores** explicando por que foi
+      difícil ("+5 está equipado, +3 raro") no log do combate.
+- [x] Falha por margem (`resultadoFurto5e`): **quase** (faltou ≤3 → o alvo desconfia) · **flagrado** (falha grande).
+- [x] Vale para **qualquer classe** (só usa DES + proficiência em Prestidigitação; Ladino é melhor por treino).
+
+**Onde ficou:** `static/js/regras-ficha.js` (C2 puras), `static/js/jogo.js` (botões 💰/🤏 no alvo + painel de
+furto), `app.py` (ação `saquear`). Backups em `versoes/2026-07-25-c1-saque/` e `.../c2-furto/`. ⚠️ Falta
+verificação ao vivo em combate.
+
+---
+
+## ✅ ROADMAP DE ACESSO, PERFIS & INTERFACE — CONCLUÍDO (Fases A, B e C, 25/07/2026)
 
 ---
 

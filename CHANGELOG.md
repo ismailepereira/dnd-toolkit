@@ -4,6 +4,42 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-25 — B2 · Liberação de nível pelo Mestre (nível a nível) ⬆️
+
+**Backup:** `versoes/2026-07-25-b2-liberar-nivel/` (app.py, app.js, test-servidor.py).
+
+**Resumo:** segunda metade da Fase B. O Mestre libera o plano do jogador (B1) **um nível por vez** — o jogador
+não refaz as escolhas; o preset já planejado é aplicado na hora. **Fecha a Fase B.**
+- **Endpoint `POST /api/fichas/<id>/liberar_nivel`** (só Mestre): pega o snapshot planejado para `nivel+1` e
+  aplica à ficha em jogo via `_aplicar_snapshot_nivel` — sobe `nivel`/`hpMax`/atributos/classes/subclasse/
+  magias/talentos e **soma o ganho de PV ao PV atual**, **preservando o estado transitório** (ouro, xp, itens,
+  condições). O nível liberado é **consumido** de `progressaoPlanejada` (os futuros ficam).
+- **Liberar em massa `POST /api/fichas/liberar_nivel_todos`** (só Mestre): sobe um nível de **todas** as fichas
+  vivas que têm próximo nível planejado — o normal ao subir o grupo numa sessão.
+- **UI do Mestre** (aba Fichas): cada card com plano ganha **"⬆️ Liberar nível X"** + um aviso "📈 Plano do
+  jogador pronto até o nível Y"; uma barra no topo oferece **"⬆️ Liberar próximo nível de todos"**.
+- **Log da campanha:** `_registrar_evento` grava "Fulano subiu para o nível X (liberado pelo Mestre)" em
+  `estado.eventos` (últimos 50) — flui aos jogadores pela projeção pública. O feed rico em tempo real segue
+  sendo a Fase 21.1; aqui é só o registro.
+- **Segurança:** só o papel **mestre na campanha** chega às rotas (`login_obrigatorio(papeis=['mestre'])`); o
+  jogador é bloqueado (testado). Combinado com a trava B1 (o jogador não sobe `nivel`/`hpMax` sozinho),
+  **subir de verdade é 100% decisão do Mestre**.
+
+**Ficheiros:** `app.py` (`eventos` no schema; `_registrar_evento`, `_aplicar_snapshot_nivel`,
+`_liberar_proximo_nivel`; rotas `/api/fichas/<id>/liberar_nivel` e `/api/fichas/liberar_nivel_todos`),
+`static/js/app.js` (botões + handlers no card e barra de grupo), `tests/test-servidor.py` (8 casos B2),
+`docs/ROADMAP-ACESSO-INTERFACE.md` (B2 ✅ · Fase B concluída).
+
+**Nota (edge conhecido):** o Mestre ainda tem o botão direto "⬆️ Subir de Nível" no Modo de Jogo (override
+manual) que NÃO consome o plano — misturar os dois pode desalinhar `progressaoPlanejada` com o nível real.
+Uso normal é liberar pelo card. Documentado para uma passada futura, se incomodar.
+
+**Verificação:** `py_compile app.py` OK · **64/64** testes do servidor (8 novos B2: jogador não libera; Mestre
+libera; nível/PV/subclasse do plano aplicados; nível consumido; sem-plano recusa; liberação em massa) ·
+`node --check` OK · unit 41/41. **Falta verificação ao vivo** do botão de liberar no navegador.
+
+**Como reverter:** restaurar `versoes/2026-07-25-b2-liberar-nivel/`, ou `git revert`.
+
 ## 2026-07-25 — B1 · Plano de evolução do jogador (planejar agora, valer depois) 📈
 
 **Backup:** `versoes/2026-07-25-b1-plano-progressao/` (app.py, nivel.js, jogo.js, test-servidor.py).

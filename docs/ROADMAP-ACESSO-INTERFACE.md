@@ -166,15 +166,29 @@ fica salvo na memoria e quando o mestre permitir a evolução ja vai ter os pres
 `static/js/jogo.js` (`planejarEvolucao`), `tests/test-servidor.py` (4 testes B1). Backup em
 `versoes/2026-07-25-b1-plano-progressao/`. ⚠️ Falta verificação ao vivo do modal no navegador.
 
-### B2 🟠 Liberação pelo Mestre (1 clique)
-- [ ] No painel do Mestre, por ficha: **"⬆️ Liberar nível X"**. Ao liberar, o preset já escolhido é **aplicado
-      de uma vez** (sem o jogador ter que refazer as escolhas).
-- [ ] Liberar em massa: "subir o grupo todo para o nível X" (o normal numa mesa).
-- [ ] **Só o Mestre** dá XP e libera nível — validado no servidor (a Fase 18 já tranca o XP; falta o nível).
-- [ ] Registro no log da campanha: quem subiu, quando, para que nível.
+### B2 ✅ Liberação pelo Mestre (nível a nível) — ENTREGUE 25/07
+- [x] No painel do Mestre (aba Fichas), por ficha: **"⬆️ Liberar nível X"**. Ao liberar, o preset planejado é
+      aplicado de uma vez (o jogador não refaz as escolhas) — **um nível por clique** (pedido do Ismaile: nível
+      a nível, não a spec inteira). Endpoint `POST /api/fichas/<id>/liberar_nivel`.
+- [x] Liberar em massa: **"⬆️ Liberar próximo nível de todos"** — sobe um nível de todas as fichas com plano
+      (`POST /api/fichas/liberar_nivel_todos`).
+- [x] **Só o Mestre** libera nível — validado no servidor (`login_obrigatorio(papeis=['mestre'])`); o jogador é
+      bloqueado (testado). Com a trava B1, subir de verdade é 100% do Mestre.
+- [x] Registro no log da campanha: `estado.eventos` guarda "Fulano subiu para o nível X" (últimos 50, flui aos
+      jogadores pela projeção pública). O feed rico em tempo real continua sendo a Fase 21.1.
 
 **Pronto quando:** o jogador planeja sozinho no meio da semana e, quando o Mestre libera na sessão, a ficha
-sobe instantaneamente com as escolhas dele.
+sobe instantaneamente com as escolhas dele. ✅ (8 testes novos em `tests/test-servidor.py` — 64/64 passam)
+
+**Onde ficou:** `app.py` (`_liberar_proximo_nivel`/`_aplicar_snapshot_nivel`/`_registrar_evento` + rotas),
+`static/js/app.js` (botões no card + barra de grupo). Backup em `versoes/2026-07-25-b2-liberar-nivel/`.
+⚠️ Falta verificação ao vivo do botão no navegador; edge conhecido: o botão direto "Subir de Nível" do Mestre
+no Modo de Jogo não consome o plano (override manual).
+
+---
+
+## ✅ FASE B CONCLUÍDA (25/07/2026) — evolução só com permissão do Mestre
+B1 (plano de progressão do jogador) + B2 (liberação nível a nível). Próximo: **Fase C — saque e furto**.
 
 ---
 

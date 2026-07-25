@@ -122,18 +122,27 @@ foram **verificadas em carregamento limpo** (`/jogador` modo *mesa* → tudo ver
 classe `.on` anda, as abas recolorem). O repaint da faixa ao trocar de modo **não pôde ser medido** nesse
 navegador — vale o Ismaile dar uma olhada ao vivo uma vez.
 
-### A4 🔴 Trancar a economia (o ouro sai da mão do jogador)
+### A4 ✅ Trancar a economia (o ouro sai da mão do jogador) — ENTREGUE 25/07
 **Dor:** "remova a opção do player adicionar ouro, o ouro quem dá é o mestre ou o loot."
 
-- [ ] **Remover os botões de ouro do jogador** (`jgOuroMais`/`jgOuroMenos` em `jogo.js`) — o jogador **vê** o
-      ouro, não edita.
-- [ ] **Servidor recusa** alteração de `ouro` vinda de jogador em `_sanitizar_fichas_jogador` (mesmo tratamento
-      que o XP já tem). Sem isso, tirar o botão é só cosmético.
-- [ ] **Entradas legítimas de ouro:** Mestre (dá/tira), **loot** e **venda na loja** — todas já validadas no
-      servidor pela Fase 18.1.
-- [ ] Mesma trava para **itens** e **abrir a loja**: só Mestre.
+- [x] **Botões de ouro fora do jogador** (`jgOuroMais`/`jgOuroMenos` em `jogo.js`) — já eram gated por
+      `window.EH_MESTRE`; o jogador **vê** o ouro + dica ("ganhe do Mestre ou vendendo; gaste na 🛒 Loja").
+- [x] **Servidor recusa** alteração de `ouro` vinda de jogador em `_sanitizar_fichas_jogador` **e** no ramo
+      do jogador do PATCH (já vinha da Fase 18.1 — valor sempre preservado do gravado).
+- [x] **Entradas legítimas de ouro:** Mestre (dá/tira), **loot** e **venda na loja** — validadas no servidor
+      (Fase 18.1).
+- [x] **Trava de itens (o furo que faltava):** o jogador conseguia adicionar item caro à ficha por save cru e
+      vendê-lo por ouro. Agora `itens` da ficha do jogador **só encolhe** (`_itens_sem_ganho()`): remover é
+      livre, adicionar item novo é descartado; adições legítimas passam por Mestre/lojas validadas. Equipar
+      não é afetado (`ficha.equipado` só referencia o nome).
+- [x] **Abrir a loja só Mestre:** a Loja Especial já exige liberação do Mestre (`lojaEspecialLiberada` +
+      `_preco_loja_jogo` validam no servidor).
 
-**Pronto quando:** um jogador com o DevTools aberto não consegue ficar rico.
+**Pronto quando:** um jogador com o DevTools aberto não consegue ficar rico. ✅ (coberto por 4 testes novos
+em `tests/test-servidor.py` — 52/52 passam)
+
+**Onde ficou:** `app.py` (`_itens_sem_ganho`, aplicado nos dois ramos protegidos), `tests/test-servidor.py`,
+`CHANGELOG.md`. Backup em `versoes/2026-07-25-a4-trancar-economia/`.
 
 ---
 

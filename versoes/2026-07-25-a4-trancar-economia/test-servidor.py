@@ -93,8 +93,7 @@ t('PATCH em id inexistente leva 404', r.status_code == 404, str(r.status_code))
 # mestre grava uma ficha de OUTRO dono e uma legada (sem dono)
 fichas_agora = mestre.get('/api/fichas').get_json()
 fichas_agora.append({'id': 'f2', 'nome': 'De Outro', 'donoUid': 'u_outra_pessoa', 'nivel': 3, 'xp': 500, 'ouro': 77})
-fichas_agora.append({'id': 'f3', 'nome': 'Legada', 'nivel': 2, 'xp': 100, 'ouro': 20,
-                     'itens': ['Poção de Cura', 'Adaga']})
+fichas_agora.append({'id': 'f3', 'nome': 'Legada', 'nivel': 2, 'xp': 100, 'ouro': 20})
 mestre.put('/api/fichas', json=fichas_agora)
 
 jogador = app.test_client()
@@ -109,31 +108,6 @@ d = r.get_json().get('ficha', {})
 t('xp do jogador é preservado do servidor (B2)', d.get('xp') == 100, str(d.get('xp')))
 t('ouro do jogador é preservado do servidor (B2)', d.get('ouro') == 20, str(d.get('ouro')))
 t('nome novo do jogador entrou', d.get('nome') == 'Legada Editada', str(d.get('nome')))
-t('A4: itens gravados preservados quando o jogador não mexe neles',
-  sorted(d.get('itens', [])) == ['Adaga', 'Poção de Cura'], str(d.get('itens')))
-
-# A4: jogador tenta ADICIONAR item caro por save cru → servidor descarta o excedente
-r = jogador.patch('/api/fichas/f3', json={'ficha': {
-    'id': 'f3', 'nome': 'Legada Editada', 'nivel': 2,
-    'itens': ['Poção de Cura', 'Adaga', 'Cota de Placas', 'Cota de Placas']}})
-d = r.get_json().get('ficha', {})
-t('A4: jogador NÃO adiciona item novo à ficha (200, mas item some)',
-  r.status_code == 200 and 'Cota de Placas' not in d.get('itens', []), str(d.get('itens')))
-t('A4: itens legítimos que já estavam na ficha permanecem',
-  sorted(d.get('itens', [])) == ['Adaga', 'Poção de Cura'], str(d.get('itens')))
-
-# A4: jogador PODE remover/consumir um item da própria ficha (bolsa só encolhe)
-r = jogador.patch('/api/fichas/f3', json={'ficha': {
-    'id': 'f3', 'nome': 'Legada Editada', 'nivel': 2, 'itens': ['Adaga']}})
-d = r.get_json().get('ficha', {})
-t('A4: jogador consegue remover item da própria bolsa', d.get('itens') == ['Adaga'], str(d.get('itens')))
-
-# repõe a Poção via Mestre (loot) para não afetar testes seguintes que dependam de f3
-_fx = mestre.get('/api/fichas').get_json()
-for _f in _fx:
-    if _f.get('id') == 'f3':
-        _f['itens'] = ['Adaga']
-mestre.put('/api/fichas', json=_fx)
 
 # ----- T2: finalizar turno (proximo_turno) com permissão -----
 # monta um combate: jogador tem a ficha f3 (legada, sem dono → editável por ele);

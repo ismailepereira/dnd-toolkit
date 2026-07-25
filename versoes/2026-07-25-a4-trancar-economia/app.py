@@ -4,7 +4,6 @@ import os
 import re
 import secrets
 import uuid
-from collections import Counter
 from datetime import datetime, timezone, timedelta
 from functools import wraps
 
@@ -1457,29 +1456,6 @@ def api_get_fichas():
     return jsonify(carregar_estado()['fichas'])
 
 
-def _itens_sem_ganho(novos, antigos):
-    """A4: o jogador só pode REMOVER itens da própria ficha, nunca ADICIONAR.
-    Toda entrada legítima de item passa por endpoint validado (o Mestre no loot,
-    ou /api/loja_base|lojas/comprar, que gravam a ficha ANTES do próximo save do
-    jogador) — logo o item já está em `antigos`. Sem esta trava, o jogador
-    adicionaria um item caro à ficha por PUT/PATCH e o venderia por ouro,
-    furando a trava de ouro (o /vender credita ouro no servidor). Equipar NÃO
-    move itens da bolsa (`ficha.equipado` só referencia o nome), então limitar
-    `itens` a um sub-multiconjunto do gravado não atrapalha equipar/desequipar.
-    Se o payload não trouxer a chave `itens`, preserva a lista gravada."""
-    if not isinstance(novos, list):
-        return list(antigos) if isinstance(antigos, list) else []
-    teto = Counter(x for x in antigos if isinstance(x, str))
-    usados = Counter()
-    saida = []
-    for it in novos:
-        if isinstance(it, str) and usados[it] < teto[it]:
-            usados[it] += 1
-            saida.append(it)
-        # item novo ou em excesso: descartado (não estava na ficha gravada)
-    return saida
-
-
 def _sanitizar_fichas_jogador(recebidas, armazenadas, meu_uid):
     """Antes desta trava, um jogador podia reescrever TODAS as fichas da mesa
     (ouro/XP de qualquer um) só chamando PUT /api/fichas — a regra B2 e a
@@ -1489,8 +1465,6 @@ def _sanitizar_fichas_jogador(recebidas, armazenadas, meu_uid):
     - `xp` e `ouro` são sempre preservados do valor gravado (B2: XP só via
       Mestre; ouro só via Mestre ou pelos endpoints validados
       /api/loja_base/comprar|vender e /api/lojas/comprar|vender — Fase 18.1);
-    - `itens` só pode ENCOLHER (A4): o jogador remove/consome, mas não adiciona
-      item novo por save cru — entradas de item passam por Mestre/loja validados;
     - `donoUid` não pode ser reatribuído (evita roubo/troca de dono);
     - revivência (morto->vivo) fica com o Mestre; morrer (vivo->morto) é livre."""
     por_id = {f.get('id'): f for f in armazenadas if isinstance(f, dict) and f.get('id')}
@@ -1516,7 +1490,6 @@ def _sanitizar_fichas_jogador(recebidas, armazenadas, meu_uid):
         f['donoUid'] = antiga.get('donoUid')
         f['xp'] = antiga.get('xp', 0)
         f['ouro'] = antiga.get('ouro', 0)
-        f['itens'] = _itens_sem_ganho(f.get('itens'), antiga.get('itens', []))
         if antiga.get('status') == 'morto':
             f['status'] = 'morto'
         saida.append(f)
@@ -1680,11 +1653,10 @@ def api_patch_ficha(fid):
         if antiga.get('donoUid') not in (None, uid_sessao()):
             return jsonify({'ok': False, 'erro': 'sem_permissao',
                             'detalhe': 'esta ficha pertence a outro jogador'}), 403
-        # mesmos campos protegidos do PUT (B2 + A4: itens só saem, nunca entram)
+        # mesmos campos protegidos do PUT (B2)
         nova['donoUid'] = antiga.get('donoUid')
         nova['xp'] = antiga.get('xp', 0)
         nova['ouro'] = antiga.get('ouro', 0)
-        nova['itens'] = _itens_sem_ganho(nova.get('itens'), antiga.get('itens', []))
         if antiga.get('status') == 'morto':
             nova['status'] = 'morto'
 

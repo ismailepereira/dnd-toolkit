@@ -4,6 +4,37 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-25 — A4 · Trancar a economia (o ouro sai da mão do jogador) 💰🔒
+
+**Backup:** `versoes/2026-07-25-a4-trancar-economia/` (app.py, test-servidor.py).
+
+**Resumo:** quarta entrega do roadmap de Acesso & Interface. A A4 pede "remover a opção do player
+adicionar ouro — o ouro quem dá é o Mestre ou o loot". Ao auditar, **a maior parte já estava feita** por
+fases anteriores; esta entrega **fecha o único furo que restava** (itens).
+- **Botões de ouro/XP:** já eram escondidos do jogador (gated por `window.EH_MESTRE` em `jogo.js`) — o
+  jogador vê o ouro e a dica "ganhe do Mestre ou vendendo; gaste na 🛒 Loja". Nada a mudar.
+- **Ouro no servidor:** já travado em `_sanitizar_fichas_jogador` (PUT) e no ramo do jogador do PATCH
+  (Fase 18.1) — o valor é sempre preservado do gravado.
+- **Loja Especial:** abrir/comprar já exige liberação do Mestre (`lojaEspecialLiberada` + `_preco_loja_jogo`
+  validam no servidor).
+- **NOVO — trava de itens (A4):** o jogador podia adicionar um item caro à ficha por PUT/PATCH cru e
+  vendê-lo por ouro no `/api/loja_base|lojas/vender` (que credita ouro no servidor), **furando a trava de
+  ouro**. Agora `itens` da ficha do jogador **só pode encolher**: novo helper `_itens_sem_ganho()` limita a
+  lista a um sub-multiconjunto do gravado (remover/consumir é livre; adicionar item novo é descartado).
+  Entradas legítimas continuam: Mestre (loot, papel mestre) e as lojas validadas gravam a ficha ANTES do
+  próximo save do jogador, então o item já está no gravado. **Equipar não é afetado** — `ficha.equipado` só
+  referencia o nome, não move o item para fora de `ficha.itens`.
+
+**Ficheiros:** `app.py` (`from collections import Counter`; helper `_itens_sem_ganho`; aplicado nos dois
+ramos protegidos — `_sanitizar_fichas_jogador` e o PATCH do jogador; docstring atualizada),
+`tests/test-servidor.py` (4 casos novos A4), `docs/ROADMAP-ACESSO-INTERFACE.md` (A4 ✅).
+
+**Verificação:** `py_compile app.py` OK · **52/52** testes do servidor (4 novos A4: preserva itens quando o
+jogador não mexe; jogador NÃO adiciona item novo; itens legítimos permanecem; jogador CONSEGUE remover) ·
+`node --check` em todos os JS OK · unit-regras 41/41.
+
+**Como reverter:** restaurar `versoes/2026-07-25-a4-trancar-economia/`, ou `git revert`.
+
 ## 2026-07-22 — A3 · Cores por categoria nos menus 🎨
 
 **Backup:** `versoes/2026-07-22-a3-cores-categoria/` (style.css, app.js, jogador.js, mestre.html, jogador.html).

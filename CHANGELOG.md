@@ -4,6 +4,32 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-25 — Combate 3/3 · Só a arma equipada ataca; sacar outra custa o turno 🤚
+
+**Backup:** `versoes/2026-07-25-combate3-armas-equipadas/` (jogo.js, regras-ficha.js, unit-regras.js).
+
+**Resumo:** terceiro e último estágio do retrabalho de combate — fecha o pedido do Ismaile ("se quiser que
+apareça outra arma perde 1 turno, igual às regras pra equipar outra arma").
+- **Só a arma EQUIPADA ataca direto** (mão principal / secundária). As demais armas da bolsa mostram
+  **"🤚 Empunhar"** no lugar do "🎲 atacar".
+- **Sacar outra arma custa a Ação** (regra 5e de trocar a arma em punho): em combate, clicar "🤚 Empunhar"
+  gasta a Ação do turno (via a economia da 2b) e equipa a arma na mão principal — então você ataca com ela no
+  **próximo** turno. Fora de combate, empunhar é livre. Arma de duas mãos limpa a mão secundária ao equipar.
+- **Arremesso segue lançável** direto da bolsa (sacar-e-lançar é parte do ataque) — não vira "empunhar".
+
+**Ficheiros:** `static/js/jogo.js` (botão "Empunhar" nas armas não-equipadas + handler `data-empunhar` que
+gasta a Ação e equipa), `static/js/regras-ficha.js` (mensagem de bloqueio da Ação genérica por tipo —
+atacando/conjurando/trocando de arma), `tests/unit-regras.js` (1 teste novo).
+
+**Verificação:** `node --check` OK · unit-regras **47/47** (1 novo: empunhar gasta a Ação e trava o ataque no
+mesmo turno) · 64/64 servidor. **Falta verificação ao vivo** em combate.
+
+**Retrabalho de combate concluído** (3 estágios): 1) descanso só o Mestre · 2a) todas as magias à mão (clérigo)
+· 2b) economia de ação com trava · 3) armas equipadas + custo de troca. Pendências anotadas para uma passada
+futura: gatear os poderes de classe (Ki/Punição/Inspiração…) na economia de ação; e a trava é client-side.
+
+**Como reverter:** restaurar `versoes/2026-07-25-combate3-armas-equipadas/`, ou `git revert`.
+
 ## 2026-07-25 — Combate 2b · Economia de ação com trava de verdade ⏳
 
 **Backup:** `versoes/2026-07-25-combate2b-trava-economia/` (jogo.js, regras-ficha.js, unit-regras.js).

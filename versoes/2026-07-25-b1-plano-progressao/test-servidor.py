@@ -94,7 +94,6 @@ t('PATCH em id inexistente leva 404', r.status_code == 404, str(r.status_code))
 fichas_agora = mestre.get('/api/fichas').get_json()
 fichas_agora.append({'id': 'f2', 'nome': 'De Outro', 'donoUid': 'u_outra_pessoa', 'nivel': 3, 'xp': 500, 'ouro': 77})
 fichas_agora.append({'id': 'f3', 'nome': 'Legada', 'nivel': 2, 'xp': 100, 'ouro': 20,
-                     'hpMax': 18, 'hpAtual': 18, 'ca': 14,
                      'itens': ['Poção de Cura', 'Adaga']})
 mestre.put('/api/fichas', json=fichas_agora)
 
@@ -134,45 +133,6 @@ _fx = mestre.get('/api/fichas').get_json()
 for _f in _fx:
     if _f.get('id') == 'f3':
         _f['itens'] = ['Adaga']
-mestre.put('/api/fichas', json=_fx)
-
-# ----- B1: nível/PV máx. só sobem via Mestre; plano de progressão é livre -----
-_f3_antes = next(f for f in mestre.get('/api/fichas').get_json() if f['id'] == 'f3')
-r = jogador.patch('/api/fichas/f3', json={'ficha': {
-    'id': 'f3', 'nome': 'Legada Editada', 'nivel': 9, 'hpMax': 999, 'hpAtual': 18,
-    'progressaoPlanejada': [
-        {'nivel': 3, 'hpMax': _f3_antes['hpMax'] + 6, 'classe': 'Guerreiro',
-         'atributos': {'for': 16, 'des': 14, 'con': 14, 'int': 10, 'sab': 12, 'car': 8},
-         'truques': [], 'magias1': [], 'talentos': [],
-         'classes': [{'classe': 'Guerreiro', 'nivel': 3, 'subclasse': ''}]},
-    ]}})
-d = r.get_json().get('ficha', {})
-t('B1: jogador NÃO sobe o próprio nível (preservado do servidor)',
-  d.get('nivel') == _f3_antes['nivel'], str(d.get('nivel')))
-t('B1: jogador NÃO infla o próprio PV máx.',
-  d.get('hpMax') == _f3_antes['hpMax'], str(d.get('hpMax')))
-t('B1: plano de progressão do jogador é salvo (inerte)',
-  isinstance(d.get('progressaoPlanejada'), list) and len(d.get('progressaoPlanejada', [])) == 1
-  and d['progressaoPlanejada'][0]['nivel'] == 3, str(d.get('progressaoPlanejada')))
-
-# Mestre PODE subir o nível (é o caminho que a liberação da Fase B2 usa)
-_fx = mestre.get('/api/fichas').get_json()
-for _f in _fx:
-    if _f['id'] == 'f3':
-        _f['nivel'] = 3
-        _f['hpMax'] = _f3_antes['hpMax'] + 6
-mestre.put('/api/fichas', json=_fx)
-_f3d = next(f for f in mestre.get('/api/fichas').get_json() if f['id'] == 'f3')
-t('B1: Mestre SOBE o nível da ficha (liberação)',
-  _f3d['nivel'] == 3 and _f3d['hpMax'] == _f3_antes['hpMax'] + 6,
-  f"nivel={_f3d['nivel']} hpMax={_f3d['hpMax']}")
-
-# devolve f3 ao nível 2 para não afetar os testes de combate seguintes
-_fx = mestre.get('/api/fichas').get_json()
-for _f in _fx:
-    if _f['id'] == 'f3':
-        _f['nivel'] = 2
-        _f['hpMax'] = _f3_antes['hpMax']
 mestre.put('/api/fichas', json=_fx)
 
 # ----- T2: finalizar turno (proximo_turno) com permissão -----

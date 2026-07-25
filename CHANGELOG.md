@@ -4,6 +4,43 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-25 — B1 · Plano de evolução do jogador (planejar agora, valer depois) 📈
+
+**Backup:** `versoes/2026-07-25-b1-plano-progressao/` (app.py, nivel.js, jogo.js, test-servidor.py).
+
+**Resumo:** primeira metade da Fase B (evolução só com permissão do Mestre). O jogador passa a **planejar** a
+subida até o nível 20 sem tocar na ficha em jogo; a liberação nível a nível pelo Mestre é a B2.
+- **Furo fechado:** hoje o botão "⬆️ Subir de Nível" do jogador escrevia direto na ficha (o servidor travava
+  ouro/xp/itens, mas **não** `nivel`/`hpMax`) — ou seja, **o jogador se auto-upava**. Agora o servidor
+  **preserva `nivel` e `hpMax`** do gravado no ramo do jogador (PUT `_sanitizar_fichas_jogador` **e** PATCH).
+  Fichas novas (criação) não são afetadas — a trava só vale para ficha já gravada.
+- **Planejamento (cliente):** para o jogador, o botão vira **"📈 Planejar Evolução"** (ou "Revisar Plano").
+  Ele abre o assistente de Subida de Nível em **modo plano** rodando numa **CÓPIA** da ficha — escolhe
+  subclasse/ASI/magias nível a nível até o 20 (ou cancela para concluir até onde chegou). Nada muda na ficha
+  em jogo; o resultado é um **snapshot por nível** salvo em `ficha.progressaoPlanejada`. A ficha do jogador
+  mostra "📈 Plano: níveis X–Y planejados. **Aguardando liberação do Mestre.**"
+- **`nivel.js` (modo plano):** `Nivel.abrir(ficha, {modoPlano, aoSalvar, aoConcluir})` — encadeia os níveis no
+  mesmo modal (a ficha passada é a cópia), e chama `aoConcluir` ao concluir/cancelar/fechar para o controlador
+  persistir o plano. Motor de aplicação (`confirmar`) inalterado — o modo normal do Mestre segue idêntico.
+- **Servidor:** `_normalizar_progressao()` valida `progressaoPlanejada` (lista de até 19 snapshots, campos
+  coagidos a limites sãos) — é **dado inerte**, não altera o nível efetivo.
+
+**Nota (edge conhecido):** com a trava mínima escolhida (só `nivel`/`hpMax`), um jogador ainda pode editar os
+próprios atributos no Criador; se mudar CON, o PV máx. NÃO acompanha (fica travado no gravado). É consistente
+com a decisão "só nível e PV máx." — atributos/magias ficam livres de propósito.
+
+**Ficheiros:** `app.py` (trava `nivel`/`hpMax` nos 2 ramos do jogador; `_normalizar_progressao` +
+chamada em `_normalizar_ficha`), `static/js/nivel.js` (modo plano: `fecharModal`, `aoConcluir`, encadeamento,
+título/aviso), `static/js/jogo.js` (`planejarEvolucao`/`_snapProgressao`, botão por papel, status do plano,
+wiring), `tests/test-servidor.py` (4 casos B1), `docs/ROADMAP-ACESSO-INTERFACE.md` (B1 ✅).
+
+**Verificação:** `py_compile app.py` OK · **56/56** testes do servidor (4 novos B1: jogador não sobe nível;
+não infla PV máx.; plano é salvo inerte; Mestre sobe o nível) · `node --check` em todos os JS OK ·
+unit-regras 41/41. **Falta verificação ao vivo** do modal de planejamento no navegador (fluxo depende de
+login + ficha) — vale o Ismaile abrir e planejar uma vez.
+
+**Como reverter:** restaurar `versoes/2026-07-25-b1-plano-progressao/`, ou `git revert`.
+
 ## 2026-07-25 — A4 · Trancar a economia (o ouro sai da mão do jogador) 💰🔒
 
 **Backup:** `versoes/2026-07-25-a4-trancar-economia/` (app.py, test-servidor.py).

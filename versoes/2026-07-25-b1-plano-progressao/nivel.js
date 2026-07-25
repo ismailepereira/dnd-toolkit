@@ -48,9 +48,8 @@ const Nivel = (function () {
   // ---------- Fase 8B: tela inicial — escolher em qual classe subir ----------
   function renderEscolhaClasse() {
     const atuais = classesAtuais(ficha);
-    let html = `<div class="nv-head"><h2>${ctx.modoPlano ? '📈 Planejar Evolução' : 'Subir de Nível'}</h2>
+    let html = `<div class="nv-head"><h2>Subir de Nível</h2>
       <div class="nv-sub">${esc(ficha.nome)} · nível total ${ficha.nivel} → ${novo}</div></div>
-      ${ctx.modoPlano ? '<div class="criador-hint">📈 Planejamento: nada muda na sua ficha em jogo. As escolhas ficam guardadas e o Mestre libera nível a nível. Cancele a qualquer momento para concluir o plano até aqui.</div>' : ''}
       <div class="nv-bloco"><h4>Em qual classe você vai subir?</h4>
         <div class="nv-escolha-classe">${atuais.map(c =>
           `<button type="button" class="btn-secondary nv-classe-btn" data-classe-nivel="${esc(c.classe)}">${esc(c.classe)} <small>nível ${c.nivel} → ${c.nivel + 1}${c.subclasse ? ' · ' + esc(c.subclasse) : ''}</small></button>`).join('')}
@@ -60,7 +59,7 @@ const Nivel = (function () {
       </div>
       <div class="modal-actions"><button type="button" id="nvCancelarEscolha" class="btn-secondary">Cancelar</button></div>`;
     $('modalNivelBody').innerHTML = html;
-    $('nvCancelarEscolha').onclick = () => fecharModal(true);
+    $('nvCancelarEscolha').onclick = () => { $('modalNivel').classList.add('hidden'); };
     document.querySelectorAll('[data-classe-nivel]').forEach(b => b.onclick = () => {
       classeAtiva = b.dataset.classeNivel;
       entradaAtiva = atuais.find(c => c.classe === classeAtiva);
@@ -218,7 +217,7 @@ const Nivel = (function () {
 
   function wire(e) {
     $('nvVoltar').onclick = renderEscolhaClasse;
-    $('nvCancelar').onclick = () => { subPreview = null; fecharModal(true); };
+    $('nvCancelar').onclick = () => { subPreview = null; $('modalNivel').classList.add('hidden'); };
     $('nvConfirmar').onclick = confirmar;
     if ($('nvToggleEscola')) $('nvToggleEscola').onclick = () => { verTodasEscolas = !verTodasEscolas; render(); };
     // Se a subclasse abre conjuração neste mesmo nível (Cav. Arcano/Trapaceiro), re-renderiza ao escolhê-la
@@ -320,22 +319,7 @@ const Nivel = (function () {
 
     subPreview = null;
     if (ctx.aoSalvar) ctx.aoSalvar();
-    // Fase B1 (modo plano): a ficha aqui é uma CÓPIA; encadeia o próximo nível
-    // no mesmo modal, sem tocar na ficha em jogo, até o nível 20 ou o jogador parar.
-    if (ctx.modoPlano && ficha.nivel < 20) {
-      novo = ficha.nivel + 1;
-      classeAtiva = null; entradaAtiva = null; verTodasEscolas = false;
-      renderEscolhaClasse();
-      return;
-    }
-    fecharModal(true);
-  }
-
-  // Fecha o modal. Em modo plano, avisa o controlador para persistir o plano
-  // acumulado (por cancelar/fechar/concluir); em modo normal só esconde.
-  function fecharModal(concluirPlano) {
     $('modalNivel').classList.add('hidden');
-    if (concluirPlano && ctx && ctx.modoPlano && ctx.aoConcluir) ctx.aoConcluir();
   }
 
   function abrir(f, opts) {
@@ -352,7 +336,7 @@ const Nivel = (function () {
   let montado = false;
   function montarUmaVez() {
     if (montado) return; montado = true;
-    $('nvFechar').onclick = () => fecharModal(true);
+    $('nvFechar').onclick = () => $('modalNivel').classList.add('hidden');
   }
 
   return { abrir };

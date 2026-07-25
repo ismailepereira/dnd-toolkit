@@ -323,41 +323,6 @@ const Jogo = (function () {
     render();
   }
 
-  // ----- Fase B1: planejamento de evolução (jogador) -----
-  // O jogador planeja a subida até o nível 20 numa CÓPIA da ficha — nada muda
-  // na ficha em jogo. As escolhas viram ficha.progressaoPlanejada (um snapshot
-  // por nível), e o Mestre libera nível a nível (Fase B2). Ver nivel.js
-  // (modoPlano: encadeia os níveis no mesmo modal e chama aoConcluir ao parar).
-  function _snapProgressao(f) {
-    return {
-      nivel: f.nivel, hpMax: f.hpMax,
-      atributos: Object.assign({}, f.atributos),
-      classes: JSON.parse(JSON.stringify(f.classes || [])),
-      classe: f.classe, subclasse: f.subclasse || '',
-      estilo: f.estilo || '',
-      truques: (f.truques || []).slice(),
-      magias1: (f.magias1 || []).slice(),
-      talentos: (f.talentos || []).slice(),
-    };
-  }
-  function planejarEvolucao() {
-    if (typeof Nivel === 'undefined') return;
-    if ((ficha.nivel || 1) >= 20) { alert('Este personagem já está no nível máximo (20).'); return; }
-    const clone = JSON.parse(JSON.stringify(ficha));
-    delete clone.progressaoPlanejada;
-    const snaps = [];
-    Nivel.abrir(clone, {
-      modoPlano: true,
-      aoSalvar: () => { snaps.push(_snapProgressao(clone)); },
-      aoConcluir: () => {
-        if (!snaps.length) return; // cancelou sem planejar nenhum nível
-        ficha.progressaoPlanejada = snaps;
-        log(`📈 Plano de evolução salvo: níveis ${snaps[0].nivel}–${snaps[snaps.length - 1].nivel}. Aguardando liberação do Mestre.`);
-        salvar();
-      },
-    });
-  }
-
   // checa concentração ao sofrer dano
   function checarConcentracao(dano) {
     if (!ficha.concentrando || dano <= 0) return;
@@ -1742,9 +1707,7 @@ const Jogo = (function () {
           <div class="jg-sub">${esc(f.raca)} · ${ehMulticlasse() ? classesFicha().map(c => `${getClasseIcone(c.classe)} ${esc(c.classe)} ${c.nivel}`).join(' / ') + ` (total ${f.nivel})` : `${getClasseIcone(f.classe)} ${esc(f.classe)} nível ${f.nivel}`}${f.estilo ? ' · ' + esc(f.estilo) : ''}${f.divindade ? ' · ⛩️ ' + esc(f.divindade) : ''}${f.patrono ? ' · 👁️ ' + esc(f.patrono) : ''}</div>
         </div>
         <div class="jg-rest">
-          ${window.EH_MESTRE
-            ? `<button id="jgSubirNivel" class="btn-primary${podeSubirPorXP(f) ? ' jg-pulsa' : ''}">⬆️ Subir de Nível${podeSubirPorXP(f) ? ' ✨' : ''}</button>`
-            : `<button id="jgPlanejarEvo" class="btn-primary">📈 ${(f.progressaoPlanejada && f.progressaoPlanejada.length) ? 'Revisar Plano' : 'Planejar Evolução'}</button>`}
+          <button id="jgSubirNivel" class="btn-primary${podeSubirPorXP(f) ? ' jg-pulsa' : ''}">⬆️ Subir de Nível${podeSubirPorXP(f) ? ' ✨' : ''}</button>
           <button id="jgDescCurto" class="btn-secondary">☕ Descanso Curto</button>
           <button id="jgDescLongo" class="btn-secondary">🌙 Descanso Longo</button>
           <button id="jgPDF" class="btn-secondary">🖨️ Ficha PDF</button>
@@ -1826,7 +1789,6 @@ const Jogo = (function () {
             </div>
             <div class="pv-linha">${xpProxNivel(f.nivel || 1) == null ? 'Nível máximo (20).' : `Próximo nível: <b>${xpProxNivel(f.nivel).toLocaleString('pt-BR')}</b> XP${podeSubirPorXP(f) ? ' — <span class="jg-subir-ok">pode subir! ✨</span>' : ''}`}</div>
           </div>
-          ${(!window.EH_MESTRE && f.progressaoPlanejada && f.progressaoPlanejada.length) ? `<div class="jg-bloco"><h4>📈 Plano de Evolução</h4><div class="pv-linha">Níveis <b>${f.progressaoPlanejada[0].nivel}</b>–<b>${f.progressaoPlanejada[f.progressaoPlanejada.length - 1].nivel}</b> planejados. <b>Aguardando liberação do Mestre.</b></div></div>` : ''}
           ${condHtml}${logHtml}
         </div>
         <div>${armasHtml}${punicaoHtml}${furtivoHtml}${expulsarHtml}${inspiracaoHtml}${feiticariaHtml}${kiHtml}${guerreiroHtml}${magoHtml}${impMaosHtml}${acaoLadinaHtml}${conscienciaHtml}${castHtml}${aurasHtml}${concHtml}${avisosHtml}${inventarioHtml}${sintHtml}${magiasHtml}${caracHtml}${historiaHtml}</div>
@@ -1845,11 +1807,10 @@ const Jogo = (function () {
     $('jgDadoVida').onclick = gastarDadoVida;
     $('jgDescCurto').onclick = () => { descansoCurto(); log('Descanso curto'); };
     $('jgDescLongo').onclick = () => { descansoLongo(); log('Descanso longo — recuperado'); };
-    if ($('jgSubirNivel')) $('jgSubirNivel').onclick = () => {
+    $('jgSubirNivel').onclick = () => {
       if (typeof Nivel === 'undefined') return;
       Nivel.abrir(ficha, { aoSalvar: () => { log(`Subiu para o nível ${ficha.nivel}!`); salvar(); } });
     };
-    if ($('jgPlanejarEvo')) $('jgPlanejarEvo').onclick = planejarEvolucao;
 
     // Fase B2: +/− ouro e +XP são controlos SÓ do Mestre (o jogador ganha
     // ouro/XP por envio do Mestre e gasta/ganha ouro pela loja/venda)

@@ -1517,11 +1517,6 @@ def _sanitizar_fichas_jogador(recebidas, armazenadas, meu_uid):
         f['xp'] = antiga.get('xp', 0)
         f['ouro'] = antiga.get('ouro', 0)
         f['itens'] = _itens_sem_ganho(f.get('itens'), antiga.get('itens', []))
-        # Fase B1: nível e PV máx. só sobem por liberação do Mestre (o jogador
-        # planeja em ficha.progressaoPlanejada, que segue livre). Sem isto, o
-        # botão de subir nível do cliente escreveria direto na ficha em jogo.
-        f['nivel'] = antiga.get('nivel', 1)
-        f['hpMax'] = antiga.get('hpMax', f.get('hpMax'))
         if antiga.get('status') == 'morto':
             f['status'] = 'morto'
         saida.append(f)
@@ -1563,37 +1558,6 @@ def _int_saneado(v, minimo, maximo, padrao):
         return padrao
 
 
-def _normalizar_progressao(pp):
-    """Fase B1: valida `ficha.progressaoPlanejada` (o plano de subida do jogador).
-    É dado INERTE — não altera o nível efetivo; só guarda as escolhas por nível
-    para o Mestre liberar depois (B2). Coage a uma lista de até 19 snapshots
-    (níveis 2-20) com campos sãos; descarta lixo (leniente, nunca derruba o save)."""
-    if not isinstance(pp, list):
-        return []
-    saida = []
-    for snap in pp[:19]:
-        if not isinstance(snap, dict):
-            continue
-        s = {'nivel': _int_saneado(snap.get('nivel'), 1, 20, 1),
-             'hpMax': _int_saneado(snap.get('hpMax'), 0, 999, 0),
-             'classe': str(snap.get('classe', ''))[:40],
-             'subclasse': str(snap.get('subclasse', ''))[:80],
-             'estilo': str(snap.get('estilo', ''))[:60]}
-        if isinstance(snap.get('atributos'), dict):
-            s['atributos'] = {k: _int_saneado(snap['atributos'].get(k), 1, 30, 10)
-                              for k in ('for', 'des', 'con', 'int', 'sab', 'car')}
-        for campo in ('truques', 'magias1', 'talentos'):
-            lista = snap.get(campo) if isinstance(snap.get(campo), list) else []
-            s[campo] = [str(x)[:200] for x in lista if isinstance(x, (str, int, float))][:300]
-        cls = snap.get('classes') if isinstance(snap.get('classes'), list) else []
-        s['classes'] = [{'classe': str(c.get('classe', ''))[:40],
-                         'nivel': _int_saneado(c.get('nivel'), 0, 20, 0),
-                         'subclasse': str(c.get('subclasse', ''))[:80]}
-                        for c in cls if isinstance(c, dict)][:2]
-        saida.append(s)
-    return saida
-
-
 def _normalizar_ficha(f):
     """Coage os campos conhecidos da ficha a tipos/limites sãos, em lugar.
     Leniente por desenho: campo ausente segue ausente, campo inválido é
@@ -1621,8 +1585,6 @@ def _normalizar_ficha(f):
         if campo in f and isinstance(f[campo], dict):
             f[campo] = {k: (str(v)[:tam] if isinstance(v, (str, int, float)) else v)
                         for k, v in f[campo].items()}
-    if 'progressaoPlanejada' in f:
-        f['progressaoPlanejada'] = _normalizar_progressao(f.get('progressaoPlanejada'))
     f['schemaVersion'] = FICHA_SCHEMA_VERSAO
     return f
 
@@ -1718,14 +1680,11 @@ def api_patch_ficha(fid):
         if antiga.get('donoUid') not in (None, uid_sessao()):
             return jsonify({'ok': False, 'erro': 'sem_permissao',
                             'detalhe': 'esta ficha pertence a outro jogador'}), 403
-        # mesmos campos protegidos do PUT (B2 + A4: itens só saem, nunca entram;
-        # B1: nível/PV máx. só via liberação do Mestre)
+        # mesmos campos protegidos do PUT (B2 + A4: itens só saem, nunca entram)
         nova['donoUid'] = antiga.get('donoUid')
         nova['xp'] = antiga.get('xp', 0)
         nova['ouro'] = antiga.get('ouro', 0)
         nova['itens'] = _itens_sem_ganho(nova.get('itens'), antiga.get('itens', []))
-        nova['nivel'] = antiga.get('nivel', 1)
-        nova['hpMax'] = antiga.get('hpMax', nova.get('hpMax'))
         if antiga.get('status') == 'morto':
             nova['status'] = 'morto'
 

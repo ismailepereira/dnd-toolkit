@@ -152,14 +152,19 @@ em `tests/test-servidor.py` — 52/52 passam)
 o mestre nao permitir a ficha fica sem alteração no jogo, porem se a pessoa upou e escolheu tudo até nivel 20
 fica salvo na memoria e quando o mestre permitir a evolução ja vai ter os pressets da ficha na memoria."
 
-### B1 🟠 Preset de progressão (planejar agora, valer depois)
-- [ ] O jogador pode abrir o Criador e **planejar a subida até o nível 20** — classe, subclasse, magias,
-      atributos, tudo.
-- [ ] O resultado **não altera a ficha em jogo**. Vai para **`ficha.progressaoPlanejada`**: uma lista por
-      nível (`{nivel, escolhas...}`), guardada no servidor junto da ficha.
-- [ ] Na tela do jogador: "📈 Plano de evolução — níveis 2 a 20 planejados. **Aguardando liberação do Mestre.**"
-- [ ] **O nível efetivo continua sendo `ficha.nivel`** — nada de PV/magia/recurso muda enquanto o Mestre não
-      liberar.
+### B1 ✅ Preset de progressão (planejar agora, valer depois) — ENTREGUE 25/07
+- [x] O jogador abre **"📈 Planejar Evolução"** (botão da ficha em jogo, no lugar do "Subir de Nível" que agora
+      é só do Mestre) e **planeja a subida até o nível 20** — reusa o assistente de Subida de Nível em **modo
+      plano**, rodando numa **cópia** da ficha (classe, subclasse, ASI, magias — tudo).
+- [x] O resultado **não altera a ficha em jogo**. Vai para **`ficha.progressaoPlanejada`**: um **snapshot por
+      nível**, guardado e validado no servidor (`_normalizar_progressao`, dado inerte).
+- [x] Na tela do jogador: "📈 Plano de Evolução — níveis X–Y planejados. **Aguardando liberação do Mestre.**"
+- [x] **O nível efetivo continua sendo `ficha.nivel`.** Reforço de segurança: o servidor passou a **preservar
+      `nivel`/`hpMax`** do jogador (fechou o furo de auto-upar) — subir de verdade só via Mestre (B2).
+
+**Onde ficou:** `app.py` (trava `nivel`/`hpMax` + `_normalizar_progressao`), `static/js/nivel.js` (modo plano),
+`static/js/jogo.js` (`planejarEvolucao`), `tests/test-servidor.py` (4 testes B1). Backup em
+`versoes/2026-07-25-b1-plano-progressao/`. ⚠️ Falta verificação ao vivo do modal no navegador.
 
 ### B2 🟠 Liberação pelo Mestre (1 clique)
 - [ ] No painel do Mestre, por ficha: **"⬆️ Liberar nível X"**. Ao liberar, o preset já escolhido é **aplicado

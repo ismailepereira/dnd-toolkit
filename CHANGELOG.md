@@ -4,6 +4,35 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-25 — Combate 2a · Todas as magias à mão no turno (clérigo não fica só com armas) ✨
+
+**Backup:** `versoes/2026-07-25-combate2a-magias-no-combate/` (jogo.js).
+
+**Resumo:** parte A do estágio 2 do retrabalho de combate. Resolve a dor principal do Ismaile: **"as skills
+não ficam disponíveis pra clérigos, só as armas."**
+- **Causa:** o bloco "✨ Conjuração" do combate só listava as magias **preparadas** (`magiasCastaveis()`); um
+  clérigo que não passou pelo passo de preparar via só truques + armas. Magias de círculo (Curar Ferimentos,
+  Raio Guia, Arma Espiritual…) ficavam invisíveis no turno.
+- **Agora:** o bloco de combate lista **todas** as magias de círculo à mão — **conhecidas + domínio/juramento
+  + preparadas** —, cada uma com os botões que já existiam (🎲 atacar / 🎲 dano-cura / ✨ Conjurar, que gasta
+  o espaço certo). As que estão **preparadas** ganham o selo "🧠 preparada"; o bloco 🧠 Magias (preparar) segue
+  existindo como destaque/limite opcional.
+- **Regra:** por RAW o clérigo só lançaria as preparadas; deixamos todas as conhecidas lançáveis no turno de
+  propósito (pedido "tudo disponível no combate" + "facilite o uso") — o espaço de magia continua sendo gasto
+  ao conjurar, então a economia de recursos permanece dentro das regras. O limite de preparadas vira algo que
+  o Mestre controla se quiser.
+
+**Ficheiros:** `static/js/jogo.js` (bloco `castHtml`: lista `castaveis` = conhecidas+domínio+preparadas; selo
+de preparada; aviso de cabeçalho).
+
+**Verificação:** `node --check` OK. **Falta verificação ao vivo** — abrir um clérigo em combate e confirmar
+que as magias de círculo aparecem com os botões de conjurar/rolar.
+
+**Próximo (Combate 2b):** economia de ação com **trava de verdade** (gastou a Ação/Bônus/slot, o botão bloqueia
+até o próximo turno / descanso).
+
+**Como reverter:** restaurar `versoes/2026-07-25-combate2a-magias-no-combate/`, ou `git revert`.
+
 ## 2026-07-25 — Combate 1/3 · Descanso só o Mestre ativa 😴
 
 **Backup:** `versoes/2026-07-25-combate1-descanso-mestre/` (jogo.js, app.js, regras-ficha.js, unit-regras.js).

@@ -4,6 +4,40 @@ Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
 
+## 2026-07-25 — Combate 2b · Economia de ação com trava de verdade ⏳
+
+**Backup:** `versoes/2026-07-25-combate2b-trava-economia/` (jogo.js, regras-ficha.js, unit-regras.js).
+
+**Resumo:** parte B do estágio 2. Agora atacar e conjurar **gastam a economia do turno de verdade** — decisão
+do Ismaile: "se já gastou a ação ou a magia, não pode usar até o próximo turno".
+- **Regra 5e:** 1 Ação + 1 Ação Bônus + 1 Reação por turno. **Atacar OU conjurar magia de ação gasta a Ação**
+  (não os dois). O **Ataque Extra** permite vários golpes de arma dentro da MESMA Ação (usa `totalAtaques`).
+  Magia de ação bônus / reação gasta o slot certo (lido do `tempo` da magia no compêndio).
+- **A trava só vale EM COMBATE e na sua vez** — fora disso, sem restrição (treino/preparação livres).
+- **Onde pega:** os botões "🎲 atacar" (armas) e "✨ Conjurar/Usar" (magias) checam a economia antes de agir; se
+  já gastou, bloqueiam com aviso ("🚫 Você já usou sua Ação…"). A faixa de economia mostra Ação/Bônus/Reação
+  com ✔ e, na Ação por ataque, "1/2 golpes".
+- **Escape hatch:** botão **"↩️ Novo turno"** reinicia a economia (Surto de Ação, Pressa/Haste, correção do
+  Mestre) — os chips também seguem clicáveis para desmarcar manualmente.
+- **Regra pura testável:** a decisão (`economiaAcao5e`) foi para `regras-ficha.js` e ganhou testes — o closure
+  do Modo de Jogo só chama a função.
+
+**Limites (honestos):** (1) a trava é **client-side** — como economia de ação é por-turno e efêmera, o servidor
+não a força (diferente de ouro/nível, que são travados no backend); é uma trava de mesa/UX. (2) Por ora só
+**armas e magias** entram na economia; os poderes de classe (Ki, Punição, Inspiração…) têm o próprio custo de
+recurso mas ainda não marcam a Ação/Bônus — fica para uma passada futura.
+
+**Ficheiros:** `static/js/regras-ficha.js` (`economiaAcao5e` pura), `static/js/jogo.js`
+(`tentarGastarEconomia`/`custoMagiaTempo`/`chaveVezAtual`/`resetEconomiaTurno`; trava nos handlers de arma e
+conjurar; faixa de economia com contagem de golpes + reset), `tests/unit-regras.js` (3 testes novos).
+
+**Verificação:** `node --check` OK · unit-regras **46/46** (3 novos: 2ª Ação bloqueia; Ataque Extra 2 golpes/3º
+bloqueia; Ação/Bônus/Reação independentes) · 64/64 servidor. **Falta verificação ao vivo** em combate.
+
+**Próximo (Combate 3/3):** só as armas EQUIPADAS ficam prontas; sacar outra da bolsa custa o turno (regra 5e).
+
+**Como reverter:** restaurar `versoes/2026-07-25-combate2b-trava-economia/`, ou `git revert`.
+
 ## 2026-07-25 — Combate 2a · Todas as magias à mão no turno (clérigo não fica só com armas) ✨
 
 **Backup:** `versoes/2026-07-25-combate2a-magias-no-combate/` (jogo.js).

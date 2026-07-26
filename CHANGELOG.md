@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-07-26 — 20.5 · Ficha mobile: atributos rolam no toque + seções em accordion 📱
+
+**Backup:** `versoes/2026-07-26-20-5-ficha-mobile/` (jogo.js, style.css).
+
+**Resumo:** Fase 20.5 (ficha mobile estilo D&D Beyond). Feito **em cima da reskin "Fantasia Medieval"** do
+Antigravity (usa as variáveis de tema `--accent`/`--accent2`/`--border`, então casa com o visual novo).
+- **Atributos clicáveis:** cada atributo no topo da ficha virou **botão** — tocar **rola o teste de atributo
+  puro** (d20 + mod). Perícias e salvaguardas **já** rolavam; faltava o atributo. Alvo de toque ≥52px no
+  celular (`pointer: coarse`).
+- **Accordion nas seções de referência:** no Modo de Jogo, **Bolsa & Equipamento** (aberta), **Magias
+  (preparar/grimório)**, **Características de Classe** e **História & Personalidade** viram `<details>`
+  colapsáveis — as três últimas **fechadas por padrão** — desafogando a rolagem no celular. As seções de
+  combate (armas, poderes, ✨ Conjuração, PV/ações) continuam abertas. Helper `colapso()` só embrulha os blocos
+  no layout (não mexe no conteúdo); CSS achata o bloco interno e esconde o `<h4>` duplicado nos de bloco único.
+
+**Ficheiros:** `static/js/jogo.js` (atributo-botão + handler `data-atributo`; helper `colapso` no layout),
+`static/css/style.css` (`.jg-attr-roll`, `.jg-colapso`).
+
+**Verificação:** `node --check` OK · unit 53/53 · servidor 69/69. **Precisa de olhada ao vivo no celular** —
+é mudança visual (accordion + toque) e roda em cima da reskin nova, que também está por verificar.
+
+**Restam da Fase 20:** 20.6 (FAB 🎲 de rolagem rápida) e 20.7 (tabuleiro fullscreen).
+
+**Como reverter:** restaurar `versoes/2026-07-26-20-5-ficha-mobile/`, ou `git revert`.
+
 ## 2026-07-26 — Combate turn-based: kit trancado fora do turno + destaque da vez 🎯
 
 **Backup:** `versoes/2026-07-26-turn-based-polish/` (jogo.js, app.js, style.css).
@@ -124,6 +149,21 @@ ao combate e confirmar que o sopro/ações aparecem; e um clérigo mostrar Orien
 Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
+
+## 2026-07-05 — Miniaturas de classes, atributos e armas (Miniaturas)
+
+**Backup antes da alteração:** `versoes/2026-07-05-miniaturas/`
+(cópia de todos os ficheiros tocados).
+
+**Resumo:** Adicionados ícones/miniaturas visuais (emojis correspondentes) para as habilidades/atributos (Força 💪, Destreza 🏃‍♂️, Constituição ✊, Inteligência 🧠, Sabedoria 👁️, Carisma 🗣️), para todas as classes do PHB (Guerreiro ⚔️, Mago 🔮, etc.) e para as armas (Adaga 🗡️, Besta 🏹, Espada ⚔️, etc.) no Criador de Personagens, no seletor de classes e no painel do Modo de Jogo.
+
+**Ficheiros alterados:**
+- `static/js/regras.js` — mapeamento de ícones e funções auxiliares `getClasseIcone`, `getAttrIcone` e `getArmaIcone`.
+- `static/js/classes.js` — exibição do ícone da classe nas opções do `<select>`.
+- `static/js/jogo.js` — inclusão de miniaturas de atributos nos blocos de habilidades, de armas nos blocos de ataques, e de classes nos subcabeçalhos de Modo de Jogo.
+- `static/js/criador.js` — inclusão de miniaturas nos blocos de atributos (base e recomendados) e na visualização prévia de classes e armas do criador.
+
+---
 
 ## 2026-07-25 — C2 · Furto com CD variável (assistente) 🤏 — fecha a Fase C
 

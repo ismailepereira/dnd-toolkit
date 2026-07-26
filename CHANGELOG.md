@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-07-26 — Combate: aviso de reação (assistente, PJs) ⚡
+
+**Backup:** `versoes/2026-07-26-aviso-reacao/` (app.js, jogo.js, regras-ficha.js, unit-regras.js).
+
+**Resumo:** parte do fluxo pedido pelo Ismaile — ao ser atacado, o alvo com **reação defensiva** disponível é
+lembrado, para não esquecer de usá-la (modo **assistente**, sem interrupção dura; **PJs primeiro**, por decisão).
+- **Regra pura `reacoesDoPC(f)`** (`regras-ficha.js`): lista as reações defensivas que o PJ tem e mais esquece —
+  **Escudo** e **Absorver Elementos** (se conhece a magia), **Esquiva Sobrenatural** (Ladino nv5+), **Aparar
+  Projéteis** (Monge nv3+), **Aparar** (Guerreiro Mestre de Batalha). Ataque de Oportunidade fica de fora (dispara
+  em movimento, não ao ser atacado).
+- **Aviso no rastreador:** quando o Mestre ataca um PJ que tem reação, o log ganha
+  **"⚡ {PJ} pode REAGIR: … — ofereça antes de aplicar o dano."**
+- **Dica na ficha do jogador:** no painel "🎯 O teu turno", um bloco **"⚡ Suas reações"** lista o que ele pode
+  fazer fora do próprio turno (1×/rodada). A economia da 2b já conta a Reação quando usada.
+
+**Ficheiros:** `static/js/regras-ficha.js` (`reacoesDoPC` pura), `static/js/app.js` (aviso no `atacar`),
+`static/js/jogo.js` (bloco de reações no painel de turno), `tests/unit-regras.js` (1 teste novo).
+
+**Verificação:** `node --check` OK · unit-regras **53/53** (1 novo: Mago/Ladino detectam reação, Guerreiro sem) ·
+69/69 servidor. **Falta ao vivo.**
+
+**Nota:** é a versão **assistente** (aviso). A interrupção dura (handshake que pausa o ataque e espera o alvo
+reagir) foi conscientemente adiada — Ismaile escolheu o aviso. Reações de **monstro** (bloco Reações do
+bestiário) ficam para uma próxima, se quiser.
+
 ## 2026-07-26 — Combate: encerrar turno + Teste de Morte na vez do caído ☠️
 
 **Backup:** `versoes/2026-07-26-turno-teste-morte/` (app.js, jogo.js, regras-ficha.js, mestre.html, unit-regras.js).

@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-07-26 — Combate: aviso de reação também para monstros/NPCs ⚡🐉
+
+**Backup:** `versoes/2026-07-26-reacao-monstro/` (app.js).
+
+**Resumo:** estende o aviso de reação (assistente) aos **monstros e NPCs** — antes só PJs.
+- **`addMonstro` guarda as reações** do bloco do bestiário (`m.reacoes`) no combatente.
+- **`atacar`** passou a montar o aviso a partir de qualquer alvo: PJ pela ficha (`reacoesDoPC`), monstro/NPC
+  pelas reações guardadas — o log avisa **"⚡ {alvo} pode REAGIR: … — ofereça antes de aplicar o dano."**
+
+**Nota:** só monstros **re-adicionados após este commit** carregam as reações (os que já estavam no combate
+precisam entrar de novo).
+
+**Ficheiros:** `static/js/app.js` (`addMonstro`, `atacar`).
+
+**Verificação:** `node --check` OK · unit 53/53 · servidor 69/69. **Falta ao vivo.**
+
+**Como reverter:** restaurar `versoes/2026-07-26-reacao-monstro/`, ou `git revert`.
+
 ## 2026-07-26 — Combate: aviso de reação (assistente, PJs) ⚡
 
 **Backup:** `versoes/2026-07-26-aviso-reacao/` (app.js, jogo.js, regras-ficha.js, unit-regras.js).

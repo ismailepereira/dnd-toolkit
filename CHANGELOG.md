@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-07-26 — Combate turn-based: kit trancado fora do turno + destaque da vez 🎯
+
+**Backup:** `versoes/2026-07-26-turn-based-polish/` (jogo.js, app.js, style.css).
+
+**Resumo:** dois polimentos que deixam o combate mais "turn-based de verdade" (estilo Pokémon/Hearthstone),
+como o Ismaile pediu.
+- **1) Kit trancado fora do seu turno (jogador):** em combate, **Ação e Ação Bônus só funcionam na sua vez**.
+  Fora dela, os botões (armas/magias/poderes) bloqueiam com **"⏳ Não é a sua vez — fora do seu turno só dá
+  para usar Reação"**; a **Reação** continua liberada (**1×/rodada**, via `ficha.reacaoUsadaRodada`). O banner
+  de espera avisa e marca quando a Reação já foi usada na rodada. (`tentarGastarEconomia` reescrita: usa
+  `estadoTurno()` — livre fora de combate, restrito fora do turno, economia normal na vez.)
+- **2) Destaque do combatente na vez (rastreador do Mestre):** o card ativo ganha um badge **"▶ VEZ"** e borda
+  reforçada; nos **outros**, as ações vão para um `<details> ⚔️ Ações` recolhido — o Mestre foca em "de quem é
+  a vez, com o kit dele aberto", sem o ruído dos botões de todos ao mesmo tempo.
+
+**Ficheiros:** `static/js/jogo.js` (trava fora do turno + banner), `static/js/app.js` (badge + ações recolhidas
+nos não-ativos), `static/css/style.css` (`.comb-vez-badge`, `.comb-ataques-fold`, realce do `.turno`).
+
+**Verificação:** `node --check` OK · unit 53/53 · servidor 69/69. **Falta ao vivo:** confirmar que fora do turno
+o ataque bloqueia e a reação passa; e o card da vez destacado com os outros recolhidos.
+
+**Como reverter:** restaurar `versoes/2026-07-26-turn-based-polish/`, ou `git revert`.
+
 ## 2026-07-26 — Combate: aviso de reação também para monstros/NPCs ⚡🐉
 
 **Backup:** `versoes/2026-07-26-reacao-monstro/` (app.js).

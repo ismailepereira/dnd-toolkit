@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-07-26 — Combate: kit completo no rastreador (monstro e PJ não perdem ações) 🐉
+
+**Backup:** `versoes/2026-07-26-combate-kit-completo-tracker/` (app.js).
+
+**Resumo:** correção dos achados de teste do Ismaile — no rastreador do Mestre, **o monstro não tinha todas
+as ações** (sopro/habilidades sumiam) e **truques sem dano** (Orientação, Consertar) não viravam botão.
+- **Causa:** `parseAcoes` tinha um filtro `bonus !== null || dano !== null` que **descartava** toda ação que
+  não fosse um ataque padrão (com "+X para acertar" e dano entre parênteses) — sopro de dragão, habilidades
+  especiais e magias de salva desapareciam do card.
+- **Agora:** `parseAcoes` mantém **todas** as ações (só o "Multiataque" fica de fora, que tem botão próprio).
+  Ação sem "+X para acertar" vira um botão que **rola o dano (se houver) para o Mestre aplicar** pelo −Dano /
+  Dano em Área, ou **descreve** o efeito — a salva/efeito é decidida pelo Mestre (`atacar` trata `bonus == null`
+  sem rolar d20 vs CA).
+- **Magias do monstro** (`m.conjuracao`) entram como ações "✨ descrever" no card, dando o kit completo da
+  criatura ao Mestre.
+- **Truques sem dano do PJ** (`acoesDoPC`) agora aparecem como botões de efeito (antes só os de dano).
+- **Multiataque** agora repete o 1º **ataque de acerto** com dano (não pega um sopro/magia de salva por engano).
+
+**Ficheiros:** `static/js/app.js` (`parseAcoes`, `atacar`, `acoesDoPC`, `addMonstro`, condição/handler do
+Multiataque).
+
+**Verificação:** `node --check` OK · unit 50/50 · servidor 69/69. **Falta ao vivo:** re-adicionar a Meia-Dragã
+ao combate e confirmar que o sopro/ações aparecem; e um clérigo mostrar Orientação/Consertar clicáveis.
+*(Combatentes já em combate antes do fix precisam ser re-adicionados para pegar as ações novas.)*
+
+**Como reverter:** restaurar `versoes/2026-07-26-combate-kit-completo-tracker/`, ou `git revert`.
+
+
 Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).

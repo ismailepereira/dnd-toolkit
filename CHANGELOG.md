@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-07-26 — Combate: encerrar turno + Teste de Morte na vez do caído ☠️
+
+**Backup:** `versoes/2026-07-26-turno-teste-morte/` (app.js, jogo.js, regras-ficha.js, mestre.html, unit-regras.js).
+
+**Resumo:** parte do fluxo de turno pedido pelo Ismaile — botão claro de encerrar turno e, quando a vez cai num
+PJ **caído (0 PV)**, ele rola o **Teste de Morte** em vez de um turno normal.
+- **Botão "🔚 Encerrar turno":** o rastreador do Mestre (era "▶ Próximo turno") e a ficha do jogador (era
+  "✔️ Finalizar meu turno") ganharam o rótulo consistente.
+- **Teste de Morte no turno do caído:** no rastreador, o card de um PJ a 0 PV (ainda não morto) mostra
+  **"☠️ Caindo — ✅ x/3 · ❌ y/3"** + botão **"🎲 Teste de Morte"**; na vez dele, o banner avisa. O jogador segue
+  rolando o teste na própria ficha. Regra 5e (`testeMorte5e`, **pura**, em `regras-ficha.js`): 20 natural =
+  1 PV e de pé · 1 natural = 2 falhas · ≥10 sucesso, <10 falha · 3 sucessos = estável · 3 falhas = morre. O
+  Modo de Jogo (`jogo.js`) e o tracker (`app.js`) agora usam a MESMA regra (antes só o jogador tinha, embutida).
+
+**Ficheiros:** `static/js/regras-ficha.js` (`testeMorte5e` pura), `static/js/jogo.js` (`testeMorte` delega),
+`static/js/app.js` (`testeMorteCombate` + bloco no card + aviso no banner), `templates/mestre.html` (rótulo do
+botão), `tests/unit-regras.js` (2 testes novos).
+
+**Verificação:** `node --check` OK · unit-regras **52/52** (2 novos: 3 falhas mata / 1 natural conta 2 / 20
+recupera; 3 sucessos estabiliza) · 69/69 servidor. **Falta ao vivo.**
+
+**Ainda faltando do pedido (próximo):** o **handshake de reação** — ao ser atacado, o alvo com reação/defesa
+(Escudo, Esquiva Sobrenatural, Aparar…) recebe a chance de reagir e devolve a vez ao atacante. É a parte mais
+complexa (interrupção entre clientes em tempo real) e precisa de uma decisão de desenho — ver conversa.
+
+**Como reverter:** restaurar `versoes/2026-07-26-turno-teste-morte/`, ou `git revert`.
+
 ## 2026-07-26 — Combate: kit completo no rastreador (monstro e PJ não perdem ações) 🐉
 
 **Backup:** `versoes/2026-07-26-combate-kit-completo-tracker/` (app.js).

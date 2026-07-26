@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-07-26 — Legibilidade da ficha: texto legível sobre a reskin medieval 👁️
+
+**Backup:** `versoes/2026-07-26-contraste-ficha/` (style.css).
+
+**Resumo:** correção do feedback do Ismaile — na reskin "Fantasia Medieval", a ficha tinha **texto com
+contraste ruim** ("as habilidades e alguns textos misturados como amarelo ficou bem ruim").
+- **Causa:** a reskin trocou a paleta, mas ~15 componentes ainda usavam `--accent` (agora vermelho-sangue
+  escuro **#a71d2a**) como cor de **texto pequeno**, e os títulos de bloco usavam `--text-dim` (tan apagado
+  **#b8a994**). Sobre o couro/pedra escuro (#18181b), o vermelho-escuro dava **~2.9:1** (reprova até no AA) e o
+  tan ~6.8:1. Perícias não-proficientes + bônus em vermelho = ilegíveis.
+- **Correção:** bloco no fim do `style.css` (vence a cascata, fácil de reverter) que mantém o tema épico mas
+  legível — **corpo em creme claro, números/títulos/realces em dourado âmbar vivo (#e6b25a)** e `--text-dim`
+  clareado para #cbb590. Aplicado a títulos de bloco, nome do PJ, perícias/salvas/atributos (bônus e
+  modificador), magias (dano/quantidade), accordion e ouro.
+- **Verificado no navegador (getComputedStyle real):** todo texto passou de ~2.9:1 para **≥8.9:1** (WCAG **AAA**,
+  que exige 7:1). Conferido numa página de teste com o CSS real — não foi no escuro desta vez.
+
+**Ficheiros:** `static/css/style.css` (bloco "CORREÇÃO DE LEGIBILIDADE" no fim).
+
+**Fica para depois (do mesmo feedback):** unificar o **esquema de cores dos modos** (A3 × reskin × mockup usam
+esquemas diferentes) — é um item de design à parte.
+
+**Como reverter:** restaurar `versoes/2026-07-26-contraste-ficha/`, ou `git revert`.
+
 ## 2026-07-26 — 20.5 · Ficha mobile: atributos rolam no toque + seções em accordion 📱
 
 **Backup:** `versoes/2026-07-26-20-5-ficha-mobile/` (jogo.js, style.css).

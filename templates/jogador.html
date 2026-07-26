@@ -25,18 +25,19 @@
           <a href="{{ url_for('mestre') }}" class="btn-secondary">Voltar ao Mestre</a>
           {% endif %}
           <a href="{{ url_for('pagina_campanhas') }}" class="btn-secondary" title="Trocar de mesa">🗺️ Campanhas</a>
+          <a href="{{ url_for('hub', escolher=1) }}" class="trocar-modo" title="Voltar à tela de modos">⇄ Trocar de modo</a>
           <a href="{{ url_for('logout') }}" class="btn-danger">Sair</a>
         </div>
       </div>
     </div>
     <!-- Fase 17.2: 2 modos por tarefa; cada aba pertence a um modo (data-mode) -->
     <nav class="modos" aria-label="Modos">
-      <button type="button" class="modo-btn" data-modo="mesa" title="À mesa: sua ficha, combate, história, mapa e handouts">🎲 Mesa</button>
-      <button type="button" class="modo-btn" data-modo="consultar" title="Referência: NPCs, bestiário e progressão">📖 Consultar</button>
+      <button type="button" class="modo-btn" data-modo="mesa" title="À mesa: sua ficha, combate, história, mapa e handouts"><img src="{{ url_for('static', filename='icons/ui/icon-jogar.svg') }}" class="ui-icon" alt="">Mesa</button>
+      <button type="button" class="modo-btn" data-modo="consultar" title="Referência: NPCs, bestiário e progressão"><img src="{{ url_for('static', filename='icons/ui/icon-consultar.svg') }}" class="ui-icon" alt="">Consultar</button>
     </nav>
     <nav class="tabs">
-      <button class="tab-btn active" data-tab="fichas" data-mode="mesa">Minha Ficha</button>
-      <button class="tab-btn" data-tab="combate" data-mode="mesa">Combate</button>
+      <button class="tab-btn active" data-tab="fichas" data-mode="mesa"><img src="{{ url_for('static', filename='icons/ui/icon-fichas.svg') }}" class="ui-icon" alt="">Minha Ficha</button>
+      <button class="tab-btn" data-tab="combate" data-mode="mesa"><img src="{{ url_for('static', filename='icons/ui/icon-combate.svg') }}" class="ui-icon" alt="">Combate</button>
       <button class="tab-btn" data-tab="historia" data-mode="mesa">📖 História</button>
       <button class="tab-btn" data-tab="mapa" data-mode="mesa">🗺️ Mapa</button>
       <button class="tab-btn" data-tab="handouts" data-mode="mesa">Handouts</button>

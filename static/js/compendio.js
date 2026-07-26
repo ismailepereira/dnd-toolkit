@@ -412,6 +412,7 @@ const CONDICOES = {
   'Cego': 'Não enxerga, falha em testes que exijam visão; seus ataques têm desvantagem e ataques contra ele têm vantagem.',
   'Enfeitiçado': 'Não pode atacar o enfeitiçador; este tem vantagem em testes sociais com ele.',
   'Envenenado': 'Desvantagem em jogadas de ataque e testes de atributo.',
+  'Impedido': 'Deslocamento = 0; desvantagem em ataques e em salvas de Destreza; ataques contra ele têm vantagem (ex.: preso em teia).',
   'Incapacitado': 'Não pode realizar ações nem reações.',
   'Inconsciente': 'Incapacitado, caído, larga o que segura; ataques têm vantagem e acertos a 1,5m são críticos.',
   'Invisível': 'Impossível de ver sem ajuda; ataques contra ele têm desvantagem, seus ataques têm vantagem.',
@@ -420,6 +421,36 @@ const CONDICOES = {
   'Surdo': 'Não ouve e falha em testes que exijam audição.',
   'Exausto': 'Níveis de exaustão acumulam penalidades (desvantagem em testes, deslocamento reduzido, etc.).',
 };
+
+// C6: detecta condições implícitas no texto de um ataque (ex.: "FOR CD 11 ou o
+// alvo cai" → Caído CD 11 FOR). Devolve um array de { cond, cd, salva } — cond é
+// uma chave de CONDICOES. Função PURA (usada pelo rastreador de combate e testes).
+function efeitosDoAtaque(texto) {
+  if (!texto) return [];
+  const t = String(texto).toLowerCase();
+  const cdM = String(texto).match(/CD\s*(\d+)/i);
+  const cd = cdM ? parseInt(cdM[1], 10) : null;
+  const salvaM = String(texto).match(/\b(FOR|DES|CON|INT|SAB|CAR)\s*CD/i);
+  const salva = salvaM ? salvaM[1].toUpperCase() : null;
+  // ordem: mais específico primeiro; cada condição entra no máximo uma vez
+  const regras = [
+    [/paralisad/, 'Paralisado'],
+    [/inconscient|adormec/, 'Inconsciente'],
+    [/atordoad/, 'Atordoado'],
+    [/amedront|apavora|assombr/, 'Amedrontado'],
+    [/impedid|enredad|preso|prende|teia|restrain/, 'Impedido'],
+    [/agarrad|agarra\b|constri[cç]/, 'Agarrado'],
+    [/envenenad|veneno|poison/, 'Envenenado'],
+    [/\bcego\b|cegueira|\bcega\b|blind/, 'Cego'],
+    [/\bsurd/, 'Surdo'],
+    [/enfeiti[cç]ad|encantad|charm/, 'Enfeitiçado'],
+    [/incapacitad/, 'Incapacitado'],
+    [/\bcai\b|derruba|ca[íi]d[oa]|ao ch[ãa]o|no ch[ãa]o|prone/, 'Caído'],
+  ];
+  const achados = [];
+  regras.forEach(([re, cond]) => { if (re.test(t) && !achados.some(a => a.cond === cond)) achados.push({ cond, cd, salva }); });
+  return achados;
+}
 
 // =====================================================
 // TALENTOS (Feats) - PHB (resumo dos efeitos)
@@ -445,6 +476,104 @@ const TALENTOS = {
 // SUBCLASSES (PHB) - { classe: { nivel, opcoes:[{nome, desc}] } }
 // nivel = nível em que a subclasse é escolhida
 // =====================================================
+// F5: MAGIAS DE SUBCLASSE — domínios do Clérigo e juramentos do Paladino.
+// Regra (PHB): são ganhas em níveis fixos da classe, ficam SEMPRE PREPARADAS e
+// NÃO contam no limite de magias preparadas. Chave = nível da classe em que a
+// dupla é ganha. Só entram nomes que existem no MAGIAS_DETALHE deste compêndio
+// (o teste de integridade garante isso); onde a magia oficial ainda não existe
+// aqui, a dupla fica com uma magia só até o compêndio crescer.
+const MAGIAS_SUBCLASSE = {
+  // ---------- Clérigo (níveis 1, 3, 5, 7, 9) ----------
+  'Domínio da Vida': {
+    1: ['Bênção (Bless)', 'Curar Ferimentos'],
+    3: ['Restauração Menor', 'Arma Espiritual'],
+    5: ['Revivificar (Revivify)'],
+    7: ['Proteção contra a Morte (Death Ward)'],
+    9: ['Cura em Massa Menor (Mass Cure Wounds)', 'Reviver Mortos (Raise Dead)'],
+  },
+  'Domínio da Luz': {
+    1: ['Mãos Flamejantes', 'Dardo Flamejante (Faerie Fire)'],
+    3: ['Esfera Flamejante (Flaming Sphere)', 'Raio Ardente (Scorching Ray)'],
+    5: ['Bola de Fogo', 'Luz do Dia (Daylight)'],
+    7: ['Muralha de Fogo (Wall of Fire)'],
+    9: ['Golpe Flamejante (Flame Strike)', 'Bisbilhotar (Scrying)'],
+  },
+  'Domínio da Guerra': {
+    1: ['Escudo da Fé'],
+    3: ['Arma Mágica (Magic Weapon)', 'Arma Espiritual'],
+    5: ['Guardiões Espirituais (Spirit Guardians)'],
+    7: ['Liberdade de Movimento', 'Pele de Pedra (Stoneskin)'],
+    9: ['Golpe Flamejante (Flame Strike)', 'Imobilizar Monstro (Hold Monster)'],
+  },
+  'Domínio do Engano': {
+    1: ['Enfeitiçar Pessoa (Charm Person)', 'Disfarçar-se (Disguise Self)'],
+    3: ['Imagem Espelhada', 'Passos sem Pegadas (Pass without Trace)'],
+    5: ['Lampejar (Blink)', 'Dissipar Magia (Dispel Magic)'],
+    7: ['Porta Dimensional (Dimension Door)', 'Polimorfia (Polymorph)'],
+    9: ['Dominar Pessoa', 'Modificar Memória (Modify Memory)'],
+  },
+  'Domínio do Conhecimento': {
+    1: ['Comando', 'Identificar (Identify)'],
+    3: ['Augúrio (Augury)', 'Sugestão (Suggestion)'],
+    5: ['Indetectabilidade (Nondetection)'],
+    7: ['Olho Arcano (Arcane Eye)', 'Confusão (Confusion)'],
+    9: ['Lendas (Legend Lore)', 'Bisbilhotar (Scrying)'],
+  },
+  'Domínio da Natureza': {
+    1: ['Falar com Animais'],
+    3: ['Crescimento de Espinhos (Spike Growth)'],
+    5: ['Crescimento Vegetal (Plant Growth)'],
+    9: ['Praga de Insetos (Insect Plague)'],
+  },
+  'Domínio da Tempestade': {
+    1: ['Nevoeiro (Fog Cloud)', 'Onda Trovejante (Thunderwave)'],
+    3: ['Rajada de Vento (Gust of Wind)', 'Estilhaçar (Shatter)'],
+    5: ['Chamar Relâmpagos (Call Lightning)', 'Tempestade de Granizo (Sleet Storm)'],
+    7: ['Controlar Água (Control Water)', 'Tempestade de Gelo (Ice Storm)'],
+    9: ['Praga de Insetos (Insect Plague)'],
+  },
+  // ---------- Paladino (níveis 3, 5, 9, 13, 17) ----------
+  'Juramento da Devoção': {
+    3: ['Proteção contra o Mal e o Bem'],
+    5: ['Restauração Menor'],
+    9: ['Dissipar Magia (Dispel Magic)'],
+    13: ['Liberdade de Movimento'],
+    17: ['Comunhão (Commune)', 'Golpe Flamejante (Flame Strike)'],
+  },
+  'Juramento dos Anciões': {
+    3: ['Falar com Animais'],
+    5: ['Raio Lunar (Moonbeam)', 'Passo Enevoado (Misty Step)'],
+    9: ['Crescimento Vegetal (Plant Growth)', 'Proteção contra Energia'],
+    13: ['Tempestade de Gelo (Ice Storm)', 'Pele de Pedra (Stoneskin)'],
+    17: ['Comunhão com a Natureza (Commune with Nature)'],
+  },
+  'Juramento da Vingança': {
+    3: ['Perdição (Bane)', 'Marca do Caçador (Hunter\'s Mark)'],
+    5: ['Imobilizar Pessoa (Hold Person)', 'Passo Enevoado (Misty Step)'],
+    9: ['Velocidade (Haste)', 'Proteção contra Energia'],
+    13: ['Banimento (Banishment)', 'Porta Dimensional (Dimension Door)'],
+    17: ['Imobilizar Monstro (Hold Monster)', 'Bisbilhotar (Scrying)'],
+  },
+};
+
+// Magias de subclasse já ganhas neste nível de classe (acumulado, sem repetir).
+function magiasSubclasse5e(subclasse, nivel) {
+  const tab = MAGIAS_SUBCLASSE[subclasse];
+  if (!tab) return [];
+  const out = [];
+  Object.keys(tab).map(Number).sort((a, b) => a - b).forEach(n => {
+    if ((nivel || 0) >= n) tab[n].forEach(mg => { if (!out.includes(mg)) out.push(mg); });
+  });
+  return out;
+}
+
+// Rótulo do "porquê" da magia (domínio do Clérigo × juramento do Paladino).
+function rotuloMagiaSubclasse(subclasse) {
+  if (/^Domínio/.test(subclasse || '')) return 'domínio';
+  if (/^Juramento/.test(subclasse || '')) return 'juramento';
+  return 'subclasse';
+}
+
 const SUBCLASSES = {
   'Bárbaro': { nivel: 3, opcoes: [
     { nome: 'Caminho do Berserker', desc: 'Frenesi: ataque bônus durante a Fúria.' },

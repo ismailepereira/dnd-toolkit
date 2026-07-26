@@ -4,6 +4,7 @@ import os
 import re
 import secrets
 import uuid
+from collections import Counter
 from datetime import datetime, timezone, timedelta
 from functools import wraps
 
@@ -84,6 +85,7 @@ ESTADO_PADRAO = {
     'lojas': [],  # Fase 12: lojas geridas por NPC lojista (estoque/preços próprios)
     'aventura_ativa': None,  # K2: progresso da aventura em curso (snapshot da definição + nó atual)
     'tabuleiro': {'aberto': False, 'imagemUrl': None, 'tokens': {}, 'monstros': {}, 'travado': False, 'atualizadoEm': None},  # Fase 16.2–16.5: mapa + tokens (PJ/monstro, pos %, tam) + trava dos jogadores
+    'eventos': [],  # Fase B2: log simples da campanha (últimos 50) — flui aos jogadores pela projeção pública
 }
 
 # ---------------------------------------------------------------
@@ -338,10 +340,75 @@ def eh_legado_mestre(uid):
     return isinstance(uid, str) and uid.startswith('legacy:') and session.get('papelGlobal') == 'mestre'
 
 
+# ----- FASE A2: papéis globais de verdade (admin | mestre | jogador) -----
+# PAPÉIS VÁLIDOS no cadastro: mestre ou jogador. 'admin' NUNCA é escolhível —
+# é concedido só pelo dono (editando o utilizador), e o mestre legado de env
+# continua a ser admin automaticamente (migração sem quebrar nada).
+PAPEIS_CADASTRO = ('mestre', 'jogador')
+PAPEIS_GLOBAIS = ('admin',) + PAPEIS_CADASTRO
+
+
+def eh_admin(uid=None):
+    """Dono do produto: vê finanças e manda em qualquer campanha/ficha.
+    ÚNICO ponto que decide isso — não espalhar a regra por aí."""
+    uid = session.get('uid', '') if uid is None else uid
+    return eh_legado_mestre(uid) or session.get('papelGlobal') == 'admin'
+
+
+def papel_global_efetivo():
+    if eh_admin():
+        return 'admin'
+    papel = session.get('papelGlobal')
+    return papel if papel in PAPEIS_GLOBAIS else 'jogador'
+
+
+def exige_papel(*papeis):
+    """Gate central de papel GLOBAL (admin/mestre/jogador). Diferente do
+    `login_obrigatorio(papeis=...)`, que valida o papel DENTRO da campanha.
+    Responde 403 em /api/ e manda para o hub no resto."""
+    def decorador(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            if 'usuario' not in session:
+                return redirect(url_for('login'))
+            if papel_global_efetivo() not in papeis:
+                if request.path.startswith('/api/'):
+                    return jsonify({'erro': 'sem_permissao',
+                                    'detalhe': f'requer papel: {", ".join(papeis)}'}), 403
+                return redirect(url_for('hub', escolher=1))
+            return fn(*args, **kwargs)
+        return wrapper
+    return decorador
+
+
+# Cada modo: chave, rótulo, ícone, descrição, cor (categoria visual da Fase A3).
+MODOS = {
+    'adm': {'chave': 'adm', 'nome': 'ADM — Créditos & Finanças', 'icone': '💰', 'cor': 'financas',
+            'desc': 'Receita, compras por Pix, créditos e campanhas. O painel do dono.'},
+    'total': {'chave': 'total', 'nome': 'Mestre — Controle Total', 'icone': '👑', 'cor': 'total',
+              'desc': 'Manda em todas as campanhas e fichas, sem pedir mais nada a ninguém.'},
+    'mestre': {'chave': 'mestre', 'nome': 'Mestre', 'icone': '🎲', 'cor': 'jogar',
+               'desc': 'Conduza as suas mesas: combate, aventuras, NPCs, XP e tesouro.'},
+    'jogador': {'chave': 'jogador', 'nome': 'Jogador', 'icone': '🧝', 'cor': 'preparar',
+                'desc': 'Crie e jogue os seus personagens nas mesas em que você entra.'},
+}
+
+
+def modos_disponiveis():
+    """Modos que ESTA conta pode usar. Divisão pedida pelo Ismaile: quem se
+    cadastra fica só com Mestre OU só com Jogador; o dono (admin) vê os 4."""
+    papel = papel_global_efetivo()
+    if papel == 'admin':
+        return [MODOS['adm'], MODOS['total'], MODOS['mestre'], MODOS['jogador']]
+    if papel == 'mestre':
+        return [MODOS['mestre']]
+    return [MODOS['jogador']]
+
+
 def papel_na_campanha(uid, camp_id):
     """'mestre' | 'jogador' | None. Mestre legado manda em qualquer campanha;
     campanhas sem metadados (ex.: 'principal') são legadas: só contas fixas entram."""
-    if eh_legado_mestre(uid):
+    if eh_admin(uid):
         return 'mestre'
     metas = carregar_campanhas_meta()
     meta = metas.get(camp_id)
@@ -676,7 +743,7 @@ def login_obrigatorio(papeis=None, exigir_assinatura=True):
             if (request.method in ('POST', 'PUT', 'PATCH', 'DELETE')
                     and request.path.startswith('/api/')
                     and not request.path.startswith('/api/creditos')
-                    and not eh_legado_mestre(uid)
+                    and not eh_admin(uid)
                     and not campanha_ativa_para_escrita(campanha_atual())):
                 return jsonify({'erro': 'campanha_inativa',
                                 'detalhe': 'campanha sem pagamento em dia (só-leitura); renove com 20 créditos'}), 403
@@ -710,6 +777,9 @@ def web_manifest():
 def index():
     if 'usuario' not in session:
         return redirect(url_for('login'))
+    # A1: sem modo escolhido, passa pela tela de cards primeiro
+    if not session.get('modo'):
+        return redirect(url_for('hub'))
     # contas registadas precisam de uma campanha ativa válida (senão: Minhas Campanhas)
     uid = session.get('uid', '')
     if uid and not uid.startswith('legacy:'):
@@ -720,6 +790,37 @@ def index():
     if session.get('papel') == 'mestre':
         return redirect(url_for('mestre'))
     return redirect(url_for('jogador'))
+
+
+# ----- FASE A1: hub de modos (a tela de cards logo depois do login) -----
+@app.route('/hub')
+def hub():
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+    modos = modos_disponiveis()
+    # Conta com um modo só não fica presa numa tela extra — entra direto.
+    # ?escolher=1 força mostrar os cards (é o link "trocar de modo").
+    if len(modos) == 1 and not request.args.get('escolher'):
+        return redirect(url_for('entrar_modo', chave=modos[0]['chave']))
+    return render_template('hub.html', modos=modos,
+                           usuario=session.get('nomeExibicao') or session.get('usuario'),
+                           modo_atual=session.get('modo'))
+
+
+@app.route('/modo/<chave>')
+def entrar_modo(chave):
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+    permitidos = {m['chave'] for m in modos_disponiveis()}
+    if chave not in permitidos:
+        return redirect(url_for('hub', escolher=1))
+    session['modo'] = chave
+    if chave == 'adm':
+        return redirect(url_for('admin_dashboard'))
+    # 'total' e 'mestre' entram como mestre; 'jogador' como jogador. O
+    # index() já sabe levar para /mestre, /jogador ou /campanhas conforme a conta.
+    session['papel'] = 'jogador' if chave == 'jogador' else 'mestre'
+    return redirect(url_for('index'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -735,7 +836,8 @@ def login():
             session['papel'] = dados['papel']
             session['papelGlobal'] = dados['papel']
             session['uid'] = f'legacy:{usuario}'
-            return redirect(url_for('index'))
+            session.pop('modo', None)  # A1: escolhe o modo na tela de cards
+            return redirect(url_for('hub'))
         uid, u = buscar_usuario_reg(usuario)
         if u and senha_confere(u.get('senhaHash', ''), senha):
             session['usuario'] = u.get('usuario')
@@ -744,7 +846,8 @@ def login():
             session['papelGlobal'] = u.get('papelGlobal', 'jogador')
             session['papel'] = 'jogador'
             session.pop('campanha', None)  # escolhe a campanha ativa na tela seguinte
-            return redirect(url_for('pagina_campanhas'))
+            session.pop('modo', None)      # A1: escolhe o modo na tela de cards
+            return redirect(url_for('hub'))
         erro = 'Usuário ou senha inválidos.'
     return render_template('login.html', erro=erro)
 
@@ -760,6 +863,11 @@ def registro():
         email = request.form.get('email', '').strip().lower()
         cpf = validar_cpf(request.form.get('cpf', ''))
         whatsapp = re.sub(r'\D', '', request.form.get('whatsapp', ''))
+        # A2: papel escolhido no cadastro — só 'mestre' ou 'jogador'. Qualquer
+        # outra coisa (inclusive alguém injetando 'admin') cai para 'jogador'.
+        papel_escolhido = request.form.get('papelGlobal', 'jogador')
+        if papel_escolhido not in PAPEIS_CADASTRO:
+            papel_escolhido = 'jogador'
         todos = carregar_usuarios_reg()
         if not re.fullmatch(r'[A-Za-z0-9_.-]{3,24}', usuario):
             erro = 'Usuário inválido: 3–24 caracteres, só letras/números/._-'
@@ -787,7 +895,9 @@ def registro():
                 'cpf': cpf,
                 'whatsapp': whatsapp,
                 'senhaHash': generate_password_hash(senha),
-                'papelGlobal': 'jogador',
+                # A2: a pessoa escolhe Mestre OU Jogador. 'admin' nunca vem do
+                # formulário — é concedido só pelo dono.
+                'papelGlobal': papel_escolhido,
                 'criadoEm': _agora(),
                 # Fase 10.9: acesso grátis de TRIAL_DIAS; depois bloqueia até
                 # o admin confirmar o pagamento manualmente
@@ -806,9 +916,10 @@ def registro():
             session['usuario'] = usuario
             session['nomeExibicao'] = nome
             session['uid'] = uid
-            session['papelGlobal'] = 'jogador'
+            session['papelGlobal'] = papel_escolhido  # A2: Mestre ou Jogador
             session['papel'] = 'jogador'
-            return redirect(url_for('pagina_campanhas'))
+            session.pop('modo', None)  # A1: passa pela tela de cards
+            return redirect(url_for('hub'))
     return render_template('registro.html', erro=erro, trial_dias=TRIAL_DIAS, preco=ASSINATURA_PRECO,
                            credito_inicial=CREDITO_INICIAL)
 
@@ -1041,9 +1152,8 @@ def _dashboard_dados(dias=30):
 @app.route('/admin')
 @app.route('/admin/dashboard')
 @login_obrigatorio(exigir_assinatura=False)
+@exige_papel('admin')
 def admin_dashboard():
-    if not eh_legado_mestre(session.get('uid', '')):
-        return redirect(url_for('index'))
     varrer_ciclo_campanhas()  # mantém os números coerentes ao abrir o painel
     return render_template('admin_dashboard.html', d=_dashboard_dados(),
                            preco=ASSINATURA_PRECO, credito_centavos=CREDITO_CENTAVOS)
@@ -1052,9 +1162,8 @@ def admin_dashboard():
 # ----- FASE 10.9: painel de administração de assinaturas (SÓ o mestre legado) -----
 @app.route('/admin/assinaturas', methods=['GET', 'POST'])
 @login_obrigatorio(exigir_assinatura=False)
+@exige_papel('admin')
 def admin_assinaturas():
-    if not eh_legado_mestre(session.get('uid', '')):
-        return redirect(url_for('index'))
     msg = None
     if request.method == 'POST':
         alvo = request.form.get('uid', '')
@@ -1192,7 +1301,7 @@ def pagina_campanhas():
     metas = carregar_campanhas_meta()
     minhas = []
     for cid, m in metas.items():
-        papel = 'mestre' if (m.get('mestreUid') == uid or eh_legado_mestre(uid)) else ('jogador' if uid in (m.get('membros') or {}) else None)
+        papel = 'mestre' if (m.get('mestreUid') == uid or eh_admin(uid)) else ('jogador' if uid in (m.get('membros') or {}) else None)
         if papel:
             paga = campanha_paga_em_dia(m)
             minhas.append({'id': cid, 'nome': m.get('nome', cid), 'papel': papel,
@@ -1206,7 +1315,7 @@ def pagina_campanhas():
     creditos = None if (not uid or uid.startswith('legacy:')) else saldo_creditos(carregar_usuario_reg(uid))
     return render_template('campanhas.html', campanhas=minhas, erro=request.args.get('erro'),
                            usuario=session.get('nomeExibicao') or session.get('usuario'),
-                           legado_mestre=eh_legado_mestre(uid), creditos=creditos,
+                           legado_mestre=eh_admin(uid), creditos=creditos,
                            custo_campanha=CAMPANHA_CREDITOS, modo_livre=MODO_LIVRE)
 
 
@@ -1289,7 +1398,7 @@ def campanha_renovar():
     meta = metas.get(cid)
     if not meta:
         return redirect(url_for('pagina_campanhas', erro='Campanha não encontrada.'))
-    if meta.get('mestreUid') != uid and not eh_legado_mestre(uid):
+    if meta.get('mestreUid') != uid and not eh_admin(uid):
         return redirect(url_for('pagina_campanhas', erro='Só o Mestre da campanha pode renová-la.'))
     if not str(meta.get('mestreUid', '')).startswith('legacy:') and not MODO_LIVRE:
         if saldo_creditos(carregar_usuario_reg(uid)) < CAMPANHA_CREDITOS:
@@ -1349,6 +1458,29 @@ def api_get_fichas():
     return jsonify(carregar_estado()['fichas'])
 
 
+def _itens_sem_ganho(novos, antigos):
+    """A4: o jogador só pode REMOVER itens da própria ficha, nunca ADICIONAR.
+    Toda entrada legítima de item passa por endpoint validado (o Mestre no loot,
+    ou /api/loja_base|lojas/comprar, que gravam a ficha ANTES do próximo save do
+    jogador) — logo o item já está em `antigos`. Sem esta trava, o jogador
+    adicionaria um item caro à ficha por PUT/PATCH e o venderia por ouro,
+    furando a trava de ouro (o /vender credita ouro no servidor). Equipar NÃO
+    move itens da bolsa (`ficha.equipado` só referencia o nome), então limitar
+    `itens` a um sub-multiconjunto do gravado não atrapalha equipar/desequipar.
+    Se o payload não trouxer a chave `itens`, preserva a lista gravada."""
+    if not isinstance(novos, list):
+        return list(antigos) if isinstance(antigos, list) else []
+    teto = Counter(x for x in antigos if isinstance(x, str))
+    usados = Counter()
+    saida = []
+    for it in novos:
+        if isinstance(it, str) and usados[it] < teto[it]:
+            usados[it] += 1
+            saida.append(it)
+        # item novo ou em excesso: descartado (não estava na ficha gravada)
+    return saida
+
+
 def _sanitizar_fichas_jogador(recebidas, armazenadas, meu_uid):
     """Antes desta trava, um jogador podia reescrever TODAS as fichas da mesa
     (ouro/XP de qualquer um) só chamando PUT /api/fichas — a regra B2 e a
@@ -1358,6 +1490,8 @@ def _sanitizar_fichas_jogador(recebidas, armazenadas, meu_uid):
     - `xp` e `ouro` são sempre preservados do valor gravado (B2: XP só via
       Mestre; ouro só via Mestre ou pelos endpoints validados
       /api/loja_base/comprar|vender e /api/lojas/comprar|vender — Fase 18.1);
+    - `itens` só pode ENCOLHER (A4): o jogador remove/consome, mas não adiciona
+      item novo por save cru — entradas de item passam por Mestre/loja validados;
     - `donoUid` não pode ser reatribuído (evita roubo/troca de dono);
     - revivência (morto->vivo) fica com o Mestre; morrer (vivo->morto) é livre."""
     por_id = {f.get('id'): f for f in armazenadas if isinstance(f, dict) and f.get('id')}
@@ -1383,6 +1517,12 @@ def _sanitizar_fichas_jogador(recebidas, armazenadas, meu_uid):
         f['donoUid'] = antiga.get('donoUid')
         f['xp'] = antiga.get('xp', 0)
         f['ouro'] = antiga.get('ouro', 0)
+        f['itens'] = _itens_sem_ganho(f.get('itens'), antiga.get('itens', []))
+        # Fase B1: nível e PV máx. só sobem por liberação do Mestre (o jogador
+        # planeja em ficha.progressaoPlanejada, que segue livre). Sem isto, o
+        # botão de subir nível do cliente escreveria direto na ficha em jogo.
+        f['nivel'] = antiga.get('nivel', 1)
+        f['hpMax'] = antiga.get('hpMax', f.get('hpMax'))
         if antiga.get('status') == 'morto':
             f['status'] = 'morto'
         saida.append(f)
@@ -1424,6 +1564,37 @@ def _int_saneado(v, minimo, maximo, padrao):
         return padrao
 
 
+def _normalizar_progressao(pp):
+    """Fase B1: valida `ficha.progressaoPlanejada` (o plano de subida do jogador).
+    É dado INERTE — não altera o nível efetivo; só guarda as escolhas por nível
+    para o Mestre liberar depois (B2). Coage a uma lista de até 19 snapshots
+    (níveis 2-20) com campos sãos; descarta lixo (leniente, nunca derruba o save)."""
+    if not isinstance(pp, list):
+        return []
+    saida = []
+    for snap in pp[:19]:
+        if not isinstance(snap, dict):
+            continue
+        s = {'nivel': _int_saneado(snap.get('nivel'), 1, 20, 1),
+             'hpMax': _int_saneado(snap.get('hpMax'), 0, 999, 0),
+             'classe': str(snap.get('classe', ''))[:40],
+             'subclasse': str(snap.get('subclasse', ''))[:80],
+             'estilo': str(snap.get('estilo', ''))[:60]}
+        if isinstance(snap.get('atributos'), dict):
+            s['atributos'] = {k: _int_saneado(snap['atributos'].get(k), 1, 30, 10)
+                              for k in ('for', 'des', 'con', 'int', 'sab', 'car')}
+        for campo in ('truques', 'magias1', 'talentos'):
+            lista = snap.get(campo) if isinstance(snap.get(campo), list) else []
+            s[campo] = [str(x)[:200] for x in lista if isinstance(x, (str, int, float))][:300]
+        cls = snap.get('classes') if isinstance(snap.get('classes'), list) else []
+        s['classes'] = [{'classe': str(c.get('classe', ''))[:40],
+                         'nivel': _int_saneado(c.get('nivel'), 0, 20, 0),
+                         'subclasse': str(c.get('subclasse', ''))[:80]}
+                        for c in cls if isinstance(c, dict)][:2]
+        saida.append(s)
+    return saida
+
+
 def _normalizar_ficha(f):
     """Coage os campos conhecidos da ficha a tipos/limites sãos, em lugar.
     Leniente por desenho: campo ausente segue ausente, campo inválido é
@@ -1451,6 +1622,8 @@ def _normalizar_ficha(f):
         if campo in f and isinstance(f[campo], dict):
             f[campo] = {k: (str(v)[:tam] if isinstance(v, (str, int, float)) else v)
                         for k, v in f[campo].items()}
+    if 'progressaoPlanejada' in f:
+        f['progressaoPlanejada'] = _normalizar_progressao(f.get('progressaoPlanejada'))
     f['schemaVersion'] = FICHA_SCHEMA_VERSAO
     return f
 
@@ -1546,10 +1719,14 @@ def api_patch_ficha(fid):
         if antiga.get('donoUid') not in (None, uid_sessao()):
             return jsonify({'ok': False, 'erro': 'sem_permissao',
                             'detalhe': 'esta ficha pertence a outro jogador'}), 403
-        # mesmos campos protegidos do PUT (B2)
+        # mesmos campos protegidos do PUT (B2 + A4: itens só saem, nunca entram;
+        # B1: nível/PV máx. só via liberação do Mestre)
         nova['donoUid'] = antiga.get('donoUid')
         nova['xp'] = antiga.get('xp', 0)
         nova['ouro'] = antiga.get('ouro', 0)
+        nova['itens'] = _itens_sem_ganho(nova.get('itens'), antiga.get('itens', []))
+        nova['nivel'] = antiga.get('nivel', 1)
+        nova['hpMax'] = antiga.get('hpMax', nova.get('hpMax'))
         if antiga.get('status') == 'morto':
             nova['status'] = 'morto'
 
@@ -1565,6 +1742,99 @@ def api_patch_ficha(fid):
     estado['fichas'] = tentativa
     salvar_estado(estado)
     return jsonify({'ok': True, 'ficha': nova})
+
+
+# ---------------------------------------------------------------
+# Fase B2 — liberação de nível pelo Mestre (aplica o plano do jogador)
+# ---------------------------------------------------------------
+def _registrar_evento(estado, texto):
+    """Log simples da campanha (últimos 50 eventos). Flui aos jogadores pela
+    projeção pública (`_estado_publico` copia o estado inteiro). O feed rico em
+    tempo real é a Fase 21.1 — aqui basta o registro de quem subiu e quando."""
+    ev = estado.setdefault('eventos', [])
+    ev.append({'txt': str(texto)[:200], 'em': _agora()})
+    del ev[:-50]
+
+
+def _aplicar_snapshot_nivel(ficha, snap):
+    """Aplica UM snapshot de `progressaoPlanejada` à ficha em jogo, preservando o
+    estado transitório (ouro, xp, itens, condições). Só toca nos campos de
+    PROGRESSÃO; o PV atual sobe junto do ganho de PV máx. deste nível."""
+    hp_antigo = int(ficha.get('hpMax', 0) or 0)
+    novo_hpmax = _int_saneado(snap.get('hpMax'), 0, 999, hp_antigo)
+    ganho = max(0, novo_hpmax - hp_antigo)
+    ficha['nivel'] = _int_saneado(snap.get('nivel'), 1, 20, ficha.get('nivel', 1))
+    ficha['hpMax'] = novo_hpmax
+    ficha['hpAtual'] = int(ficha.get('hpAtual', novo_hpmax) or 0) + ganho
+    if isinstance(snap.get('atributos'), dict):
+        ficha['atributos'] = dict(snap['atributos'])
+    for campo in ('classes', 'classe', 'subclasse', 'truques', 'magias1', 'talentos'):
+        if campo in snap:
+            ficha[campo] = snap[campo]
+    if snap.get('estilo'):
+        ficha['estilo'] = snap['estilo']
+    return ficha
+
+
+def _liberar_proximo_nivel(estado, ficha):
+    """Sobe a ficha UM nível, aplicando o snapshot planejado para nivel+1 e
+    consumindo-o do plano. Devolve o nível novo, ou None se não há nível
+    planejado à frente (ou já está no 20)."""
+    pp = ficha.get('progressaoPlanejada') or []
+    alvo = int(ficha.get('nivel', 1) or 1) + 1
+    if alvo > 20:
+        return None
+    snap = next((s for s in pp if isinstance(s, dict) and s.get('nivel') == alvo), None)
+    if snap is None:
+        return None
+    antiga = json.loads(json.dumps(ficha))  # cópia p/ o carimbo otimista
+    _aplicar_snapshot_nivel(ficha, snap)
+    ficha['progressaoPlanejada'] = [s for s in pp if isinstance(s, dict) and s.get('nivel', 0) > alvo]
+    _registrar_evento(estado, f"⬆️ {ficha.get('nome', '?')} subiu para o nível {alvo} (liberado pelo Mestre)")
+    _normalizar_ficha(ficha)
+    _carimbar_ficha(ficha, antiga)
+    return alvo
+
+
+@app.route('/api/fichas/<fid>/liberar_nivel', methods=['POST'])
+@login_obrigatorio(papeis=['mestre'])
+def api_liberar_nivel(fid):
+    """Fase B2: o Mestre libera o PRÓXIMO nível planejado do jogador — aplica o
+    snapshot de `progressaoPlanejada[nivel+1]` à ficha (o jogador não refaz as
+    escolhas). Um nível por chamada (nível a nível). Só o Mestre da campanha
+    chega aqui (papel na campanha)."""
+    estado = carregar_estado()
+    fichas = estado.get('fichas', [])
+    idx = next((i for i, f in enumerate(fichas) if isinstance(f, dict) and f.get('id') == fid), None)
+    if idx is None:
+        return jsonify({'ok': False, 'erro': 'ficha_nao_encontrada'}), 404
+    novo = _liberar_proximo_nivel(estado, fichas[idx])
+    if novo is None:
+        return jsonify({'ok': False, 'erro': 'sem_plano',
+                        'detalhe': 'não há próximo nível planejado por este jogador (ou já está no 20)'}), 400
+    estado['fichas'] = fichas
+    salvar_estado(estado)
+    return jsonify({'ok': True, 'ficha': fichas[idx], 'nivel': novo})
+
+
+@app.route('/api/fichas/liberar_nivel_todos', methods=['POST'])
+@login_obrigatorio(papeis=['mestre'])
+def api_liberar_nivel_todos():
+    """Fase B2: libera o próximo nível planejado de TODAS as fichas que têm um
+    (subir o grupo — o normal numa mesa). Um nível por ficha por chamada."""
+    estado = carregar_estado()
+    fichas = estado.get('fichas', [])
+    subiram = []
+    for f in fichas:
+        if not isinstance(f, dict) or f.get('status') == 'morto':
+            continue
+        novo = _liberar_proximo_nivel(estado, f)
+        if novo is not None:
+            subiram.append({'id': f.get('id'), 'nome': f.get('nome'), 'nivel': novo})
+    if subiram:
+        estado['fichas'] = fichas
+        salvar_estado(estado)
+    return jsonify({'ok': True, 'subiram': subiram})
 
 
 @app.route('/api/monstros_visiveis', methods=['GET'])
@@ -1755,7 +2025,54 @@ def api_combate_acao():
         combate['log'] = combate['log'][:40]
         salvar_estado(estado)
         return jsonify({'ok': True, 'danoReal': dano_real, 'hpRestante': alvo['hpAtual'], 'mult': mult})
-        
+
+    elif acao == 'saquear':
+        # C1: saquear um combatente CAÍDO (0 PV) — transfere ouro/itens para a
+        # ficha de quem saqueia. Validado no servidor: alvo caído; posse da ficha
+        # do saqueador; e saquear um PJ só com ele MORTO (memorial) ou pelo Mestre
+        # (evita griefing de um aliado só inconsciente). Monstro/NPC: transfere o
+        # ouro/itens que o combatente carregar (o loot de monstro da Fase 13 segue
+        # pelo envio do Mestre).
+        fid = data.get('fichaId')
+        looter = next((f for f in estado.get('fichas', []) if f.get('id') == fid), None)
+        if not looter:
+            return jsonify({'ok': False, 'erro': 'ficha_nao_encontrada'}), 404
+        eh_mestre = session.get('papel') == 'mestre'
+        if not eh_mestre and looter.get('donoUid') not in (None, uid_sessao()):
+            return jsonify({'ok': False, 'erro': 'sem_permissao', 'detalhe': 'essa ficha não é sua'}), 403
+        if int(alvo.get('hpAtual', 1) or 0) > 0:
+            return jsonify({'ok': False, 'erro': 'alvo_de_pe', 'detalhe': 'o alvo ainda está de pé'}), 400
+        if alvo.get('saqueado'):
+            return jsonify({'ok': False, 'erro': 'ja_saqueado', 'detalhe': 'este alvo já foi saqueado'}), 400
+        ouro_saq = 0
+        itens_saq = []
+        if alvo.get('tipo') == 'pc' and alvo.get('fichaId'):
+            src = next((f for f in estado.get('fichas', []) if f.get('id') == alvo.get('fichaId')), None)
+            if src is None:
+                return jsonify({'ok': False, 'erro': 'origem_nao_encontrada'}), 404
+            if not eh_mestre and src.get('status') != 'morto':
+                return jsonify({'ok': False, 'erro': 'pj_vivo',
+                                'detalhe': 'só o Mestre pode saquear um personagem que ainda não morreu'}), 403
+            ouro_saq = int(src.get('ouro', 0) or 0)
+            itens_saq = [x for x in (src.get('itens') or []) if isinstance(x, str)]
+            src['ouro'] = 0
+            src['itens'] = []
+        else:
+            ouro_saq = int(alvo.get('ouro', 0) or 0)
+            itens_saq = [x for x in (alvo.get('itens') or []) if isinstance(x, str)]
+            alvo['ouro'] = 0
+            alvo['itens'] = []
+        looter['ouro'] = int(looter.get('ouro', 0) or 0) + ouro_saq
+        looter.setdefault('itens', [])
+        looter['itens'].extend(itens_saq)
+        alvo['saqueado'] = True
+        det = f"{ouro_saq} po" + (f" e {len(itens_saq)} item(ns)" if itens_saq else "")
+        combate.setdefault('log', []).insert(0, f"R{combate.get('rodada', 1)} · 💰 {looter.get('nome', '?')} saqueou {alvo.get('nome', '?')}: {det}.")
+        combate['log'] = combate['log'][:40]
+        salvar_estado(estado)
+        return jsonify({'ok': True, 'ouro': ouro_saq, 'itens': itens_saq,
+                        'alvoNome': alvo.get('nome'), 'ficha': looter})
+
     return jsonify({'erro': 'Ação inválida.'}), 400
 
 

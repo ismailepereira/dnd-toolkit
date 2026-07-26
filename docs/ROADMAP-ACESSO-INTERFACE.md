@@ -1,0 +1,246 @@
+# 🔐 Roadmap — Acesso, Perfis & Interface
+
+Pedido do Ismaile (22/07/2026). Duas dores centrais:
+
+1. **A interface não comunica o produto.** Os menus estão "levemente separados", mas sem cor/categoria que
+   diga ao público o que é cada coisa. A **página de admin ficou perdida no meio da campanha** — só se chega
+   nela digitando `/admin` na URL.
+2. **Os papéis não estão separados nem trancados.** Hoje qualquer jogador edita o próprio **ouro**, e não
+   existe um lugar único que diga "você entra como quê". Falta também o **controle do Mestre sobre a evolução**
+   do personagem.
+
+**Prioridade decidida pelo Ismaile: interface e segurança administrativa PRIMEIRO** (Fases A e B).
+Saque e furto (Fase C) vêm depois.
+
+**Legenda:** `[ ]` a fazer · `[~]` em andamento · `[x]` pronto · 🔴 primeiro · 🟠 em seguida · 🟡 depois
+
+---
+
+## 📸 Como está hoje (levantado no código em 22/07)
+
+- **Login** (`app.py:725`) mistura dois mundos: contas fixas de env (`Ismaile` = mestre, `jogador`) com
+  `uid = legacy:<user>`, e contas registadas (`uid = u_...`).
+- **Depois do login não há escolha:** conta legada cai direto em `/mestre` ou `/jogador` (`index`, `app.py:709`);
+  conta registada cai em `/campanhas`. Não existe tela de "como quero entrar".
+- **Admin existe mas é invisível:** `/admin`, `/admin/dashboard` e `/admin/assinaturas` são barrados por
+  `eh_legado_mestre()` — ou seja, **só o `legacy:Ismaile`** — mas **nenhum menu leva até lá**.
+- **Registo não pergunta o papel:** `app.py:~790` grava sempre `papelGlobal: 'jogador'`.
+- **Papel por campanha** já existe e funciona (`papel_na_campanha`, `app.py:341`): mestre da campanha, membro
+  jogador, ou nada.
+- **Economia meio aberta:** o servidor já tranca XP e dono da ficha (`_sanitizar_fichas_jogador`), mas o
+  **ouro continua editável pelo jogador** — inclusive por botões na UI (`jogo.js:1818-1819`,
+  `jgOuroMais`/`jgOuroMenos`).
+- **Modos de tela já existem** (Fases 17.1/17.2): `data-mode` nas abas + `<nav class="modos">` — Mestre em
+  3 modos (Jogar/Preparar/Consultar), Jogador em 2 (Mesa/Consultar). **A Fase A3 constrói em cima disso**,
+  não do zero.
+
+---
+
+## FASE A — Acesso e identidade visual 🔴 (PRIMEIRO)
+
+### A1 ✅ Login isolado + Hub de modos (cards) — ENTREGUE 22/07
+**Dor:** "queria separar o local que se faz login, e quando fizer login ter cards pra mim ter as opções."
+
+- [x] **`/login` é só login** (já era — confirmado: nenhum conteúdo de campanha na tela).
+- [x] Nova rota **`/hub`** (tela de escolha) logo após autenticar — cards grandes, um por modo, mostrando só
+      os que a conta realmente tem direito:
+  | Card | Quem vê | Leva para |
+  |---|---|---|
+  | 💰 **ADM — Créditos & Finanças** | só `papelGlobal = admin` | `/admin/dashboard` |
+  | 👑 **Mestre — Controle Total** | só `papelGlobal = admin` | qualquer campanha como mestre, sem pedir mais nada |
+  | 🎲 **Mestre** | `papelGlobal = mestre` | `/campanhas` (as que ele mestra) |
+  | 🧝 **Jogador** | `papelGlobal = jogador` | `/campanhas` (as que participa) + suas fichas |
+- [x] Conta com **um papel só** não fica presa numa tela extra: `/hub` entra direto no único modo dela;
+      **`/hub?escolher=1`** força a tela (é o link **"⇄ Trocar de modo"**, posto no topo do Mestre, do Jogador,
+      das Campanhas e do Admin).
+- [x] O modo escolhido fica em **`session['modo']`**; o card do modo atual aparece marcado no hub.
+- [x] **Guard no servidor:** `/modo/<chave>` só aceita modo que a conta pode usar — um jogador que tenta
+      `/modo/adm` ou `/modo/total` é devolvido ao hub. (Verificado ao vivo.)
+- [x] Helper **`papel_global_efetivo()`** isola a decisão de "quem é admin" num lugar só (hoje deduz do mestre
+      legado) — é exatamente aí que a **A2** vai plugar o `papelGlobal='admin'` de verdade.
+
+**Pronto quando:** ao logar, aparece a tela de cards; o admin vê os 4; um jogador registado vê só o dele;
+`/admin` deixa de ser um endereço secreto e passa a ter porta de entrada. ✅
+
+**Onde ficou:** `app.py` (`papel_global_efetivo`, `MODOS`, `modos_disponiveis`, rotas `/hub` e `/modo/<chave>`;
+login/registo/index passam pelo hub), `templates/hub.html` (novo), `static/css/style.css` (`.hub-*` + as
+variáveis **`--cat-*`** da paleta por categoria, que a A3 vai reusar nos menus).
+
+### A2 ✅ Papéis de verdade (segurança administrativa) — ENTREGUE 22/07
+**Dor:** "somente o mestre pode adicionar xp itens abrir o acesso a lojas, ou upar o personagem".
+
+- [x] **`papelGlobal` com 3 valores:** `admin` | `mestre` | `jogador` (`PAPEIS_GLOBAIS`), sendo
+      **`PAPEIS_CADASTRO = ('mestre','jogador')`** — o cadastro nunca cria admin.
+- [x] **No registo, a pessoa escolhe Mestre OU Jogador** (dois cartões-rádio no formulário). Quem tentar
+      **injetar `papelGlobal=admin` no POST vira jogador** — validado no servidor e coberto por teste.
+- [x] **Controle Total** = `eh_admin()` ⇒ `papel_na_campanha()` devolve `mestre` em **qualquer** campanha
+      (logo `_pode_usar_ficha` libera as fichas de todos, porque ela já confia no papel da campanha).
+      ⚠️ **Nota de segurança:** "sem senha" = **sem uma segunda senha/PIN**; o poder vem de *estar logado
+      naquela conta*. Continua exigindo login — não existe URL de admin sem autenticação.
+- [x] **Gate central:** decorator **`@exige_papel(*papeis)`** — 403 JSON em `/api/`, redireciona ao hub no
+      resto. Aplicado a `/admin/dashboard` e `/admin/assinaturas`, no lugar do `if not eh_legado_mestre(...)`.
+      *(Distinção registrada: `exige_papel` = papel GLOBAL; `login_obrigatorio(papeis=...)` = papel DENTRO da
+      campanha. São eixos diferentes.)*
+- [x] **Um só ponto decide quem é admin:** `eh_admin()`. Todos os `eh_legado_mestre(...)` espalhados
+      (bypass de escrita, lista de campanhas, renovar campanha, flag do template) passaram a chamá-lo.
+- [x] **Migração:** `legacy:Ismaile` continua admin automaticamente; contas existentes não mudam de papel.
+
+**Pronto quando:** um jogador não consegue, nem pela API crua, tocar em XP/ouro/itens/nível; e o admin
+alcança tudo sem ceder senha a ninguém.
+→ **Metade feita:** o *acesso administrativo* está trancado e testado. A parte de **ouro/itens/nível** é a
+**A4** (ouro) e a **Fase B** (nível) — ainda abertas.
+
+### A3 ✅ Menus por categoria e cor (a linguagem visual) — ENTREGUE 22/07
+**Dor:** "organizar a interface dos menus, por cores e categorias... botões que façam mais sentido para o público."
+
+- [ ] **Uma cor por categoria**, aplicada de forma consistente em aba, chip, botão e borda de card — reusando
+      o `data-mode` que já existe (17.1/17.2), sem reescrever a navegação:
+  | Categoria | Cor | Sentido para o público |
+  |---|---|---|
+  | 🎲 **Jogar / Mesa** | vermelho-âmbar quente | "é agora, é ação" |
+  | 📖 **Preparar** | azul | "antes da sessão, com calma" |
+  | 📚 **Consultar** | roxo/cinza | "referência, não muda nada" |
+  | 💰 **ADM / Finanças** | verde | "dinheiro, do dono" |
+  | 👑 **Controle Total** | dourado | "poder máximo, use com cuidado" |
+- [x] **Faixa de modo no topo** (`.topbar` com borda inferior de 3px na cor da categoria) — a pista "onde estou".
+- [x] **Botão de modo com a própria cor** (barra lateral colorida mesmo desligado; fundo cheio quando ligado).
+- [x] **Abas herdam a cor do modo** a que pertencem.
+- [x] Acessibilidade: **texto escuro (`--cat-tinta`) sobre a cor viva** (contraste melhor que o branco que havia
+      antes) e **nunca cor sozinha** — todo botão de modo já tem ícone + texto (🎲 Jogar, 📝 Preparar, 📖 Consultar).
+- [ ] **Hierarquia de botão:** primário × secundário × perigo (sempre com confirmação) — usar com critério nas
+      telas. **Fica para a A3b**, é uma passada de revisão tela a tela.
+
+**Pronto quando:** dá para saber, olhando 1 segundo, se a tela é de jogar, preparar, consultar ou de dinheiro. ✅
+
+**Como foi feito:** o JS (`app.js`/`jogador.js`, função `mostrarModo`) marca `body[data-modo-ativo]`; o CSS
+deriva `--cat`/`--cat-soft` disso. **Não usei `:has()`** de propósito (ver nota abaixo).
+
+⚠️ **Nota de verificação (honesta):** o navegador embutido do preview devolve **valores em cache** no
+`getComputedStyle` — provei injetando uma regra `!important` nova que não alterou a leitura. Então: as cores
+foram **verificadas em carregamento limpo** (`/jogador` modo *mesa* → tudo vermelho; `/mestre` modo *preparar*
+→ tudo azul; aba de *consultar* → roxo), e a **troca dinâmica** foi verificada no DOM (o atributo muda, a
+classe `.on` anda, as abas recolorem). O repaint da faixa ao trocar de modo **não pôde ser medido** nesse
+navegador — vale o Ismaile dar uma olhada ao vivo uma vez.
+
+### A4 ✅ Trancar a economia (o ouro sai da mão do jogador) — ENTREGUE 25/07
+**Dor:** "remova a opção do player adicionar ouro, o ouro quem dá é o mestre ou o loot."
+
+- [x] **Botões de ouro fora do jogador** (`jgOuroMais`/`jgOuroMenos` em `jogo.js`) — já eram gated por
+      `window.EH_MESTRE`; o jogador **vê** o ouro + dica ("ganhe do Mestre ou vendendo; gaste na 🛒 Loja").
+- [x] **Servidor recusa** alteração de `ouro` vinda de jogador em `_sanitizar_fichas_jogador` **e** no ramo
+      do jogador do PATCH (já vinha da Fase 18.1 — valor sempre preservado do gravado).
+- [x] **Entradas legítimas de ouro:** Mestre (dá/tira), **loot** e **venda na loja** — validadas no servidor
+      (Fase 18.1).
+- [x] **Trava de itens (o furo que faltava):** o jogador conseguia adicionar item caro à ficha por save cru e
+      vendê-lo por ouro. Agora `itens` da ficha do jogador **só encolhe** (`_itens_sem_ganho()`): remover é
+      livre, adicionar item novo é descartado; adições legítimas passam por Mestre/lojas validadas. Equipar
+      não é afetado (`ficha.equipado` só referencia o nome).
+- [x] **Abrir a loja só Mestre:** a Loja Especial já exige liberação do Mestre (`lojaEspecialLiberada` +
+      `_preco_loja_jogo` validam no servidor).
+
+**Pronto quando:** um jogador com o DevTools aberto não consegue ficar rico. ✅ (coberto por 4 testes novos
+em `tests/test-servidor.py` — 52/52 passam)
+
+**Onde ficou:** `app.py` (`_itens_sem_ganho`, aplicado nos dois ramos protegidos), `tests/test-servidor.py`,
+`CHANGELOG.md`. Backup em `versoes/2026-07-25-a4-trancar-economia/`.
+
+---
+
+## FASE B — Evolução só com permissão do Mestre 🟠
+
+**Dor (pedido literal):** "a pessoa pode até upar a ficha dela, mas só evolui com permissão do mestre, enquanto
+o mestre nao permitir a ficha fica sem alteração no jogo, porem se a pessoa upou e escolheu tudo até nivel 20
+fica salvo na memoria e quando o mestre permitir a evolução ja vai ter os pressets da ficha na memoria."
+
+### B1 ✅ Preset de progressão (planejar agora, valer depois) — ENTREGUE 25/07
+- [x] O jogador abre **"📈 Planejar Evolução"** (botão da ficha em jogo, no lugar do "Subir de Nível" que agora
+      é só do Mestre) e **planeja a subida até o nível 20** — reusa o assistente de Subida de Nível em **modo
+      plano**, rodando numa **cópia** da ficha (classe, subclasse, ASI, magias — tudo).
+- [x] O resultado **não altera a ficha em jogo**. Vai para **`ficha.progressaoPlanejada`**: um **snapshot por
+      nível**, guardado e validado no servidor (`_normalizar_progressao`, dado inerte).
+- [x] Na tela do jogador: "📈 Plano de Evolução — níveis X–Y planejados. **Aguardando liberação do Mestre.**"
+- [x] **O nível efetivo continua sendo `ficha.nivel`.** Reforço de segurança: o servidor passou a **preservar
+      `nivel`/`hpMax`** do jogador (fechou o furo de auto-upar) — subir de verdade só via Mestre (B2).
+
+**Onde ficou:** `app.py` (trava `nivel`/`hpMax` + `_normalizar_progressao`), `static/js/nivel.js` (modo plano),
+`static/js/jogo.js` (`planejarEvolucao`), `tests/test-servidor.py` (4 testes B1). Backup em
+`versoes/2026-07-25-b1-plano-progressao/`. ⚠️ Falta verificação ao vivo do modal no navegador.
+
+### B2 ✅ Liberação pelo Mestre (nível a nível) — ENTREGUE 25/07
+- [x] No painel do Mestre (aba Fichas), por ficha: **"⬆️ Liberar nível X"**. Ao liberar, o preset planejado é
+      aplicado de uma vez (o jogador não refaz as escolhas) — **um nível por clique** (pedido do Ismaile: nível
+      a nível, não a spec inteira). Endpoint `POST /api/fichas/<id>/liberar_nivel`.
+- [x] Liberar em massa: **"⬆️ Liberar próximo nível de todos"** — sobe um nível de todas as fichas com plano
+      (`POST /api/fichas/liberar_nivel_todos`).
+- [x] **Só o Mestre** libera nível — validado no servidor (`login_obrigatorio(papeis=['mestre'])`); o jogador é
+      bloqueado (testado). Com a trava B1, subir de verdade é 100% do Mestre.
+- [x] Registro no log da campanha: `estado.eventos` guarda "Fulano subiu para o nível X" (últimos 50, flui aos
+      jogadores pela projeção pública). O feed rico em tempo real continua sendo a Fase 21.1.
+
+**Pronto quando:** o jogador planeja sozinho no meio da semana e, quando o Mestre libera na sessão, a ficha
+sobe instantaneamente com as escolhas dele. ✅ (8 testes novos em `tests/test-servidor.py` — 64/64 passam)
+
+**Onde ficou:** `app.py` (`_liberar_proximo_nivel`/`_aplicar_snapshot_nivel`/`_registrar_evento` + rotas),
+`static/js/app.js` (botões no card + barra de grupo). Backup em `versoes/2026-07-25-b2-liberar-nivel/`.
+⚠️ Falta verificação ao vivo do botão no navegador; edge conhecido: o botão direto "Subir de Nível" do Mestre
+no Modo de Jogo não consome o plano (override manual).
+
+---
+
+## ✅ FASE B CONCLUÍDA (25/07/2026) — evolução só com permissão do Mestre
+B1 (plano de progressão do jogador) + B2 (liberação nível a nível). Próximo: **Fase C — saque e furto**.
+
+---
+
+## ✅ FASE C CONCLUÍDA (25/07/2026) — saque e furto
+
+### C1 ✅ Saquear alvo abatido — ENTREGUE 25/07
+**Pedido:** "opção de saque quando um inimigo npc ou player morre, de setar o alvo e saquear."
+
+- [x] No combate, alvo com **0 PV** ganha a ação **"💰 Saquear"** (reusa o alvo 🎯 já selecionado).
+- [x] **NPC/monstro:** transfere o ouro/itens que o combatente carrega. **PJ caído:** transfere o ouro/itens da
+      ficha (só o Mestre, ou se o PJ já é memorial — evita griefing de aliado inconsciente). O loot de monstro
+      da Fase 13 segue pelo envio do Mestre.
+- [x] Transferência validada no servidor (ação `saquear` em `/api/combate/acao`: alvo caído, posse da ficha do
+      saqueador, sem re-saque). Coberto por 5 testes.
+
+### C2 ✅ Furto com dificuldade variável — ENTREGUE 25/07
+**Pedido:** "nivel de dificuldades de furto... pela classe do item peso e importancia, aplicar variabilidade
+de dificuldade no furto." · **Decisões:** jogador tenta direto no alvo; **assistente** (Mestre concede o item).
+
+- [x] **CD do furto calculada** (`cdFurto5e`, pura): **Percepção passiva** do alvo **+ peso/volume** (+2/+5)
+      **+ raridade/valor** (+3/+5) **+ importância** (+5 equipado, +3 sintonizado, +4 de missão) **− distração**
+      (−3, auto em combate) / **ajuda** (−2), piso 5.
+- [x] Rolagem de **Prestidigitação** (DES + proficiência) contra a CD, com os **fatores** explicando por que foi
+      difícil ("+5 está equipado, +3 raro") no log do combate.
+- [x] Falha por margem (`resultadoFurto5e`): **quase** (faltou ≤3 → o alvo desconfia) · **flagrado** (falha grande).
+- [x] Vale para **qualquer classe** (só usa DES + proficiência em Prestidigitação; Ladino é melhor por treino).
+
+**Onde ficou:** `static/js/regras-ficha.js` (C2 puras), `static/js/jogo.js` (botões 💰/🤏 no alvo + painel de
+furto), `app.py` (ação `saquear`). Backups em `versoes/2026-07-25-c1-saque/` e `.../c2-furto/`. ⚠️ Falta
+verificação ao vivo em combate.
+
+---
+
+## ✅ ROADMAP DE ACESSO, PERFIS & INTERFACE — CONCLUÍDO (Fases A, B e C, 25/07/2026)
+
+---
+
+## Critérios de pronto (valem para TODOS os itens)
+
+1. **Toda regra de permissão é validada no servidor.** Esconder o botão é UI, não segurança.
+2. Nada de texto em inglês na UI.
+3. Entra no `CHANGELOG.md` com backup em `versoes/`.
+4. Testado no fluxo real (E2E no navegador), não só unit.
+5. Migração sem quebrar contas/campanhas que já existem.
+
+---
+
+## Perguntas em aberto (assumi um caminho; é só dizer se preferir outro)
+
+1. **Uma conta pode ser Mestre numa campanha e Jogador em outra?** Assumi **sim** (o `papel_na_campanha` já
+   funciona assim). O `papelGlobal` diz o que a pessoa *pode ser*; a campanha diz o que ela *é ali*.
+   O pedido "só vão ter acesso ao módulo mestre ou o módulo player" foi lido como **a escolha do cadastro**.
+2. **O jogador cria ficha fora de campanha e depois importa** — assumi ficha "de bolso" ligada à conta
+   (`fichas/<uid>`), e a importação copia para a campanha. Isso conversa com o limite de 6 fichas da Fase 23.
+3. **Cores:** a tabela da A3 é uma proposta. Se você tiver referência visual (um app que goste), eu adapto.

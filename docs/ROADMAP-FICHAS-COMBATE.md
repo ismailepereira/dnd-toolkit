@@ -1,5 +1,10 @@
 # 🗺️ Roadmap — Fichas por Classe & Combate
 
+> ⏸️ **EM PAUSA desde 22/07/2026** — a prioridade passou para
+> **`docs/ROADMAP-ACESSO-INTERFACE.md`** (acesso, perfis e interface), a pedido do Ismaile.
+> Já entregue aqui: Fases **T, F1, F2, F3b, F4, C1–C6 e F5a**. Ficam abertos: **F5b** (patronos do Bruxo),
+> **F5c** (Canalizar Divindade do juramento/domínio) e a **Conjuração Atemporal (N18)** da F3.
+
 Plano de melhoria nascido da **mesa de 18/07/2026**: dificuldades reais com Paladino,
 Clérigo e Druida na criação, e fricções no combate (magias invisíveis, azagaias
 repetidas, arma arremessada sem controle). Cada item aponta a dor que o originou.
@@ -40,7 +45,7 @@ Um item por sessão de trabalho; cada entrega com teste de regressão (a suíte 
 - [x] **Auras (nv6+)** como bloco passivo "🛡️ Auras (sempre ativas)" com o valor do Carisma e o alcance
   (3m, 9m no N18) — Proteção (N6) e Coragem (N10).
 
-### F2 🔴 Auditoria "kit de estreia" das 12 classes (níveis 1-3)
+### F2 ✅ Auditoria "kit de estreia" das 12 classes (níveis 1-3) — CONCLUÍDA 21/07
 **Dor generalizada:** classes cuja abertura confunde. Para CADA classe, garantir os 3 pontos:
 (a) painel do Criador explica TODAS as características iniciais em linguagem de mesa;
 (b) todo recurso gastável aparece rastreável no Modo de Jogo; (c) toda ação especial tem botão ou card, não só texto.
@@ -57,17 +62,17 @@ Legenda: ✅ ok · ⚠️ parcial · ❌ falta · 🔎 = alvo de correção.
 
 | Classe | (a) Criador | (b) Rastreável | (c) Botão | Lacuna a corrigir (níveis 1-3) |
 |---|:--:|:--:|:--:|---|
-| **Bárbaro** | ✅ | ✅ | ⚠️ | Fúria e dano ✅ (C4). **Ataque Descuidado** (N2) só texto → falta *toggle* de vantagem. (menor) |
+| **Bárbaro** | ✅ | ✅ | ✅ | Fúria e dano ✅ (C4). **Ataque Descuidado** ✅ (toggle de vantagem, 21/07). |
 | **Bardo** | ✅ | ✅ | ⚠️ | 🔎 **Inspiração Bárdica**: gasta o uso, mas **não registra a QUEM** deu nem o dado. |
 | **Clérigo** | ✅ | ✅ | ❌ | 🔎 **Expulsar Mortos-Vivos** (N2) sem card: contador existe, mas nada mostra CD/efeito nem rola. (Destruir N5 fica p/ depois) |
 | **Druida** | ✅ | ✅ | ✅ | Coberto (Forma Selvagem completa). Sem lacuna 1-3. |
 | **Feiticeiro** | ✅ | ⚠️ | ❌ | 🔎 **Pontos de Feitiçaria**: só +/−, **sem conversão espaço↔ponto** (N2). |
 | **Guerreiro** | ✅ | ⚠️ | ❌ | 🔎 **Retomar o Fôlego** é contador, não **rola/cura 1d10+nível**. Surto de Ação sem chip. |
-| **Ladino** | ✅ | ✅ | ⚠️ | Furtivo ✅ (C4). **Ação Ladina** (N2) só texto → lembrete. (menor) |
-| **Mago** | ✅ | ✅ | ⚠️ | **Recuperação Arcana** (N1) sem botão no descanso curto. (menor) |
+| **Ladino** | ✅ | ✅ | ✅ | Furtivo ✅ (C4). **Ação Ladina** ✅ (card-lembrete das 3 opções, 21/07). |
+| **Mago** | ✅ | ✅ | ✅ | **Recuperação Arcana** ✅ (botão 1×/descanso longo, 21/07). |
 | **Monge** | ✅ | ✅ | ❌ | 🔎 **Opções de Ki** (Rajada/Defesa Paciente/Passo do Vento — N2) só texto, sem botão que gaste 1 Ki. |
-| **Paladino** | ✅ | ✅ | ✅ | Coberto (F1). Melhoria: botão de distribuir cura da **Imposição das Mãos**. (menor) |
-| **Patrulheiro** | ✅ | ✅ | ⚠️ | **Consciência Primitiva** (N3, gasta espaço) só texto. (menor) |
+| **Paladino** | ✅ | ✅ | ✅ | Coberto (F1). **Imposição das Mãos** ✅ (botão de distribuir cura + doença/veneno, 21/07). |
+| **Patrulheiro** | ✅ | ✅ | ✅ | **Consciência Primitiva** ✅ (botão que gasta 1 espaço + sondagem, 21/07). |
 | **Bruxo** | ✅ | ✅ | ⚠️ | Magia de Pacto ✅ (C1). Invocações/Pacto Místico são passivos/escolha — sem ação gastável 1-3. (menor) |
 
 **Ordem de correção (1 classe = 1 commit), por dor real na mesa:**
@@ -86,26 +91,40 @@ Legenda: ✅ ok · ⚠️ parcial · ❌ falta · 🔎 = alvo de correção.
 4. [x] **Monge — Opções de Ki** — ENTREGUE 21/07: card 👊 com 3 botões N2 (Rajada de Golpes/Defesa Paciente/
    Passo do Vento) + Golpe Atordoante (N5, com a CD de Ki), cada um gastando 1 Ponto de Ki (contador único de
    "Recursos de Classe") + Histórico. Guard: sem Ki, botões desabilitados.
-5. [ ] **Guerreiro — Retomar o Fôlego**: botão que rola 1d10+nível e cura; chip de Surto de Ação.
+5. [x] **Guerreiro — Retomar o Fôlego** — ENTREGUE 21/07: card 💨 no Modo de Jogo com botão que rola
+   **1d10+nível de Guerreiro**, cura de fato (respeitando o PV máximo) e gasta 1 uso (contador compartilhado
+   com "Recursos de Classe", 1×/descanso curto) + Histórico. Guerreiro N2+ ganha no mesmo card o botão
+   **⚡ Surto de Ação** (gasta 1 uso, registra a ação adicional). Guards: botões desabilitam sem uso.
 
-As "menores" (Ataque Descuidado, Ação Ladina, Recuperação Arcana, Imposição das Mãos-cura, Consciência
-Primitiva) entram numa passada de fecho depois, se valer a pena.
+✅ **Passada de fecho das "menores" concluída (21/07):** Ataque Descuidado (Bárbaro), Recuperação Arcana (Mago),
+Imposição das Mãos-cura (Paladino), Ação Ladina (Ladino) e Consciência Primitiva (Patrulheiro) — todas com card/
+toggle/botão no Modo de Jogo. **Com isso a FASE F2 está 100% concluída** (as 12 classes têm (a)(b)(c) cobertos).
 
 ### F3 🟠 Druida — fechamento das pendências da Forma Selvagem
 - [x] Catálogo por nível + transformar/reverter (19/07).
-- [ ] **F3b — Forma Elemental** (Círculo da Lua nv10): gastar 2 usos para virar Elemental do Ar/Terra/Fogo/Água
-  (4 formas novas no catálogo com stats).
+- [x] **F3b — Forma Elemental** (Círculo da Lua nv10) — ENTREGUE 22/07: 4 elementais (Ar/Terra/Fogo/Água, ND 5,
+  stats do MM) em `FORMAS_ELEMENTAIS` (`formaselvagem.js`); seletor **🌙 Forma Elemental** no Modo de Jogo que
+  **gasta 2 usos** de Forma Selvagem (guard: precisa de 2; só Lua N10+). Reusa o painel de forma ativa (PV/CA/
+  ataques/reverter) com cabeçalho 🌙.
 - [ ] Conjuração Atemporal (nv18): liberar o painel de magias mesmo com forma ativa.
 
-### F4 🟠 Cartão-resumo de combate no fim do Criador ("cola" do jogador)
+### F4 ✅ Cartão-resumo de combate no fim do Criador ("cola" do jogador) — ENTREGUE 21/07
 **Dor de fundo:** jogador novo termina a ficha sem saber o que faz no turno.
-- [ ] Etapa final ganha um cartão gerado: "Seu personagem em combate" — ataque principal com bônus/dano,
-  melhor truque/magia com CD, recurso de classe a lembrar, CA/PV/deslocamento. O mesmo cartão sai no PDF.
+- [x] Etapa final (passo 6) ganha o cartão **"⚔️ Seu personagem em combate"**: CA/PV/deslocamento/iniciativa,
+  **ataque principal** (arma da mão principal ou a de maior bônus) com acerto/dano, **melhor magia** (CD +
+  ataque mágico + truque de destaque) e o **recurso de classe a não esquecer**. **O mesmo cartão sai no PDF.**
+  Lógica pura e testada em `resumoCombate5e`/`cartaoCombateHtml` (regras-ficha.js) — Criador e PDF renderizam o
+  mesmo markup.
 
-### F5 🟡 Subclasses com efeito mecânico completo
-- [ ] Domínios do Clérigo: magias de domínio ganhas automaticamente (sempre preparadas, sem contar no limite).
-- [ ] Juramentos do Paladino (nv3): magias de juramento + Canalizar Divindade específico do juramento.
-- [ ] Patronos do Bruxo: magias expandidas do patrono aparecendo na lista de escolha.
+### F5 🟡 Subclasses com efeito mecânico completo — F5a ENTREGUE 22/07
+- [x] **F5a — Domínios do Clérigo e Juramentos do Paladino**: magias de domínio/juramento ganhas
+  automaticamente por nível, **sempre preparadas e fora do limite**. Tabela `MAGIAS_SUBCLASSE` +
+  `magiasSubclasse5e(subclasse, nivel)` em `compendio.js` (7 domínios + 3 juramentos, só com magias que existem
+  no compêndio — teste de integridade garante). No Modo de Jogo viram **castáveis** (entram em
+  `magiasCastaveis()`) e ganham o grupo "🕮 Do seu domínio"/"⚜️ Do seu juramento"; o Criador mostra a linha
+  na Conjuração.
+- [ ] **F5b — Patronos do Bruxo**: magias expandidas do patrono aparecendo na lista de escolha.
+- [ ] **F5c — Canalizar Divindade específico do juramento** (Paladino nv3) e dos domínios.
 
 ---
 
@@ -154,9 +173,11 @@ Primitiva) entram numa passada de fecho depois, se valer a pena.
   por nível, +modificador de conjuração na cura); tudo registra no Histórico. Respeita o modo Dado Físico.
 - [x] **Armas** já tinham 🎲 atacar / 🎲 dano (pré-existente) — C5 estendeu o padrão às magias.
 
-### C6 🟡 Efeitos dos ataques → condições com 1 toque
-- [ ] Ataque com efeito conhecido (Lobo derruba CD 11, teia prende…) sugere aplicar a condição no alvo
-  selecionado do combate ("Aplicar 'Caído' em Goblin 2?").
+### C6 ✅ Efeitos dos ataques → condições com 1 toque — ENTREGUE 22/07
+- [x] No rastreador de combate do Mestre, todo ataque com efeito conhecido (Lobo derruba CD 11, teia prende,
+  crocodilo agarra, aranha envenena…) ganha um **botão-sugestão "⤷ {Condição} CD X"** que **aplica a condição
+  no alvo selecionado** com 1 toque. Detecção pura em `efeitosDoAtaque(texto)` (compendio.js) sobre o texto do
+  ataque; nova condição **Impedido** (Restrained) adicionada às `CONDICOES` (faltava).
 
 ### C7 🟡 Economia de ação do turno
 - [ ] Marcadores Ação/Bônus/Movimento/Reação no painel do turno: clicar num card marca o gasto; "▶ Próxima

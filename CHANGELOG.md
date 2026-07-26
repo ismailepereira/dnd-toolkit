@@ -1,8 +1,826 @@
 # Changelog
 
+## 2026-07-26 — 20.5 · Ficha mobile: atributos rolam no toque + seções em accordion 📱
+
+**Backup:** `versoes/2026-07-26-20-5-ficha-mobile/` (jogo.js, style.css).
+
+**Resumo:** Fase 20.5 (ficha mobile estilo D&D Beyond). Feito **em cima da reskin "Fantasia Medieval"** do
+Antigravity (usa as variáveis de tema `--accent`/`--accent2`/`--border`, então casa com o visual novo).
+- **Atributos clicáveis:** cada atributo no topo da ficha virou **botão** — tocar **rola o teste de atributo
+  puro** (d20 + mod). Perícias e salvaguardas **já** rolavam; faltava o atributo. Alvo de toque ≥52px no
+  celular (`pointer: coarse`).
+- **Accordion nas seções de referência:** no Modo de Jogo, **Bolsa & Equipamento** (aberta), **Magias
+  (preparar/grimório)**, **Características de Classe** e **História & Personalidade** viram `<details>`
+  colapsáveis — as três últimas **fechadas por padrão** — desafogando a rolagem no celular. As seções de
+  combate (armas, poderes, ✨ Conjuração, PV/ações) continuam abertas. Helper `colapso()` só embrulha os blocos
+  no layout (não mexe no conteúdo); CSS achata o bloco interno e esconde o `<h4>` duplicado nos de bloco único.
+
+**Ficheiros:** `static/js/jogo.js` (atributo-botão + handler `data-atributo`; helper `colapso` no layout),
+`static/css/style.css` (`.jg-attr-roll`, `.jg-colapso`).
+
+**Verificação:** `node --check` OK · unit 53/53 · servidor 69/69. **Precisa de olhada ao vivo no celular** —
+é mudança visual (accordion + toque) e roda em cima da reskin nova, que também está por verificar.
+
+**Restam da Fase 20:** 20.6 (FAB 🎲 de rolagem rápida) e 20.7 (tabuleiro fullscreen).
+
+**Como reverter:** restaurar `versoes/2026-07-26-20-5-ficha-mobile/`, ou `git revert`.
+
+## 2026-07-26 — Combate turn-based: kit trancado fora do turno + destaque da vez 🎯
+
+**Backup:** `versoes/2026-07-26-turn-based-polish/` (jogo.js, app.js, style.css).
+
+**Resumo:** dois polimentos que deixam o combate mais "turn-based de verdade" (estilo Pokémon/Hearthstone),
+como o Ismaile pediu.
+- **1) Kit trancado fora do seu turno (jogador):** em combate, **Ação e Ação Bônus só funcionam na sua vez**.
+  Fora dela, os botões (armas/magias/poderes) bloqueiam com **"⏳ Não é a sua vez — fora do seu turno só dá
+  para usar Reação"**; a **Reação** continua liberada (**1×/rodada**, via `ficha.reacaoUsadaRodada`). O banner
+  de espera avisa e marca quando a Reação já foi usada na rodada. (`tentarGastarEconomia` reescrita: usa
+  `estadoTurno()` — livre fora de combate, restrito fora do turno, economia normal na vez.)
+- **2) Destaque do combatente na vez (rastreador do Mestre):** o card ativo ganha um badge **"▶ VEZ"** e borda
+  reforçada; nos **outros**, as ações vão para um `<details> ⚔️ Ações` recolhido — o Mestre foca em "de quem é
+  a vez, com o kit dele aberto", sem o ruído dos botões de todos ao mesmo tempo.
+
+**Ficheiros:** `static/js/jogo.js` (trava fora do turno + banner), `static/js/app.js` (badge + ações recolhidas
+nos não-ativos), `static/css/style.css` (`.comb-vez-badge`, `.comb-ataques-fold`, realce do `.turno`).
+
+**Verificação:** `node --check` OK · unit 53/53 · servidor 69/69. **Falta ao vivo:** confirmar que fora do turno
+o ataque bloqueia e a reação passa; e o card da vez destacado com os outros recolhidos.
+
+**Como reverter:** restaurar `versoes/2026-07-26-turn-based-polish/`, ou `git revert`.
+
+## 2026-07-26 — Combate: aviso de reação também para monstros/NPCs ⚡🐉
+
+**Backup:** `versoes/2026-07-26-reacao-monstro/` (app.js).
+
+**Resumo:** estende o aviso de reação (assistente) aos **monstros e NPCs** — antes só PJs.
+- **`addMonstro` guarda as reações** do bloco do bestiário (`m.reacoes`) no combatente.
+- **`atacar`** passou a montar o aviso a partir de qualquer alvo: PJ pela ficha (`reacoesDoPC`), monstro/NPC
+  pelas reações guardadas — o log avisa **"⚡ {alvo} pode REAGIR: … — ofereça antes de aplicar o dano."**
+
+**Nota:** só monstros **re-adicionados após este commit** carregam as reações (os que já estavam no combate
+precisam entrar de novo).
+
+**Ficheiros:** `static/js/app.js` (`addMonstro`, `atacar`).
+
+**Verificação:** `node --check` OK · unit 53/53 · servidor 69/69. **Falta ao vivo.**
+
+**Como reverter:** restaurar `versoes/2026-07-26-reacao-monstro/`, ou `git revert`.
+
+## 2026-07-26 — Combate: aviso de reação (assistente, PJs) ⚡
+
+**Backup:** `versoes/2026-07-26-aviso-reacao/` (app.js, jogo.js, regras-ficha.js, unit-regras.js).
+
+**Resumo:** parte do fluxo pedido pelo Ismaile — ao ser atacado, o alvo com **reação defensiva** disponível é
+lembrado, para não esquecer de usá-la (modo **assistente**, sem interrupção dura; **PJs primeiro**, por decisão).
+- **Regra pura `reacoesDoPC(f)`** (`regras-ficha.js`): lista as reações defensivas que o PJ tem e mais esquece —
+  **Escudo** e **Absorver Elementos** (se conhece a magia), **Esquiva Sobrenatural** (Ladino nv5+), **Aparar
+  Projéteis** (Monge nv3+), **Aparar** (Guerreiro Mestre de Batalha). Ataque de Oportunidade fica de fora (dispara
+  em movimento, não ao ser atacado).
+- **Aviso no rastreador:** quando o Mestre ataca um PJ que tem reação, o log ganha
+  **"⚡ {PJ} pode REAGIR: … — ofereça antes de aplicar o dano."**
+- **Dica na ficha do jogador:** no painel "🎯 O teu turno", um bloco **"⚡ Suas reações"** lista o que ele pode
+  fazer fora do próprio turno (1×/rodada). A economia da 2b já conta a Reação quando usada.
+
+**Ficheiros:** `static/js/regras-ficha.js` (`reacoesDoPC` pura), `static/js/app.js` (aviso no `atacar`),
+`static/js/jogo.js` (bloco de reações no painel de turno), `tests/unit-regras.js` (1 teste novo).
+
+**Verificação:** `node --check` OK · unit-regras **53/53** (1 novo: Mago/Ladino detectam reação, Guerreiro sem) ·
+69/69 servidor. **Falta ao vivo.**
+
+**Nota:** é a versão **assistente** (aviso). A interrupção dura (handshake que pausa o ataque e espera o alvo
+reagir) foi conscientemente adiada — Ismaile escolheu o aviso. Reações de **monstro** (bloco Reações do
+bestiário) ficam para uma próxima, se quiser.
+
+## 2026-07-26 — Combate: encerrar turno + Teste de Morte na vez do caído ☠️
+
+**Backup:** `versoes/2026-07-26-turno-teste-morte/` (app.js, jogo.js, regras-ficha.js, mestre.html, unit-regras.js).
+
+**Resumo:** parte do fluxo de turno pedido pelo Ismaile — botão claro de encerrar turno e, quando a vez cai num
+PJ **caído (0 PV)**, ele rola o **Teste de Morte** em vez de um turno normal.
+- **Botão "🔚 Encerrar turno":** o rastreador do Mestre (era "▶ Próximo turno") e a ficha do jogador (era
+  "✔️ Finalizar meu turno") ganharam o rótulo consistente.
+- **Teste de Morte no turno do caído:** no rastreador, o card de um PJ a 0 PV (ainda não morto) mostra
+  **"☠️ Caindo — ✅ x/3 · ❌ y/3"** + botão **"🎲 Teste de Morte"**; na vez dele, o banner avisa. O jogador segue
+  rolando o teste na própria ficha. Regra 5e (`testeMorte5e`, **pura**, em `regras-ficha.js`): 20 natural =
+  1 PV e de pé · 1 natural = 2 falhas · ≥10 sucesso, <10 falha · 3 sucessos = estável · 3 falhas = morre. O
+  Modo de Jogo (`jogo.js`) e o tracker (`app.js`) agora usam a MESMA regra (antes só o jogador tinha, embutida).
+
+**Ficheiros:** `static/js/regras-ficha.js` (`testeMorte5e` pura), `static/js/jogo.js` (`testeMorte` delega),
+`static/js/app.js` (`testeMorteCombate` + bloco no card + aviso no banner), `templates/mestre.html` (rótulo do
+botão), `tests/unit-regras.js` (2 testes novos).
+
+**Verificação:** `node --check` OK · unit-regras **52/52** (2 novos: 3 falhas mata / 1 natural conta 2 / 20
+recupera; 3 sucessos estabiliza) · 69/69 servidor. **Falta ao vivo.**
+
+**Ainda faltando do pedido (próximo):** o **handshake de reação** — ao ser atacado, o alvo com reação/defesa
+(Escudo, Esquiva Sobrenatural, Aparar…) recebe a chance de reagir e devolve a vez ao atacante. É a parte mais
+complexa (interrupção entre clientes em tempo real) e precisa de uma decisão de desenho — ver conversa.
+
+**Como reverter:** restaurar `versoes/2026-07-26-turno-teste-morte/`, ou `git revert`.
+
+## 2026-07-26 — Combate: kit completo no rastreador (monstro e PJ não perdem ações) 🐉
+
+**Backup:** `versoes/2026-07-26-combate-kit-completo-tracker/` (app.js).
+
+**Resumo:** correção dos achados de teste do Ismaile — no rastreador do Mestre, **o monstro não tinha todas
+as ações** (sopro/habilidades sumiam) e **truques sem dano** (Orientação, Consertar) não viravam botão.
+- **Causa:** `parseAcoes` tinha um filtro `bonus !== null || dano !== null` que **descartava** toda ação que
+  não fosse um ataque padrão (com "+X para acertar" e dano entre parênteses) — sopro de dragão, habilidades
+  especiais e magias de salva desapareciam do card.
+- **Agora:** `parseAcoes` mantém **todas** as ações (só o "Multiataque" fica de fora, que tem botão próprio).
+  Ação sem "+X para acertar" vira um botão que **rola o dano (se houver) para o Mestre aplicar** pelo −Dano /
+  Dano em Área, ou **descreve** o efeito — a salva/efeito é decidida pelo Mestre (`atacar` trata `bonus == null`
+  sem rolar d20 vs CA).
+- **Magias do monstro** (`m.conjuracao`) entram como ações "✨ descrever" no card, dando o kit completo da
+  criatura ao Mestre.
+- **Truques sem dano do PJ** (`acoesDoPC`) agora aparecem como botões de efeito (antes só os de dano).
+- **Multiataque** agora repete o 1º **ataque de acerto** com dano (não pega um sopro/magia de salva por engano).
+
+**Ficheiros:** `static/js/app.js` (`parseAcoes`, `atacar`, `acoesDoPC`, `addMonstro`, condição/handler do
+Multiataque).
+
+**Verificação:** `node --check` OK · unit 50/50 · servidor 69/69. **Falta ao vivo:** re-adicionar a Meia-Dragã
+ao combate e confirmar que o sopro/ações aparecem; e um clérigo mostrar Orientação/Consertar clicáveis.
+*(Combatentes já em combate antes do fix precisam ser re-adicionados para pegar as ações novas.)*
+
+**Como reverter:** restaurar `versoes/2026-07-26-combate-kit-completo-tracker/`, ou `git revert`.
+
+
 Registo de alterações relevantes do D&D Toolkit. Cada entrada indica os
 ficheiros tocados e, quando aplicável, a pasta de backup em `versoes/` com o
 estado anterior desses ficheiros (para reverter sem depender só do Git).
+
+## 2026-07-05 — Miniaturas de classes, atributos e armas (Miniaturas)
+
+**Backup antes da alteração:** `versoes/2026-07-05-miniaturas/`
+(cópia de todos os ficheiros tocados).
+
+**Resumo:** Adicionados ícones/miniaturas visuais (emojis correspondentes) para as habilidades/atributos (Força 💪, Destreza 🏃‍♂️, Constituição ✊, Inteligência 🧠, Sabedoria 👁️, Carisma 🗣️), para todas as classes do PHB (Guerreiro ⚔️, Mago 🔮, etc.) e para as armas (Adaga 🗡️, Besta 🏹, Espada ⚔️, etc.) no Criador de Personagens, no seletor de classes e no painel do Modo de Jogo.
+
+**Ficheiros alterados:**
+- `static/js/regras.js` — mapeamento de ícones e funções auxiliares `getClasseIcone`, `getAttrIcone` e `getArmaIcone`.
+- `static/js/classes.js` — exibição do ícone da classe nas opções do `<select>`.
+- `static/js/jogo.js` — inclusão de miniaturas de atributos nos blocos de habilidades, de armas nos blocos de ataques, e de classes nos subcabeçalhos de Modo de Jogo.
+- `static/js/criador.js` — inclusão de miniaturas nos blocos de atributos (base e recomendados) e na visualização prévia de classes e armas do criador.
+
+---
+
+## 2026-07-25 — C2 · Furto com CD variável (assistente) 🤏 — fecha a Fase C
+
+**Backup:** `versoes/2026-07-25-c2-furto/` (jogo.js, regras-ficha.js, unit-regras.js).
+
+**Resumo:** segunda metade da Fase C. O jogador tenta **furtar** um item do alvo com uma **CD calculada** (não
+fixa), rolando Prestidigitação e vendo **por que** foi difícil. Decisões do Ismaile: o **jogador** tenta direto
+no alvo; modo **assistente** (a app calcula/rola/explica, o **Mestre concede** o item — sem transferência
+automática).
+- **CD calculada (`cdFurto5e`, pura):** parte da **Percepção passiva do alvo** e sobe com **peso/volume**
+  (+2/+5), **raridade/valor** (+3 raro/mágico, +5 lendário), **importância** (+5 equipado, +3 sintonizado,
+  +4 de missão); **distração** (−3, automática em combate) e **ajuda** (−2) reduzem. Piso 5. Devolve os
+  **fatores** que explicam a dificuldade ("+5 está equipado, +3 raro").
+- **Grau do resultado (`resultadoFurto5e`, pura):** sucesso (≥ CD) · **quase** (faltou ≤3 → o alvo desconfia) ·
+  **flagrado** (falha grande).
+- **Cliente (Modo de Jogo):** o alvo 🎯 **vivo** ganha o botão **"🤏 Furtar"** → painel com o item (da lista do
+  alvo ou digitado) + toggles equipado/sintonizado/de missão → **"🎲 Tentar furto"** rola
+  Prestidigitação (DES + proficiência) e **loga no combate** (todos veem) o total, a CD, o detalhamento e o
+  grau. **O Mestre concede o item** pelas ferramentas de envio que já existem (assistente, não trava dura).
+
+**Ficheiros:** `static/js/regras-ficha.js` (`cdFurto5e`/`resultadoFurto5e` puras), `static/js/jogo.js` (botão
+"🤏 Furtar" + painel no `alvoHtml`; handlers de abrir e rolar; loga via `defesa_log`), `tests/unit-regras.js`
+(3 testes novos).
+
+**Verificação:** `node --check` OK · unit-regras **50/50** (3 novos C2: CD com fatores; distração/ajuda com
+piso 5; graus sucesso/quase/flagrado) · 69/69 servidor. **Falta verificação ao vivo**.
+
+**FASE C CONCLUÍDA** (C1 saque + C2 furto). Com A, B e C fechadas, o **roadmap de Acesso, Perfis & Interface
+está inteiro**.
+
+**Como reverter:** restaurar `versoes/2026-07-25-c2-furto/`, ou `git revert`.
+
+## 2026-07-25 — C1 · Saquear alvo abatido 💰
+
+**Backup:** `versoes/2026-07-25-c1-saque/` (app.py, jogo.js, test-servidor.py).
+
+**Resumo:** primeira metade da Fase C do roadmap de acesso. No combate, um alvo **caído (0 PV)** pode ser
+saqueado — o ouro e os itens dele passam para a ficha de quem saqueia, com a transferência **validada no
+servidor** (não é só cosmético).
+- **Ação `saquear` em `/api/combate/acao`** (servidor): valida que o alvo está caído (senão 400 `alvo_de_pe`),
+  que a ficha do saqueador é dele (ou Mestre), e que ainda não foi saqueado (senão 400 `ja_saqueado`).
+  Transfere `ouro` + `itens` para o saqueador e zera na origem; marca o alvo como `saqueado`.
+- **PJ caído:** saquear um personagem só é liberado ao **Mestre** ou quando o PJ já é **memorial (morto)** —
+  evita griefing de um aliado apenas inconsciente. Monstro/NPC: transfere o ouro/itens que o combatente
+  carregar (o loot de monstro da Fase 13 segue pelo envio do Mestre).
+- **Cliente (Modo de Jogo):** o alvo 🎯 já selecionado, se estiver caído, ganha o botão **"💰 Saquear <nome>"**
+  ao lado do seletor; o loot cai na ficha e o alvo passa a "já saqueado". (Selecionar o alvo agora
+  re-renderiza para o botão aparecer na hora.)
+
+**Ficheiros:** `app.py` (ação `saquear` no `api_combate_acao`), `static/js/jogo.js` (botão no `alvoHtml` +
+handler `jgSaquear`; `onchange` do alvo re-renderiza), `tests/test-servidor.py` (5 casos C1).
+
+**Verificação:** `py_compile` OK · **69/69** servidor (5 novos C1: não saqueia de pé; saqueia caído com
+ouro/itens; ouro entra na ficha; não saqueia de novo) · `node --check` OK · unit 47/47. **Falta verificação ao
+vivo** em combate.
+
+**Próximo (C2):** furto com CD variável (Percepção passiva + peso/raridade/importância do item).
+
+**Como reverter:** restaurar `versoes/2026-07-25-c1-saque/`, ou `git revert`.
+
+## 2026-07-25 — Combate 2c · Poderes de classe entram na economia de ação 👊
+
+**Backup:** `versoes/2026-07-25-combate2c-poderes-economia/` (jogo.js).
+
+**Resumo:** fecha a pendência anotada na 2b — os poderes de classe passam a **gastar a Ação/Ação Bônus** do
+turno, com o custo real de cada um em 5e. Reusa a trava da 2b (`comEconomia` envolve o handler; bloqueia se o
+slot já foi gasto).
+- **Custam a Ação:** Expulsar Mortos-Vivos (Canalizar Divindade), Imposição das Mãos (curar/doença),
+  Consciência Primitiva, Forma Selvagem (Druida).
+- **Custam a Ação Bônus:** Inspiração Bárdica (dar), Ki (Rajada de Golpes / Defesa Paciente / Passo do Vento),
+  Retomar o Fôlego, Fontes de Feitiçaria (converter espaço↔ponto).
+- **Não gastam a economia (riders/exceções):** Golpe Atordoante (rider num acerto, só Ki), Punição Divina e
+  Ataque Furtivo (parte de um ataque), Recuperação Arcana (fora de combate).
+- **Surto de Ação** faz o oposto: concede uma **Ação extra** — libera a Ação já gasta do turno (`liberarAcaoExtra`).
+
+**Ficheiros:** `static/js/jogo.js` (`comEconomia`/`liberarAcaoExtra`; wrap nos handlers de Expulsar, Inspiração,
+Ki, Retomar o Fôlego, Surto, Imposição das Mãos, Consciência, Fontes de Feitiçaria, Forma Selvagem).
+
+**Verificação:** `node --check` OK · unit-regras 47/47 · 64/64 servidor. **Falta verificação ao vivo**.
+
+**Com isto o retrabalho de combate está completo**, incluindo a pendência dos poderes. Resta só a nota de que a
+trava é client-side (economia por-turno; o servidor não a força — decisão consciente, ver 2b).
+
+**Como reverter:** restaurar `versoes/2026-07-25-combate2c-poderes-economia/`, ou `git revert`.
+
+## 2026-07-25 — Combate 3/3 · Só a arma equipada ataca; sacar outra custa o turno 🤚
+
+**Backup:** `versoes/2026-07-25-combate3-armas-equipadas/` (jogo.js, regras-ficha.js, unit-regras.js).
+
+**Resumo:** terceiro e último estágio do retrabalho de combate — fecha o pedido do Ismaile ("se quiser que
+apareça outra arma perde 1 turno, igual às regras pra equipar outra arma").
+- **Só a arma EQUIPADA ataca direto** (mão principal / secundária). As demais armas da bolsa mostram
+  **"🤚 Empunhar"** no lugar do "🎲 atacar".
+- **Sacar outra arma custa a Ação** (regra 5e de trocar a arma em punho): em combate, clicar "🤚 Empunhar"
+  gasta a Ação do turno (via a economia da 2b) e equipa a arma na mão principal — então você ataca com ela no
+  **próximo** turno. Fora de combate, empunhar é livre. Arma de duas mãos limpa a mão secundária ao equipar.
+- **Arremesso segue lançável** direto da bolsa (sacar-e-lançar é parte do ataque) — não vira "empunhar".
+
+**Ficheiros:** `static/js/jogo.js` (botão "Empunhar" nas armas não-equipadas + handler `data-empunhar` que
+gasta a Ação e equipa), `static/js/regras-ficha.js` (mensagem de bloqueio da Ação genérica por tipo —
+atacando/conjurando/trocando de arma), `tests/unit-regras.js` (1 teste novo).
+
+**Verificação:** `node --check` OK · unit-regras **47/47** (1 novo: empunhar gasta a Ação e trava o ataque no
+mesmo turno) · 64/64 servidor. **Falta verificação ao vivo** em combate.
+
+**Retrabalho de combate concluído** (3 estágios): 1) descanso só o Mestre · 2a) todas as magias à mão (clérigo)
+· 2b) economia de ação com trava · 3) armas equipadas + custo de troca. Pendências anotadas para uma passada
+futura: gatear os poderes de classe (Ki/Punição/Inspiração…) na economia de ação; e a trava é client-side.
+
+**Como reverter:** restaurar `versoes/2026-07-25-combate3-armas-equipadas/`, ou `git revert`.
+
+## 2026-07-25 — Combate 2b · Economia de ação com trava de verdade ⏳
+
+**Backup:** `versoes/2026-07-25-combate2b-trava-economia/` (jogo.js, regras-ficha.js, unit-regras.js).
+
+**Resumo:** parte B do estágio 2. Agora atacar e conjurar **gastam a economia do turno de verdade** — decisão
+do Ismaile: "se já gastou a ação ou a magia, não pode usar até o próximo turno".
+- **Regra 5e:** 1 Ação + 1 Ação Bônus + 1 Reação por turno. **Atacar OU conjurar magia de ação gasta a Ação**
+  (não os dois). O **Ataque Extra** permite vários golpes de arma dentro da MESMA Ação (usa `totalAtaques`).
+  Magia de ação bônus / reação gasta o slot certo (lido do `tempo` da magia no compêndio).
+- **A trava só vale EM COMBATE e na sua vez** — fora disso, sem restrição (treino/preparação livres).
+- **Onde pega:** os botões "🎲 atacar" (armas) e "✨ Conjurar/Usar" (magias) checam a economia antes de agir; se
+  já gastou, bloqueiam com aviso ("🚫 Você já usou sua Ação…"). A faixa de economia mostra Ação/Bônus/Reação
+  com ✔ e, na Ação por ataque, "1/2 golpes".
+- **Escape hatch:** botão **"↩️ Novo turno"** reinicia a economia (Surto de Ação, Pressa/Haste, correção do
+  Mestre) — os chips também seguem clicáveis para desmarcar manualmente.
+- **Regra pura testável:** a decisão (`economiaAcao5e`) foi para `regras-ficha.js` e ganhou testes — o closure
+  do Modo de Jogo só chama a função.
+
+**Limites (honestos):** (1) a trava é **client-side** — como economia de ação é por-turno e efêmera, o servidor
+não a força (diferente de ouro/nível, que são travados no backend); é uma trava de mesa/UX. (2) Por ora só
+**armas e magias** entram na economia; os poderes de classe (Ki, Punição, Inspiração…) têm o próprio custo de
+recurso mas ainda não marcam a Ação/Bônus — fica para uma passada futura.
+
+**Ficheiros:** `static/js/regras-ficha.js` (`economiaAcao5e` pura), `static/js/jogo.js`
+(`tentarGastarEconomia`/`custoMagiaTempo`/`chaveVezAtual`/`resetEconomiaTurno`; trava nos handlers de arma e
+conjurar; faixa de economia com contagem de golpes + reset), `tests/unit-regras.js` (3 testes novos).
+
+**Verificação:** `node --check` OK · unit-regras **46/46** (3 novos: 2ª Ação bloqueia; Ataque Extra 2 golpes/3º
+bloqueia; Ação/Bônus/Reação independentes) · 64/64 servidor. **Falta verificação ao vivo** em combate.
+
+**Próximo (Combate 3/3):** só as armas EQUIPADAS ficam prontas; sacar outra da bolsa custa o turno (regra 5e).
+
+**Como reverter:** restaurar `versoes/2026-07-25-combate2b-trava-economia/`, ou `git revert`.
+
+## 2026-07-25 — Combate 2a · Todas as magias à mão no turno (clérigo não fica só com armas) ✨
+
+**Backup:** `versoes/2026-07-25-combate2a-magias-no-combate/` (jogo.js).
+
+**Resumo:** parte A do estágio 2 do retrabalho de combate. Resolve a dor principal do Ismaile: **"as skills
+não ficam disponíveis pra clérigos, só as armas."**
+- **Causa:** o bloco "✨ Conjuração" do combate só listava as magias **preparadas** (`magiasCastaveis()`); um
+  clérigo que não passou pelo passo de preparar via só truques + armas. Magias de círculo (Curar Ferimentos,
+  Raio Guia, Arma Espiritual…) ficavam invisíveis no turno.
+- **Agora:** o bloco de combate lista **todas** as magias de círculo à mão — **conhecidas + domínio/juramento
+  + preparadas** —, cada uma com os botões que já existiam (🎲 atacar / 🎲 dano-cura / ✨ Conjurar, que gasta
+  o espaço certo). As que estão **preparadas** ganham o selo "🧠 preparada"; o bloco 🧠 Magias (preparar) segue
+  existindo como destaque/limite opcional.
+- **Regra:** por RAW o clérigo só lançaria as preparadas; deixamos todas as conhecidas lançáveis no turno de
+  propósito (pedido "tudo disponível no combate" + "facilite o uso") — o espaço de magia continua sendo gasto
+  ao conjurar, então a economia de recursos permanece dentro das regras. O limite de preparadas vira algo que
+  o Mestre controla se quiser.
+
+**Ficheiros:** `static/js/jogo.js` (bloco `castHtml`: lista `castaveis` = conhecidas+domínio+preparadas; selo
+de preparada; aviso de cabeçalho).
+
+**Verificação:** `node --check` OK. **Falta verificação ao vivo** — abrir um clérigo em combate e confirmar
+que as magias de círculo aparecem com os botões de conjurar/rolar.
+
+**Próximo (Combate 2b):** economia de ação com **trava de verdade** (gastou a Ação/Bônus/slot, o botão bloqueia
+até o próximo turno / descanso).
+
+**Como reverter:** restaurar `versoes/2026-07-25-combate2a-magias-no-combate/`, ou `git revert`.
+
+## 2026-07-25 — Combate 1/3 · Descanso só o Mestre ativa 😴
+
+**Backup:** `versoes/2026-07-25-combate1-descanso-mestre/` (jogo.js, app.js, regras-ficha.js, unit-regras.js).
+
+**Resumo:** primeiro estágio do retrabalho de combate pedido pelo Ismaile (magias/poderes disponíveis no
+turno, economia de ação com trava, e descanso pelo Mestre). Este estágio faz o **descanso ser ativado só pelo
+Mestre** — a base da recuperação para a "trava de verdade" dos próximos estágios.
+- **Jogador não descansa sozinho:** os botões ☕/🌙 no Modo de Jogo agora só aparecem para o Mestre
+  (`window.EH_MESTRE`); o jogador vê "😴 O descanso é ativado pelo Mestre".
+- **Descanso do grupo (Mestre):** nova barra na aba Fichas — "☕ Curto" / "🌙 Longo" concede descanso a todas
+  as fichas vivas de uma vez (o normal ao acampar; casa com a Fase 21.5 da Mesa Viva).
+- **Regra pura reutilizável:** a lógica de descanso saiu do closure do `jogo.js` para `regras-ficha.js`
+  (`aplicarDescansoCurto5e`/`aplicarDescansoLongo5e`, funções puras que mutam a ficha) — agora o Modo de Jogo
+  e o tracker do Mestre usam a MESMA regra. Curto: recupera recursos de recarga "curto" + espaços de pacto do
+  Bruxo (não cura PV nem devolve slots). Longo: cura PV, zera slots/pacto/recursos e devolve metade dos dados
+  de vida.
+
+**Ficheiros:** `static/js/regras-ficha.js` (`aplicarDescanso*5e`), `static/js/jogo.js` (delega + esconde os
+botões do jogador), `static/js/app.js` (barra de descanso do grupo na aba Fichas), `tests/unit-regras.js`
+(2 testes novos).
+
+**Verificação:** `node --check` em todos os JS OK · unit-regras **43/43** (2 novos: curto recupera recursos
+"curto"/pacto sem tocar em PV/slots; longo zera tudo e cura) · 64/64 testes do servidor (inalterados).
+**Falta verificação ao vivo** no navegador (esconder botão do jogador + barra de grupo do Mestre).
+
+**Próximo (Combate 2/3):** kit completo no turno (armas equipadas + magias + truques + poderes como botões que
+gastam ação/slot, com trava de verdade) — resolve o "clérigo só tem armas". **Combate 3/3:** armas equipadas
++ trocar de arma custa o turno.
+
+**Como reverter:** restaurar `versoes/2026-07-25-combate1-descanso-mestre/`, ou `git revert`.
+
+## 2026-07-25 — B2 · Liberação de nível pelo Mestre (nível a nível) ⬆️
+
+**Backup:** `versoes/2026-07-25-b2-liberar-nivel/` (app.py, app.js, test-servidor.py).
+
+**Resumo:** segunda metade da Fase B. O Mestre libera o plano do jogador (B1) **um nível por vez** — o jogador
+não refaz as escolhas; o preset já planejado é aplicado na hora. **Fecha a Fase B.**
+- **Endpoint `POST /api/fichas/<id>/liberar_nivel`** (só Mestre): pega o snapshot planejado para `nivel+1` e
+  aplica à ficha em jogo via `_aplicar_snapshot_nivel` — sobe `nivel`/`hpMax`/atributos/classes/subclasse/
+  magias/talentos e **soma o ganho de PV ao PV atual**, **preservando o estado transitório** (ouro, xp, itens,
+  condições). O nível liberado é **consumido** de `progressaoPlanejada` (os futuros ficam).
+- **Liberar em massa `POST /api/fichas/liberar_nivel_todos`** (só Mestre): sobe um nível de **todas** as fichas
+  vivas que têm próximo nível planejado — o normal ao subir o grupo numa sessão.
+- **UI do Mestre** (aba Fichas): cada card com plano ganha **"⬆️ Liberar nível X"** + um aviso "📈 Plano do
+  jogador pronto até o nível Y"; uma barra no topo oferece **"⬆️ Liberar próximo nível de todos"**.
+- **Log da campanha:** `_registrar_evento` grava "Fulano subiu para o nível X (liberado pelo Mestre)" em
+  `estado.eventos` (últimos 50) — flui aos jogadores pela projeção pública. O feed rico em tempo real segue
+  sendo a Fase 21.1; aqui é só o registro.
+- **Segurança:** só o papel **mestre na campanha** chega às rotas (`login_obrigatorio(papeis=['mestre'])`); o
+  jogador é bloqueado (testado). Combinado com a trava B1 (o jogador não sobe `nivel`/`hpMax` sozinho),
+  **subir de verdade é 100% decisão do Mestre**.
+
+**Ficheiros:** `app.py` (`eventos` no schema; `_registrar_evento`, `_aplicar_snapshot_nivel`,
+`_liberar_proximo_nivel`; rotas `/api/fichas/<id>/liberar_nivel` e `/api/fichas/liberar_nivel_todos`),
+`static/js/app.js` (botões + handlers no card e barra de grupo), `tests/test-servidor.py` (8 casos B2),
+`docs/ROADMAP-ACESSO-INTERFACE.md` (B2 ✅ · Fase B concluída).
+
+**Nota (edge conhecido):** o Mestre ainda tem o botão direto "⬆️ Subir de Nível" no Modo de Jogo (override
+manual) que NÃO consome o plano — misturar os dois pode desalinhar `progressaoPlanejada` com o nível real.
+Uso normal é liberar pelo card. Documentado para uma passada futura, se incomodar.
+
+**Verificação:** `py_compile app.py` OK · **64/64** testes do servidor (8 novos B2: jogador não libera; Mestre
+libera; nível/PV/subclasse do plano aplicados; nível consumido; sem-plano recusa; liberação em massa) ·
+`node --check` OK · unit 41/41. **Falta verificação ao vivo** do botão de liberar no navegador.
+
+**Como reverter:** restaurar `versoes/2026-07-25-b2-liberar-nivel/`, ou `git revert`.
+
+## 2026-07-25 — B1 · Plano de evolução do jogador (planejar agora, valer depois) 📈
+
+**Backup:** `versoes/2026-07-25-b1-plano-progressao/` (app.py, nivel.js, jogo.js, test-servidor.py).
+
+**Resumo:** primeira metade da Fase B (evolução só com permissão do Mestre). O jogador passa a **planejar** a
+subida até o nível 20 sem tocar na ficha em jogo; a liberação nível a nível pelo Mestre é a B2.
+- **Furo fechado:** hoje o botão "⬆️ Subir de Nível" do jogador escrevia direto na ficha (o servidor travava
+  ouro/xp/itens, mas **não** `nivel`/`hpMax`) — ou seja, **o jogador se auto-upava**. Agora o servidor
+  **preserva `nivel` e `hpMax`** do gravado no ramo do jogador (PUT `_sanitizar_fichas_jogador` **e** PATCH).
+  Fichas novas (criação) não são afetadas — a trava só vale para ficha já gravada.
+- **Planejamento (cliente):** para o jogador, o botão vira **"📈 Planejar Evolução"** (ou "Revisar Plano").
+  Ele abre o assistente de Subida de Nível em **modo plano** rodando numa **CÓPIA** da ficha — escolhe
+  subclasse/ASI/magias nível a nível até o 20 (ou cancela para concluir até onde chegou). Nada muda na ficha
+  em jogo; o resultado é um **snapshot por nível** salvo em `ficha.progressaoPlanejada`. A ficha do jogador
+  mostra "📈 Plano: níveis X–Y planejados. **Aguardando liberação do Mestre.**"
+- **`nivel.js` (modo plano):** `Nivel.abrir(ficha, {modoPlano, aoSalvar, aoConcluir})` — encadeia os níveis no
+  mesmo modal (a ficha passada é a cópia), e chama `aoConcluir` ao concluir/cancelar/fechar para o controlador
+  persistir o plano. Motor de aplicação (`confirmar`) inalterado — o modo normal do Mestre segue idêntico.
+- **Servidor:** `_normalizar_progressao()` valida `progressaoPlanejada` (lista de até 19 snapshots, campos
+  coagidos a limites sãos) — é **dado inerte**, não altera o nível efetivo.
+
+**Nota (edge conhecido):** com a trava mínima escolhida (só `nivel`/`hpMax`), um jogador ainda pode editar os
+próprios atributos no Criador; se mudar CON, o PV máx. NÃO acompanha (fica travado no gravado). É consistente
+com a decisão "só nível e PV máx." — atributos/magias ficam livres de propósito.
+
+**Ficheiros:** `app.py` (trava `nivel`/`hpMax` nos 2 ramos do jogador; `_normalizar_progressao` +
+chamada em `_normalizar_ficha`), `static/js/nivel.js` (modo plano: `fecharModal`, `aoConcluir`, encadeamento,
+título/aviso), `static/js/jogo.js` (`planejarEvolucao`/`_snapProgressao`, botão por papel, status do plano,
+wiring), `tests/test-servidor.py` (4 casos B1), `docs/ROADMAP-ACESSO-INTERFACE.md` (B1 ✅).
+
+**Verificação:** `py_compile app.py` OK · **56/56** testes do servidor (4 novos B1: jogador não sobe nível;
+não infla PV máx.; plano é salvo inerte; Mestre sobe o nível) · `node --check` em todos os JS OK ·
+unit-regras 41/41. **Falta verificação ao vivo** do modal de planejamento no navegador (fluxo depende de
+login + ficha) — vale o Ismaile abrir e planejar uma vez.
+
+**Como reverter:** restaurar `versoes/2026-07-25-b1-plano-progressao/`, ou `git revert`.
+
+## 2026-07-25 — A4 · Trancar a economia (o ouro sai da mão do jogador) 💰🔒
+
+**Backup:** `versoes/2026-07-25-a4-trancar-economia/` (app.py, test-servidor.py).
+
+**Resumo:** quarta entrega do roadmap de Acesso & Interface. A A4 pede "remover a opção do player
+adicionar ouro — o ouro quem dá é o Mestre ou o loot". Ao auditar, **a maior parte já estava feita** por
+fases anteriores; esta entrega **fecha o único furo que restava** (itens).
+- **Botões de ouro/XP:** já eram escondidos do jogador (gated por `window.EH_MESTRE` em `jogo.js`) — o
+  jogador vê o ouro e a dica "ganhe do Mestre ou vendendo; gaste na 🛒 Loja". Nada a mudar.
+- **Ouro no servidor:** já travado em `_sanitizar_fichas_jogador` (PUT) e no ramo do jogador do PATCH
+  (Fase 18.1) — o valor é sempre preservado do gravado.
+- **Loja Especial:** abrir/comprar já exige liberação do Mestre (`lojaEspecialLiberada` + `_preco_loja_jogo`
+  validam no servidor).
+- **NOVO — trava de itens (A4):** o jogador podia adicionar um item caro à ficha por PUT/PATCH cru e
+  vendê-lo por ouro no `/api/loja_base|lojas/vender` (que credita ouro no servidor), **furando a trava de
+  ouro**. Agora `itens` da ficha do jogador **só pode encolher**: novo helper `_itens_sem_ganho()` limita a
+  lista a um sub-multiconjunto do gravado (remover/consumir é livre; adicionar item novo é descartado).
+  Entradas legítimas continuam: Mestre (loot, papel mestre) e as lojas validadas gravam a ficha ANTES do
+  próximo save do jogador, então o item já está no gravado. **Equipar não é afetado** — `ficha.equipado` só
+  referencia o nome, não move o item para fora de `ficha.itens`.
+
+**Ficheiros:** `app.py` (`from collections import Counter`; helper `_itens_sem_ganho`; aplicado nos dois
+ramos protegidos — `_sanitizar_fichas_jogador` e o PATCH do jogador; docstring atualizada),
+`tests/test-servidor.py` (4 casos novos A4), `docs/ROADMAP-ACESSO-INTERFACE.md` (A4 ✅).
+
+**Verificação:** `py_compile app.py` OK · **52/52** testes do servidor (4 novos A4: preserva itens quando o
+jogador não mexe; jogador NÃO adiciona item novo; itens legítimos permanecem; jogador CONSEGUE remover) ·
+`node --check` em todos os JS OK · unit-regras 41/41.
+
+**Como reverter:** restaurar `versoes/2026-07-25-a4-trancar-economia/`, ou `git revert`.
+
+## 2026-07-22 — A3 · Cores por categoria nos menus 🎨
+
+**Backup:** `versoes/2026-07-22-a3-cores-categoria/` (style.css, app.js, jogador.js, mestre.html, jogador.html).
+
+**Resumo:** terceira entrega do roadmap de Acesso & Interface. Os menus ganharam **linguagem de cor por
+categoria**, reusando o `data-mode` das Fases 17.1/17.2 (nada de navegação nova).
+- **Faixa no topo:** `.topbar` com borda inferior de 3px na cor do modo atual — a pista "onde estou".
+- **Botão de modo:** barra lateral na própria cor mesmo desligado; quando ligado, **fundo cheio** na cor.
+- **Abas herdam a cor do modo** a que pertencem (🎲 Jogar/Mesa vermelho · 📝 Preparar azul · 📖 Consultar roxo).
+- **Contraste:** o texto sobre a cor viva passou de branco para **escuro (`--cat-tinta`)** — bem melhor para AA.
+  E a cor **nunca é a única pista**: todo botão de modo já tem ícone + texto.
+- **Como liga:** `mostrarModo()` (em `app.js` e `jogador.js`) marca **`body[data-modo-ativo]`**; o CSS deriva
+  `--cat`/`--cat-soft` daí. **Não usei `:has()`** de propósito — já tinha apanhado, na A2, que este motor não
+  reinvalida `:has()` de forma confiável.
+
+**Ficheiros:** `static/css/style.css` (bloco A3 + `--cat-*-soft`, `--cat-tinta`), `static/js/app.js` e
+`static/js/jogador.js` (1 linha em `mostrarModo`), `docs/ROADMAP-ACESSO-INTERFACE.md` (A3 ✅).
+
+**Verificação:** `node --check` OK · sintaxe de todos os JS OK. Cores conferidas em **carregamento limpo**:
+`/jogador` (modo *mesa*) → faixa, botão de modo e aba **todos vermelhos** com texto escuro `rgb(18,18,31)`;
+`/mestre` (modo *preparar*) → **todos azuis**; aba de *consultar* → **roxo**. Troca dinâmica conferida no DOM
+(`data-modo-ativo` muda, `.on` anda, abas recolorem).
+
+⚠️ **Limite da verificação (honesto):** o navegador embutido do preview devolve `getComputedStyle` **em cache** —
+provei injetando uma regra `!important` nova que **não** alterou a leitura. Por isso o **repaint da faixa do
+topo ao trocar de modo não pôde ser medido** ali. O CSS está correto (comprovado no carregamento) e o DOM muda
+certo, mas **vale uma olhada ao vivo** no navegador de verdade.
+
+**Fica para a A3b:** hierarquia de botão (primário × secundário × perigo) revista tela a tela.
+
+**Como reverter:** restaurar `versoes/2026-07-22-a3-cores-categoria/`, ou `git revert`.
+
+## 2026-07-22 — A2 · Papéis globais + gate central de admin 🛡️
+
+**Backup:** `versoes/2026-07-22-a2-papeis-gate/` (app.py, registro.html).
+
+**Resumo:** segunda entrega do roadmap de Acesso & Interface. O "admin" deixou de ser uma dedução espalhada
+pelo código e virou papel de verdade, com uma porta única.
+- **`papelGlobal` = `admin` | `mestre` | `jogador`** (`PAPEIS_GLOBAIS`), com
+  **`PAPEIS_CADASTRO = ('mestre','jogador')`** — o formulário **nunca** cria admin.
+- **Escolha no cadastro:** dois cartões-rádio "🧝 Jogador" / "🎲 Mestre" no `registro.html`. O servidor valida:
+  quem **injetar `papelGlobal=admin` no POST vira jogador** (tem teste).
+- **Gate central `@exige_papel(*papeis)`:** responde **403 JSON** em `/api/` e redireciona ao hub no resto.
+  Aplicado a `/admin/dashboard` e `/admin/assinaturas`, substituindo o `if not eh_legado_mestre(...)` repetido.
+  *(Eixos diferentes, registrado no código: `exige_papel` = papel GLOBAL; `login_obrigatorio(papeis=...)` =
+  papel DENTRO da campanha.)*
+- **`eh_admin()` é o único ponto que decide quem é dono.** Os 4 usos de `eh_legado_mestre` espalhados (bypass
+  de escrita em campanha inativa, lista de campanhas, renovar campanha, flag do template) passaram a chamá-lo —
+  e `papel_na_campanha()` devolve `mestre` para o admin em **qualquer** campanha, o que já libera as fichas de
+  todos (o `_pode_usar_ficha` confia no papel da campanha).
+- **Migração:** `legacy:Ismaile` segue admin automaticamente; nenhuma conta existente muda de papel.
+
+**Ficheiros:** `app.py` (`PAPEIS_*`, `eh_admin`, `papel_global_efetivo`, `exige_papel`, registo com papel),
+`templates/registro.html` (escolha de papel), `static/css/style.css` (`.papel-*`),
+`tests/test-servidor.py` (+13 casos), `docs/ROADMAP-ACESSO-INTERFACE.md` (A2 ✅).
+
+**Verificação:** `ast.parse` OK · **48/48 testes do servidor** ✅ (era 35). Os 13 novos cobrem: hub com 4 cards
+p/ admin e 1 p/ jogador; jogador barrado dos modos `adm`/`total`/`mestre` e liberado no próprio; jogador
+**não abre** `/admin/dashboard` nem `/admin/assinaturas` e o admin abre; `admin` fora de `PAPEIS_CADASTRO`;
+injeção de `papelGlobal=admin` recusada; cadastro como Mestre grava `mestre`. E2E no navegador: formulário com
+as 2 opções, padrão Jogador, **sem** opção admin, e o realce acompanha a seleção.
+
+**Nota técnica:** o realce do cartão usava só `:has(input:checked)`; o navegador embutido não reinvalida `:has()`
+ao trocar o rádio (funciona no carregamento, não no clique). Somei um seletor de irmão
+(`input:checked ~ .papel-nome`), que invalida sempre. Comportamento do formulário nunca esteve afetado.
+
+**Como reverter:** restaurar `versoes/2026-07-22-a2-papeis-gate/`, ou `git revert`.
+
+**Próximo (A3):** cores por categoria nos menus, reusando as variáveis `--cat-*` e o `data-mode` das Fases 17.x.
+
+## 2026-07-22 — A1 · Hub de modos depois do login 🔐 (Acesso & Interface)
+
+**Backup:** `versoes/2026-07-22-a1-hub-acesso/` (app.py, login.html, campanhas.html, mestre.html, jogador.html,
+style.css).
+
+**Resumo:** primeira entrega do novo roadmap `docs/ROADMAP-ACESSO-INTERFACE.md`. O admin deixou de ser um
+endereço secreto e o login passou a ter uma porta de entrada clara.
+- **Nova tela `/hub`** (`templates/hub.html`): cards grandes, um por modo — **💰 ADM Créditos & Finanças**,
+  **👑 Mestre Controle Total**, **🎲 Mestre**, **🧝 Jogador** — cada um com ícone, descrição e **cor da
+  categoria**. Só aparecem os modos a que a conta tem direito.
+- **Divisão de papéis** (`modos_disponiveis`): admin vê os 4; conta `mestre` vê só Mestre; conta `jogador` vê
+  só Jogador — a divisão limpa que o Ismaile pediu.
+- **Sem tela extra para quem tem 1 papel só:** `/hub` entra direto; **`/hub?escolher=1`** força os cards e é o
+  link **"⇄ Trocar de modo"** posto no topo do Mestre, Jogador, Campanhas e Admin.
+- **Guard no servidor:** `/modo/<chave>` só aceita modo permitido — jogador que tenta `/modo/adm` ou
+  `/modo/total` volta ao hub. Esconder o card seria só UI; a trava é no servidor.
+- **`papel_global_efetivo()`** isola "quem é admin" (hoje deduz do mestre legado) num ponto só — é onde a
+  **Fase A2** vai plugar o `papelGlobal='admin'` de verdade, sem caçar `eh_legado_mestre` espalhado.
+- **Paleta por categoria** em `style.css` (`--cat-jogar/preparar/consultar/financas/total`) — nasce aqui e
+  será reusada pela **A3** nos menus/abas (`data-mode` das Fases 17.1/17.2).
+
+**Ficheiros:** `app.py` (helpers + rotas `/hub` e `/modo/<chave>`; login, registo e `index` passam pelo hub),
+`templates/hub.html` (novo), `templates/{mestre,jogador,campanhas,admin_dashboard}.html` (link trocar de modo),
+`static/css/style.css` (`.hub-*`, `.trocar-modo`, `--cat-*`), `docs/ROADMAP-ACESSO-INTERFACE.md` (A1 ✅).
+
+**Verificação:** `python -c ast.parse` OK · **35/35 testes do servidor** ✅. E2E em **navegador real**: login como
+admin → `/hub` com os 4 cards nas cores certas (verde/dourado/vermelho/azul); `/modo/adm`→`/admin/dashboard`,
+`total`→`/mestre`, `mestre`→`/mestre`, `jogador`→`/jogador`, modo inválido→hub. Conta `jogador`: login cai
+direto em `/jogador` (sem tela extra), `?escolher=1` mostra **1 card só**, e `/modo/adm` e `/modo/total` são
+**barrados** de volta ao hub.
+
+**Nota:** rodar `tests/test-servidor.py` no Windows exige `PYTHONIOENCODING=utf-8` (o cp1252 do console quebra
+ao imprimir ✅/❌) — não é falha do código.
+
+**Como reverter:** restaurar `versoes/2026-07-22-a1-hub-acesso/` (e apagar `templates/hub.html`), ou `git revert`.
+
+**Próximo (A2):** `papelGlobal` = admin|mestre|jogador de verdade, escolha Mestre-ou-Jogador no cadastro e
+decorator `@exige_papel` central.
+
+## 2026-07-22 — F5a · Magias de domínio (Clérigo) e juramento (Paladino) 🕮⚜️
+
+**Backup:** `versoes/2026-07-22-f5a-dominios-juramentos/` (compendio.js, jogo.js, criador.js, unit-regras.js,
+ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** primeira parte da F5. Domínios e juramentos deixaram de ser só texto: as magias que eles concedem
+agora são **ganhas por nível, sempre preparadas e fora do limite** de preparadas.
+- **Dados (`compendio.js`):** `MAGIAS_SUBCLASSE` com **7 domínios do Clérigo** (níveis 1/3/5/7/9) e
+  **3 juramentos do Paladino** (3/5/9/13/17) + `magiasSubclasse5e(subclasse, nivel)` (acumula por nível) e
+  `rotuloMagiaSubclasse`. Só entram magias que **existem** no `MAGIAS_DETALHE` — um teste de integridade
+  bloqueia nome órfão; onde a magia oficial ainda não existe no compêndio, a dupla fica com uma só.
+- **Modo de Jogo (`jogo.js`):** `magiasSubclasseFicha()` alimenta `magiasCastaveis()` → as magias de
+  domínio/juramento viram **cards castáveis na ✨ Conjuração** (gastam espaço normalmente) e ganham o grupo
+  "🕮 Do seu domínio — X" / "⚜️ Do seu juramento — X (sempre preparadas · não contam no limite)". Como são
+  virtuais (derivadas de subclasse+nível), **não entram em `ficha.preparadas`** e por isso não inflam o contador.
+- **Criador (`criador.js`):** linha na Conjuração do preview listando as magias do domínio/juramento.
+
+**Ficheiros:** `static/js/compendio.js`, `static/js/jogo.js`, `static/js/criador.js`, `tests/unit-regras.js`
+(+4 casos), `docs/ROADMAP-FICHAS-COMBATE.md` (F5a ✅, F5b/F5c abertos).
+
+**Verificação:** `node --check` OK · `npm test` **41/41** ✅ (integridade contra o compêndio; subclasse existe em
+SUBCLASSES; acumulação por nível; rótulo domínio×juramento). E2E em **navegador real**: Clérigo N5 Domínio da
+Vida → grupo com as 5 magias certas e contador de preparadas ainda **1/8** (domínio não conta); Paladino N5
+Juramento da Vingança → as 4 magias do juramento (Bane, Marca do Caçador, Imobilizar Pessoa, Passo Enevoado).
+
+**Nota de teste:** arrays devolvidos pelo contexto `vm` são de outro realm — comparar com
+`assert.deepStrictEqual` falha na checagem de protótipo. Usar tamanho/`includes`.
+
+**Como reverter:** restaurar `versoes/2026-07-22-f5a-dominios-juramentos/`, ou `git revert`.
+
+## 2026-07-22 — C6 · Efeitos de ataque → condição com 1 toque ⤷
+
+**Backup:** `versoes/2026-07-22-c6-efeitos-condicoes/` (compendio.js, app.js, unit-regras.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** Fase C6 do roadmap Fichas & Combate. No rastreador de combate do Mestre, ataques com efeito conhecido
+agora sugerem aplicar a condição no alvo — antes o Mestre lembrava e marcava na mão.
+- **Detecção pura:** novo `efeitosDoAtaque(texto)` (`compendio.js`) lê o texto do ataque e devolve
+  `[{cond, cd, salva}]` — reconhece derrubar (Caído), agarrar (Agarrado), prender/teia (Impedido), envenenar,
+  atordoar, amedrontar, paralisar, cegar, adormecer (Inconsciente), enfeitiçar, surdo. Extrai a **CD** e o
+  **atributo da salva** (ex.: "FOR CD 11").
+- **Nova condição Impedido** (Restrained) adicionada às `CONDICOES` — faltava no toolkit (usada por teia/redes).
+- **UI (`app.js`):** cada ação de ataque no card do combatente ganha, ao lado, um botão tracejado
+  **"⤷ {Condição} CD X"** (título explica a salva). Clicar **aplica a condição no alvo selecionado** (🎯) e
+  registra no log ("Lobo → Goblin 2: aplicou Caído"). Sem alvo, avisa para selecionar um. Estilo `.comb-efeito`
+  em `style.css`.
+
+**Ficheiros:** `static/js/compendio.js` (+`efeitosDoAtaque`, +condição Impedido), `static/js/app.js` (botões no
+render + handler), `static/css/style.css` (`.comb-efeito`), `tests/unit-regras.js` (+2 casos),
+`docs/ROADMAP-FICHAS-COMBATE.md` (C6 ✅).
+
+**Verificação:** `node --check` OK · `npm test` **37/37** ✅ (detecção de cond/CD/salva; toda condição devolvida
+existe em CONDICOES; Impedido presente). E2E em **navegador real** (Browser pane, Mestre): combate com Lobo +
+Goblin alvo → a Mordida do Lobo mostrou "⤷ Caído CD 11" (título "falha em FOR CD 11"); clicar aplicou Caído no
+Goblin e logou; ataque sem efeito (Cimitarra) não gera botão.
+
+**Como reverter:** restaurar `versoes/2026-07-22-c6-efeitos-condicoes/`, ou `git revert`.
+
+**Próximo (roadmap Fichas & Combate):** **C7** (economia de ação do turno no Mestre — parte já absorvida pela
+Fase T no jogador) ou **F5** (subclasses com efeito mecânico completo).
+
+## 2026-07-22 — F3b · Druida — Forma Elemental 🌙 (Círculo da Lua N10)
+
+**Backup:** `versoes/2026-07-22-f3b-forma-elemental/` (formaselvagem.js, jogo.js, unit-regras.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** Fase F3b do roadmap Fichas & Combate. O Druida do Círculo da Lua (N10) agora pode gastar **2 usos**
+de Forma Selvagem para virar um **Elemental**.
+- **4 elementais** (Ar/Terra/Fogo/Água, ND 5, stats do MM em metros) num catálogo próprio `FORMAS_ELEMENTAIS`
+  (`formaselvagem.js`), com CA/PV/deslocamento/atributos físicos/ataques (Multiataque + Golpe/Toque)/traços
+  (Forma Aérea, Deslizar na Terra, Forma Ígnea, Sorver, resistências…).
+- **Separados das feras:** não entram na lista normal (que filtra por ND ≤ teto — elementais são ND 5), mas
+  `formaSelvagemDados` os encontra para o painel/PV da forma ativa. Novo `formasElementaisDisponiveis(nivel,
+  subclasse)` só devolve as 4 na **Lua N10+**.
+- **Modo de Jogo (`jogo.js`):** seletor **🌙 Forma Elemental (2 usos)** abaixo do seletor de feras; transformar
+  reusa o painel da forma ativa (dano/cura/reverter) com cabeçalho 🌙. `transformarEm(nome, custo)` unifica fera
+  (1 uso) e elemental (2); guard rejeita se faltam usos (Arquidruida N20 = ilimitado).
+
+**Ficheiros:** `static/js/formaselvagem.js` (+catálogo, +helper, `formaSelvagemDados`+exports), `static/js/jogo.js`
+(seletor elemental, `transformarEm`, cabeçalho 🌙), `tests/unit-regras.js` (+3 casos), `docs/ROADMAP-FICHAS-COMBATE.md`
+(F3b ✅).
+
+**Verificação:** `node --check` OK · `npm test` **35/35** ✅ (elementais só na Lua N10; achados por
+formaSelvagemDados; fora da lista de feras). E2E em **navegador real** (Browser pane): Druida Lua N10 → seletor
+com os 4 elementais e botão ativo (2/2); virar Elemental do Fogo gastou 2 usos, painel "🌙 Forma Elemental —
+Elemental do Fogo · 102 PV · Multiataque", log correto; N9 e outro Círculo sem o bloco; N10 com 1 uso → botão
+travado.
+
+**Como reverter:** restaurar `versoes/2026-07-22-f3b-forma-elemental/`, ou `git revert`.
+
+**Próximo (roadmap Fichas & Combate):** F3 (Conjuração Atemporal N18) ou **C6** (efeitos → condições com 1 toque).
+
+## 2026-07-21 — F4 · Cartão-resumo de combate ⚔️ (Criador + PDF)
+
+**Backup:** `versoes/2026-07-21-f4-cartao-combate/` (regras-ficha.js, criador.js, jogo.js, _criador.html,
+unit-regras.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** Fase F4 do roadmap Fichas & Combate. O jogador novo terminava a ficha sem saber o que faz no turno;
+agora a **etapa final do Criador** (passo 6) e o **PDF** mostram o mesmo cartão **"⚔️ Seu personagem em combate"**.
+- **Conteúdo (a "cola" do turno):** CA · PV · deslocamento · iniciativa; **ataque principal** (arma da mão
+  principal, ou a de maior bônus de acerto) com acerto/dano; **melhor magia** (maior CD entre as classes +
+  ataque mágico + truque/magia de destaque); e o **recurso de classe a não esquecer** (Fúria, Ki, Canalizar,
+  Retomar o Fôlego…).
+- **Fonte única:** `resumoCombate5e(f)` escolhe os números (função PURA em `regras-ficha.js`, cai no modo
+  monoclasse sem `ataqueArma`/`classesAtuais`) e `cartaoCombateHtml(f, {ca,pv,deslocamento,iniciativa})` monta o
+  **mesmo markup** (estilos inline, tema-resiliente) para os dois lugares — Criador e PDF não divergem.
+- **Criador:** novo `#cResumoCombate` no topo do passo 6 (`_criador.html`), populado no `renderPreview` (criador.js).
+- **PDF:** cartão inserido logo após a linha de stats em `exportarFichaPDF` (jogo.js).
+
+**Ficheiros:** `static/js/regras-ficha.js` (+`resumoCombate5e`, +`cartaoCombateHtml`, exports), `static/js/criador.js`
+(render no passo 6), `static/js/jogo.js` (card no PDF), `templates/_criador.html` (container), `tests/unit-regras.js`
+(+3 casos), `tests/e2e-pdf.js` (+asserções do card no PDF), `docs/ROADMAP-FICHAS-COMBATE.md` (F4 ✅).
+
+**Verificação:** `node --check` OK · `npm test` **32/32** ✅ (3 novos: melhor CD + recurso; guerreiro sem conj;
+markup do cartão). E2E em **navegador real** (Browser pane): funções globais pegam a Espada Longa equipada
+(+5 · 1d10+3) e o recurso; Criador com Guerreiro → `#cResumoCombate` renderiza "CA 18 · PV 13 · 30m · Inic +2 ·
+Ataque: Espada Longa +5 · Não esqueça: Retomar o Fôlego". Asserções do card no PDF adicionadas ao `e2e-pdf.js`
+(roda no CI). Nota: disparar o print do PDF na aba do preview trava o diálogo nativo — verifiquei o card pelo
+caminho puro + Criador + teste de CI, sem imprimir ao vivo.
+
+**Como reverter:** restaurar `versoes/2026-07-21-f4-cartao-combate/`, ou `git revert`.
+
+**Próximo (roadmap Fichas & Combate):** **F3b** (Forma Elemental do Druida, Círculo da Lua N10) ou **C6/C7**.
+
+## 2026-07-21 — F2 (fecho) · Ladino 🃏 + Patrulheiro 🐾 — FASE F2 CONCLUÍDA
+
+**Backup:** `versoes/2026-07-21-f2-ladino-patrulheiro/` (jogo.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** 4ª e 5ª "menores" da FASE F2 (num commit — ambas eram "só texto"). **Conclui a FASE F2** — as 12
+classes têm agora (a) painel no Criador, (b) recurso rastreável e (c) ação com card/botão/toggle.
+- **🃏 Ação Ladina (Ladino N2+):** card-lembrete das 3 opções de **ação bônus** (Disparar, Desengajar,
+  Esconder-se), deixando claro que é grátis a cada turno (não gasta recurso). Fecha o "só texto".
+- **🐾 Consciência Primitiva (Patrulheiro N3+):** card com botão **🐾 Sondar** que **gasta o menor espaço de
+  magia disponível** e registra no Histórico a sondagem (aberrações, celestiais, corruptores, dragões,
+  elementais, fadas ou mortos-vivos a até 1,5 km / 6 km em terreno favorito; sem número nem localização, 1 min
+  por nível do espaço). Botão desabilita sem espaço.
+
+**Ficheiros:** `static/js/jogo.js` (`patrulheiroConsciencia`/`conscienciaPrimitiva`, os 2 cards, handler, índice
+T3, inserção no HTML), `docs/ROADMAP-FICHAS-COMBATE.md` (linhas Ladino/Patrulheiro ✅, F2 marcada CONCLUÍDA).
+
+**Verificação:** `node --check` OK · `npm test` **29/29** ✅. E2E em **navegador real** (Browser pane): Ladino N3 →
+card com as 3 opções; Patrulheiro N3 com espaço de 1º → botão gastou o espaço ({1:1}) e logou a sondagem com os
+tipos corretos.
+
+**Como reverter:** restaurar `versoes/2026-07-21-f2-ladino-patrulheiro/`, ou `git revert`.
+
+**Próximo (roadmap Fichas & Combate):** **F4** — cartão-resumo de combate no fim do Criador ("cola" do jogador).
+
+## 2026-07-21 — F2 (fecho) · Paladino — Imposição das Mãos 🙏 (distribuir cura)
+
+**Backup:** `versoes/2026-07-21-f2-paladino-impmaos/` (jogo.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** 3ª das "menores" da FASE F2. A reserva da Imposição das Mãos já era rastreável (pool em Recursos de
+Classe), mas gastar era manual no −/+. Agora há um card no Modo de Jogo (`jogo.js`).
+- **Card 🙏 Imposição das Mãos** (só p/ Paladino) com a reserva (5×nível PV) no cabeçalho.
+- **Curar-me N:** input + botão que gasta N da reserva e **cura o próprio PV** (respeitando o máximo), logando.
+- **−5: doença/veneno:** botão que gasta 5 da reserva para neutralizar uma doença OU um veneno.
+- **Aliados:** hint explica que curar um aliado gasta a mesma reserva (o PV entra na ficha dele). Botões
+  desabilitam sem reserva; a reserva volta no descanso longo (`rec: longo`).
+
+**Ficheiros:** `static/js/jogo.js` (`paladinoImpMaos`/`impMaosRestam`/`imposicaoDasMaos`/`imposicaoDoencaVeneno`,
+card, handlers, índice T3), `docs/ROADMAP-FICHAS-COMBATE.md` (linha do Paladino ✅).
+
+**Verificação:** `node --check` OK · `npm test` **29/29** ✅. E2E em **navegador real** (Browser pane): Paladino N5
+(reserva 25/25), ferido 20/44 → "Curar-me 8" curou p/ 28/44 e baixou a reserva p/ 17; "−5 doença/veneno" baixou
+p/ 13; ambos logados.
+
+**Como reverter:** restaurar `versoes/2026-07-21-f2-paladino-impmaos/`, ou `git revert`.
+
+## 2026-07-21 — F2 (fecho) · Mago — Recuperação Arcana 🔮 (botão)
+
+**Backup:** `versoes/2026-07-21-f2-mago-recuperacao/` (jogo.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** 2ª das "menores" da FASE F2. A Recuperação Arcana (Mago N1) não tinha botão; agora é um card no
+Modo de Jogo (`jogo.js`).
+- **Card 🔮 Recuperação Arcana** (só p/ Mago) com o orçamento **⌈nível/2⌉ níveis de círculo** e um botão.
+- **Efeito real:** recupera os espaços gastos do **círculo mais alto para o mais baixo** (nenhum acima do 5º),
+  cabendo no orçamento — one-click, registrando no Histórico o que voltou (ex.: "1× 3º").
+- **Limite:** **1×/descanso longo** (`ficha.recArcanaUsada`, resetado no descanso longo). Botão desabilita se já
+  usada ou se não há espaço de 1º-5º gasto para recuperar.
+
+**Ficheiros:** `static/js/jogo.js` (`magoDaFicha`/`recuperacaoArcana`, card, handler, índice T3, reset no descanso
+longo), `docs/ROADMAP-FICHAS-COMBATE.md` (linha do Mago ✅).
+
+**Verificação:** `node --check` OK · `npm test` **29/29** ✅. E2E em **navegador real** (Browser pane): Mago N6
+(orçamento 3) com espaços gastos {1:2,2:1,3:1} → botão recuperou 1× 3º (o mais valioso que cabe), marcou como
+usada, desabilitou e logou.
+
+**Como reverter:** restaurar `versoes/2026-07-21-f2-mago-recuperacao/`, ou `git revert`.
+
+## 2026-07-21 — F2 (fecho) · Bárbaro — Ataque Descuidado 💥 (toggle de vantagem)
+
+**Backup:** `versoes/2026-07-21-f2-barbaro-descuidado/` (jogo.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** 1ª das "menores" da FASE F2. O Ataque Descuidado (Bárbaro N2) era só texto; agora é um **toggle**
+funcional no Modo de Jogo (`jogo.js`).
+- **Toggle 💥 Ataque Descuidado** na barra "🎯 O teu turno" (só aparece p/ Bárbaro N2+), estado em
+  `ficha.estadoTatico.descuidado`.
+- **Efeito real:** ligado, os ataques **corpo a corpo com Força** (nem à distância, nem com Destreza) passam a
+  **rolar com vantagem** — botão 🎲 atacar ganha `data-descuidado` e o handler força vantagem via
+  `d20Modo(forcarVantagem)`; se o jogador já escolheu desvantagem, os dois se cancelam (→ normal, regra do PHB).
+  Selo "💥 vant." no ataque afetado.
+- **Aviso honesto:** cabeçalho de Ataques mostra "inimigos têm vantagem contra você até seu próximo turno".
+
+**Ficheiros:** `static/js/jogo.js` (`d20Modo` com override, cálculo `descuidadoAtivo`, selo/`data-descuidado` nos
+ataques, chip + handler, aviso no cabeçalho), `docs/ROADMAP-FICHAS-COMBATE.md` (linha do Bárbaro ✅).
+
+**Verificação:** `node --check` OK · `npm test` **29/29** ✅. E2E em **navegador real** (Browser pane): Bárbaro N2 com
+Machado Grande (corpo a corpo) + Arco Curto (distância) → toggle liga `estadoTatico.descuidado`, aviso no
+cabeçalho, só o Machado recebe `data-descuidado="1"`; ataque do Machado logou "d20 1/20→20 (vant.)" (pegou o
+maior); o Arco continua normal.
+
+**Como reverter:** restaurar `versoes/2026-07-21-f2-barbaro-descuidado/`, ou `git revert`.
+
+## 2026-07-21 — F2 · Guerreiro — Retomar o Fôlego 💨 + Surto de Ação ⚡
+
+**Backup:** `versoes/2026-07-21-f2-guerreiro-folego/` (jogo.js, ROADMAP-FICHAS-COMBATE.md).
+
+**Resumo:** 5ª (e última das "grandes") correção da FASE F2. Novo card **💨 Retomar o Fôlego** no Modo de Jogo
+(`jogo.js`) para o Guerreiro — fecha a lacuna "Retomar o Fôlego era só um contador, não rolava/curava".
+- **Retomar o Fôlego (N1):** botão que rola **1d10 + nível de Guerreiro**, **cura de fato** (respeitando o PV
+  máximo) e gasta 1 uso — `rec: curto`, 1×/descanso curto — registrando no Histórico o detalhe da rolagem
+  (`1d10+3 = 11 [8+3] → +11 PV`).
+- **Surto de Ação (N2+):** no mesmo card, botão **⚡ Surto de Ação** que gasta 1 uso (2 usos no N17) e loga a
+  ação adicional do turno.
+- **Guards:** cada botão desabilita quando não há uso; ambos os pontos usam o **mesmo contador** de "Recursos
+  de Classe" (fonte única `recursosDeClasse5e`). Guerreiro N1 tem só o Fôlego (Surto chega no N2). Entrada no
+  índice de ações do turno (T3.2).
+
+**Ficheiros:** `static/js/jogo.js` (`guerreiroDaFicha`/`retomarFolego`/`surtoDeAcao`, card, handlers, índice T3,
+inserção no HTML), `tests/e2e-pdf.js` (+bloco F2 Guerreiro), `docs/ROADMAP-FICHAS-COMBATE.md` (item 5 ✅).
+
+**Verificação:** `node --check` OK · `npm test` **29/29** ✅. E2E em **navegador real** (Browser pane, preview
+local): Guerreiro N3 ferido (10/28) → card com "1/1", botões 💨 (1d10+3) e ⚡; Fôlego rolou 8+3 e curou p/ 21/28,
+gastou o uso e desabilitou + logou; Surto gastou 1 uso e logou; N1 tem Fôlego mas não o Surto. Caso de
+regressão adicionado ao `e2e-pdf.js` (roda no CI).
+
+**Como reverter:** restaurar `versoes/2026-07-21-f2-guerreiro-folego/`, ou `git revert`.
+
+**Próximo (F2):** passada de fecho das "menores" (Ataque Descuidado, Ação Ladina, Recuperação Arcana, Imposição
+das Mãos-cura, Consciência Primitiva), se valer a pena — depois a fase segue p/ F3b/F4.
 
 ## 2026-07-21 — F2 · Monge — Opções de Ki com botão 👊
 

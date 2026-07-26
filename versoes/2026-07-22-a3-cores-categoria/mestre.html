@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mestre's Toolkit - D&D</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<!-- Fase 17.3: PWA (instalável + offline básico) -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#e94560">
+<link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){});});}</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-row">
+      <h1>🐉 Mestre's Toolkit</h1>
+      <div class="user-info">
+        <span>Mestre: {{ usuario }}</span>
+        <!-- Fase 20.2: no celular, os botões abaixo colapsam num drawer "⋯"
+             (achado da 20.1: sem isso, .user-info estoura a largura em 375px).
+             No desktop, .user-info-extra vira display:contents e nada muda. -->
+        <button type="button" id="userInfoToggle" class="btn-secondary user-info-toggle" aria-expanded="false" aria-controls="userInfoExtra" aria-label="Mais opções">⋯</button>
+        <div class="user-info-extra" id="userInfoExtra">
+          <form action="{{ url_for('trocar_campanha') }}" method="post" class="campanha-form" title="Trocar/criar mesa (multi-campanha)">
+            <span class="campanha-rotulo">🗺️</span>
+            <input type="text" name="campanha" value="{{ campanha }}" aria-label="Campanha ativa" pattern="[A-Za-z0-9_-]+" maxlength="32">
+            <button type="submit" class="btn-secondary">Trocar</button>
+          </form>
+          <button id="btnBackup" class="btn-secondary" title="Exportar/importar backup">💾 Backup</button>
+          <a href="{{ url_for('jogador') }}" class="btn-secondary">Ver como Jogador</a>
+          <a href="{{ url_for('hub', escolher=1) }}" class="trocar-modo" title="Voltar à tela de modos">⇄ Trocar de modo</a>
+          <a href="{{ url_for('logout') }}" class="btn-danger">Sair</a>
+        </div>
+      </div>
+    </div>
+    <!-- Fase 17.1: 3 modos por tarefa; cada aba pertence a um modo (data-mode) -->
+    <nav class="modos" aria-label="Modos">
+      <button type="button" class="modo-btn" data-modo="jogar" title="À mesa: conduzir a aventura, combate, NPCs e handouts">🎲 Jogar</button>
+      <button type="button" class="modo-btn" data-modo="preparar" title="Antes/entre sessões: fichas, encontros, itens, lojas, geradores">📝 Preparar</button>
+      <button type="button" class="modo-btn" data-modo="consultar" title="Referência: bestiário e progressão">📖 Consultar</button>
+    </nav>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="fichas" data-mode="preparar">Fichas</button>
+      <button class="tab-btn" data-tab="combate" data-mode="jogar">Combate</button>
+      <button class="tab-btn" data-tab="encontros" data-mode="preparar">Encontros</button>
+      <button class="tab-btn" data-tab="npcs" data-mode="jogar">NPCs</button>
+      <button class="tab-btn" data-tab="aventura" data-mode="jogar">📖 Aventura</button>
+      <button class="tab-btn" data-tab="notas" data-mode="jogar">Notas</button>
+      <button class="tab-btn" data-tab="progressao" data-mode="consultar">Progressão</button>
+      <button class="tab-btn" data-tab="bestiario" data-mode="consultar">Bestiário</button>
+      <button class="tab-btn" data-tab="loja" data-mode="preparar">Loja</button>
+      <button class="tab-btn" data-tab="itensMagicos" data-mode="preparar">Itens Mágicos</button>
+      <button class="tab-btn" data-tab="membros" data-mode="preparar">Membros</button>
+      <button class="tab-btn" data-tab="geradores" data-mode="preparar">Geradores</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- FICHAS -->
+    <section id="fichas" class="tab-content active">
+      <div class="panel-header">
+        <h2>Fichas de Personagem</h2>
+        <button id="novaFicha" class="btn-primary">+ Nova Ficha</button>
+      </div>
+      <div class="mestre-envio" id="envioWrap">
+        <b>📦 Enviar à ficha</b>
+        <select id="envioFicha" title="Personagem que recebe"></select>
+        <input type="number" id="envioOuro" placeholder="ouro (po)" title="Ouro a enviar (negativo cobra)" style="width:92px">
+        <input type="number" id="envioXp" placeholder="XP" min="0" title="XP a conceder (Fase B2: só o Mestre dá XP)" style="width:76px">
+        <select id="envioItem" title="Item do catálogo (opcional)"></select>
+        <input type="number" id="envioQtd" value="1" min="1" title="Quantidade" style="width:56px">
+        <label class="check-chip" title="Envia ouro/XP a TODAS as fichas (recompensa de grupo); itens vão só ao personagem selecionado"><input type="checkbox" id="envioTodos"> 👥 todos</label>
+        <button id="envioBtn" class="btn-mini">Enviar</button>
+        <span id="envioMsg" class="envio-msg"></span>
+      </div>
+      <div class="mestre-envio" id="lojaEspecialWrap">
+        <label class="check-chip" title="Libera a Loja Especial (itens mágicos) para TODA a campanha"><input type="checkbox" id="lojaEspecialCampanhaChk"> 🔓 Loja Especial liberada para toda a campanha</label>
+        <span class="criador-hint-inline">ou libere só para um personagem específico no cartão dele, abaixo</span>
+      </div>
+      <div id="listaFichas" class="card-grid"></div>
+    </section>
+
+    <!-- COMBATE -->
+    <section id="combate" class="tab-content">
+      <div class="panel-header"><h2>Combate</h2></div>
+      <div class="combate-toolbar">
+        <button id="addPersonagens" class="btn-primary">+ Personagens</button>
+        <span class="add-monstro">
+          <select id="combMonstroSel"></select>
+          <input type="number" id="combMonstroQtd" value="1" min="1" title="Quantidade">
+          <button id="addMonstro" class="btn-secondary">+ Monstro</button>
+          <button id="addAliado" class="btn-secondary" title="Adiciona a criatura selecionada como aliado (companheiro/invocação)">+ Aliado</button>
+        </span>
+        <span class="add-monstro">
+          <select id="combNpcSel" title="NPC da campanha (só os com bloco de combate)"></select>
+          <button id="addNpcComb" class="btn-secondary" title="Adiciona o NPC ao combate (inimigo entra contra o grupo; os demais como aliados)">+ NPC</button>
+        </span>
+        <button id="addCombatente" class="btn-secondary">+ Avulso</button>
+        <button id="rolarIniciativa" class="btn-secondary">🎲 Rolar Iniciativa</button>
+        <button id="proximoTurno" class="btn-secondary">▶ Próximo turno</button>
+        <button id="btnAreaDano" class="btn-secondary">💥 Dano em Área</button>
+        <button id="btnGerarLoot" class="btn-secondary" title="Rola o tesouro dos monstros abatidos (PV 0) — tabela própria do monstro ou genérica por ND">🎲 Gerar Loot</button>
+        <button id="limparCombate" class="btn-danger">Limpar</button>
+      </div>
+      <div id="lootResultado" class="area-dano hidden"></div>
+      <p class="aviso-mestre">Clique em 🎯 para escolher o alvo; aí clique num ataque para rolar acerto + dano (já aplica resistência/vulnerabilidade/imunidade). Use ⚔ Multiataque nos monstros, ⭐ Chefe p/ ações e resistência lendária, e 💥 Dano em Área p/ salva em massa.</p>
+      <div id="areaDanoPanel" class="area-dano hidden"></div>
+      <div class="turno-info" id="turnoInfo"></div>
+      <div class="combate-layout">
+        <div id="listaCombate" class="combat-list"></div>
+        <div id="mapaCombate" class="mapa-combate"></div>
+        <div class="combate-log-box"><h4>Histórico</h4><ul id="combateLog"></ul></div>
+      </div>
+    </section>
+
+    <!-- ENCONTROS (montador com orçamento de XP) -->
+    <section id="encontros" class="tab-content">
+      <div class="panel-header"><h2>Montador de Encontros</h2></div>
+      <div class="enc-layout">
+        <div class="enc-builder">
+          <div class="enc-grupo">
+            <h4>Grupo</h4>
+            <div id="encParty" class="criador-hint"></div>
+            <label class="enc-manual"><input type="checkbox" id="encUsarManual"> Definir grupo manualmente:</label>
+            <div id="encManualWrap" class="hidden"><input type="number" id="encQtdPJ" value="4" min="1" style="width:54px"> PJs nível <input type="number" id="encNivelPJ" value="3" min="1" max="20" style="width:54px"></div>
+          </div>
+          <div class="enc-grupo">
+            <h4>Monstros do encontro</h4>
+            <div class="add-monstro"><select id="encMonstroSel"></select><input type="number" id="encMonstroQtd" value="1" min="1" style="width:54px"><button id="encAddMonstro" class="btn-secondary">+ Adicionar</button></div>
+            <div id="encMonstros" class="enc-monstros"></div>
+          </div>
+          <div id="encMedidor" class="enc-medidor"></div>
+          <div class="enc-acoes">
+            <input type="text" id="encNome" placeholder="Nome do encontro (ex.: Emboscada na ponte)">
+            <button id="encSalvar" class="btn-primary">💾 Salvar</button>
+            <button id="encLancar" class="btn-secondary">⚔️ Lançar no Combate</button>
+            <button id="encLimpar" class="btn-danger">Limpar</button>
+          </div>
+        </div>
+        <div class="enc-salvos">
+          <h4>Encontros salvos</h4>
+          <div id="encSalvosLista"></div>
+        </div>
+      </div>
+    </section>
+
+<!-- NPCs (Fase 11: persistem entre combates — lojistas, aliados, inimigos) -->
+    <section id="npcs" class="tab-content">
+      <div class="panel-header">
+        <h2>🧑‍🌾 NPCs da Campanha</h2>
+        <button id="novoNpc" class="btn-primary">+ Novo NPC (Simples)</button>
+        <button id="novoNpcCompleto" class="btn-primary">+ NPC Completo</button>
+        <button id="novoNpcAleatorio" class="btn-secondary">🎲 NPC Aleatório (Bestiário)</button>
+      </div>
+      <p class="aviso-mestre">NPCs persistem entre sessões (diferente dos avulsos do combate). Marque 👁️ para os jogadores os verem na aba "NPCs" deles — as notas privadas 🔒 nunca são enviadas. NPCs com bloco de combate podem entrar no rastreador pelo botão <b>+ NPC</b> da aba Combate.</p>
+      <div id="listaNpcs" class="card-grid"></div>
+
+      <!-- M4: banco pessoal de NPCs (fora da campanha, segue o utilizador) -->
+      <div class="panel-header"><h2>💾 Meu Banco de NPCs</h2></div>
+      <p class="aviso-mestre">Banco PESSOAL: os NPCs guardados aqui seguem você entre campanhas. Use 💾 no cartão de um NPC da campanha para o guardar, e 📥 para trazer um NPC do banco para a mesa ativa.
+        <span class="add-monstro"><select id="bancoMembroSel"></select><button id="verBancoMembro" class="btn-secondary" title="Ver o banco pessoal de um membro da campanha e copiar NPCs dele">👀 Ver banco do membro</button></span>
+      </p>
+      <div id="listaBancoNpc" class="card-grid"></div>
+      <div id="bancoMembroWrap" class="hidden">
+        <div class="panel-header"><h3 id="bancoMembroTitulo">Banco do membro</h3></div>
+        <div id="listaBancoMembro" class="card-grid"></div>
+      </div>
+    </section>
+
+    <!-- AVENTURA (K2: livro-jogo — grafo de nós/escolhas) -->
+    <section id="aventura" class="tab-content">
+      <div id="aventuraConducao"></div>
+      <div id="tabuleiroMestre" class="hidden"></div>
+      <div class="panel-header">
+        <h2>📖 Minhas Aventuras</h2>
+        <button id="avNova" class="btn-primary">➕ Nova aventura</button>
+        <button id="avImportarModelo" class="btn-secondary" title="Copia uma aventura pronta para a sua biblioteca (você pode adaptar tudo depois)">📚 Importar modelo</button>
+        <button id="avImportarMembro" class="btn-secondary" title="Copia uma aventura da biblioteca de outro membro desta campanha">📥 De um membro</button>
+      </div>
+      <p class="aviso-mestre">Estruture a campanha como um livro-jogo: cada NÓ é uma cena (narração, encontro, social...) e cada SAÍDA é uma escolha possível do grupo. As aventuras ficam na sua biblioteca PESSOAL (seguem você entre campanhas); "▶ Iniciar" copia a aventura para a mesa ativa. Escolhas na tela dos jogadores chegam numa fase futura.</p>
+      <div id="aventuraLib" class="card-grid"></div>
+      <div id="aventuraEditor" class="hidden"></div>
+    </section>
+
+    <!-- NOTAS -->
+    <section id="notas" class="tab-content">
+      <div class="panel-header">
+        <h2>Notas de Campanha</h2>
+        <button id="novaNota" class="btn-primary">+ Nova Nota</button>
+      </div>
+      <div class="notas-layout">
+        <div id="listaNotas" class="notas-sidebar"></div>
+        <div id="editorNota" class="notas-editor"></div>
+      </div>
+    </section>
+
+    <!-- PROGRESSÃO -->
+    <section id="progressao" class="tab-content">
+      <div class="panel-header">
+        <h2>Progressão de Classe</h2>
+        <div>
+          <select id="progClasse"></select>
+          <select id="progNivel"></select>
+        </div>
+      </div>
+      <div id="progInfo" class="prog-info"></div>
+      <div id="progTabela" class="prog-tabela"></div>
+    </section>
+
+    <!-- BESTIÁRIO -->
+    <section id="bestiario" class="tab-content">
+      <div class="panel-header">
+        <h2>Bestiário</h2>
+        <input type="text" id="bestiaBusca" placeholder="Buscar monstro...">
+      </div>
+      <p class="aviso-mestre">Marque "Visível para jogadores" nos monstros que você quer que apareçam na aba Bestiário dos jogadores.</p>
+
+      <div class="bestia-filtros">
+        <label>Aventura <select id="bestiaAventura"></select></label>
+        <label>Tipo <select id="bestiaTipo"></select></label>
+      </div>
+      <div id="aventuraInfo" class="aventura-info"></div>
+
+      <h3 id="sugestoesTitulo">Sugestões de Encontro</h3>
+      <div id="sugestoesLista" class="sugestoes-grid"></div>
+
+      <h3>Monstros <span id="monstroCount" class="criador-hint-inline"></span></h3>
+      <div id="listaMonstros" class="monstro-grid"></div>
+    </section>
+
+    <!-- LOJA -->
+    <section id="loja" class="tab-content">
+      <div class="panel-header">
+        <h2>Loja de Itens</h2>
+        <button id="novoItem" class="btn-primary">+ Adicionar Item</button>
+      </div>
+      <div class="loja-filtros">
+        <input type="text" id="lojaBusca" placeholder="Buscar item...">
+        <select id="lojaCategoria"></select>
+      </div>
+      <div id="listaLoja" class="loja-grid"></div>
+    </section>
+
+    <!-- ITENS MÁGICOS (ferramenta do Mestre: criação dentro das regras + curadoria da Loja Especial) -->
+    <section id="itensMagicos" class="tab-content">
+      <div class="panel-header">
+        <h2>🛠️ Itens Mágicos & Loja Especial</h2>
+        <button id="imNovoItem" class="btn-primary">+ Novo Item</button>
+      </div>
+      <p class="aviso-mestre">Ferramenta só do Mestre: crie itens mágicos dentro das diretrizes de raridade do 5e, e monte a <b>Loja Especial</b> escolhendo do acervo o que os jogadores liberados podem ver/comprar (e por quanto). Para dar um item diretamente, use <b>Fichas → 📦 Enviar à ficha</b>.</p>
+      <div id="imFormWrap" class="im-form hidden"></div>
+
+      <h3>✨ Loja Especial <span class="criador-hint-inline">(o que os jogadores liberados veem — vazia até você adicionar)</span></h3>
+      <div id="lojaEspecialCurada" class="loja-lista loja-curada"></div>
+
+      <h3>📚 Acervo de Itens Mágicos <span class="criador-hint-inline">(PHB/DMG + suas criações — adicione à loja com preço)</span></h3>
+      <div class="loja-filtros"><input type="text" id="acervoBusca" placeholder="Buscar no acervo..."></div>
+      <div id="acervoItens" class="loja-lista loja-acervo"></div>
+
+      <h3>🔨 Minhas Criações</h3>
+      <div id="listaItensMestre" class="card-grid"></div>
+    </section>
+
+    <!-- MEMBROS (Fase 10: quem participa da campanha ativa) -->
+    <section id="membros" class="tab-content">
+      <div class="panel-header"><h2>👥 Membros da Campanha</h2></div>
+      <p class="aviso-mestre">Jogadores registados entram na campanha com o código de convite. Campanhas antigas (criadas antes do sistema de contas) aparecem como "legadas" — os logins fixos continuam a funcionar nelas.</p>
+      <div id="membrosInfo"></div>
+    </section>
+
+    <!-- GERADORES -->
+    <section id="geradores" class="tab-content">
+      <h2>Geradores Rápidos</h2>
+      <div class="ger-grid">
+        <div class="ger-card">
+          <h3>Nome de NPC</h3>
+          <button class="btn-primary" data-ger="npc">Gerar NPC</button>
+          <div class="ger-resultado" id="resNpc"></div>
+        </div>
+        <div class="ger-card">
+          <h3>Tesouro / Loot</h3>
+          <button class="btn-primary" data-ger="loot">Gerar Loot</button>
+          <div class="ger-resultado" id="resLoot"></div>
+        </div>
+        <div class="ger-card">
+          <h3>Encontro Aleatório</h3>
+          <button class="btn-primary" data-ger="encontro">Gerar Encontro</button>
+          <div class="ger-resultado" id="resEncontro"></div>
+        </div>
+        <div class="ger-card">
+          <h3>Gancho de Aventura</h3>
+          <button class="btn-primary" data-ger="gancho">Gerar Gancho</button>
+          <div class="ger-resultado" id="resGancho"></div>
+        </div>
+        <div class="ger-card">
+          <h3>Taverna / Local</h3>
+          <button class="btn-primary" data-ger="taverna">Gerar Local</button>
+          <div class="ger-resultado" id="resTaverna"></div>
+        </div>
+        <div class="ger-card">
+          <h3>🏘️ Ocupar Ambiente</h3>
+          <div class="dado-row">
+            <select id="ambienteSel"></select>
+            <button class="btn-primary" id="gerarAmbiente">Gerar</button>
+          </div>
+          <div class="ger-resultado" id="resAmbiente"></div>
+          <button class="btn-secondary hidden" id="ambLancarCombate">⚔️ Lançar encontro no combate</button>
+        </div>
+        <div class="ger-card">
+          <h3>Rolagem de Dados</h3>
+          <div class="dado-row">
+            <input type="text" id="dadoFormula" placeholder="ex: 2d6+3" value="1d20">
+            <button class="btn-primary" id="rolarDado">Rolar</button>
+          </div>
+          <div class="ger-resultado" id="resDado"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  {% include "_criador.html" %}
+  {% include "_jogo.html" %}
+  {% include "_nivel.html" %}
+
+  <!-- Modal NPC (Fase 11) -->
+  <div id="modalNpc" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="npcModalTitulo">Novo NPC</h2>
+      <div class="form-grid">
+        <label class="full">Nome <input type="text" id="nNome" placeholder="ex.: Grimlock, o Ferreiro"></label>
+        <label>Tipo <select id="nTipo"></select></label>
+        <label>Localização <input type="text" id="nLocal" placeholder="ex.: Phandalin — Ferraria"></label>
+      </div>
+      <label class="full">Descrição <span class="criador-hint-inline">(os jogadores veem, se o NPC estiver visível)</span>
+        <textarea id="nDescricao" rows="2" placeholder="aparência, jeito, papel na história..."></textarea>
+      </label>
+      <label class="full">🔒 Notas privadas do Mestre <span class="criador-hint-inline">(NUNCA enviadas aos jogadores)</span>
+        <textarea id="nNotasPrivadas" rows="2" placeholder="segredos, motivações ocultas, ganchos..."></textarea>
+      </label>
+      <label class="check-chip"><input type="checkbox" id="nVisivel"> 👁️ Visível para os jogadores</label>
+      <label class="check-chip"><input type="checkbox" id="nTemStat"> ⚔️ Pode entrar em combate (bloco de stats)</label>
+      <div id="nStatWrap" class="hidden">
+        <div class="form-grid">
+          <label>CA <input type="number" id="nCa" value="11" min="1" max="30"></label>
+          <label>PV máx <input type="number" id="nPv" value="8" min="1"></label>
+        </div>
+        <div class="atributos-grid npc-attrs">
+          <label class="mini-label">FOR <input type="number" id="nAttr_for" value="10" min="1" max="30"></label>
+          <label class="mini-label">DES <input type="number" id="nAttr_des" value="10" min="1" max="30"></label>
+          <label class="mini-label">CON <input type="number" id="nAttr_con" value="10" min="1" max="30"></label>
+          <label class="mini-label">INT <input type="number" id="nAttr_int" value="10" min="1" max="30"></label>
+          <label class="mini-label">SAB <input type="number" id="nAttr_sab" value="10" min="1" max="30"></label>
+          <label class="mini-label">CAR <input type="number" id="nAttr_car" value="10" min="1" max="30"></label>
+        </div>
+        <label class="full">Ações <span class="criador-hint-inline">(uma por linha, no formato do bestiário: "Martelo: +2 para acertar, Dano: 4 (1d4+1) concussão")</span>
+          <textarea id="nAcoes" rows="3" placeholder="Martelo: +2 para acertar, Dano: 4 (1d4+1) concussão"></textarea>
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="npcCancelar" class="btn-secondary">Cancelar</button>
+        <button type="button" id="npcSalvar" class="btn-primary">Salvar NPC</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Item da Loja -->
+  <div id="modalItem" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="modalItemTitulo">Novo Item</h2>
+      <div class="form-grid">
+        <label class="full">Nome <input type="text" id="iNome"></label>
+        <label>Categoria
+          <select id="iCategoria">
+            <option value="Arma">Arma</option>
+            <option value="Armadura">Armadura</option>
+            <option value="Aventura">Equip. de Aventura</option>
+            <option value="Ferramenta">Ferramenta</option>
+            <option value="Montaria">Montaria/Veículo</option>
+            <option value="Mágico">Item Mágico</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </label>
+        <label>Preço <input type="text" id="iPreco" placeholder="ex: 15 po"></label>
+        <label>Peso <input type="text" id="iPeso" placeholder="ex: 2 kg"></label>
+      </div>
+      <label class="full">Descrição
+        <textarea id="iDescricao" rows="3"></textarea>
+      </label>
+      <div class="modal-actions">
+        <button id="excluirItem" class="btn-danger">Excluir</button>
+        <button id="cancelarItem" class="btn-secondary">Cancelar</button>
+        <button id="salvarItem" class="btn-primary">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>window.MEU_UID = "{{ uid }}"; window.EH_MESTRE = true;</script>
+  <script src="{{ url_for('static', filename='js/classes.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/itens.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/monstros.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/ambientes.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/loot.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/aventurasprontas.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/aventura.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/dados5e.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/fontes.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/equipamento.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/loja.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/npc.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/itensmestre.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/compendio.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/regras.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/regras-ficha.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/formaselvagem.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/multiclasse.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/ajudatatica.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/criador.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/nivel.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/jogo.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/grid.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/mapa-ui.js') }}"></script>
+  {% if not use_local %}
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
+  <script>window.CAMPANHA_ID = "{{ campanha }}";</script>
+  <script src="{{ url_for('static', filename='js/firebase-rt.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/storage.js') }}"></script>
+  {% endif %}
+  <script src="{{ url_for('static', filename='js/tabuleiro.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/navegacao.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/a11y.js') }}"></script>
+  <footer class="footer-attribuicao">
+    Desenvolvido por <a href="https://ismailepereira.github.io/" target="_blank" rel="noopener">ismailepereira</a>
+  </footer>
+</body>
+</html>

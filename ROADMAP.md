@@ -8,6 +8,28 @@ Mapa de tarefas do projeto, organizado por fases. Marque `[x]` conforme for conc
 
 ---
 
+## 🚨 PRIORIDADE MÁXIMA (22/07/2026) — Acesso, Perfis & Interface
+
+Pedido direto do Ismaile: **a interface não comunica o produto** (menus sem cor/categoria; a página de admin
+"ficou perdida no meio da campanha", só acessível digitando `/admin`) e **os papéis não estão trancados**
+(jogador edita o próprio ouro; não há tela de "entrar como quê"; o Mestre não controla a evolução).
+
+**→ `docs/ROADMAP-ACESSO-INTERFACE.md`** — este é o roadmap ATIVO. Ordem decidida pelo Ismaile:
+
+- **Fase A (🔴 primeiro):** A1 login isolado + **hub de cards** (💰 ADM · 👑 Mestre Controle Total · 🎲 Mestre ·
+  🧝 Jogador) · A2 papéis de verdade (`papelGlobal` = admin/mestre/jogador, escolha no cadastro, gate central
+  no servidor) · A3 **cores por categoria** nos menus (reusa o `data-mode` das Fases 17.1/17.2) · A4 **tirar o
+  ouro da mão do jogador** (botão E servidor).
+- **Fase B (🟠):** evolução **só com permissão do Mestre** — o jogador planeja a subida até o nv20, fica salvo
+  em `ficha.progressaoPlanejada`, e o Mestre libera com 1 clique aplicando o preset.
+- **Fase C (🟡):** saquear alvo abatido (NPC/PJ, além do loot de monstro que já existe) e **furto com CD
+  variável** por peso/raridade/importância do item.
+
+> O roadmap `docs/ROADMAP-FICHAS-COMBATE.md` fica **em pausa** nesta parte: entregou Fases T, F1, F2, F3b, F4,
+> C1–C6 e F5a. Restam lá F5b (patronos do Bruxo), F5c (Canalizar do juramento) e a Conjuração Atemporal (N18).
+
+---
+
 ## 🎯 NOVO (19/07/2026) — Fichas por classe & Combate
 
 Feedback da mesa de 18/07 (Paladino confuso no nv1, magias invisíveis no combate, azagaias repetidas,
@@ -288,7 +310,7 @@ Virada: o grid virtual sai, entra o **Tabuleiro-imagem sem grelha**. Web-first +
     - ✅ **20.2** (14/07/2026) — **Topbar enxuta no celular**: campanha/💾 Backup/Ver como Jogador/Sair colapsam no drawer **"⋯"** (`static/js/navegacao.js`); resolve o overflow horizontal achado na 20.1 — ver `CHANGELOG.md`.
     - ✅ **20.3** (14/07/2026) — **Alvos de toque ≥44px**: `@media (pointer: coarse)` eleva `.btn-mini` (zoom do canvas, "➕ à loja"), `.comb-rem`/`.comb-alvo`, `.ae-node-x`, `.jogo-fechar`, `.jg-prep-chip`, `.banner-fechar` para 44px — ver `CHANGELOG.md`.
     - ✅ **20.4** (14/07/2026) — **Passe de responsividade**: auditoria real a 375px (script de varredura de overflow) em TODAS as telas — abas do Mestre e do Jogador, Modo de Jogo com ficha completa (Mago nv5, 122 magias) e editor de aventuras nas duas vistas (🗺️ Mapa/canvas e 📋 Lista). Bugs reais corrigidos: 7 grids `→ 1 coluna` trocaram `1fr` por `minmax(0, 1fr)` e `.add-monstro` ganhou wrap (Combate/Encontros estouravam a tela); addendum — `.dado-row` (linha de saídas do nó) ganhou `flex-wrap` e `.form-grid` ganhou `min-width: 0` no item do grid (vista Lista do editor estourava até 639px numa viewport de 375px) — ver `CHANGELOG.md`.
-    - ⏳ **20.5** — **Ficha mobile estilo D&D Beyond**: tocar no modificador **rola** (perícias/salvaguardas/atributos — hoje só ataques) e seções colapsáveis (accordion) no Modo de Jogo (PV/slots/ações abertos; inventário/magias/história fechados).
+    - ✅ **20.5** (26/07/2026) — **Ficha mobile estilo D&D Beyond**: atributos viraram botões que **rolam** o teste ao toque (perícias/salvas já rolavam) e as seções de referência (Magias/Características/História) viram **accordion fechado** no Modo de Jogo (armas/poderes/conjuração/PV abertos). Sobre a reskin "Fantasia Medieval". Ver `CHANGELOG.md`. Restam 20.6 (FAB 🎲) e 20.7 (tabuleiro fullscreen).
     - ⏳ **20.6** — **FAB 🎲**: botão flutuante de rolagem rápida (d20/vantagem/desvantagem) em qualquer tela, zona do polegar.
     - ⏳ **20.7** — **Tabuleiro fullscreen** (⛶, API Fullscreen) — casa com o zoom/pan da 16.6.
 23. 🔥 **Fase 21 — Mesa Viva** (proposta 13/07/2026 — o que faz a mesa remota "sentir" presença; padrão Game Log do D&D Beyond):

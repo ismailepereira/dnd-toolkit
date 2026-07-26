@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Como você quer entrar? - Mestre's Toolkit</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<!-- Fase 17.3: PWA -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#e94560">
+<link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){});});}</script>
+</head>
+<body>
+  <div class="hub-wrap">
+    <header class="hub-header">
+      <h1>🐉 Mestre's Toolkit</h1>
+      <p class="hub-sub">Olá, <b>{{ usuario }}</b>! Como você quer entrar?</p>
+    </header>
+
+    <main class="hub-cards">
+      {% for m in modos %}
+      <a class="hub-card cor-{{ m.cor }}{% if modo_atual == m.chave %} atual{% endif %}"
+         href="{{ url_for('entrar_modo', chave=m.chave) }}">
+        <span class="hub-card-icone" aria-hidden="true">{{ m.icone }}</span>
+        <span class="hub-card-nome">{{ m.nome }}</span>
+        <span class="hub-card-desc">{{ m.desc }}</span>
+        {% if modo_atual == m.chave %}<span class="hub-card-tag">modo atual</span>{% endif %}
+        <span class="hub-card-entrar">Entrar →</span>
+      </a>
+      {% endfor %}
+    </main>
+
+    <footer class="hub-rodape">
+      <a href="{{ url_for('logout') }}" class="btn-danger">Sair</a>
+      <span class="footer-attribuicao">
+        Desenvolvido por <a href="https://ismailepereira.github.io/" target="_blank" rel="noopener">ismailepereira</a>
+      </span>
+    </footer>
+  </div>
+</body>
+</html>

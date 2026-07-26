@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Área do Jogador - D&D</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<!-- Fase 17.3: PWA -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#e94560">
+<link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){});});}</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-row">
+      <h1>🎲 Área do Jogador</h1>
+      <div class="user-info">
+        <span>{{ usuario }}</span>
+        <!-- Fase 20.2: mesmo drawer "⋯" do Mestre, por consistência -->
+        <button type="button" id="userInfoToggle" class="btn-secondary user-info-toggle" aria-expanded="false" aria-controls="userInfoExtra" aria-label="Mais opções">⋯</button>
+        <div class="user-info-extra" id="userInfoExtra">
+          {% if eh_mestre %}
+          <a href="{{ url_for('mestre') }}" class="btn-secondary">Voltar ao Mestre</a>
+          {% endif %}
+          <a href="{{ url_for('pagina_campanhas') }}" class="btn-secondary" title="Trocar de mesa">🗺️ Campanhas</a>
+          <a href="{{ url_for('hub', escolher=1) }}" class="trocar-modo" title="Voltar à tela de modos">⇄ Trocar de modo</a>
+          <a href="{{ url_for('logout') }}" class="btn-danger">Sair</a>
+        </div>
+      </div>
+    </div>
+    <!-- Fase 17.2: 2 modos por tarefa; cada aba pertence a um modo (data-mode) -->
+    <nav class="modos" aria-label="Modos">
+      <button type="button" class="modo-btn" data-modo="mesa" title="À mesa: sua ficha, combate, história, mapa e handouts">🎲 Mesa</button>
+      <button type="button" class="modo-btn" data-modo="consultar" title="Referência: NPCs, bestiário e progressão">📖 Consultar</button>
+    </nav>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="fichas" data-mode="mesa">Minha Ficha</button>
+      <button class="tab-btn" data-tab="combate" data-mode="mesa">Combate</button>
+      <button class="tab-btn" data-tab="historia" data-mode="mesa">📖 História</button>
+      <button class="tab-btn" data-tab="mapa" data-mode="mesa">🗺️ Mapa</button>
+      <button class="tab-btn" data-tab="handouts" data-mode="mesa">Handouts</button>
+      <button class="tab-btn" data-tab="npcs" data-mode="consultar">NPCs</button>
+      <button class="tab-btn" data-tab="bestiario" data-mode="consultar">Bestiário</button>
+      <button class="tab-btn" data-tab="progressao" data-mode="consultar">Progressão</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- FICHAS -->
+    <section id="fichas" class="tab-content active">
+      <div class="panel-header">
+        <h2>Fichas do Grupo</h2>
+        <button id="novaFicha" class="btn-primary">+ Nova Ficha</button>
+      </div>
+      <div id="listaFichas" class="card-grid"></div>
+    </section>
+
+    <!-- HISTÓRIA (P1 do livro-jogo: narração do nó atual + votação) -->
+    <section id="historia" class="tab-content">
+      <div class="panel-header"><h2>📖 A História</h2></div>
+      <p class="aviso-mestre">Quando o Mestre conduz uma aventura, a cena atual aparece aqui. Nas encruzilhadas, ele abre a votação: escolham o caminho do grupo — a palavra final é sempre do Mestre.</p>
+      <div id="historiaJog"></div>
+    </section>
+
+    <!-- MAPA (Fase 16.3: tabuleiro-imagem ao vivo — tokens dos PJs) -->
+    <section id="mapa" class="tab-content">
+      <div class="panel-header"><h2>🗺️ Mapa da Mesa</h2></div>
+      <p class="aviso-mestre">Quando o Mestre abre um mapa, ele aparece aqui com o token de cada personagem. Arraste o SEU token pela imagem — os outros jogadores e o Mestre veem o movimento na hora.</p>
+      <div id="tabuleiroJogador"></div>
+    </section>
+
+    <!-- COMBATE (somente leitura) -->
+    <section id="combate" class="tab-content">
+      <div class="panel-header"><h2>Combate</h2></div>
+      <div class="turno-info" id="turnoInfoJog"></div>
+      <div id="listaCombateJog" class="combat-list"></div>
+    </section>
+
+    <!-- HANDOUTS (notas compartilhadas pelo Mestre) -->
+    <section id="handouts" class="tab-content">
+      <div class="panel-header"><h2>Handouts do Mestre</h2></div>
+      <p class="aviso-mestre">Documentos e pistas que o Mestre compartilha aparecem aqui em tempo real.</p>
+      <div id="listaHandouts" class="handouts-grid"></div>
+    </section>
+
+    <!-- NPCs CONHECIDOS (Fase 11: só os que o Mestre tornou visíveis) -->
+    <section id="npcs" class="tab-content">
+      <div class="panel-header"><h2>🧑‍🌾 NPCs Conhecidos</h2></div>
+      <p class="aviso-mestre">Personagens que o grupo já conheceu aparecem aqui quando o Mestre os apresenta.</p>
+      <div id="listaNpcsJog" class="card-grid"></div>
+
+      <!-- M4: banco pessoal de NPCs do jogador -->
+      <div class="panel-header"><h2>💾 Meu Banco de NPCs</h2></div>
+      <p class="aviso-mestre">Banco PESSOAL: guarde aqui NPCs que conheceu (💾 no cartão) — eles seguem você entre campanhas, e o Mestre pode copiá-los do seu banco para a mesa.</p>
+      <div id="listaBancoNpc" class="card-grid"></div>
+    </section>
+
+    <!-- BESTIÁRIO -->
+    <section id="bestiario" class="tab-content">
+      <div class="panel-header">
+        <h2>Bestiário</h2>
+        <input type="text" id="bestiaBusca" placeholder="Buscar monstro...">
+      </div>
+      <p class="aviso-mestre">Os monstros aparecem aqui quando o Mestre os libera.</p>
+      <div class="bestia-filtros">
+        <label>Tipo <select id="bestiaTipo"></select></label>
+      </div>
+      <div id="listaMonstros" class="monstro-grid"></div>
+    </section>
+
+    <!-- PROGRESSÃO -->
+    <section id="progressao" class="tab-content">
+      <div class="panel-header">
+        <h2>Progressão de Classe</h2>
+        <div>
+          <select id="progClasse"></select>
+          <select id="progNivel"></select>
+        </div>
+      </div>
+      <div id="progInfo" class="prog-info"></div>
+      <div id="progTabela" class="prog-tabela"></div>
+    </section>
+  </main>
+
+  {% include "_criador.html" %}
+  {% include "_jogo.html" %}
+  {% include "_nivel.html" %}
+
+  <script>window.MEU_UID = "{{ uid }}"; window.EH_MESTRE = {{ 'true' if eh_mestre else 'false' }};</script>
+  <script src="{{ url_for('static', filename='js/classes.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/itens.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/monstros.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/dados5e.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/fontes.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/equipamento.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/loja.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/npc.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/compendio.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/regras.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/regras-ficha.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/formaselvagem.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/multiclasse.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/ajudatatica.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/criador.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/nivel.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/jogo.js') }}"></script>
+  {% if not use_local %}
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
+  <script>window.CAMPANHA_ID = "{{ campanha }}";</script>
+  <script src="{{ url_for('static', filename='js/firebase-rt.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/storage.js') }}"></script>
+  {% endif %}
+  <script src="{{ url_for('static', filename='js/tabuleiro.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/jogador.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/navegacao.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/a11y.js') }}"></script>
+  <footer class="footer-attribuicao">
+    Desenvolvido por <a href="https://ismailepereira.github.io/" target="_blank" rel="noopener">ismailepereira</a>
+  </footer>
+</body>
+</html>

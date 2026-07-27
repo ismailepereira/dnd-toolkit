@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-07-26 — Unificação das cores dos modos (tinturas heráldicas) 🎨
+
+**Backup:** `versoes/2026-07-26-cores-modos/` (style.css).
+
+**Resumo:** feedback do Ismaile ("as escolhas de cor ficaram meio confusas"). Havia **três esquemas brigando**:
+a A3 (cores neon modernas — rosa/azul/roxo/verde), a reskin (todo modo ativo em dourado) e o mockup do Gemini.
+- **Diagnóstico:** as regras da A3 (no fim do CSS) na verdade venciam a cascata e aplicavam a cor por
+  categoria — mas as cores eram **neon**, destoando do couro/dourado medieval; e os botões inativos mostravam
+  listras coloridas, poluindo.
+- **Unificação:** um esquema só, em **tinturas heráldicas** (cores de banner medieval), harmonizando com o
+  tema: 🎲 Jogar = **goles** (vermelho #d9564a) · 📝 Preparar = **blau** (azul #4a90c2) · 📖 Consultar =
+  **púrpura** (#a074d0) · 💰 Finanças = **sinople** (verde #46a35c) · 👑 Total = **ouro** (#d4af37, casa com o
+  tema). Só o modo **ATIVO** acende na sua cor; os **inativos ficam calmos** (borda de latão, sem listra). As
+  abas herdam a cor do modo.
+- **Verificado no navegador:** texto escuro (`--cat-tinta`) sobre a cor do botão ativo — Jogar mediu **4.75:1**
+  (AA; texto grande tem folga), demais ≥5.3:1 por cálculo. Todos passam.
+
+**Ficheiros:** `static/css/style.css` (bloco "UNIFICAÇÃO DAS CORES DOS MODOS" no fim — redefine `--cat-*` e
+acalma os botões inativos; vence a cascata, fácil de reverter).
+
+**Como reverter:** restaurar `versoes/2026-07-26-cores-modos/`, ou `git revert`.
+
 ## 2026-07-26 — Legibilidade da ficha: texto legível sobre a reskin medieval 👁️
 
 **Backup:** `versoes/2026-07-26-contraste-ficha/` (style.css).

@@ -1103,6 +1103,15 @@ input:focus, textarea:focus, select:focus {
   margin-bottom: 16px;
   font-size: 0.9rem;
 }
+.login-ok {
+  background: rgba(80, 200, 120, 0.15);
+  border: 1px solid #46c46a;
+  color: #46c46a;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
 
 /* Bestiário - visibilidade */
 .aviso-mestre {

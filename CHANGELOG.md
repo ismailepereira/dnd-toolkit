@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-07-28 — Recuperar senha (e-mail + CPF) 🔑
+
+**Backup:** `versoes/2026-07-28-recuperar-senha/` (app.py + login.html pré-edição).
+
+**Resumo:** self-service de "esqueci a senha" para contas registradas, **sem infra de e-mail**.
+- Nova rota **`/recuperar-senha`** (GET/POST) + `templates/recuperar_senha.html`; link **"Esqueci minha senha"** no login.
+- Prova de identidade: **e-mail + CPF** do cadastro precisam bater com a mesma conta; aí define nova senha
+  (≥6, confirmada). Só troca `senhaHash` (+ `senhaRedefinidaEm`); acesso/assinatura/créditos ficam intactos.
+- **Segurança:** mensagem genérica ("e-mail e CPF não conferem" — não revela se o e-mail existe) e **limite de
+  8 tentativas por sessão**. Contas legadas do `.env` (Ismaile/jogador) não entram (senha vive no ambiente).
+- **8 testes** novos em `tests/test-servidor.py` (CPF errado, e-mail inexistente, senha curta, senhas
+  diferentes, redefinição válida, senha antiga invalidada, login com a nova) — **77/77 passam**.
+
+**Ficheiros:** `app.py` (rota `recuperar_senha`), `templates/recuperar_senha.html` (novo),
+`templates/login.html` (link), `static/css/style.css` (`.login-ok`), `tests/test-servidor.py`.
+
 ## 2026-07-28 — Ícones 3D (Gemini): abas 🗂️
 
 **Resumo:** segunda leva de ícones 3D — as **abas** do Mestre e do Jogador. 11 ícones gerados no Gemini

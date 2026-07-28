@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recuperar senha - Mestre's Toolkit</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-box">
+      <h1>🔑 Recuperar senha</h1>
+      <p class="login-sub">Confirme sua identidade com o <b>e-mail</b> e o <b>CPF</b> do cadastro e escolha uma nova senha.</p>
+      {% if erro %}<div class="login-erro">{{ erro }}</div>{% endif %}
+      {% if ok %}<div class="login-ok">{{ ok }}</div>{% endif %}
+      {% if not ok %}
+      <form method="POST" autocomplete="off">
+        <label>E-mail do cadastro <input type="email" name="email" autocomplete="email" required></label>
+        <label>CPF <input type="text" name="cpf" inputmode="numeric" placeholder="somente números" required></label>
+        <label>Nova senha <input type="password" name="senha" autocomplete="new-password" minlength="6" required></label>
+        <label>Repetir nova senha <input type="password" name="senha2" autocomplete="new-password" minlength="6" required></label>
+        <button type="submit" class="btn-primary">Redefinir senha</button>
+      </form>
+      {% endif %}
+      <p class="login-sub" style="margin-top:14px"><a href="{{ url_for('login') }}">← Voltar ao login</a></p>
+    </div>
+  </div>
+  <footer class="footer-attribuicao">
+    Desenvolvido por <a href="https://ismailepereira.github.io/" target="_blank" rel="noopener">ismailepereira</a>
+  </footer>
+</body>
+</html>

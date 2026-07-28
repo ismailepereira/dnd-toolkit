@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-28 — Ícones 3D (Gemini): abas 🗂️
+
+**Resumo:** segunda leva de ícones 3D — as **abas** do Mestre e do Jogador. 11 ícones gerados no Gemini
+(desta vez em **fundo branco liso**, o que deu recorte limpo e sem halo) e ligados via `<img class="ui-icon">`.
+- **Mestre (11):** Combate, Encontros, NPCs, Aventura, Notas, Progressão, Bestiário, Loja, Itens Mágicos,
+  Membros, Geradores. Fichas segue no SVG (ícone de fichas não veio nesta leva).
+- **Jogador (5):** Combate, História (reusa icon-aventura), NPCs, Bestiário, Progressão.
+- Verificado ao vivo: 12 abas do Mestre + 6 do Jogador carregam, zero quebradas.
+
+**Ficheiros:** `templates/mestre.html`, `templates/jogador.html`, `static/icons/ui/icon-*.png` (11 novos).
+
 ## 2026-07-28 — Ícones 3D (Gemini): modos, hub e classes 🎨
 
 **Backup:** `versoes/2026-07-28-icones-3d-gemini/` (SVGs originais + mestre/jogador.html pré-edição).

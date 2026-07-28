@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-07-26 — 20.6 · Rolador de Dados flutuante (dados-gema) 🎲
+
+**Backup:** `versoes/2026-07-26-20-6-dice-roller/` (style.css, regras-ficha.js, templates, unit-regras.js).
+
+**Resumo:** Fase 20.6, elevada ao Dice Roller do mockup do Gemini (não só um FAB de d20). Botão flutuante 🎲 na
+zona do polegar, em **qualquer tela** (Mestre e Jogador), abre um painel de **dados-gema medievais**.
+- **`static/js/dados.js`** (novo, autossuficiente): injeta o FAB + painel, sem depender do resto da página.
+  Dados **d4, d6, d8, d10, d12, d20, d100** como gemas coloridas (clip-path por tipo), **quantidade**,
+  **modificador** e **vantagem/desvantagem** (2d20, maior/menor). Mostra o total grande, o detalhamento
+  ([dados]+mod), badge de **20 natural/1 natural**, e um **histórico** das últimas rolagens.
+- **Regra pura `rolarDadosGrupo()`** (`regras-ficha.js`, testada): `rng` injetável, soma + modificador,
+  vantagem/desvantagem só em 1d20, detecção de natural.
+- **CSS** medieval: FAB em latão, gemas com gradiente/tintura por dado, painel em couro; FAB sobe acima do
+  bottom-nav no celular. Incluído em `mestre.html` e `jogador.html` (após `regras-ficha.js`).
+
+**Verificado no navegador:** FAB e painel injetam; 7 gemas renderizam; 5 rolagens de d20 deram valores válidos
+(4,9,13,9,18); rótulo da gema em texto escuro com halo (legível em qualquer tom). Testes: unit **55/55**
+(2 novos), servidor 69/69, `node --check` OK.
+
+**Restam da Fase 20:** só **20.7** (tabuleiro fullscreen).
+
+**Como reverter:** apagar `static/js/dados.js` + restaurar `versoes/2026-07-26-20-6-dice-roller/`.
+
 ## 2026-07-26 — Unificação das cores dos modos (tinturas heráldicas) 🎨
 
 **Backup:** `versoes/2026-07-26-cores-modos/` (style.css).

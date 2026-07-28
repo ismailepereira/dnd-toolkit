@@ -42,3 +42,6 @@ skills-lock.json
 # --- Testes (Node/Playwright) ---
 node_modules/
 tests/.data-teste/
+
+# icones (trabalho temporario de geracao/recorte)
+scratch-icons/

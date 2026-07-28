@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-07-28 — Ícones 3D (Gemini): modos, hub e classes 🎨
+
+**Backup:** `versoes/2026-07-28-icones-3d-gemini/` (SVGs originais + mestre/jogador.html pré-edição).
+
+**Resumo:** primeira leva de ícones 3D "latão + gema" gerados no Gemini (nano-banana), recortados
+(fundo removido por script — OpenCV/Pillow, `scratch-icons/process.py`) e ligados no app.
+- **5 ícones de modo** (Jogar d20 âmbar / Preparar grimório azul / Consultar lupa roxa / ADM moedas+esmeralda
+  / Controle Total coroa) — os 3 primeiros nos botões de modo do Mestre e Jogador.
+- **Hub:** cards ADM, Controle Total e Mestre passam a usar `<img>` 3D (campo `img` em `MODOS`, `hub.html`);
+  Jogador segue com emoji.
+- **12 classes:** arte 3D vira o **avatar do token** do PJ (`miniaturaFichaHtml` → `getClasseIconeUrl`),
+  no lugar do emoji, quando não há miniatura enviada. Verificado ao vivo (hub + função do token).
+- ⚠️ **Pendências (o Ismaile refina depois):** `classe-ladino.png` ficou com recorte ruim (capuz escuro
+  sobre vinheta escura) e há halo suave em bruxo/monge/feitiçeiro/clérigo — decidido aceitar como está.
+  Convenção daqui pra frente: gerar em **fundo branco liso** (não xadrez) facilita o recorte.
+
+**Ficheiros:** `app.py` (MODOS.img), `templates/hub.html`, `templates/mestre.html`, `templates/jogador.html`,
+`static/js/regras.js` (CLASSE_ARQ + `getClasseIconeUrl` + avatar por imagem), `static/css/style.css`
+(`.hub-card-img`), `static/icons/ui/*.png` (17 novos).
+
+**Como reverter:** restaurar os SVGs/HTML de `versoes/2026-07-28-icones-3d-gemini/` e reverter os PATCHs.
+
 ## 2026-07-28 — 20.7 · Tabuleiro em tela cheia (⛶) 🗺️
 
 **Backup:** `versoes/2026-07-28-20.7-tabuleiro-fullscreen/` (tabuleiro.js, style.css).

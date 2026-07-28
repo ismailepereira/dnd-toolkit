@@ -383,11 +383,11 @@ def exige_papel(*papeis):
 
 # Cada modo: chave, rótulo, ícone, descrição, cor (categoria visual da Fase A3).
 MODOS = {
-    'adm': {'chave': 'adm', 'nome': 'ADM — Créditos & Finanças', 'icone': '💰', 'cor': 'financas',
+    'adm': {'chave': 'adm', 'nome': 'ADM — Créditos & Finanças', 'icone': '💰', 'img': 'icons/ui/icon-adm.png', 'cor': 'financas',
             'desc': 'Receita, compras por Pix, créditos e campanhas. O painel do dono.'},
-    'total': {'chave': 'total', 'nome': 'Mestre — Controle Total', 'icone': '👑', 'cor': 'total',
+    'total': {'chave': 'total', 'nome': 'Mestre — Controle Total', 'icone': '👑', 'img': 'icons/ui/icon-total.png', 'cor': 'total',
               'desc': 'Manda em todas as campanhas e fichas, sem pedir mais nada a ninguém.'},
-    'mestre': {'chave': 'mestre', 'nome': 'Mestre', 'icone': '🎲', 'cor': 'jogar',
+    'mestre': {'chave': 'mestre', 'nome': 'Mestre', 'icone': '🎲', 'img': 'icons/ui/icon-jogar.png', 'cor': 'jogar',
                'desc': 'Conduza as suas mesas: combate, aventuras, NPCs, XP e tesouro.'},
     'jogador': {'chave': 'jogador', 'nome': 'Jogador', 'icone': '🧝', 'cor': 'preparar',
                 'desc': 'Crie e jogue os seus personagens nas mesas em que você entra.'},

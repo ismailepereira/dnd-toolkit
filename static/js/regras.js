@@ -450,6 +450,13 @@ const ARMA_ICONE = {
   'Besta de Mão': '🏹', 'Besta Pesada': '🏹', 'Zarabatana': '🎋', 'Rede': '🕸️'
 };
 function getClasseIcone(c) { return CLASSE_ICONE[c] || '👤'; }
+// Ícones 3D por classe (Gemini) — slug sem acento; usados como avatar do token.
+const CLASSE_ARQ = {
+  'Bárbaro': 'barbaro', 'Bardo': 'bardo', 'Bruxo': 'bruxo', 'Clérigo': 'clerigo',
+  'Druida': 'druida', 'Feiticeiro': 'feiticeiro', 'Guerreiro': 'guerreiro', 'Ladino': 'ladino',
+  'Mago': 'mago', 'Monge': 'monge', 'Paladino': 'paladino', 'Patrulheiro': 'patrulheiro'
+};
+function getClasseIconeUrl(c) { const s = CLASSE_ARQ[c]; return s ? ('/static/icons/ui/classe-' + s + '.png') : null; }
 function getAttrIcone(a) { return ATTR_ICONE[a] || '⭐'; }
 function getArmaIcone(w) { return ARMA_ICONE[w] || '⚔️'; }
 
@@ -464,6 +471,13 @@ function miniaturaFichaHtml(f, tam) {
     const safe = String(url).replace(/"/g, '&quot;');
     return `<img class="ficha-mini" src="${safe}" alt="" ` +
       `style="width:${tam}px;height:${tam}px;object-fit:cover;border-radius:50%;flex:0 0 auto">`;
+  }
+  const arte = getClasseIconeUrl(f && f.classe);
+  if (arte) {
+    return `<span class="ficha-mini ficha-mini-simbolo ficha-mini-arte" ` +
+      `style="width:${tam}px;height:${tam}px;border-radius:50%;background:var(--accent2,#2a2a35);` +
+      `display:inline-flex;align-items:center;justify-content:center;overflow:hidden;flex:0 0 auto">` +
+      `<img src="${arte}" alt="" style="width:100%;height:100%;object-fit:contain"></span>`;
   }
   return `<span class="ficha-mini ficha-mini-simbolo" ` +
     `style="width:${tam}px;height:${tam}px;font-size:${Math.round(tam * 0.55)}px;` +

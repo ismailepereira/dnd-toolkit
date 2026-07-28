@@ -924,48 +924,6 @@ def registro():
                            credito_inicial=CREDITO_INICIAL)
 
 
-@app.route('/recuperar-senha', methods=['GET', 'POST'])
-def recuperar_senha():
-    """Redefinir a senha provando identidade com e-mail + CPF (sem envio de e-mail).
-    Só vale para contas registradas (u_...); as legadas do .env não entram aqui.
-    Segurança: mensagem genérica (não revela se o e-mail existe) e limite de
-    tentativas por sessão para desencorajar tentativa e erro no par e-mail/CPF."""
-    erro = ok = None
-    if request.method == 'POST':
-        tentativas = int(session.get('recTentativas', 0))
-        if tentativas >= 8:
-            return render_template('recuperar_senha.html',
-                                   erro='Muitas tentativas. Aguarde alguns minutos e tente de novo.')
-        email = request.form.get('email', '').strip().lower()
-        cpf = validar_cpf(request.form.get('cpf', ''))
-        senha = request.form.get('senha', '')
-        senha2 = request.form.get('senha2', '')
-        if len(senha) < 6:
-            erro = 'A nova senha precisa de pelo menos 6 caracteres.'
-        elif senha != senha2:
-            erro = 'As senhas não conferem.'
-        elif not cpf or not re.fullmatch(r'[^@\s]+@[^@\s]+\.[^@\s]+', email):
-            erro = 'E-mail e CPF são obrigatórios.'
-        else:
-            # procura a conta pelo par e-mail + CPF (ambos precisam bater)
-            alvo_uid = alvo = None
-            for uid, u in carregar_usuarios_reg().items():
-                if str(u.get('email', '')).lower() == email and u.get('cpf') == cpf:
-                    alvo_uid, alvo = uid, u
-                    break
-            if alvo:
-                # só troca a senha; acesso/assinatura/créditos ficam intactos
-                alvo['senhaHash'] = generate_password_hash(senha)
-                alvo['senhaRedefinidaEm'] = _agora()
-                salvar_usuario_reg(alvo_uid, alvo)
-                session['recTentativas'] = 0
-                ok = 'Senha redefinida! Já pode entrar com a nova senha.'
-            else:
-                session['recTentativas'] = tentativas + 1
-                erro = 'E-mail e CPF não conferem com nenhuma conta.'
-    return render_template('recuperar_senha.html', erro=erro, ok=ok)
-
-
 # ----- FASE 10.9: página de assinatura (trial expirado / pagamento manual) -----
 @app.route('/assinatura', methods=['GET', 'POST'])
 @login_obrigatorio(exigir_assinatura=False)

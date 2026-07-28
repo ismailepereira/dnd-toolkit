@@ -23,7 +23,7 @@
       {% for m in modos %}
       <a class="hub-card cor-{{ m.cor }}{% if modo_atual == m.chave %} atual{% endif %}"
          href="{{ url_for('entrar_modo', chave=m.chave) }}">
-        <span class="hub-card-icone" aria-hidden="true">{{ m.icone }}</span>
+        <span class="hub-card-icone" aria-hidden="true">{% if m.img %}<img src="{{ url_for('static', filename=m.img) }}" alt="" class="hub-card-img">{% else %}{{ m.icone }}{% endif %}</span>
         <span class="hub-card-nome">{{ m.nome }}</span>
         <span class="hub-card-desc">{{ m.desc }}</span>
         {% if modo_atual == m.chave %}<span class="hub-card-tag">modo atual</span>{% endif %}

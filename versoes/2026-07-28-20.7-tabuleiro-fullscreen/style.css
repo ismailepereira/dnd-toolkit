@@ -1103,15 +1103,6 @@ input:focus, textarea:focus, select:focus {
   margin-bottom: 16px;
   font-size: 0.9rem;
 }
-.login-ok {
-  background: rgba(80, 200, 120, 0.15);
-  border: 1px solid #46c46a;
-  color: #46c46a;
-  border-radius: 6px;
-  padding: 8px 10px;
-  margin-bottom: 16px;
-  font-size: 0.9rem;
-}
 
 /* Bestiário - visibilidade */
 .aviso-mestre {
@@ -2381,22 +2372,6 @@ body.alto-contraste a { color: #ffd400; }
   background: #000; user-select: none; touch-action: none;
 }
 .tab-img { display: block; width: 100%; height: auto; -webkit-user-drag: none; pointer-events: none; }
-/* 20.7: botão de tela cheia — mesmo destaque no Mestre e no Jogador */
-.tab-full-btn {
-  position: absolute; top: 8px; right: 8px; z-index: 5;
-  width: 40px; height: 40px; padding: 0; line-height: 1;
-  font-size: 20px; cursor: pointer;
-  background: rgba(20, 20, 28, 0.78); color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 8px;
-}
-.tab-full-btn:hover { background: rgba(20, 20, 28, 0.95); }
-@media (pointer: coarse) { .tab-full-btn { width: 44px; height: 44px; } }
-/* Em tela cheia o board acompanha a imagem (não estica), centralizado: assim os
-   tokens — posicionados em % do board — continuam alinhados ao mapa. */
-.tab-board:fullscreen { width: auto; height: auto; max-width: 100vw; max-height: 100vh; margin: auto; border: 0; border-radius: 0; }
-.tab-board:-webkit-full-screen { width: auto; height: auto; max-width: 100vw; max-height: 100vh; margin: auto; border: 0; border-radius: 0; }
-.tab-board:fullscreen .tab-img { width: auto; height: auto; max-width: 100vw; max-height: 100vh; }
-.tab-board:-webkit-full-screen .tab-img { width: auto; height: auto; max-width: 100vw; max-height: 100vh; }
 .tab-token {
   position: absolute; transform: translate(-50%, -50%); z-index: 2;
   display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: default;
@@ -2554,7 +2529,6 @@ body.alto-contraste a { color: #ffd400; }
   outline: none;
 }
 .hub-card-icone { font-size: 2rem; line-height: 1; }
-.hub-card-img { width: 3.2rem; height: 3.2rem; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.55)); }
 .hub-card-nome { font-family: var(--font-title); font-size: 1.05rem; color: var(--cat, var(--accent)); }
 .hub-card-desc { font-size: 0.84rem; color: var(--text-dim); flex: 1; }
 .hub-card-entrar { font-size: 0.82rem; font-weight: 600; color: var(--cat, var(--accent)); }

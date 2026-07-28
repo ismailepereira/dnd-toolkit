@@ -1,5 +1,71 @@
 # Changelog
 
+## 2026-07-28 — Recuperar senha (e-mail + CPF) 🔑
+
+**Backup:** `versoes/2026-07-28-recuperar-senha/` (app.py + login.html pré-edição).
+
+**Resumo:** self-service de "esqueci a senha" para contas registradas, **sem infra de e-mail**.
+- Nova rota **`/recuperar-senha`** (GET/POST) + `templates/recuperar_senha.html`; link **"Esqueci minha senha"** no login.
+- Prova de identidade: **e-mail + CPF** do cadastro precisam bater com a mesma conta; aí define nova senha
+  (≥6, confirmada). Só troca `senhaHash` (+ `senhaRedefinidaEm`); acesso/assinatura/créditos ficam intactos.
+- **Segurança:** mensagem genérica ("e-mail e CPF não conferem" — não revela se o e-mail existe) e **limite de
+  8 tentativas por sessão**. Contas legadas do `.env` (Ismaile/jogador) não entram (senha vive no ambiente).
+- **8 testes** novos em `tests/test-servidor.py` (CPF errado, e-mail inexistente, senha curta, senhas
+  diferentes, redefinição válida, senha antiga invalidada, login com a nova) — **77/77 passam**.
+
+**Ficheiros:** `app.py` (rota `recuperar_senha`), `templates/recuperar_senha.html` (novo),
+`templates/login.html` (link), `static/css/style.css` (`.login-ok`), `tests/test-servidor.py`.
+
+## 2026-07-28 — Ícones 3D (Gemini): abas 🗂️
+
+**Resumo:** segunda leva de ícones 3D — as **abas** do Mestre e do Jogador. 11 ícones gerados no Gemini
+(desta vez em **fundo branco liso**, o que deu recorte limpo e sem halo) e ligados via `<img class="ui-icon">`.
+- **Mestre (11):** Combate, Encontros, NPCs, Aventura, Notas, Progressão, Bestiário, Loja, Itens Mágicos,
+  Membros, Geradores. Fichas segue no SVG (ícone de fichas não veio nesta leva).
+- **Jogador (5):** Combate, História (reusa icon-aventura), NPCs, Bestiário, Progressão.
+- Verificado ao vivo: 12 abas do Mestre + 6 do Jogador carregam, zero quebradas.
+
+**Ficheiros:** `templates/mestre.html`, `templates/jogador.html`, `static/icons/ui/icon-*.png` (11 novos).
+
+## 2026-07-28 — Ícones 3D (Gemini): modos, hub e classes 🎨
+
+**Backup:** `versoes/2026-07-28-icones-3d-gemini/` (SVGs originais + mestre/jogador.html pré-edição).
+
+**Resumo:** primeira leva de ícones 3D "latão + gema" gerados no Gemini (nano-banana), recortados
+(fundo removido por script — OpenCV/Pillow, `scratch-icons/process.py`) e ligados no app.
+- **5 ícones de modo** (Jogar d20 âmbar / Preparar grimório azul / Consultar lupa roxa / ADM moedas+esmeralda
+  / Controle Total coroa) — os 3 primeiros nos botões de modo do Mestre e Jogador.
+- **Hub:** cards ADM, Controle Total e Mestre passam a usar `<img>` 3D (campo `img` em `MODOS`, `hub.html`);
+  Jogador segue com emoji.
+- **12 classes:** arte 3D vira o **avatar do token** do PJ (`miniaturaFichaHtml` → `getClasseIconeUrl`),
+  no lugar do emoji, quando não há miniatura enviada. Verificado ao vivo (hub + função do token).
+- ⚠️ **Pendências (o Ismaile refina depois):** `classe-ladino.png` ficou com recorte ruim (capuz escuro
+  sobre vinheta escura) e há halo suave em bruxo/monge/feitiçeiro/clérigo — decidido aceitar como está.
+  Convenção daqui pra frente: gerar em **fundo branco liso** (não xadrez) facilita o recorte.
+
+**Ficheiros:** `app.py` (MODOS.img), `templates/hub.html`, `templates/mestre.html`, `templates/jogador.html`,
+`static/js/regras.js` (CLASSE_ARQ + `getClasseIconeUrl` + avatar por imagem), `static/css/style.css`
+(`.hub-card-img`), `static/icons/ui/*.png` (17 novos).
+
+**Como reverter:** restaurar os SVGs/HTML de `versoes/2026-07-28-icones-3d-gemini/` e reverter os PATCHs.
+
+## 2026-07-28 — 20.7 · Tabuleiro em tela cheia (⛶) 🗺️
+
+**Backup:** `versoes/2026-07-28-20.7-tabuleiro-fullscreen/` (tabuleiro.js, style.css).
+
+**Resumo:** fecha a **Fase 20 — Navegação & Mobile**. Botão **⛶** no canto do tabuleiro (Mestre **e**
+Jogador) coloca o mapa em tela cheia — pensado para o mapa virar "a mesa" numa TV/tablet.
+- **Fullscreen API** com fallbacks `webkit*` (Safari/iOS); onde não há suporte, o botão se esconde.
+- O ícone alterna **⛶ ↔ ⛉** e reflete o estado real (inclusive saída pelo Esc), via `fullscreenchange`.
+- Em tela cheia o board **acompanha a imagem** (não estica): `width/height:auto` + `max-*:100v*` centrado,
+  então os tokens — posicionados em **%** do board — continuam alinhados ao mapa. Casa com o zoom/pan da 16.6.
+- Alvo de toque ≥44px em `pointer: coarse` (convenção da 20.3).
+
+**Ficheiros:** `static/js/tabuleiro.js` (`ligarFullscreen`/`fullEl` + botão no render), `static/css/style.css`
+(`.tab-full-btn` + regras `:fullscreen`).
+
+**Como reverter:** restaurar `versoes/2026-07-28-20.7-tabuleiro-fullscreen/`.
+
 ## 2026-07-26 — Contraste dos botões mini (atacar/dano legíveis) 🔘
 
 **Backup:** `versoes/2026-07-26-btn-mini-contraste/` (style.css).

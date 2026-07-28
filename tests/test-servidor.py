@@ -346,6 +346,41 @@ _um = next((v for v in servidor.carregar_usuarios_reg().values() if v.get('usuar
 t('A2: cadastro como Mestre grava papelGlobal=mestre', bool(_um) and _um.get('papelGlobal') == 'mestre',
   (_um or {}).get('papelGlobal'))
 
+# ----- Recuperar senha (e-mail + CPF, sem envio de e-mail) -----
+# 'espertinho' foi criado acima com email e@e.com / cpf 11144477735 / senha senha123
+rec = app.test_client()
+# CPF errado NÃO redefine
+r = rec.post('/recuperar-senha', data={'email': 'e@e.com', 'cpf': '52998224725',
+             'senha': 'novasenha9', 'senha2': 'novasenha9'})
+t('Recuperar: e-mail certo + CPF errado é recusado', b'n\xc3\xa3o conferem' in r.data)
+_still = next((v for v in servidor.carregar_usuarios_reg().values() if v.get('usuario') == 'espertinho'), {})
+t('Recuperar: senha intacta após tentativa inválida',
+  servidor.senha_confere(_still.get('senhaHash', ''), 'senha123'))
+# e-mail desconhecido é recusado
+r = rec.post('/recuperar-senha', data={'email': 'ninguem@x.com', 'cpf': '11144477735',
+             'senha': 'novasenha9', 'senha2': 'novasenha9'})
+t('Recuperar: e-mail inexistente é recusado', b'n\xc3\xa3o conferem' in r.data)
+# senha curta é barrada
+r = rec.post('/recuperar-senha', data={'email': 'e@e.com', 'cpf': '11144477735',
+             'senha': '123', 'senha2': '123'})
+t('Recuperar: nova senha curta é barrada', 'pelo menos 6'.encode() in r.data)
+# senhas diferentes são barradas
+r = rec.post('/recuperar-senha', data={'email': 'e@e.com', 'cpf': '11144477735',
+             'senha': 'novasenha9', 'senha2': 'outra9'})
+t('Recuperar: senhas diferentes são barradas', b'n\xc3\xa3o conferem' in r.data)
+# par correto redefine
+r = rec.post('/recuperar-senha', data={'email': 'e@e.com', 'cpf': '11144477735',
+             'senha': 'novasenha9', 'senha2': 'novasenha9'})
+_novo = next((v for v in servidor.carregar_usuarios_reg().values() if v.get('usuario') == 'espertinho'), {})
+t('Recuperar: e-mail + CPF corretos redefinem a senha',
+  servidor.senha_confere(_novo.get('senhaHash', ''), 'novasenha9'))
+t('Recuperar: senha antiga deixa de valer',
+  not servidor.senha_confere(_novo.get('senhaHash', ''), 'senha123'))
+# login com a senha nova funciona (302 -> hub)
+_lg = app.test_client().post('/login', data={'usuario': 'espertinho', 'senha': 'novasenha9'},
+                             follow_redirects=False)
+t('Recuperar: login com a senha nova funciona', _lg.status_code == 302, str(_lg.status_code))
+
 # ----- C1: saquear alvo caído (transfere ouro/itens no servidor) -----
 mestre.put('/api/combate', json={
     'combatentes': [

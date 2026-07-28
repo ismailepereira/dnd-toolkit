@@ -1924,9 +1924,9 @@ body.alto-contraste a { color: #ffd400; }
   color: var(--text-dim); font: inherit; font-size: 0.72rem; cursor: pointer;
   transition: transform 0.1s, border-color 0.1s;
 }
-.mini-card:hover { transform: translateY(-2px); border-color: var(--accent-gold); color: var(--text); }
-.mini-card.ativo { border-color: var(--accent-gold); background: rgba(212,175,55,0.14); color: var(--text); box-shadow: 0 0 12px rgba(212,175,55,0.30); }
-.mini-card.recomendada { border-color: rgba(212,175,55,0.5); }
+.mini-card:hover { transform: translateY(-2px); border-color: var(--accent); color: var(--text); }
+.mini-card.ativo { border-color: var(--accent); background: rgba(233,69,96,0.14); color: var(--text); box-shadow: 0 0 10px rgba(233,69,96,0.25); }
+.mini-card.recomendada { border-color: #d4a72c; }
 .mini-simbolo { font-size: 1.6rem; line-height: 1; }
 .mini-nome { text-align: center; line-height: 1.15; }
 .mini-estrela { position: absolute; top: -6px; right: -4px; font-size: 0.75rem; }

@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-07-28 — Miniaturas: fundo dos ícones sem destoar 🪙
+
+**Backup:** `versoes/2026-07-28-miniaturas-fundo/` (regras.js + style.css pré-edição).
+
+**Resumo:** dois fundos destoavam do tema latão/heráldico depois da unificação de cores.
+- **Token da ficha** (`miniaturaFichaHtml`, regras.js): os PNGs 3D das classes já trazem fundo de
+  ardósia + moldura embutidos, mas ficavam sobre um disco de **ouro cheio** (`--accent2`) — chocava.
+  Agora: disco **escuro** (radial `#241c14→#120d09`, casa com o ícone) + **anel fino de latão**
+  (mantém a "moldura de latão" do design). Vale para a arte 3D e para o fallback de emoji;
+  a arte passou a `object-fit:cover` (preenche a moeda, sem cantos vazados).
+- **Card de classe selecionado** na galeria do criador (`.mini-card.ativo`): usava **vermelho neon
+  morto** (`rgba(233,69,96,…)`) no fundo/glow/borda — trocado por **latão** (`--accent-gold`).
+  Hover e "recomendada" também passaram a latão, coerentes.
+
+**Verificado ao vivo:** card ativo em ouro (sem neon), token com disco escuro + anel de latão; sintaxe
+OK e 55/55 testes unitários.
+
+**Ficheiros:** `static/js/regras.js`, `static/css/style.css`.
+
 ## 2026-07-28 — Unificar cores dos modos 🎨
 
 **Backup:** `versoes/2026-07-28-unificar-cores-modos/` (style.css + 7 templates + manifest pré-edição).

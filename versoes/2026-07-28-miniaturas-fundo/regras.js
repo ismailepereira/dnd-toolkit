@@ -474,20 +474,13 @@ function miniaturaFichaHtml(f, tam) {
   }
   const arte = getClasseIconeUrl(f && f.classe);
   if (arte) {
-    // Os PNGs 3D já trazem fundo de ardósia + moldura embutidos; por isso o
-    // disco atrás é ESCURO (casa com o ícone) com um anel fino de latão —
-    // não ouro cheio, que destoava do ícone.
     return `<span class="ficha-mini ficha-mini-simbolo ficha-mini-arte" ` +
-      `style="width:${tam}px;height:${tam}px;border-radius:50%;` +
-      `background:radial-gradient(circle at 50% 42%, #241c14, #120d09);` +
-      `box-shadow:inset 0 0 0 2px rgba(212,175,55,0.55), 0 1px 3px rgba(0,0,0,0.5);` +
+      `style="width:${tam}px;height:${tam}px;border-radius:50%;background:var(--accent2,#2a2a35);` +
       `display:inline-flex;align-items:center;justify-content:center;overflow:hidden;flex:0 0 auto">` +
-      `<img src="${arte}" alt="" style="width:100%;height:100%;object-fit:cover"></span>`;
+      `<img src="${arte}" alt="" style="width:100%;height:100%;object-fit:contain"></span>`;
   }
   return `<span class="ficha-mini ficha-mini-simbolo" ` +
     `style="width:${tam}px;height:${tam}px;font-size:${Math.round(tam * 0.55)}px;` +
     `line-height:${tam}px;display:inline-flex;align-items:center;justify-content:center;` +
-    `border-radius:50%;background:radial-gradient(circle at 50% 42%, #241c14, #120d09);` +
-    `box-shadow:inset 0 0 0 2px rgba(212,175,55,0.55), 0 1px 3px rgba(0,0,0,0.5);` +
-    `flex:0 0 auto">${getClasseIcone(f && f.classe)}</span>`;
+    `border-radius:50%;background:var(--accent2,#2a2a35);flex:0 0 auto">${getClasseIcone(f && f.classe)}</span>`;
 }

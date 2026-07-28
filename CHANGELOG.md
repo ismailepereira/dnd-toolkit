@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-07-28 — Unificar cores dos modos 🎨
+
+**Backup:** `versoes/2026-07-28-unificar-cores-modos/` (style.css + 7 templates + manifest pré-edição).
+
+**Resumo:** fecha a dívida das "3 paletas brigando" (neon da A1, dourado da reskin, mockup). A paleta
+por categoria (`--cat-*`) já rodava heráldica ao vivo, mas o CSS ainda carregava os blocos neon **mortos**
+(sobrescritos) e sobravam valores neon soltos. Agora há **uma fonte única**.
+- **Fonte única** das tinturas heráldicas movida para o bloco A1 (jogar `#d9564a`, preparar `#4a90c2`,
+  consultar `#a074d0`, finanças `#46a35c`, total `#d4af37`); removidas as definições neon duplicadas
+  (A1 antiga + `-soft` da A3) e o `:root` redundante do antigo bloco de "unificação" de 26/07.
+- **`theme-color` do PWA** (7 templates + `manifest.webmanifest`): neon morto `#e94560` → `#a71d2a`
+  (o `--accent-red` cera-de-selo, cor-assinatura real da UI). Corrige a barra do navegador no celular.
+- **`.papel-opcao`** (escolha de papel no cadastro): rgba neon hardcoded → tintura heráldica.
+- **Sem mudança visual nos modos** (valores idênticos aos já efetivos) — verificado ao vivo: paleta,
+  modo ativo e `--cat-btn` inalterados, zero erro de console. Refactor de consolidação, não de aparência.
+
+**Ficheiros:** `static/css/style.css`, `templates/{hub,mestre,jogador,login,campanhas,creditos,assinatura}.html`,
+`static/manifest.webmanifest`.
+
 ## 2026-07-28 — Recuperar senha (e-mail + CPF) 🔑
 
 **Backup:** `versoes/2026-07-28-recuperar-senha/` (app.py + login.html pré-edição).

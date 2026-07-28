@@ -2499,18 +2499,15 @@ body.alto-contraste a { color: #ffd400; }
 
 /* =====================================================
    FASE A1 — Hub de modos (tela de cards depois do login)
-   FONTE ÚNICA das cores por CATEGORIA (modos/abas/data-mode).
-   Tinturas HERÁLDICAS (banner medieval), harmonizando com o
-   tema Fantasia Medieval. Reusadas pela A3 nos menus/abas.
-   (Unificado em 28/07/2026: antes havia 3 esquemas — o neon da
-    A1, o dourado da reskin e o mockup. Aqui fica UM só.)
+   As variáveis --cat-* são a paleta por CATEGORIA e serão
+   reusadas pela Fase A3 nos menus/abas (data-mode).
    ===================================================== */
 :root {
-  --cat-jogar:     #d9564a;  /* Goles — vermelho de combate ("é agora") */
-  --cat-preparar:  #4a90c2;  /* Blau — azul de planejamento ("com calma") */
-  --cat-consultar: #a074d0;  /* Púrpura — arcano/referência */
-  --cat-financas:  #46a35c;  /* Sinople — verde de finanças (do dono) */
-  --cat-total:     #d4af37;  /* Ouro — poder máximo (casa com o tema) */
+  --cat-jogar: #e94560;      /* ação, é agora (Jogar/Mesa) */
+  --cat-preparar: #4a9fd5;   /* antes da sessão, com calma */
+  --cat-consultar: #a371f7;  /* referência, não muda nada */
+  --cat-financas: #3fb950;   /* dinheiro, do dono */
+  --cat-total: #d4a72c;      /* poder máximo, use com cuidado */
 }
 
 .hub-wrap {
@@ -2619,7 +2616,7 @@ body.alto-contraste a { color: #ffd400; }
 .papel-opcao:hover { border-color: var(--cat-preparar); }
 .papel-opcao:has(input:checked) {
   border-color: var(--cat-jogar);
-  background: rgba(217, 86, 74, 0.10); /* --cat-jogar heráldico, suave */
+  background: rgba(233, 69, 96, 0.08);
 }
 /* Feedback de seleção que não depende de :has() (alguns motores não
    reinvalidam :has() ao trocar o radio): o irmão reage sempre. */
@@ -2635,12 +2632,11 @@ body.alto-contraste a { color: #ffd400; }
    todo botão de modo tem ícone + texto.
    ===================================================== */
 :root {
-  /* halos suaves das mesmas tinturas heráldicas (fonte única acima) */
-  --cat-jogar-soft:     rgba(217, 86, 74, 0.30);
-  --cat-preparar-soft:  rgba(74, 144, 194, 0.30);
-  --cat-consultar-soft: rgba(160, 116, 208, 0.30);
-  --cat-financas-soft:  rgba(70, 163, 92, 0.30);
-  --cat-total-soft:     rgba(212, 175, 55, 0.30);
+  --cat-jogar-soft: rgba(233, 69, 96, 0.32);
+  --cat-preparar-soft: rgba(74, 159, 213, 0.32);
+  --cat-consultar-soft: rgba(163, 113, 247, 0.32);
+  --cat-financas-soft: rgba(63, 185, 80, 0.32);
+  --cat-total-soft: rgba(212, 167, 44, 0.32);
   --cat-tinta: #12121f; /* texto sobre cor viva (contraste AA) */
 }
 
@@ -2724,10 +2720,27 @@ body[data-modo-ativo="consultar"] { --cat: var(--cat-consultar); --cat-soft: var
 .loja-ouro b { color: var(--accent-legivel); }
 
 /* =====================================================================
-   MODOS — comportamento do botão (paleta unificada lá em cima, na A1)
-   Só o modo ATIVO acende na sua cor; os inativos ficam calmos (latão),
-   sem listra colorida forte. Vence a cascata — fácil de reverter.
+   UNIFICAÇÃO DAS CORES DOS MODOS (26/07/2026)
+   Havia 3 esquemas brigando: A3 (cores neon modernas), a reskin (todo
+   modo ativo em dourado) e o mockup. Aqui fica UM só, em tinturas
+   HERÁLDICAS (cores de banner medieval), harmonizando com o tema
+   Fantasia Medieval. Só o modo ATIVO acende na sua cor; os inativos
+   ficam calmos (borda de latão). Vence a cascata — fácil de reverter.
    ===================================================================== */
+:root {
+  --cat-jogar:     #d9564a;  /* Goles — vermelho de combate ("é agora") */
+  --cat-preparar:  #4a90c2;  /* Blau — azul de planejamento ("com calma") */
+  --cat-consultar: #a074d0;  /* Púrpura — arcano/referência */
+  --cat-financas:  #46a35c;  /* Sinople — verde de finanças (do dono) */
+  --cat-total:     #d4af37;  /* Ouro — poder máximo (casa com o tema) */
+  --cat-jogar-soft:     rgba(217, 86, 74, 0.30);
+  --cat-preparar-soft:  rgba(74, 144, 194, 0.30);
+  --cat-consultar-soft: rgba(160, 116, 208, 0.30);
+  --cat-financas-soft:  rgba(70, 163, 92, 0.30);
+  --cat-total-soft:     rgba(212, 175, 55, 0.30);
+}
+/* inativo = calmo (latão da reskin), sem listra colorida forte;
+   ativo = cor cheia da categoria (regra da A3, mantida) */
 .modo-btn { border-left-color: transparent; }
 .modo-btn:hover { color: var(--text-light); border-color: var(--cat-btn, var(--accent-gold)); }
 

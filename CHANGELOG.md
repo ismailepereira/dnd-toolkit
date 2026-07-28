@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-07-28 — 20.7 · Tabuleiro em tela cheia (⛶) 🗺️
+
+**Backup:** `versoes/2026-07-28-20.7-tabuleiro-fullscreen/` (tabuleiro.js, style.css).
+
+**Resumo:** fecha a **Fase 20 — Navegação & Mobile**. Botão **⛶** no canto do tabuleiro (Mestre **e**
+Jogador) coloca o mapa em tela cheia — pensado para o mapa virar "a mesa" numa TV/tablet.
+- **Fullscreen API** com fallbacks `webkit*` (Safari/iOS); onde não há suporte, o botão se esconde.
+- O ícone alterna **⛶ ↔ ⛉** e reflete o estado real (inclusive saída pelo Esc), via `fullscreenchange`.
+- Em tela cheia o board **acompanha a imagem** (não estica): `width/height:auto` + `max-*:100v*` centrado,
+  então os tokens — posicionados em **%** do board — continuam alinhados ao mapa. Casa com o zoom/pan da 16.6.
+- Alvo de toque ≥44px em `pointer: coarse` (convenção da 20.3).
+
+**Ficheiros:** `static/js/tabuleiro.js` (`ligarFullscreen`/`fullEl` + botão no render), `static/css/style.css`
+(`.tab-full-btn` + regras `:fullscreen`).
+
+**Como reverter:** restaurar `versoes/2026-07-28-20.7-tabuleiro-fullscreen/`.
+
 ## 2026-07-26 — Contraste dos botões mini (atacar/dano legíveis) 🔘
 
 **Backup:** `versoes/2026-07-26-btn-mini-contraste/` (style.css).

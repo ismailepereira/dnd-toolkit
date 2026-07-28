@@ -115,7 +115,6 @@
       (!ehMestre && tab.travado ? '<div class="tab-aviso">🔒 O Mestre travou o movimento dos tokens.</div>' : '') +
       '<div class="tab-board" id="tabBoard">' +
         `<img class="tab-img" src="${safeImg}" alt="mapa" draggable="false">` +
-        '<button type="button" class="tab-full-btn" id="tabFull" title="Tela cheia (mapa na mesa)" aria-label="Tela cheia">⛶</button>' +
         fichas.map((f, i) => {
           const p = posDe(f.id, i);
           const mine = podeMover(f);

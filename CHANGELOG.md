@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-07-26 — Contraste dos botões mini (atacar/dano legíveis) 🔘
+
+**Backup:** `versoes/2026-07-26-btn-mini-contraste/` (style.css).
+
+**Resumo:** feedback do Ismaile — os botões "🎲 atacar / 🎲 dano" da ficha estavam difíceis de ler.
+- **Causa:** `.btn-mini` (usado por atacar/dano e muitos botões pequenos) tinha **fundo dourado** (`--accent2`)
+  com **texto creme claro** (`--text`) — claro sobre claro, contraste **~1.5:1** (péssimo).
+- **Correção:** texto **escuro** (#1c120c) sobre o dourado, negrito + leve brilho (look de selo de latão),
+  borda dourada e hover mais claro. Medido no navegador: **8.75:1** (WCAG AAA).
+- Conferi os demais botões no mesmo teste — `.btn-primary` 5.82:1, `.btn-danger` 7.44:1, `.btn-secondary`
+  9.07:1: todos já OK. O `.btn-mini` era o único com problema.
+
+**Ficheiros:** `static/css/style.css` (`.btn-mini`).
+
+**Como reverter:** restaurar `versoes/2026-07-26-btn-mini-contraste/`.
+
 ## 2026-07-26 — 20.6 · Rolador de Dados flutuante (dados-gema) 🎲
 
 **Backup:** `versoes/2026-07-26-20-6-dice-roller/` (style.css, regras-ficha.js, templates, unit-regras.js).

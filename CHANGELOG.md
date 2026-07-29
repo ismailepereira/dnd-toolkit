@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-07-29 — 21.4 · Iniciativa pelo jogador (na tela dele) 🎲
+
+**Backup:** `versoes/2026-07-29-21-4-iniciativa-jogador/` (jogador.html, jogador.js, style.css).
+
+**Resumo:** quarta sub-fase da **Fase 21 — Mesa Viva**. Quando o combate abre (banner ⚔️ "rolem iniciativa"),
+o jogador rola a **própria iniciativa direto na aba Combate** — sem precisar abrir o Modo de Jogo.
+- **Reusa a ação de servidor `entrar_combate` (T4)** — já valida posse da ficha e reordena a fila (preservando
+  a vez atual). **Sem servidor novo.**
+- **UI** (`jogador.js` `renderIniciativaJog` + `jogador.html`): painel "🎲 Sua iniciativa" com um botão por ficha
+  própria — **🎲 Entrar** se ainda não está na fila, **🔄 Rerrolar (valor atual)** se já está. Atualiza ao vivo
+  pelo RT/poll do combate.
+- **Testes:** o caminho de servidor já é coberto (entrar_combate por jogador reordena — testes T4 existentes).
+  Mudança de front; verificação ao vivo no navegador pendente. Sintaxe CI verde.
+
 ## 2026-07-29 — 21.3 · Névoa de guerra simples (fog of war) 🌫️
 
 **Backup:** `versoes/2026-07-29-21-3-fog/` (app.py, tabuleiro.js, style.css).

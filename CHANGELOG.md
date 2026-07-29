@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-07-29 — 21.1 · Log da Mesa compartilhado (v1) 📜
+
+**Backup:** `versoes/2026-07-29-21-1-log-mesa/` (app.py, jogador.html, jogador.js).
+
+**Resumo:** primeira sub-fase da **Fase 21 — Mesa Viva**. Um feed em tempo real que **todos veem** (padrão
+Game Log do D&D Beyond), fluindo pela projeção pública que já existe (`estado.eventos`) — **sem sync novo**.
+- **Servidor registra os marcos** (`_registrar_evento`, agora com ícone): 🎲 entrar no combate, 💀 cair a 0 PV
+  (só na transição — dano em alvo já caído não duplica), 💰 saque, ⬆️ subida de nível (já existia, agora com
+  ícone). Novo `GET /api/eventos` (mestre e jogador) como fallback de polling.
+- **Painel 📜 "Log da Mesa"** na aba Combate do jogador (`static/js/logmesa.js` + CSS): mais recente no topo,
+  ícone + texto + tempo relativo ("há 2 min"). Atualiza ao vivo pelo RT (`estado.eventos` na projeção pública)
+  e por polling de fallback quando não há RT.
+- **Testes:** 4 novos em `tests/test-servidor.py` (81/81 passam) — jogador lê o feed, saque/queda registram,
+  queda não duplica. Sintaxe CI verde.
+- **Escopo v1 (o que falta na 21.1b):** painel do lado do Mestre e mais fontes de evento (compra/venda na loja,
+  avanço de nó, rolagens do Dice Roller). Verificação ao vivo do painel no navegador ainda pendente.
+
 ## 2026-07-28 — 16.6 · Tabuleiro: zoom & pan (roda, pinça, botões) 🔍
 
 **Backup:** `versoes/2026-07-28-16-6-zoom-pan/` (tabuleiro.js, style.css).

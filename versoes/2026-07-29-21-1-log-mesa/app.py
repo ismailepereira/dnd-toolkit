@@ -1789,13 +1789,12 @@ def api_patch_ficha(fid):
 # ---------------------------------------------------------------
 # Fase B2 — liberação de nível pelo Mestre (aplica o plano do jogador)
 # ---------------------------------------------------------------
-def _registrar_evento(estado, texto, icone='📜'):
-    """Log da mesa (últimos 50 eventos) — Fase 21.1. Flui aos jogadores pela
-    projeção pública (`_estado_publico` copia o estado inteiro), então TODOS
-    veem o mesmo feed em tempo real. `icone` é cosmético (o front cai em 📜 se
-    faltar); entradas antigas só têm `txt`/`em` e continuam renderizando."""
+def _registrar_evento(estado, texto):
+    """Log simples da campanha (últimos 50 eventos). Flui aos jogadores pela
+    projeção pública (`_estado_publico` copia o estado inteiro). O feed rico em
+    tempo real é a Fase 21.1 — aqui basta o registro de quem subiu e quando."""
     ev = estado.setdefault('eventos', [])
-    ev.append({'txt': str(texto)[:200], 'em': _agora(), 'ico': str(icone)[:4] or '📜'})
+    ev.append({'txt': str(texto)[:200], 'em': _agora()})
     del ev[:-50]
 
 
@@ -1833,7 +1832,7 @@ def _liberar_proximo_nivel(estado, ficha):
     antiga = json.loads(json.dumps(ficha))  # cópia p/ o carimbo otimista
     _aplicar_snapshot_nivel(ficha, snap)
     ficha['progressaoPlanejada'] = [s for s in pp if isinstance(s, dict) and s.get('nivel', 0) > alvo]
-    _registrar_evento(estado, f"{ficha.get('nome', '?')} subiu para o nível {alvo} (liberado pelo Mestre)", '⬆️')
+    _registrar_evento(estado, f"⬆️ {ficha.get('nome', '?')} subiu para o nível {alvo} (liberado pelo Mestre)")
     _normalizar_ficha(ficha)
     _carimbar_ficha(ficha, antiga)
     return alvo
@@ -1954,7 +1953,6 @@ def api_combate_acao():
                 'ca': f.get('ca', 10), 'condicoes': [], 'resist': [], 'vuln': [], 'imune': [],
             })
             verbo = 'entrou no combate'
-            _registrar_evento(estado, f"{f.get('nome', 'PJ')} entrou no combate (iniciativa {ini})", '🎲')
         combatentes.sort(key=lambda c: -int(c.get('iniciativa', 0)))
         combate['ativo'] = True
         # preserva a vez: reencontra o índice do combatente que estava na vez
@@ -2050,7 +2048,6 @@ def api_combate_acao():
                 mult = 2.0
                 
         dano_real = int(bruto * mult)
-        hp_antes = alvo['hpAtual']
         alvo['hpAtual'] = max(0, alvo['hpAtual'] - dano_real)
         
         # Se for PC, sincroniza o HP na ficha persistida correspondente
@@ -2065,9 +2062,7 @@ def api_combate_acao():
         msg = f"{usuario} -> {alvo['nome']} ({nome_acao}){fisico_lbl}: causa {dano_real} de dano {tipo or ''}{lbl_mult}. PV {alvo['hpAtual']}/{alvo['hpMax']}"
         if alvo['hpAtual'] == 0:
             msg += " 💀 caiu!"
-            if hp_antes > 0:  # só na transição p/ 0 (evita "caiu" repetido em alvo já caído)
-                _registrar_evento(estado, f"{alvo['nome']} caiu em combate", '💀')
-
+            
         combate.setdefault('log', []).insert(0, f"R{combate.get('rodada', 1)} · {msg}")
         combate['log'] = combate['log'][:40]
         salvar_estado(estado)
@@ -2114,7 +2109,6 @@ def api_combate_acao():
         looter['itens'].extend(itens_saq)
         alvo['saqueado'] = True
         det = f"{ouro_saq} po" + (f" e {len(itens_saq)} item(ns)" if itens_saq else "")
-        _registrar_evento(estado, f"{looter.get('nome', '?')} saqueou {alvo.get('nome', '?')}: {det}", '💰')
         combate.setdefault('log', []).insert(0, f"R{combate.get('rodada', 1)} · 💰 {looter.get('nome', '?')} saqueou {alvo.get('nome', '?')}: {det}.")
         combate['log'] = combate['log'][:40]
         salvar_estado(estado)
@@ -2246,16 +2240,6 @@ def api_ia_gerar():
 
     _ia_registar_uso(uid, hoje, usos)
     return jsonify({'ok': True, 'texto': texto, 'restantes': max(0, IA_QUOTA_DIARIA - usos - 1)})
-
-
-@app.route('/api/eventos', methods=['GET'])
-@login_obrigatorio()
-def api_get_eventos():
-    """Fase 21.1: log da mesa que TODOS veem. Com RT ativo o jogador lê
-    `eventos` direto da projeção pública; este endpoint é o fallback de
-    polling (local/LAN) e a leitura do Mestre. Só leitura — os eventos são
-    registados pelo servidor nos marcos (combate, saque, subida de nível)."""
-    return jsonify(carregar_estado().get('eventos', []))
 
 
 @app.route('/api/notas', methods=['GET'])

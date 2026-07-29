@@ -2828,3 +2828,12 @@ body[data-modo-ativo="consultar"] { --cat: var(--cat-consultar); --cat-soft: var
 .dr-hist h5 { margin: 0 0 4px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim); }
 .dr-hist-linha { display: flex; gap: 8px; align-items: baseline; font-size: 0.82rem; padding: 2px 0; border-top: 1px solid var(--border); }
 .dr-hist-linha b { color: var(--accent-legivel); min-width: 28px; }
+
+/* Fase 21.1 — Log da Mesa compartilhado (feed que todos veem) */
+.logmesa-header { margin-top: 18px; }
+.logmesa-lista { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.logmesa-item { display: flex; align-items: baseline; gap: 8px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); font-size: 0.9rem; }
+.logmesa-ico { flex: 0 0 auto; font-size: 1.05rem; line-height: 1; }
+.logmesa-txt { flex: 1 1 auto; color: var(--text); }
+.logmesa-quando { flex: 0 0 auto; color: var(--text-dim); font-size: 0.76rem; white-space: nowrap; }
+.logmesa-vazio { color: var(--text-dim); font-size: 0.88rem; margin: 8px 0 0; }

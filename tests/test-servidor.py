@@ -409,6 +409,25 @@ r = jogador.post('/api/combate/acao', json={'acao': 'saquear', 'alvoId': 'cB', '
 t('C1: não saqueia de novo (400 ja_saqueado)',
   r.status_code == 400 and r.get_json().get('erro') == 'ja_saqueado', str(r.status_code))
 
+# ----- Fase 21.1: log da mesa (eventos que TODOS veem) -----
+# O saque acima já deve ter registado um evento 💰; o jogador também lê o feed.
+r = jogador.get('/api/eventos')
+t('21.1: jogador lê /api/eventos (200, lista)',
+  r.status_code == 200 and isinstance(r.get_json(), list), str(r.status_code))
+_evs = r.get_json()
+t('21.1: saque registou evento 💰',
+  any(e.get('ico') == '💰' and 'saqueou' in e.get('txt', '') for e in _evs), str(_evs[-3:]))
+
+# Dano que leva o alvo a 0 PV registra "caiu"; repetir não duplica.
+mestre.post('/api/combate/acao', json={'acao': 'dano', 'alvoId': 'cC', 'bruto': 50})
+_evs = mestre.get('/api/eventos').get_json()
+_caiu = [e for e in _evs if e.get('ico') == '💀' and 'Bandido de Pé' in e.get('txt', '')]
+t('21.1: queda a 0 PV registou evento 💀', len(_caiu) == 1, str(_caiu))
+mestre.post('/api/combate/acao', json={'acao': 'dano', 'alvoId': 'cC', 'bruto': 5})
+_evs2 = mestre.get('/api/eventos').get_json()
+_caiu2 = [e for e in _evs2 if e.get('ico') == '💀' and 'Bandido de Pé' in e.get('txt', '')]
+t('21.1: dano em alvo já caído não duplica "caiu"', len(_caiu2) == 1, str(len(_caiu2)))
+
 print()
 print(f'❌ {len(falhas)} falha(s) de {total}' if falhas else f'✅ {total} testes do servidor passaram')
 sys.exit(1 if falhas else 0)

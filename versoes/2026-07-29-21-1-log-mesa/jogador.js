@@ -454,14 +454,6 @@ async function atualizarCombateJog() {
 }
 atualizarCombateJog();
 
-// Fase 21.1: log da mesa — carga inicial + fallback de polling (o RT já
-// renderiza ao vivo pelo estado.eventos da projeção pública).
-async function atualizarLogMesa() {
-  if (!window.LogMesa) return;
-  try { LogMesa.render(await (await fetch('/api/eventos')).json()); } catch (e) {}
-}
-atualizarLogMesa();
-
 // ===== P1 do livro-jogo: A História (narração do nó + votação) =====
 const historiaJog = document.getElementById('historiaJog');
 let _historiaCache = '';
@@ -557,7 +549,7 @@ atualizarLojaEspecialItens();
 // TEMPO REAL (Firestore) - atualiza ficha/bestiário/combate na hora
 // =====================================================
 if (window.RT && RT.ativo()) {
-  let _lf = '', _lv = '', _lc = '', _ln = '', _lim = '', _lnp = '', _ltb = '', _lev = '';
+  let _lf = '', _lv = '', _lc = '', _ln = '', _lim = '', _lnp = '', _ltb = '';
   // Fase 18.2: o jogador escuta a projeção PÚBLICA (sem notasPrivadas de NPC
   // nem notas do Mestre não-compartilhadas) — nunca o doc bruto da campanha.
   RT.ouvirPublico(estado => {
@@ -570,8 +562,6 @@ if (window.RT && RT.ativo()) {
     if (sv !== _lv) { _lv = sv; monstrosVisiveis = estado.monstros_visiveis || []; popularTipoJogador(); renderMonstros(); }
     const sc = JSON.stringify(estado.combate || {});
     if (sc !== _lc) { _lc = sc; renderCombateJog(estado.combate || {}); }
-    const sev = JSON.stringify(estado.eventos || []);
-    if (sev !== _lev) { _lev = sev; if (window.LogMesa) LogMesa.render(estado.eventos || []); }
     const sn = JSON.stringify((estado.notas || []).filter(n => n.compartilhada));
     if (sn !== _ln) { _ln = sn; renderHandouts(estado.notas || []); }
     const sim = JSON.stringify(estado.itens_mestre || []);
@@ -583,7 +573,7 @@ if (window.RT && RT.ativo()) {
   });
 }
 // polling de fallback (auto-suprimido quando o tempo real está entregando dados)
-setInterval(() => { if (!rtRecente()) { atualizarCombateJog(); atualizarLogMesa(); } }, 6000);
+setInterval(() => { if (!rtRecente()) atualizarCombateJog(); }, 6000);
 
 // Fase 16.3: tabuleiro ao vivo (o jogador move só o token da ficha própria).
 // Sem RT (local/LAN), o próprio módulo faz poll de fallback.

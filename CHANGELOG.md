@@ -1,5 +1,55 @@
 # Changelog
 
+## 2026-07-29 — 21.3 · Névoa de guerra simples (fog of war) 🌫️
+
+**Backup:** `versoes/2026-07-29-21-3-fog/` (app.py, tabuleiro.js, style.css).
+
+**Resumo:** terceira sub-fase da **Fase 21 — Mesa Viva** — o recurso que consagrou o Owlbear, na versão v1
+**sem linha de visão**. O Mestre cobre áreas do mapa e revela aos poucos.
+- **Modelo:** `tabuleiro.nevoa` = lista de retângulos `{id, x, y, w, h}` em % (cada um **esconde** aquela
+  região). Flui a todos pelo estado — o jogador vê a névoa **opaca** (esconde de verdade); o Mestre a vê
+  **semitransparente** com um ✕ para revelar. Dentro de `#tabMapa`, então acompanha zoom/pan (16.6).
+- **Servidor:** `POST /api/tabuleiro/nevoa` (só Mestre) faz uma de três coisas — **adicionar** (x,y,w,h,
+  clampados; recusa retângulo <1%), **remover** (id) ou **limpar** (tudo). Trava de 200 retângulos.
+- **Cliente** (`tabuleiro.js`): botão **🌫️ Névoa** liga o modo de desenho (arrastar no fundo do mapa cria o
+  retângulo, ignorando arrastos minúsculos), **🧹 Revelar tudo**, e ✕ em cada névoa. A assinatura de render
+  inclui `nevoa`/modo → atualiza ao vivo.
+- **Testes:** 6 novos em `tests/test-servidor.py` (87/87) — adicionar/ler pelo jogador/bloqueio de jogador/
+  recusa de minúsculo/remover por id/limpar. Sintaxe CI verde. Verificação ao vivo no navegador pendente.
+
+## 2026-07-29 — 21.2 · Condições visuais nos tokens (PV) 🩸
+
+**Backup:** `versoes/2026-07-29-21-2-condicoes-token/` (regras-ficha.js, tabuleiro.js, style.css).
+
+**Resumo:** segunda sub-fase da **Fase 21 — Mesa Viva**. O token do PJ no tabuleiro passa a mostrar a condição
+de PV **derivada da ficha** (que já sincroniza) — **liga combate ↔ tabuleiro sem sync novo**.
+- **Regra pura** `estadoTokenPv5e(hpAtual, hpMax, status)` em `regras-ficha.js` — prioridade **morto ☠️ >
+  caído 💀 (0 PV) > ferido 🩸 (<50%)**; tolerante a lixo. Coberta por teste (unit-regras, 56/56).
+- **Token** (`tabuleiro.js`): classe `cond-*` + badge no canto. 🩸 = borda vermelha; 💀/☠️ = tom cinza +
+  opacidade. A assinatura de render passou a incluir `hpAtual/hpMax/status`, então a condição **atualiza ao
+  vivo** quando o PV muda no combate (o dano de combate já grava na ficha do PJ).
+- **Escopo (honesto):** vale para **tokens de PJ** (o PV já flui na ficha). **Monstros no board não têm PV
+  vinculado** (não há ligação id do token ↔ combatente), então ficam de fora do v1 — seria a 21.2b, exige um
+  vínculo novo. O ☠️ morto quase nunca aparece porque o board **filtra fichas mortas** (comportamento
+  existente); na prática o que se vê é 🩸 e 💀. Verificação ao vivo no navegador pendente.
+
+## 2026-07-29 — 21.1 · Log da Mesa compartilhado (v1) 📜
+
+**Backup:** `versoes/2026-07-29-21-1-log-mesa/` (app.py, jogador.html, jogador.js).
+
+**Resumo:** primeira sub-fase da **Fase 21 — Mesa Viva**. Um feed em tempo real que **todos veem** (padrão
+Game Log do D&D Beyond), fluindo pela projeção pública que já existe (`estado.eventos`) — **sem sync novo**.
+- **Servidor registra os marcos** (`_registrar_evento`, agora com ícone): 🎲 entrar no combate, 💀 cair a 0 PV
+  (só na transição — dano em alvo já caído não duplica), 💰 saque, ⬆️ subida de nível (já existia, agora com
+  ícone). Novo `GET /api/eventos` (mestre e jogador) como fallback de polling.
+- **Painel 📜 "Log da Mesa"** na aba Combate do jogador (`static/js/logmesa.js` + CSS): mais recente no topo,
+  ícone + texto + tempo relativo ("há 2 min"). Atualiza ao vivo pelo RT (`estado.eventos` na projeção pública)
+  e por polling de fallback quando não há RT.
+- **Testes:** 4 novos em `tests/test-servidor.py` (81/81 passam) — jogador lê o feed, saque/queda registram,
+  queda não duplica. Sintaxe CI verde.
+- **Escopo v1 (o que falta na 21.1b):** painel do lado do Mestre e mais fontes de evento (compra/venda na loja,
+  avanço de nó, rolagens do Dice Roller). Verificação ao vivo do painel no navegador ainda pendente.
+
 ## 2026-07-28 — 16.6 · Tabuleiro: zoom & pan (roda, pinça, botões) 🔍
 
 **Backup:** `versoes/2026-07-28-16-6-zoom-pan/` (tabuleiro.js, style.css).

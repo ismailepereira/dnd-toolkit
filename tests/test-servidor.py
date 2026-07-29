@@ -409,6 +409,51 @@ r = jogador.post('/api/combate/acao', json={'acao': 'saquear', 'alvoId': 'cB', '
 t('C1: não saqueia de novo (400 ja_saqueado)',
   r.status_code == 400 and r.get_json().get('erro') == 'ja_saqueado', str(r.status_code))
 
+# ----- Fase 21.1: log da mesa (eventos que TODOS veem) -----
+# O saque acima já deve ter registado um evento 💰; o jogador também lê o feed.
+r = jogador.get('/api/eventos')
+t('21.1: jogador lê /api/eventos (200, lista)',
+  r.status_code == 200 and isinstance(r.get_json(), list), str(r.status_code))
+_evs = r.get_json()
+t('21.1: saque registou evento 💰',
+  any(e.get('ico') == '💰' and 'saqueou' in e.get('txt', '') for e in _evs), str(_evs[-3:]))
+
+# Dano que leva o alvo a 0 PV registra "caiu"; repetir não duplica.
+mestre.post('/api/combate/acao', json={'acao': 'dano', 'alvoId': 'cC', 'bruto': 50})
+_evs = mestre.get('/api/eventos').get_json()
+_caiu = [e for e in _evs if e.get('ico') == '💀' and 'Bandido de Pé' in e.get('txt', '')]
+t('21.1: queda a 0 PV registou evento 💀', len(_caiu) == 1, str(_caiu))
+mestre.post('/api/combate/acao', json={'acao': 'dano', 'alvoId': 'cC', 'bruto': 5})
+_evs2 = mestre.get('/api/eventos').get_json()
+_caiu2 = [e for e in _evs2 if e.get('ico') == '💀' and 'Bandido de Pé' in e.get('txt', '')]
+t('21.1: dano em alvo já caído não duplica "caiu"', len(_caiu2) == 1, str(len(_caiu2)))
+
+# ----- Fase 21.3: névoa de guerra (fog of war) -----
+r = mestre.post('/api/tabuleiro/nevoa', json={'x': 10, 'y': 20, 'w': 30, 'h': 25})
+d = r.get_json()
+t('21.3: Mestre adiciona névoa (200, 1 retângulo com id)',
+  r.status_code == 200 and d.get('ok') and len(d['tabuleiro'].get('nevoa', [])) == 1
+  and d['tabuleiro']['nevoa'][0].get('id'), str(d))
+_nid = d['tabuleiro']['nevoa'][0]['id']
+
+t('21.3: jogador enxerga a névoa no /api/tabuleiro',
+  len(jogador.get('/api/tabuleiro').get_json().get('nevoa', [])) == 1, 'jogador deve ler a névoa')
+
+r = jogador.post('/api/tabuleiro/nevoa', json={'x': 0, 'y': 0, 'w': 50, 'h': 50})
+t('21.3: jogador NÃO edita névoa', r.status_code in (302, 401, 403), str(r.status_code))
+
+r = mestre.post('/api/tabuleiro/nevoa', json={'x': 90, 'y': 90, 'w': 0.2, 'h': 0.2})
+t('21.3: retângulo minúsculo é recusado (400)', r.status_code == 400, str(r.status_code))
+
+r = mestre.post('/api/tabuleiro/nevoa', json={'id': _nid, 'remover': True})
+t('21.3: Mestre revela (remove por id) → névoa vazia',
+  r.status_code == 200 and len(r.get_json()['tabuleiro'].get('nevoa', [])) == 0, str(r.get_json()))
+
+mestre.post('/api/tabuleiro/nevoa', json={'x': 5, 'y': 5, 'w': 20, 'h': 20})
+r = mestre.post('/api/tabuleiro/nevoa', json={'limpar': True})
+t('21.3: revelar tudo (limpar) zera a névoa',
+  r.status_code == 200 and len(r.get_json()['tabuleiro'].get('nevoa', [])) == 0, str(r.get_json()))
+
 print()
 print(f'❌ {len(falhas)} falha(s) de {total}' if falhas else f'✅ {total} testes do servidor passaram')
 sys.exit(1 if falhas else 0)

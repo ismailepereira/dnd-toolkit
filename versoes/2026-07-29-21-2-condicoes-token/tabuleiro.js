@@ -32,7 +32,6 @@
   // Aplicado como transform em #tabMapa; o arrasto de token lê o rect de #tabMapa,
   // que já reflete a transformação, então as posições em % continuam corretas.
   let zoom = 1, panX = 0, panY = 0;
-  let modoNevoa = false; // 21.3: quando ligado, o Mestre desenha névoa arrastando no fundo
   const ZOOM_MIN = 1, ZOOM_MAX = 5;
   const esc = s => s == null ? '' : String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const round2 = n => Math.round(n * 100) / 100;
@@ -85,7 +84,6 @@
       tokens: (novo && novo.tokens) || {},
       monstros: (novo && novo.monstros) || {},
       travado: !!(novo && novo.travado),
-      nevoa: (novo && Array.isArray(novo.nevoa)) ? novo.nevoa : [],
     };
   }
 
@@ -112,8 +110,7 @@
     // tokens durante interação (o poll de fallback ocioso vira no-op).
     const chave = JSON.stringify({
       i: tab.imagemUrl, t: tab.tokens, m: tab.monstros, tr: tab.travado, s: selecionado,
-      nv: tab.nevoa, mn: modoNevoa,
-      f: fichas.map(f => [f.id, f.nome, f.classe, f.miniaturaUrl || '', podeMover(f), f.hpAtual, f.hpMax, f.status || '']),
+      f: fichas.map(f => [f.id, f.nome, f.classe, f.miniaturaUrl || '', podeMover(f)]),
     });
     if (chave === ultimaChave && document.getElementById('tabBoard')) return;
     ultimaChave = chave;
@@ -128,16 +125,9 @@
           const p = posDe(f.id, i);
           const mine = podeMover(f);
           const sel = selecionado && selecionado.kind === 'pj' && selecionado.id === f.id;
-          // 21.2: condição visual de PV (🩸 ferido / 💀 caído) — deriva da ficha,
-          // que já sincroniza; sem sync novo. Prioridade em estadoTokenPv5e.
-          const cond = (typeof estadoTokenPv5e === 'function')
-            ? estadoTokenPv5e(f.hpAtual, f.hpMax, f.status) : { classe: '', badge: '', rotulo: '' };
-          const condCls = cond.classe ? ' cond-' + cond.classe : '';
-          const tit = f.nome || 'PJ';
-          return `<div class="tab-token${mine ? ' movivel' : ''}${sel ? ' selecionado' : ''}${condCls}" data-kind="pj" data-id="${esc(f.id)}" ` +
-            `style="left:${p.x}%;top:${p.y}%;transform:translate(-50%,-50%) scale(${tamDe('pj', f.id)})" title="${esc(tit)}${cond.rotulo ? ' — ' + esc(cond.rotulo) : ''}">` +
+          return `<div class="tab-token${mine ? ' movivel' : ''}${sel ? ' selecionado' : ''}" data-kind="pj" data-id="${esc(f.id)}" ` +
+            `style="left:${p.x}%;top:${p.y}%;transform:translate(-50%,-50%) scale(${tamDe('pj', f.id)})" title="${esc(f.nome || 'PJ')}">` +
             (typeof miniaturaFichaHtml === 'function' ? miniaturaFichaHtml(f, 44) : '') +
-            (cond.badge ? `<span class="tab-token-cond" aria-label="${esc(cond.rotulo)}" title="${esc(cond.rotulo)}">${cond.badge}</span>` : '') +
             `<span class="tab-token-nome">${esc(f.nome || 'PJ')}</span>` +
           '</div>';
         }).join('') +
@@ -150,16 +140,6 @@
             `style="left:${m.x}%;top:${m.y}%;transform:translate(-50%,-50%) scale(${tamDe('monstro', m.id)})" title="${esc(m.nome)}">` +
             corpo +
             `<span class="tab-token-nome">${esc(m.nome)}</span>` +
-          '</div>';
-        }).join('') +
-        // 21.3: névoa de guerra — retângulos que escondem o mapa. Dentro de
-        // #tabMapa, então acompanham zoom/pan. Mestre: semitransparente + ✕ p/
-        // revelar. Jogador: opaca (esconde de verdade).
-        (tab.nevoa || []).map(n => {
-          if (!n || typeof n.x !== 'number') return '';
-          return `<div class="tab-nevoa${ehMestre ? ' mestre' : ''}" data-nevoa="${esc(n.id)}" ` +
-            `style="left:${n.x}%;top:${n.y}%;width:${n.w}%;height:${n.h}%">` +
-            (ehMestre ? '<button type="button" class="tab-nevoa-x" title="Revelar (remover névoa)" aria-label="Revelar">✕</button>' : '') +
           '</div>';
         }).join('') +
         '</div>' + /* /tab-mapa */
@@ -223,45 +203,14 @@
     // próprio arrasto — ignoramos pointerdown que começou num token/botão.
     const pts = new Map();
     let pinch = 0, panIni = null;
-    // 21.3: no modo névoa, arrastar no fundo DESENHA um retângulo (não faz pan).
-    let nevoaDraw = null;
     board.addEventListener('pointerdown', e => {
       if (e.target.closest('.tab-token') || e.target.closest('button')) return;
-      if (ehMestre && modoNevoa && e.isPrimary) {
-        const mapa = document.getElementById('tabMapa');
-        if (mapa) {
-          e.preventDefault();
-          const rect = mapa.getBoundingClientRect();
-          const el = document.createElement('div');
-          el.className = 'tab-nevoa mestre desenhando';
-          mapa.appendChild(el);
-          nevoaDraw = { rect, x0: e.clientX, y0: e.clientY, el };
-          try { board.setPointerCapture(e.pointerId); } catch (_) {}
-          return;
-        }
-      }
       pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pts.size === 1) { panIni = { x: e.clientX, y: e.clientY, panX: panX, panY: panY }; board.classList.add('tab-pan'); }
       else if (pts.size === 2) { const a = [...pts.values()]; pinch = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y); }
       try { board.setPointerCapture(e.pointerId); } catch (_) {}
     });
-    // % (top-left + tamanho) do retângulo em desenho, no espaço do #tabMapa.
-    function nevoaRetPct(d, ev) {
-      const r = d.rect;
-      const ax = ((d.x0 - r.left) / r.width) * 100, ay = ((d.y0 - r.top) / r.height) * 100;
-      const bx = ((ev.clientX - r.left) / r.width) * 100, by = ((ev.clientY - r.top) / r.height) * 100;
-      const x = Math.max(0, Math.min(ax, bx)), y = Math.max(0, Math.min(ay, by));
-      const w = Math.min(100 - x, Math.abs(bx - ax)), h = Math.min(100 - y, Math.abs(by - ay));
-      return { x: round2(x), y: round2(y), w: round2(w), h: round2(h) };
-    }
     board.addEventListener('pointermove', e => {
-      if (nevoaDraw) {
-        const p = nevoaRetPct(nevoaDraw, e);
-        const s = nevoaDraw.el.style;
-        s.left = p.x + '%'; s.top = p.y + '%'; s.width = p.w + '%'; s.height = p.h + '%';
-        nevoaDraw.pct = p;
-        return;
-      }
       if (!pts.has(e.pointerId)) return;
       pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
       const a = [...pts.values()];
@@ -278,17 +227,7 @@
         clampPan(); aplicarTransform();
       }
     });
-    function fim(e) {
-      if (nevoaDraw) {
-        const p = nevoaDraw.pct;
-        try { nevoaDraw.el.remove(); } catch (_) {}
-        nevoaDraw = null;
-        if (p && p.w >= 2 && p.h >= 2) salvarNevoa(p); // ignora toques minúsculos
-        else render();
-        return;
-      }
-      pts.delete(e.pointerId); if (pts.size < 2) pinch = 0; if (pts.size === 0) { panIni = null; board.classList.remove('tab-pan'); }
-    }
+    function fim(e) { pts.delete(e.pointerId); if (pts.size < 2) pinch = 0; if (pts.size === 0) { panIni = null; board.classList.remove('tab-pan'); } }
     board.addEventListener('pointerup', fim);
     board.addEventListener('pointercancel', fim);
   }
@@ -303,10 +242,8 @@
       (lista.length ? '<label>🐉 Monstro <select id="tabMonSel">' + ops + '</select></label>' +
         '<button type="button" class="btn-secondary btn-mini" id="tabMonAdd">➕ Colocar</button>' : '') +
       `<button type="button" class="btn-mini${tab.travado ? ' on' : ''}" id="tabTravar" title="Impede os jogadores de mover os tokens">${tab.travado ? '🔒 Jogadores travados' : '🔓 Travar jogadores'}</button>` +
-      `<button type="button" class="btn-mini${modoNevoa ? ' on' : ''}" id="tabNevoa" title="Desenhe retângulos no mapa para esconder áreas dos jogadores">${modoNevoa ? '🌫️ Desenhando névoa…' : '🌫️ Névoa'}</button>` +
-      ((tab.nevoa || []).length ? '<button type="button" class="btn-mini" id="tabNevoaLimpar" title="Revelar tudo (remover toda a névoa)">🧹 Revelar tudo</button>' : '') +
       selecionadoHtml() +
-      `<span class="criador-hint-inline">${modoNevoa ? 'Arraste no mapa para cobrir uma área; ✕ numa névoa revela.' : 'Toque/clique num token seleciona; arraste para mover; duplo-clique num monstro remove.'}</span>` +
+      '<span class="criador-hint-inline">Toque/clique num token seleciona; arraste para mover; duplo-clique num monstro remove.</span>' +
     '</div>';
   }
 
@@ -420,26 +357,6 @@
     if (rem) rem.addEventListener('click', () => {
       if (selecionado && selecionado.kind === 'monstro') { salvarMonstro({ id: selecionado.id, remover: true }); selecionado = null; }
     });
-    // 21.3: névoa — alternar modo de desenho, limpar tudo, e ✕ para revelar.
-    const nev = document.getElementById('tabNevoa');
-    if (nev) nev.addEventListener('click', () => { modoNevoa = !modoNevoa; render(); });
-    const nevLimpar = document.getElementById('tabNevoaLimpar');
-    if (nevLimpar) nevLimpar.addEventListener('click', () => salvarNevoa({ limpar: true }));
-    document.querySelectorAll('.tab-nevoa-x').forEach(b => b.addEventListener('click', e => {
-      e.stopPropagation();
-      const el = b.closest('.tab-nevoa');
-      if (el) salvarNevoa({ id: el.dataset.nevoa, remover: true });
-    }));
-  }
-
-  // Adiciona/remove/limpa a névoa (só o Mestre; servidor revalida).
-  function salvarNevoa(payload) {
-    return fetch('/api/tabuleiro/nevoa', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    }).then(r => r.json()).then(d => {
-      if (d && d.ok && d.tabuleiro) { aplicar(d.tabuleiro); render(); } else refresh();
-    }).catch(() => {});
   }
 
   // Move/redimensiona o token de um PJ. O servidor revalida posse e trava.

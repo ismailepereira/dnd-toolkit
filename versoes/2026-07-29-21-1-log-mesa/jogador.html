@@ -76,10 +76,6 @@
       <div class="panel-header"><h2>Combate</h2></div>
       <div class="turno-info" id="turnoInfoJog"></div>
       <div id="listaCombateJog" class="combat-list"></div>
-
-      <!-- Fase 21.1: Log da Mesa compartilhado (o mesmo feed que todos veem) -->
-      <div class="panel-header logmesa-header"><h2>📜 Log da Mesa</h2></div>
-      <ul id="logMesaLista" class="logmesa-lista"></ul>
     </section>
 
     <!-- HANDOUTS (notas compartilhadas pelo Mestre) -->
@@ -161,7 +157,6 @@
   <script src="{{ url_for('static', filename='js/storage.js') }}"></script>
   {% endif %}
   <script src="{{ url_for('static', filename='js/tabuleiro.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/logmesa.js') }}"></script>
   <script src="{{ url_for('static', filename='js/jogador.js') }}"></script>
   <script src="{{ url_for('static', filename='js/navegacao.js') }}"></script>
   <script src="{{ url_for('static', filename='js/a11y.js') }}"></script>

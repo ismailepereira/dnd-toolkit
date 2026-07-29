@@ -84,7 +84,7 @@ ESTADO_PADRAO = {
     'npcs': [],  # Fase 11: NPCs persistentes da campanha (lojista/aliado/inimigo/neutro)
     'lojas': [],  # Fase 12: lojas geridas por NPC lojista (estoque/preços próprios)
     'aventura_ativa': None,  # K2: progresso da aventura em curso (snapshot da definição + nó atual)
-    'tabuleiro': {'aberto': False, 'imagemUrl': None, 'tokens': {}, 'monstros': {}, 'travado': False, 'nevoa': [], 'atualizadoEm': None},  # Fase 16.2–16.5: mapa + tokens (PJ/monstro, pos %, tam) + trava; 21.3: névoa de guerra (retângulos %)
+    'tabuleiro': {'aberto': False, 'imagemUrl': None, 'tokens': {}, 'monstros': {}, 'travado': False, 'atualizadoEm': None},  # Fase 16.2–16.5: mapa + tokens (PJ/monstro, pos %, tam) + trava dos jogadores
     'eventos': [],  # Fase B2: log simples da campanha (últimos 50) — flui aos jogadores pela projeção pública
 }
 
@@ -1789,13 +1789,12 @@ def api_patch_ficha(fid):
 # ---------------------------------------------------------------
 # Fase B2 — liberação de nível pelo Mestre (aplica o plano do jogador)
 # ---------------------------------------------------------------
-def _registrar_evento(estado, texto, icone='📜'):
-    """Log da mesa (últimos 50 eventos) — Fase 21.1. Flui aos jogadores pela
-    projeção pública (`_estado_publico` copia o estado inteiro), então TODOS
-    veem o mesmo feed em tempo real. `icone` é cosmético (o front cai em 📜 se
-    faltar); entradas antigas só têm `txt`/`em` e continuam renderizando."""
+def _registrar_evento(estado, texto):
+    """Log simples da campanha (últimos 50 eventos). Flui aos jogadores pela
+    projeção pública (`_estado_publico` copia o estado inteiro). O feed rico em
+    tempo real é a Fase 21.1 — aqui basta o registro de quem subiu e quando."""
     ev = estado.setdefault('eventos', [])
-    ev.append({'txt': str(texto)[:200], 'em': _agora(), 'ico': str(icone)[:4] or '📜'})
+    ev.append({'txt': str(texto)[:200], 'em': _agora()})
     del ev[:-50]
 
 
@@ -1833,7 +1832,7 @@ def _liberar_proximo_nivel(estado, ficha):
     antiga = json.loads(json.dumps(ficha))  # cópia p/ o carimbo otimista
     _aplicar_snapshot_nivel(ficha, snap)
     ficha['progressaoPlanejada'] = [s for s in pp if isinstance(s, dict) and s.get('nivel', 0) > alvo]
-    _registrar_evento(estado, f"{ficha.get('nome', '?')} subiu para o nível {alvo} (liberado pelo Mestre)", '⬆️')
+    _registrar_evento(estado, f"⬆️ {ficha.get('nome', '?')} subiu para o nível {alvo} (liberado pelo Mestre)")
     _normalizar_ficha(ficha)
     _carimbar_ficha(ficha, antiga)
     return alvo
@@ -1954,7 +1953,6 @@ def api_combate_acao():
                 'ca': f.get('ca', 10), 'condicoes': [], 'resist': [], 'vuln': [], 'imune': [],
             })
             verbo = 'entrou no combate'
-            _registrar_evento(estado, f"{f.get('nome', 'PJ')} entrou no combate (iniciativa {ini})", '🎲')
         combatentes.sort(key=lambda c: -int(c.get('iniciativa', 0)))
         combate['ativo'] = True
         # preserva a vez: reencontra o índice do combatente que estava na vez
@@ -2050,7 +2048,6 @@ def api_combate_acao():
                 mult = 2.0
                 
         dano_real = int(bruto * mult)
-        hp_antes = alvo['hpAtual']
         alvo['hpAtual'] = max(0, alvo['hpAtual'] - dano_real)
         
         # Se for PC, sincroniza o HP na ficha persistida correspondente
@@ -2065,9 +2062,7 @@ def api_combate_acao():
         msg = f"{usuario} -> {alvo['nome']} ({nome_acao}){fisico_lbl}: causa {dano_real} de dano {tipo or ''}{lbl_mult}. PV {alvo['hpAtual']}/{alvo['hpMax']}"
         if alvo['hpAtual'] == 0:
             msg += " 💀 caiu!"
-            if hp_antes > 0:  # só na transição p/ 0 (evita "caiu" repetido em alvo já caído)
-                _registrar_evento(estado, f"{alvo['nome']} caiu em combate", '💀')
-
+            
         combate.setdefault('log', []).insert(0, f"R{combate.get('rodada', 1)} · {msg}")
         combate['log'] = combate['log'][:40]
         salvar_estado(estado)
@@ -2114,7 +2109,6 @@ def api_combate_acao():
         looter['itens'].extend(itens_saq)
         alvo['saqueado'] = True
         det = f"{ouro_saq} po" + (f" e {len(itens_saq)} item(ns)" if itens_saq else "")
-        _registrar_evento(estado, f"{looter.get('nome', '?')} saqueou {alvo.get('nome', '?')}: {det}", '💰')
         combate.setdefault('log', []).insert(0, f"R{combate.get('rodada', 1)} · 💰 {looter.get('nome', '?')} saqueou {alvo.get('nome', '?')}: {det}.")
         combate['log'] = combate['log'][:40]
         salvar_estado(estado)
@@ -2246,16 +2240,6 @@ def api_ia_gerar():
 
     _ia_registar_uso(uid, hoje, usos)
     return jsonify({'ok': True, 'texto': texto, 'restantes': max(0, IA_QUOTA_DIARIA - usos - 1)})
-
-
-@app.route('/api/eventos', methods=['GET'])
-@login_obrigatorio()
-def api_get_eventos():
-    """Fase 21.1: log da mesa que TODOS veem. Com RT ativo o jogador lê
-    `eventos` direto da projeção pública; este endpoint é o fallback de
-    polling (local/LAN) e a leitura do Mestre. Só leitura — os eventos são
-    registados pelo servidor nos marcos (combate, saque, subida de nível)."""
-    return jsonify(carregar_estado().get('eventos', []))
 
 
 @app.route('/api/notas', methods=['GET'])
@@ -2933,45 +2917,6 @@ def api_post_tabuleiro_monstro():
             'y': 14.0,
         }
     tab['monstros'] = monstros
-    tab['atualizadoEm'] = _agora()
-    estado['tabuleiro'] = tab
-    salvar_estado(estado)
-    return jsonify({'ok': True, 'tabuleiro': tab})
-
-
-# Fase 21.3: névoa de guerra simples (fog of war). Cada retângulo em `nevoa`
-# (x,y,w,h em %) ESCONDE aquela região do mapa; o Mestre revela removendo o
-# retângulo. Só o Mestre edita; o resultado flui a todos pela projeção do
-# estado (o jogador vê a névoa opaca; o Mestre, semitransparente e removível).
-# Um POST faz uma das três coisas: adicionar (x,y,w,h) · remover (id) · limpar.
-@app.route('/api/tabuleiro/nevoa', methods=['POST'])
-@login_obrigatorio(papeis=['mestre'])
-def api_post_tabuleiro_nevoa():
-    data = request.get_json(force=True) or {}
-    estado = carregar_estado()
-    tab = dict(estado.get('tabuleiro') or {})
-    nevoa = [dict(n) for n in (tab.get('nevoa') or []) if isinstance(n, dict)]
-    if data.get('limpar'):
-        nevoa = []
-    elif data.get('remover'):
-        nid = str(data.get('id') or '')
-        nevoa = [n for n in nevoa if n.get('id') != nid]
-    else:  # adicionar um retângulo
-        try:
-            x = round(max(0.0, min(100.0, float(data['x']))), 2)
-            y = round(max(0.0, min(100.0, float(data['y']))), 2)
-            w = round(max(0.0, min(100.0, float(data['w']))), 2)
-            h = round(max(0.0, min(100.0, float(data['h']))), 2)
-        except (TypeError, ValueError, KeyError):
-            return jsonify({'ok': False, 'erro': 'retângulo inválido'}), 400
-        w = min(w, 100.0 - x)
-        h = min(h, 100.0 - y)
-        if w < 1.0 or h < 1.0:
-            return jsonify({'ok': False, 'erro': 'retângulo pequeno demais'}), 400
-        if len(nevoa) >= 200:  # trava de payload
-            return jsonify({'ok': False, 'erro': 'névoa cheia (limpe um pouco)'}), 400
-        nevoa.append({'id': 'n_' + uuid.uuid4().hex[:8], 'x': x, 'y': y, 'w': w, 'h': h})
-    tab['nevoa'] = nevoa
     tab['atualizadoEm'] = _agora()
     estado['tabuleiro'] = tab
     salvar_estado(estado)

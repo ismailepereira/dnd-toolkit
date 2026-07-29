@@ -25,7 +25,7 @@ const ctx = vm.runInContext(`({
   DIVINDADES, SEM_DIVINDADE, CLASSES_DEVOTAS, listaDivindades, divindadeDados,
   PATRONOS_PACTO, patronoDados, SUBCLASSES, antecedentesDisponiveis, antecedenteDados,
   calcularCA, percepcaoPassiva, cdConjuracao, pvMaximoMonoclasse, recursosDeClasse5e, resumoCombate5e, cartaoCombateHtml,
-  aplicarDescansoCurto5e, aplicarDescansoLongo5e, economiaAcao5e, cdFurto5e, resultadoFurto5e, testeMorte5e, reacoesDoPC, rolarDadosGrupo,
+  aplicarDescansoCurto5e, aplicarDescansoLongo5e, economiaAcao5e, cdFurto5e, resultadoFurto5e, testeMorte5e, reacoesDoPC, rolarDadosGrupo, estadoTokenPv5e,
   FORMAS_SELVAGENS, FORMAS_ELEMENTAIS, formasElementaisDisponiveis, limiteFormaSelvagem, formasSelvagensDisponiveis, formaSelvagemDados,
   CONDICOES, efeitosDoAtaque, MAGIAS_SUBCLASSE, magiasSubclasse5e, rotuloMagiaSubclasse, MAGIAS_DETALHE,
 })`, sandbox);
@@ -541,6 +541,20 @@ t('cartaoCombateHtml (F4): monta o cartão com CA/PV e o título, escapando o qu
   assert.ok(/CA <b>12<\/b>/.test(html) && /PV <b>32<\/b>/.test(html), 'mostra CA e PV');
   assert.ok(/CD <b>14<\/b>/.test(html), 'Mago nv6 INT 16 → CD 14 no cartão');
   assert.ok(/Raio de Fogo/.test(html), 'destaca o truque');
+});
+
+t('estadoTokenPv5e (21.2): prioridade morto > caído > ferido > saudável', () => {
+  const e = ctx.estadoTokenPv5e;
+  assert.strictEqual(e(20, 20).classe, '', 'PV cheio → sem condição');
+  assert.strictEqual(e(11, 20).classe, '', '55% → ainda saudável');
+  assert.strictEqual(e(9, 20).classe, 'ferido', '45% → ferido 🩸');
+  assert.strictEqual(e(9, 20).badge, '🩸');
+  assert.strictEqual(e(0, 20).classe, 'caido', '0 PV → caído 💀');
+  assert.strictEqual(e(0, 20).badge, '💀');
+  assert.strictEqual(e(-3, 20).classe, 'caido', 'PV negativo → caído');
+  assert.strictEqual(e(5, 20, 'morto').classe, 'morto', 'status morto vence o PV → ☠️');
+  assert.strictEqual(e(5, 20, 'morto').badge, '☠️');
+  assert.strictEqual(e('x', 0).classe, '', 'lixo/max 0 → sem condição (tolerante)');
 });
 
 console.log(`\n${process.exitCode ? '❌ Houve falhas' : `✅ ${total} testes passaram`}`);

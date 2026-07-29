@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-07-29 — 21.2 · Condições visuais nos tokens (PV) 🩸
+
+**Backup:** `versoes/2026-07-29-21-2-condicoes-token/` (regras-ficha.js, tabuleiro.js, style.css).
+
+**Resumo:** segunda sub-fase da **Fase 21 — Mesa Viva**. O token do PJ no tabuleiro passa a mostrar a condição
+de PV **derivada da ficha** (que já sincroniza) — **liga combate ↔ tabuleiro sem sync novo**.
+- **Regra pura** `estadoTokenPv5e(hpAtual, hpMax, status)` em `regras-ficha.js` — prioridade **morto ☠️ >
+  caído 💀 (0 PV) > ferido 🩸 (<50%)**; tolerante a lixo. Coberta por teste (unit-regras, 56/56).
+- **Token** (`tabuleiro.js`): classe `cond-*` + badge no canto. 🩸 = borda vermelha; 💀/☠️ = tom cinza +
+  opacidade. A assinatura de render passou a incluir `hpAtual/hpMax/status`, então a condição **atualiza ao
+  vivo** quando o PV muda no combate (o dano de combate já grava na ficha do PJ).
+- **Escopo (honesto):** vale para **tokens de PJ** (o PV já flui na ficha). **Monstros no board não têm PV
+  vinculado** (não há ligação id do token ↔ combatente), então ficam de fora do v1 — seria a 21.2b, exige um
+  vínculo novo. O ☠️ morto quase nunca aparece porque o board **filtra fichas mortas** (comportamento
+  existente); na prática o que se vê é 🩸 e 💀. Verificação ao vivo no navegador pendente.
+
 ## 2026-07-29 — 21.1 · Log da Mesa compartilhado (v1) 📜
 
 **Backup:** `versoes/2026-07-29-21-1-log-mesa/` (app.py, jogador.html, jogador.js).

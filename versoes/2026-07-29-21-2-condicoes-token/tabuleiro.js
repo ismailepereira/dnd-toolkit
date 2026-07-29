@@ -110,7 +110,7 @@
     // tokens durante interação (o poll de fallback ocioso vira no-op).
     const chave = JSON.stringify({
       i: tab.imagemUrl, t: tab.tokens, m: tab.monstros, tr: tab.travado, s: selecionado,
-      f: fichas.map(f => [f.id, f.nome, f.classe, f.miniaturaUrl || '', podeMover(f), f.hpAtual, f.hpMax, f.status || '']),
+      f: fichas.map(f => [f.id, f.nome, f.classe, f.miniaturaUrl || '', podeMover(f)]),
     });
     if (chave === ultimaChave && document.getElementById('tabBoard')) return;
     ultimaChave = chave;
@@ -125,16 +125,9 @@
           const p = posDe(f.id, i);
           const mine = podeMover(f);
           const sel = selecionado && selecionado.kind === 'pj' && selecionado.id === f.id;
-          // 21.2: condição visual de PV (🩸 ferido / 💀 caído) — deriva da ficha,
-          // que já sincroniza; sem sync novo. Prioridade em estadoTokenPv5e.
-          const cond = (typeof estadoTokenPv5e === 'function')
-            ? estadoTokenPv5e(f.hpAtual, f.hpMax, f.status) : { classe: '', badge: '', rotulo: '' };
-          const condCls = cond.classe ? ' cond-' + cond.classe : '';
-          const tit = f.nome || 'PJ';
-          return `<div class="tab-token${mine ? ' movivel' : ''}${sel ? ' selecionado' : ''}${condCls}" data-kind="pj" data-id="${esc(f.id)}" ` +
-            `style="left:${p.x}%;top:${p.y}%;transform:translate(-50%,-50%) scale(${tamDe('pj', f.id)})" title="${esc(tit)}${cond.rotulo ? ' — ' + esc(cond.rotulo) : ''}">` +
+          return `<div class="tab-token${mine ? ' movivel' : ''}${sel ? ' selecionado' : ''}" data-kind="pj" data-id="${esc(f.id)}" ` +
+            `style="left:${p.x}%;top:${p.y}%;transform:translate(-50%,-50%) scale(${tamDe('pj', f.id)})" title="${esc(f.nome || 'PJ')}">` +
             (typeof miniaturaFichaHtml === 'function' ? miniaturaFichaHtml(f, 44) : '') +
-            (cond.badge ? `<span class="tab-token-cond" aria-label="${esc(cond.rotulo)}" title="${esc(cond.rotulo)}">${cond.badge}</span>` : '') +
             `<span class="tab-token-nome">${esc(f.nome || 'PJ')}</span>` +
           '</div>';
         }).join('') +

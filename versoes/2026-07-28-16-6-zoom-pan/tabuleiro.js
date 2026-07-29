@@ -28,11 +28,6 @@
   let ultimaChave = '';         // assinatura do último render (evita reconstruir sem mudança)
 
   const TAMS = [0.7, 0.85, 1, 1.25, 1.6, 2]; // passos de tamanho do token
-  // 16.6: zoom/pan POR-VIEWER (não sincroniza — cada um enquadra o próprio mapa).
-  // Aplicado como transform em #tabMapa; o arrasto de token lê o rect de #tabMapa,
-  // que já reflete a transformação, então as posições em % continuam corretas.
-  let zoom = 1, panX = 0, panY = 0;
-  const ZOOM_MIN = 1, ZOOM_MAX = 5;
   const esc = s => s == null ? '' : String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const round2 = n => Math.round(n * 100) / 100;
 
@@ -119,8 +114,8 @@
       barraMestreHtml() +
       (!ehMestre && tab.travado ? '<div class="tab-aviso">🔒 O Mestre travou o movimento dos tokens.</div>' : '') +
       '<div class="tab-board" id="tabBoard">' +
-        '<div class="tab-mapa" id="tabMapa">' +
         `<img class="tab-img" src="${safeImg}" alt="mapa" draggable="false">` +
+        '<button type="button" class="tab-full-btn" id="tabFull" title="Tela cheia (mapa na mesa)" aria-label="Tela cheia">⛶</button>' +
         fichas.map((f, i) => {
           const p = posDe(f.id, i);
           const mine = podeMover(f);
@@ -142,94 +137,9 @@
             `<span class="tab-token-nome">${esc(m.nome)}</span>` +
           '</div>';
         }).join('') +
-        '</div>' + /* /tab-mapa */
-        '<button type="button" class="tab-full-btn" id="tabFull" title="Tela cheia (mapa na mesa)" aria-label="Tela cheia">⛶</button>' +
-        '<div class="tab-zoom">' +
-          '<button type="button" class="tab-zbtn" id="tabZmOut" title="Diminuir zoom" aria-label="Diminuir zoom">−</button>' +
-          '<button type="button" class="tab-zbtn tab-zlbl" id="tabZmFit" title="Ajustar (100%)" aria-label="Ajustar">100%</button>' +
-          '<button type="button" class="tab-zbtn" id="tabZmIn" title="Aumentar zoom" aria-label="Aumentar zoom">+</button>' +
-        '</div>' +
       '</div>';
     ligarArrasto();
     ligarBarraMestre();
-    aplicarTransform();
-    ligarZoomPan();
-  }
-
-  // ---------- 16.6: zoom & pan (transform em #tabMapa) ----------
-  function aplicarTransform() {
-    const mapa = document.getElementById('tabMapa');
-    if (mapa) mapa.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + zoom + ')';
-    const lbl = document.getElementById('tabZmFit');
-    if (lbl) lbl.textContent = Math.round(zoom * 100) + '%';
-  }
-  function clampPan() {
-    const board = document.getElementById('tabBoard');
-    if (!board) return;
-    const r = board.getBoundingClientRect();
-    // com transform-origin 0 0: pan fica entre (board - board*zoom) e 0 → sem
-    // buracos pretos e sem pan quando zoom = 1 (aí o limite é 0..0).
-    panX = Math.max(Math.min(0, r.width - r.width * zoom), Math.min(0, panX));
-    panY = Math.max(Math.min(0, r.height - r.height * zoom), Math.min(0, panY));
-  }
-  // Ajusta o zoom mantendo fixo o ponto (cx,cy) em px relativos ao board.
-  function setZoom(nz, cx, cy) {
-    const board = document.getElementById('tabBoard');
-    if (!board) return;
-    nz = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, nz));
-    const r = board.getBoundingClientRect();
-    if (cx == null) cx = r.width / 2;
-    if (cy == null) cy = r.height / 2;
-    const k = nz / zoom;
-    panX = cx - (cx - panX) * k;
-    panY = cy - (cy - panY) * k;
-    zoom = nz;
-    clampPan();
-    aplicarTransform();
-  }
-  function ligarZoomPan() {
-    const board = document.getElementById('tabBoard');
-    if (!board) return;
-    const btn = id => document.getElementById(id);
-    if (btn('tabZmIn')) btn('tabZmIn').onclick = () => setZoom(zoom * 1.3);
-    if (btn('tabZmOut')) btn('tabZmOut').onclick = () => setZoom(zoom / 1.3);
-    if (btn('tabZmFit')) btn('tabZmFit').onclick = () => { zoom = 1; panX = 0; panY = 0; aplicarTransform(); };
-    board.addEventListener('wheel', e => {
-      e.preventDefault();
-      const r = board.getBoundingClientRect();
-      setZoom(zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX - r.left, e.clientY - r.top);
-    }, { passive: false });
-    // pan (1 dedo/mouse no FUNDO do mapa) + pinça (2 dedos). Tokens tratam o
-    // próprio arrasto — ignoramos pointerdown que começou num token/botão.
-    const pts = new Map();
-    let pinch = 0, panIni = null;
-    board.addEventListener('pointerdown', e => {
-      if (e.target.closest('.tab-token') || e.target.closest('button')) return;
-      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      if (pts.size === 1) { panIni = { x: e.clientX, y: e.clientY, panX: panX, panY: panY }; board.classList.add('tab-pan'); }
-      else if (pts.size === 2) { const a = [...pts.values()]; pinch = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y); }
-      try { board.setPointerCapture(e.pointerId); } catch (_) {}
-    });
-    board.addEventListener('pointermove', e => {
-      if (!pts.has(e.pointerId)) return;
-      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      const a = [...pts.values()];
-      if (pts.size >= 2) {
-        const d = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y);
-        if (pinch > 0) {
-          const r = board.getBoundingClientRect();
-          setZoom(zoom * (d / pinch), (a[0].x + a[1].x) / 2 - r.left, (a[0].y + a[1].y) / 2 - r.top);
-        }
-        pinch = d;
-      } else if (panIni && zoom > 1) {
-        panX = panIni.panX + (e.clientX - panIni.x);
-        panY = panIni.panY + (e.clientY - panIni.y);
-        clampPan(); aplicarTransform();
-      }
-    });
-    function fim(e) { pts.delete(e.pointerId); if (pts.size < 2) pinch = 0; if (pts.size === 0) { panIni = null; board.classList.remove('tab-pan'); } }
-    board.addEventListener('pointerup', fim);
-    board.addEventListener('pointercancel', fim);
   }
 
   // Barra do Mestre: adicionar monstro + travar jogadores + controles do token
@@ -288,9 +198,7 @@
         arrastando = tk.dataset.id;
         tk.classList.add('arrastando');
         try { tk.setPointerCapture(e.pointerId); } catch (_) {}
-        // 16.6: o rect é o do #tabMapa (que carrega o zoom/pan), não o do board —
-        // assim (x-left)/width dá o % certo mesmo com zoom aplicado.
-        const rect = (document.getElementById('tabMapa') || board).getBoundingClientRect();
+        const rect = board.getBoundingClientRect();
         function mv(ev) {
           if (Math.abs(ev.clientX - startX) + Math.abs(ev.clientY - startY) > 4) moveu = true;
           let x = ((ev.clientX - rect.left) / rect.width) * 100;

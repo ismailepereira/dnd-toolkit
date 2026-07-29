@@ -2381,21 +2381,6 @@ body.alto-contraste a { color: #ffd400; }
   background: #000; user-select: none; touch-action: none;
 }
 .tab-img { display: block; width: 100%; height: auto; -webkit-user-drag: none; pointer-events: none; }
-/* 16.6: wrapper que recebe o zoom/pan (transform) — a img e os tokens vivem aqui;
-   os overlays (⛶ e zoom) ficam FORA dele, fixos. */
-.tab-mapa { position: relative; width: 100%; transform-origin: 0 0; will-change: transform; }
-.tab-board.tab-pan { cursor: grabbing; }
-.tab-board:not(.tab-pan) .tab-mapa { cursor: grab; }
-/* controles de zoom (canto inferior direito) */
-.tab-zoom { position: absolute; right: 8px; bottom: 8px; z-index: 5; display: flex; gap: 4px; align-items: stretch;
-  background: rgba(20,20,28,0.7); border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 3px; }
-.tab-zbtn { min-width: 34px; height: 34px; padding: 0 6px; border: none; background: transparent; color: #fff;
-  font-size: 18px; line-height: 1; cursor: pointer; border-radius: 6px; }
-.tab-zbtn.tab-zlbl { font-size: 12px; min-width: 46px; font-weight: 700; }
-.tab-zbtn:hover { background: rgba(255,255,255,0.15); }
-@media (pointer: coarse) { .tab-zbtn { min-width: 44px; height: 44px; } }
-/* em tela cheia o #tabMapa acompanha a imagem (não estica) */
-.tab-board:fullscreen .tab-mapa, .tab-board:-webkit-full-screen .tab-mapa { width: auto; display: inline-block; }
 /* 20.7: botão de tela cheia — mesmo destaque no Mestre e no Jogador */
 .tab-full-btn {
   position: absolute; top: 8px; right: 8px; z-index: 5;

@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-07-28 — 16.6 · Tabuleiro: zoom & pan (roda, pinça, botões) 🔍
+
+**Backup:** `versoes/2026-07-28-16-6-zoom-pan/` (tabuleiro.js, style.css).
+
+**Resumo:** primeira parte da 16.6 (o kickoff apontou como continuação natural da 20.7). O mapa ao vivo ganhou
+**zoom e pan por-viewer** — cada um enquadra o próprio mapa (não sincroniza), essencial em mapas grandes no
+celular.
+- **Zoom:** roda do mouse (para o cursor), **pinça de 2 dedos** (para o ponto médio), e botões **− / 100% / +**
+  no canto do board (o "100%" também reseta). Limites 100%–500%.
+- **Pan:** arrastar o **fundo** do mapa (1 dedo/mouse) quando com zoom; tokens seguem tratando o próprio
+  arrasto (o pan ignora `pointerdown` que começa num token/botão). `clampPan` evita buracos pretos e trava o
+  pan em 100%.
+- **Como não quebrou o arrasto de token:** img+tokens agora vivem num wrapper `#tabMapa` que recebe o
+  `transform`; o arrasto lê `#tabMapa.getBoundingClientRect()` — que já inclui a transformação —, então as
+  posições em **%** continuam corretas com qualquer zoom. Os overlays (⛶ e zoom) ficam FORA do `#tabMapa`.
+
+**Ficheiros:** `static/js/tabuleiro.js` (estado zoom/panX/panY; `#tabMapa`; `aplicarTransform`/`setZoom`/
+`clampPan`/`ligarZoomPan`; rect do arrasto via `#tabMapa`), `static/css/style.css` (`.tab-mapa`, `.tab-zoom`).
+
+**Verificação:** `node --check` OK · sintaxe/unit 55/55. No navegador embutido confirmei o **transform** (zoom
+2× → scale 1.69 para o cursor, reset → scale 1, label atualiza) e a árvore (board/mapa/controles/token). ⚠️
+Larguras absolutas não medíveis no pane (viewport colapsada) — **vale um teste ao vivo no celular** do
+pinch/pan e do arrasto de token com zoom.
+
+**Restam da 16.6:** centralizar/seguir token e medir distância por escala (parte b).
+
+**Como reverter:** restaurar `versoes/2026-07-28-16-6-zoom-pan/`.
+
+
 ## 2026-07-28 — Miniaturas: fundo dos ícones sem destoar 🪙
 
 **Backup:** `versoes/2026-07-28-miniaturas-fundo/` (regras.js + style.css pré-edição).

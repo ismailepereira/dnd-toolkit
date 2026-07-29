@@ -1348,7 +1348,6 @@ def pagina_campanhas():
             paga = campanha_paga_em_dia(m)
             minhas.append({'id': cid, 'nome': m.get('nome', cid), 'papel': papel,
                            'codigo': m.get('codigoConvite') if papel == 'mestre' else None,
-                           'arquivada': bool(m.get('arquivada')),
                            'ativa': cid == campanha_atual(),
                            'paga': paga,
                            'cobravel': not str(m.get('mestreUid', '')).startswith('legacy:'),
@@ -1410,48 +1409,6 @@ def campanha_entrar():
             session['papel'] = papel_na_campanha(uid, cid) or 'jogador'
             return redirect(url_for('index'))
     return redirect(url_for('pagina_campanhas', erro='Código de convite não encontrado.'))
-
-
-# Fase 22.2: renomear e arquivar campanha (nenhum dos dois existia). Só o Mestre
-# da campanha (ou admin). Arquivar NÃO apaga — só tira da lista principal e move
-# para "Arquivadas", de onde dá para desarquivar; os dados ficam intactos.
-def _campanha_do_mestre(uid, cid):
-    """Meta da campanha se `uid` é o Mestre dela (ou admin); senão None."""
-    m = carregar_campanhas_meta().get(cid)
-    if m and (m.get('mestreUid') == uid or eh_admin(uid)):
-        return m
-    return None
-
-
-@app.route('/campanha/renomear', methods=['POST'])
-@login_obrigatorio()
-def campanha_renomear():
-    uid = session.get('uid', '')
-    cid = request.form.get('id', '')
-    nome = request.form.get('nome', '').strip()[:48]
-    m = _campanha_do_mestre(uid, cid)
-    if not m:
-        return redirect(url_for('pagina_campanhas', erro='Só o Mestre da campanha pode renomeá-la.'))
-    if not nome:
-        return redirect(url_for('pagina_campanhas', erro='Dê um nome à campanha.'))
-    m['nome'] = nome
-    salvar_campanha_meta(cid, m)
-    return redirect(url_for('pagina_campanhas', erro=f'✏️ Campanha renomeada para "{nome}".'))
-
-
-@app.route('/campanha/arquivar', methods=['POST'])
-@login_obrigatorio()
-def campanha_arquivar():
-    uid = session.get('uid', '')
-    cid = request.form.get('id', '')
-    arquivar = request.form.get('arquivar', '1') == '1'
-    m = _campanha_do_mestre(uid, cid)
-    if not m:
-        return redirect(url_for('pagina_campanhas', erro='Só o Mestre da campanha pode arquivá-la.'))
-    m['arquivada'] = arquivar
-    m['arquivadaEm'] = _agora() if arquivar else None
-    salvar_campanha_meta(cid, m)
-    return redirect(url_for('pagina_campanhas', erro=('🗄️ Campanha arquivada.' if arquivar else '📤 Campanha desarquivada.')))
 
 
 @app.route('/campanha/ativa', methods=['POST'])

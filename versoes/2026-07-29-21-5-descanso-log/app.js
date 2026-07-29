@@ -156,12 +156,6 @@ function renderFichas() {
       fichas.forEach(f => { if (f.status === 'morto') return; (tipo === 'curto' ? aplicarDescansoCurto5e : aplicarDescansoLongo5e)(f); });
       salvarFichas();
       renderFichas();
-      // 21.5: registra no Log da Mesa compartilhado (21.1). Cosmético — não
-      // bloqueia o descanso se falhar.
-      fetch('/api/fichas/descanso_grupo', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tipo }),
-      }).catch(() => {});
     };
     rb.querySelector('#btnDescCurtoTodos').addEventListener('click', () => { if (confirm('Conceder DESCANSO CURTO a todo o grupo?')) aplicarGrupo('curto'); });
     rb.querySelector('#btnDescLongoTodos').addEventListener('click', () => { if (confirm('Conceder DESCANSO LONGO a todo o grupo? (recupera PV, slots e recursos)')) aplicarGrupo('longo'); });

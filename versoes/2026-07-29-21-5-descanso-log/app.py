@@ -2248,22 +2248,6 @@ def api_ia_gerar():
     return jsonify({'ok': True, 'texto': texto, 'restantes': max(0, IA_QUOTA_DIARIA - usos - 1)})
 
 
-@app.route('/api/fichas/descanso_grupo', methods=['POST'])
-@login_obrigatorio(papeis=['mestre'])
-def api_descanso_grupo():
-    """Fase 21.5: registra no Log da Mesa (21.1) que o Mestre concedeu descanso
-    ao grupo. A recuperação de PV/slots/recursos das fichas é aplicada no
-    cliente pelas regras puras (aplicarDescanso*5e, fonte única) e persistida
-    via PATCH — aqui só entra o evento no feed compartilhado."""
-    tipo = (request.get_json(force=True) or {}).get('tipo')
-    if tipo not in ('curto', 'longo'):
-        return jsonify({'ok': False, 'erro': 'tipo_invalido'}), 400
-    estado = carregar_estado()
-    _registrar_evento(estado, f"O grupo fez um descanso {tipo}", '🏕️')
-    salvar_estado(estado)
-    return jsonify({'ok': True})
-
-
 @app.route('/api/eventos', methods=['GET'])
 @login_obrigatorio()
 def api_get_eventos():

@@ -454,6 +454,17 @@ r = mestre.post('/api/tabuleiro/nevoa', json={'limpar': True})
 t('21.3: revelar tudo (limpar) zera a névoa',
   r.status_code == 200 and len(r.get_json()['tabuleiro'].get('nevoa', [])) == 0, str(r.get_json()))
 
+# ----- Fase 21.5: descanso em grupo registra no Log da Mesa -----
+r = mestre.post('/api/fichas/descanso_grupo', json={'tipo': 'longo'})
+t('21.5: Mestre registra descanso do grupo (200)', r.status_code == 200 and r.get_json().get('ok'), str(r.get_json()))
+_evs = mestre.get('/api/eventos').get_json()
+t('21.5: evento 🏕️ do descanso aparece no feed',
+  any(e.get('ico') == '🏕️' and 'descanso longo' in e.get('txt', '') for e in _evs), str(_evs[-2:]))
+r = mestre.post('/api/fichas/descanso_grupo', json={'tipo': 'xpto'})
+t('21.5: tipo inválido é recusado (400)', r.status_code == 400, str(r.status_code))
+r = jogador.post('/api/fichas/descanso_grupo', json={'tipo': 'curto'})
+t('21.5: jogador NÃO concede descanso ao grupo', r.status_code in (302, 401, 403), str(r.status_code))
+
 print()
 print(f'❌ {len(falhas)} falha(s) de {total}' if falhas else f'✅ {total} testes do servidor passaram')
 sys.exit(1 if falhas else 0)

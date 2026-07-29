@@ -400,39 +400,6 @@ function sinalizarEstadoCombate(ativo) {
   if (tabCombate) tabCombate.classList.toggle('combate-ativo', ativo);
 }
 
-// 21.4: o jogador rola a PRÓPRIA iniciativa direto na tela dele (aba Combate),
-// sem precisar abrir o Modo de Jogo. Reusa a ação de servidor `entrar_combate`
-// (T4) — que já valida posse e reordena a fila. Um botão por ficha própria:
-// "Entrar" se ainda não está na fila, "Rerrolar" se já está.
-function renderIniciativaJog(combate) {
-  const box = document.getElementById('jogIniciativa');
-  if (!box) return;
-  const ativo = !!(combate && combate.ativo && combate.combatentes && combate.combatentes.length);
-  const minhas = (fichas || []).filter(f => f && f.id && f.status !== 'morto' &&
-    (!f.donoUid || !window.MEU_UID || f.donoUid === window.MEU_UID || window.EH_MESTRE));
-  if (!ativo || !minhas.length) { box.innerHTML = ''; return; }
-  const naFila = fid => (combate.combatentes || []).some(c => c.fichaId === fid);
-  box.innerHTML = '<div class="jog-ini-titulo">🎲 Sua iniciativa</div>' +
-    minhas.map(f => {
-      const dentro = naFila(f.id);
-      const ini = dentro ? (combate.combatentes.find(c => c.fichaId === f.id) || {}).iniciativa : null;
-      return `<button class="btn-${dentro ? 'secondary' : 'primary'} btn-mini" data-inijog="${escapeHtml(f.id)}">` +
-        `${dentro ? '🔄 Rerrolar' : '🎲 Entrar'} — ${escapeHtml(f.nome || 'PJ')}${dentro && ini != null ? ` (${ini})` : ''}</button>`;
-    }).join(' ');
-  box.querySelectorAll('[data-inijog]').forEach(b => b.addEventListener('click', async () => {
-    b.disabled = true;
-    try {
-      const r = await fetch('/api/combate/acao', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ acao: 'entrar_combate', fichaId: b.dataset.inijog }),
-      });
-      const d = await r.json();
-      if (r.ok && d.ok) atualizarCombateJog();
-      else { b.disabled = false; alert(d.detalhe || 'Não foi possível rolar a iniciativa agora.'); }
-    } catch (e) { b.disabled = false; }
-  }));
-}
-
 function renderCombateJog(combate) {
   window.COMBATE_ATUAL = combate;
   // T2: se o Modo de Jogo está aberto, atualiza o banner "é a sua vez" ao vivo
@@ -442,7 +409,6 @@ function renderCombateJog(combate) {
   // aviso só na TRANSIÇÃO para ativo (não ao carregar a página já em combate)
   if (ativo && _combateAtivoAnterior === false) avisoCombateIniciado();
   _combateAtivoAnterior = ativo;
-  renderIniciativaJog(combate);
   if (!combate || !combate.combatentes || !combate.combatentes.length) {
     turnoInfoJog.textContent = 'Nenhum combate em andamento.';
     listaCombateJog.innerHTML = '';

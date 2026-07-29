@@ -2434,11 +2434,6 @@ body.alto-contraste a { color: #ffd400; }
 .tab-token.cond-caido .ficha-mini,
 .tab-token.cond-morto .ficha-mini { filter: grayscale(1); opacity: 0.7; }
 .tab-token.cond-morto .ficha-mini { box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px #6b6b6b, 0 2px 6px rgba(0, 0, 0, 0.55); }
-/* Fase 21.4: painel de iniciativa do jogador (aba Combate) */
-.jog-iniciativa { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0 10px; }
-.jog-iniciativa:empty { margin: 0; }
-.jog-ini-titulo { font-size: 0.82rem; color: var(--text-dim); width: 100%; }
-
 /* Fase 21.3: névoa de guerra (fog of war) — retângulos que escondem o mapa */
 .tab-nevoa {
   position: absolute; z-index: 3; box-sizing: border-box;

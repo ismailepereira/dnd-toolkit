@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-07-29 — 21.5 · Descanso em grupo no Log da Mesa 🏕️ (Fase 21 concluída)
+
+**Backup:** `versoes/2026-07-29-21-5-descanso-log/` (app.py, app.js).
+
+**Resumo:** quinta sub-fase da **Fase 21 — Mesa Viva**, que a **conclui**. O **descanso em grupo** já existia
+(barra "😴 Descanso do grupo: ☕ Curto / 🌙 Longo" no painel do Mestre, `app.js` `renderFichas` — aplica as
+regras puras `aplicarDescanso*5e` a todo o grupo de uma vez, entregue na fase de combate). Esta sub-fase o
+**integra ao Log da Mesa (21.1)**: ao conceder o descanso, entra um evento **🏕️** no feed que todos veem.
+- **Servidor:** `POST /api/fichas/descanso_grupo` (só Mestre; valida `tipo` curto/longo) só **registra o
+  evento** — a recuperação continua nas regras puras do cliente (fonte única, sem duplicar regra em Python).
+- **Cliente** (`app.js`): após aplicar o descanso ao grupo, chama o endpoint (cosmético, não bloqueia).
+- **Testes:** 4 novos em `tests/test-servidor.py` (91/91) — registro/feed/tipo inválido/bloqueio de jogador.
+
+**➡️ Fase 21 — Mesa Viva CONCLUÍDA** (21.1 log · 21.2 condições nos tokens · 21.3 fog of war · 21.4 iniciativa
+pelo jogador · 21.5 descanso em grupo). Pendências "b" menores anotadas no ROADMAP (painel do log no Mestre,
+monstros no fog/condições, verificação ao vivo).
+
 ## 2026-07-29 — 21.4 · Iniciativa pelo jogador (na tela dele) 🎲
 
 **Backup:** `versoes/2026-07-29-21-4-iniciativa-jogador/` (jogador.html, jogador.js, style.css).

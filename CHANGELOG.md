@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-07-29 — 22.2 · Renomear e arquivar campanha 🗄️
+
+**Backup:** `versoes/2026-07-29-22-2-renomear-arquivar/` (app.py, campanhas.html, style.css).
+
+**Resumo:** primeira entrega da **Fase 22 — Campanhas & Acolhimento**. Antes **não existia nenhum dos dois** —
+campanha velha ficava na lista para sempre.
+- **Renomear:** `POST /campanha/renomear` (só o Mestre da campanha, ou admin) — atualiza `meta.nome`.
+- **Arquivar:** `POST /campanha/arquivar` (só o Mestre) — `meta.arquivada` (+ `arquivadaEm`). **Não apaga**: tira
+  da lista principal e move para uma seção recolhível **🗄️ Arquivadas**, de onde dá para **📤 Desarquivar**;
+  os dados ficam intactos.
+- **UI** (`campanhas.html`): cada card do Mestre ganhou um `<details>` **⚙️ Gerir** (renomear inline + arquivar);
+  a lista principal usa `rejectattr('arquivada')` e as arquivadas vão para o `<details>` separado.
+- **Guard central** `_campanha_do_mestre(uid, cid)` — Mestre da campanha ou admin; jogador é bloqueado.
+- **Testes:** 5 novos em `tests/test-servidor.py` (96/96) + smoke do template. Verificação ao vivo pendente.
+
 ## 2026-07-29 — 21.5 · Descanso em grupo no Log da Mesa 🏕️ (Fase 21 concluída)
 
 **Backup:** `versoes/2026-07-29-21-5-descanso-log/` (app.py, app.js).

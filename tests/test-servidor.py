@@ -465,6 +465,31 @@ t('21.5: tipo inválido é recusado (400)', r.status_code == 400, str(r.status_c
 r = jogador.post('/api/fichas/descanso_grupo', json={'tipo': 'curto'})
 t('21.5: jogador NÃO concede descanso ao grupo', r.status_code in (302, 401, 403), str(r.status_code))
 
+# ----- Fase 22.2: renomear e arquivar campanha -----
+servidor.salvar_campanha_meta('camp_teste22', {
+    'nome': 'Mesa Antiga', 'mestreUid': 'legacy:mestre-teste', 'membros': {'legacy:jogador-teste': 'jogador'},
+    'codigoConvite': 'TESTE-2222', 'criadaEm': '2026-07-01T00:00:00+00:00',
+})
+r = mestre.post('/campanha/renomear', data={'id': 'camp_teste22', 'nome': 'Mesa Nova'})
+_m = servidor.carregar_campanhas_meta().get('camp_teste22', {})
+t('22.2: Mestre renomeia a campanha', r.status_code in (301, 302) and _m.get('nome') == 'Mesa Nova', str(_m.get('nome')))
+
+r = jogador.post('/campanha/renomear', data={'id': 'camp_teste22', 'nome': 'Hackeada'})
+_m = servidor.carregar_campanhas_meta().get('camp_teste22', {})
+t('22.2: jogador NÃO renomeia (nome preservado)', _m.get('nome') == 'Mesa Nova', str(_m.get('nome')))
+
+r = mestre.post('/campanha/arquivar', data={'id': 'camp_teste22', 'arquivar': '1'})
+_m = servidor.carregar_campanhas_meta().get('camp_teste22', {})
+t('22.2: Mestre arquiva a campanha', _m.get('arquivada') is True, str(_m.get('arquivada')))
+
+r = jogador.post('/campanha/arquivar', data={'id': 'camp_teste22', 'arquivar': '0'})
+_m = servidor.carregar_campanhas_meta().get('camp_teste22', {})
+t('22.2: jogador NÃO desarquiva (segue arquivada)', _m.get('arquivada') is True, str(_m.get('arquivada')))
+
+r = mestre.post('/campanha/arquivar', data={'id': 'camp_teste22', 'arquivar': '0'})
+_m = servidor.carregar_campanhas_meta().get('camp_teste22', {})
+t('22.2: Mestre desarquiva', _m.get('arquivada') is False, str(_m.get('arquivada')))
+
 print()
 print(f'❌ {len(falhas)} falha(s) de {total}' if falhas else f'✅ {total} testes do servidor passaram')
 sys.exit(1 if falhas else 0)

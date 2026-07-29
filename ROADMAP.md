@@ -321,7 +321,7 @@ Virada: o grid virtual sai, entra o **Tabuleiro-imagem sem grelha**. Web-first +
     - ✅ **21.5** (29/07/2026) — **Descanso em grupo**: barra do Mestre "😴 Descanso do grupo ☕ Curto / 🌙 Longo" (`app.js`, aplica as puras `aplicarDescanso*5e` a todo o grupo) + evento 🏕️ no Log da Mesa (`POST /api/fichas/descanso_grupo`, só Mestre). 4 testes (91/91). **➡️ FASE 21 CONCLUÍDA.** Ver `CHANGELOG.md`.
 24. 🚪 **Fase 22 — Campanhas & Acolhimento** (proposta 13/07/2026 — a primeira tela que todos veem):
     - ⏳ **22.1** — **Cards de campanha ricos**: nº de fichas/jogadores, status ao vivo ("⚔️ em combate", "📖 aventura em curso: <título>"), última atividade (`atualizadoEm` já existe), botão **📋 copiar convite**, emoji/cor escolhível por campanha, card inteiro clicável.
-    - ⏳ **22.2** — **Renomear + arquivar campanha** (hoje não existe nenhum dos dois — campanha velha fica na lista para sempre).
+    - ✅ **22.2** (29/07/2026) — **Renomear + arquivar campanha**: `POST /campanha/renomear` e `POST /campanha/arquivar` (só o Mestre; guard `_campanha_do_mestre`). Arquivar não apaga — move para seção 🗄️ Arquivadas com 📤 Desarquivar; `<details> ⚙️ Gerir` no card. 5 testes (96/96). Verificação ao vivo pendente. Ver `CHANGELOG.md`.
     - ⏳ **22.3** — **Onboarding de campanha vazia**: checklist "1️⃣ Importe uma aventura pronta · 2️⃣ Fichas dos jogadores · 3️⃣ Abra um mapa" no lugar das abas vazias.
     - ⏳ **22.4** — **Toolbars enxutas**: 3–4 botões primários + "⚙️ mais" (dropdown) no Combate e no editor de aventuras.
 

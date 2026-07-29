@@ -22,11 +22,9 @@
       {% elif creditos is not none %}<p class="creditos-linha">💳 Seus créditos: <b>{{ creditos }}</b> <small>(1 crédito = R$ 0,25)</small> · <a href="{{ url_for('pagina_creditos') }}">+ Comprar créditos</a></p>{% endif %}
       {% if erro %}<div class="login-erro">{{ erro }}</div>{% endif %}
 
-      {% set ativas = campanhas | rejectattr('arquivada') | list %}
-      {% set arquivadas = campanhas | selectattr('arquivada') | list %}
-      {% if ativas %}
+      {% if campanhas %}
       <div class="campanhas-lista">
-        {% for c in ativas %}
+        {% for c in campanhas %}
         <div class="campanha-card{% if c.ativa %} ativa{% endif %}{% if not c.paga %} inativa{% endif %}">
           <div class="campanha-card-info">
             <b>{{ c.nome }}</b>
@@ -48,53 +46,11 @@
             </form>
             {% endif %}
           </div>
-          {% if c.papel == 'mestre' %}
-          {# 22.2: gerir (renomear/arquivar) — só o Mestre da campanha #}
-          <details class="campanha-gerir">
-            <summary>⚙️ Gerir</summary>
-            <form action="{{ url_for('campanha_renomear') }}" method="post" class="campanha-form-linha">
-              <input type="hidden" name="id" value="{{ c.id }}">
-              <input type="text" name="nome" value="{{ c.nome }}" maxlength="48" required aria-label="Novo nome da campanha">
-              <button type="submit" class="btn-secondary">✏️ Renomear</button>
-            </form>
-            <form action="{{ url_for('campanha_arquivar') }}" method="post"
-                  onsubmit="return confirm('Arquivar “{{ c.nome }}”? Ela sai da lista, mas os dados ficam guardados e você pode desarquivar depois.');">
-              <input type="hidden" name="id" value="{{ c.id }}">
-              <input type="hidden" name="arquivar" value="1">
-              <button type="submit" class="btn-secondary">🗄️ Arquivar</button>
-            </form>
-          </details>
-          {% endif %}
         </div>
         {% endfor %}
       </div>
-      {% elif not arquivadas %}
+      {% else %}
       <p class="login-sub">Você ainda não participa de nenhuma campanha.</p>
-      {% endif %}
-
-      {% if arquivadas %}
-      <details class="campanhas-arquivadas">
-        <summary>🗄️ Arquivadas ({{ arquivadas | length }})</summary>
-        {% for c in arquivadas %}
-        <div class="campanha-card arquivada">
-          <div class="campanha-card-info">
-            <b>{{ c.nome }}</b>
-            <small>{{ '🎩 Você mestra' if c.papel == 'mestre' else '🎲 Jogador' }}</small>
-          </div>
-          <div class="campanha-card-acoes">
-            {% if c.papel == 'mestre' %}
-            <form action="{{ url_for('campanha_arquivar') }}" method="post">
-              <input type="hidden" name="id" value="{{ c.id }}">
-              <input type="hidden" name="arquivar" value="0">
-              <button type="submit" class="btn-primary">📤 Desarquivar</button>
-            </form>
-            {% else %}
-            <small class="camp-status">Arquivada pelo Mestre.</small>
-            {% endif %}
-          </div>
-        </div>
-        {% endfor %}
-      </details>
       {% endif %}
 
       <h3 class="campanhas-h3">🎟️ Entrar numa mesa</h3>

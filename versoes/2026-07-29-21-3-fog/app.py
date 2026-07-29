@@ -84,7 +84,7 @@ ESTADO_PADRAO = {
     'npcs': [],  # Fase 11: NPCs persistentes da campanha (lojista/aliado/inimigo/neutro)
     'lojas': [],  # Fase 12: lojas geridas por NPC lojista (estoque/preços próprios)
     'aventura_ativa': None,  # K2: progresso da aventura em curso (snapshot da definição + nó atual)
-    'tabuleiro': {'aberto': False, 'imagemUrl': None, 'tokens': {}, 'monstros': {}, 'travado': False, 'nevoa': [], 'atualizadoEm': None},  # Fase 16.2–16.5: mapa + tokens (PJ/monstro, pos %, tam) + trava; 21.3: névoa de guerra (retângulos %)
+    'tabuleiro': {'aberto': False, 'imagemUrl': None, 'tokens': {}, 'monstros': {}, 'travado': False, 'atualizadoEm': None},  # Fase 16.2–16.5: mapa + tokens (PJ/monstro, pos %, tam) + trava dos jogadores
     'eventos': [],  # Fase B2: log simples da campanha (últimos 50) — flui aos jogadores pela projeção pública
 }
 
@@ -2933,45 +2933,6 @@ def api_post_tabuleiro_monstro():
             'y': 14.0,
         }
     tab['monstros'] = monstros
-    tab['atualizadoEm'] = _agora()
-    estado['tabuleiro'] = tab
-    salvar_estado(estado)
-    return jsonify({'ok': True, 'tabuleiro': tab})
-
-
-# Fase 21.3: névoa de guerra simples (fog of war). Cada retângulo em `nevoa`
-# (x,y,w,h em %) ESCONDE aquela região do mapa; o Mestre revela removendo o
-# retângulo. Só o Mestre edita; o resultado flui a todos pela projeção do
-# estado (o jogador vê a névoa opaca; o Mestre, semitransparente e removível).
-# Um POST faz uma das três coisas: adicionar (x,y,w,h) · remover (id) · limpar.
-@app.route('/api/tabuleiro/nevoa', methods=['POST'])
-@login_obrigatorio(papeis=['mestre'])
-def api_post_tabuleiro_nevoa():
-    data = request.get_json(force=True) or {}
-    estado = carregar_estado()
-    tab = dict(estado.get('tabuleiro') or {})
-    nevoa = [dict(n) for n in (tab.get('nevoa') or []) if isinstance(n, dict)]
-    if data.get('limpar'):
-        nevoa = []
-    elif data.get('remover'):
-        nid = str(data.get('id') or '')
-        nevoa = [n for n in nevoa if n.get('id') != nid]
-    else:  # adicionar um retângulo
-        try:
-            x = round(max(0.0, min(100.0, float(data['x']))), 2)
-            y = round(max(0.0, min(100.0, float(data['y']))), 2)
-            w = round(max(0.0, min(100.0, float(data['w']))), 2)
-            h = round(max(0.0, min(100.0, float(data['h']))), 2)
-        except (TypeError, ValueError, KeyError):
-            return jsonify({'ok': False, 'erro': 'retângulo inválido'}), 400
-        w = min(w, 100.0 - x)
-        h = min(h, 100.0 - y)
-        if w < 1.0 or h < 1.0:
-            return jsonify({'ok': False, 'erro': 'retângulo pequeno demais'}), 400
-        if len(nevoa) >= 200:  # trava de payload
-            return jsonify({'ok': False, 'erro': 'névoa cheia (limpe um pouco)'}), 400
-        nevoa.append({'id': 'n_' + uuid.uuid4().hex[:8], 'x': x, 'y': y, 'w': w, 'h': h})
-    tab['nevoa'] = nevoa
     tab['atualizadoEm'] = _agora()
     estado['tabuleiro'] = tab
     salvar_estado(estado)

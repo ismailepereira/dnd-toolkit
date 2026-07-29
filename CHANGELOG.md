@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-07-29 — 21.3 · Névoa de guerra simples (fog of war) 🌫️
+
+**Backup:** `versoes/2026-07-29-21-3-fog/` (app.py, tabuleiro.js, style.css).
+
+**Resumo:** terceira sub-fase da **Fase 21 — Mesa Viva** — o recurso que consagrou o Owlbear, na versão v1
+**sem linha de visão**. O Mestre cobre áreas do mapa e revela aos poucos.
+- **Modelo:** `tabuleiro.nevoa` = lista de retângulos `{id, x, y, w, h}` em % (cada um **esconde** aquela
+  região). Flui a todos pelo estado — o jogador vê a névoa **opaca** (esconde de verdade); o Mestre a vê
+  **semitransparente** com um ✕ para revelar. Dentro de `#tabMapa`, então acompanha zoom/pan (16.6).
+- **Servidor:** `POST /api/tabuleiro/nevoa` (só Mestre) faz uma de três coisas — **adicionar** (x,y,w,h,
+  clampados; recusa retângulo <1%), **remover** (id) ou **limpar** (tudo). Trava de 200 retângulos.
+- **Cliente** (`tabuleiro.js`): botão **🌫️ Névoa** liga o modo de desenho (arrastar no fundo do mapa cria o
+  retângulo, ignorando arrastos minúsculos), **🧹 Revelar tudo**, e ✕ em cada névoa. A assinatura de render
+  inclui `nevoa`/modo → atualiza ao vivo.
+- **Testes:** 6 novos em `tests/test-servidor.py` (87/87) — adicionar/ler pelo jogador/bloqueio de jogador/
+  recusa de minúsculo/remover por id/limpar. Sintaxe CI verde. Verificação ao vivo no navegador pendente.
+
 ## 2026-07-29 — 21.2 · Condições visuais nos tokens (PV) 🩸
 
 **Backup:** `versoes/2026-07-29-21-2-condicoes-token/` (regras-ficha.js, tabuleiro.js, style.css).

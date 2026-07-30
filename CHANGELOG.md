@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-07-30 — Rebrand: "D&D Toolkit" → "Forja de Aventuras" 🔨
+
+**Backup:** `versoes/2026-07-30-rebrand-forja/`.
+
+**Motivo:** tirar "D&D"/"Dungeons & Dragons" do nome do produto (marca da Wizards of the Coast) — pedido do
+Ismaile. Novo nome: **Forja de Aventuras**.
+- **Branding user-facing renomeado:** títulos das páginas, H1 (login/hub/mestre — 🐉 Forja de Aventuras),
+  `manifest.webmanifest` (name/short_name/description → "RPG 5e"), `offline.html`, `sw.js` (cache
+  `forja-aventuras-v1`), rodapé do PDF, README. Nenhum "Toolkit"/"D&D Toolkit" visível restante.
+- **Backup export/import** (`app.js`): passa a marcar `_app:'forja-aventuras'`, mas a importação **ainda aceita
+  backups antigos** (`dnd-toolkit`) — não quebra arquivos já salvos pelos usuários.
+- Referências ao **sistema de regras** seguem como "5e" (SRD/OGL) — o que muda é só o nome do PRODUTO.
+
+> ⚠️ **Pendência de conteúdo (à parte, decisão do Ismaile):** as campanhas embutidas (Phandelver = *Lost Mine
+> of Phandelver* da WotC, nomes de Forgotten Realms) e alguns nomes de monstros de Product Identity são um risco
+> de direito autoral MAIOR que o nome do app. Renomear o app não cobre isso — vale decidir depois se troca/retira.
+
 ## 2026-07-30 — 22.1 · Cards de campanha ricos 🎴
 
 **Backup:** `versoes/2026-07-30-22-1-cards-ricos/` (app.py, campanhas.html, style.css).

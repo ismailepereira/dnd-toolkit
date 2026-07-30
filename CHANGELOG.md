@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-07-30 — Pagamento por WhatsApp, liberação fácil e fim dos créditos 💬
+
+**Resumo:** ajustes pedidos pelo Ismaile ao pôr o modelo no ar.
+- **Pagamento/compra pelo WhatsApp** (sem gateway/servidor): `/assinatura` mostra a chave **Pix 69999688625**
+  (Ismaile Pereira Machado), o preço R$ 10/mês, e um botão **💬 Falar no WhatsApp e assinar** (wa.me com o
+  usuário já preenchido). Defaults no código — `PIX_CHAVE`/`PIX_NOME`/`CONTATO_PAGAMENTO`/`WHATSAPP_NUMERO`
+  ainda dá para sobrescrever por env. Texto explica que a app está **em desenvolvimento** e que a mensalidade
+  **custeia o desenvolvimento** (assinantes sugerem o que falta).
+- **Liberação fácil no admin:** formulário no topo de `/admin/assinaturas` — busca a conta por **usuário ou
+  e-mail** e libera **+30/+90/+365 dias** num clique (ação `liberar_busca`). Confere o Pix pelo WhatsApp e libera.
+- **Fim do sistema de créditos (user-facing):** criar campanha é **sempre grátis** (`campanha_nova` não debita
+  mais nada, independente de flag); o modo do dono virou **"ADM — Acessos & Finanças"**; sumiram os textos de
+  "custa X créditos" na tela de campanhas. (O back-end de créditos/AbacatePay fica inerte — remoção total do
+  código é um passo à parte.)
+- **Testes:** 3 novos (109/109) — Pix padrão, liberação rápida concede acesso, busca inexistente não quebra.
+
 ## 2026-07-30 — Novo modelo de acesso: "Acesso Total" (R$ 10/mês) 🔓
 
 **Backup:** `versoes/2026-07-30-rebrand-forja/` (app.py incluído).

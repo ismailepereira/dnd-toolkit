@@ -119,20 +119,11 @@
       </form>
 
       <h3 class="campanhas-h3">✨ Criar uma campanha nova</h3>
-      {% if modo_livre %}
-      <p class="login-sub">Você será o Mestre dela e recebe um código de convite para os jogadores. <b>Grátis durante o período livre.</b></p>
+      <p class="login-sub">Você será o Mestre dela e recebe um código de convite para os jogadores. <b>Criar campanha é grátis.</b> Jogadores entram de graça.</p>
       <form action="{{ url_for('campanha_nova') }}" method="post" class="campanha-form-linha">
         <input type="text" name="nome" placeholder="nome da campanha" maxlength="48" required>
         <button type="submit" class="btn-primary">Criar campanha</button>
       </form>
-      {% else %}
-      <p class="login-sub">Você será o Mestre dela e recebe um código de convite para os jogadores. Custa <b>{{ custo_campanha }} créditos</b> (R$ 5,00 = 30 dias). Jogadores entram de graça.</p>
-      <form action="{{ url_for('campanha_nova') }}" method="post" class="campanha-form-linha"
-            onsubmit="return confirm('Criar esta campanha debita {{ custo_campanha }} créditos. Continuar?');">
-        <input type="text" name="nome" placeholder="nome da campanha" maxlength="48" required>
-        <button type="submit" class="btn-primary">Criar campanha ({{ custo_campanha }} créditos)</button>
-      </form>
-      {% endif %}
     </div>
   </div>
   <footer class="footer-attribuicao">

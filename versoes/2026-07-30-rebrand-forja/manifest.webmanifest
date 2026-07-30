@@ -1,7 +1,7 @@
 {
-  "name": "Forja de Aventuras",
-  "short_name": "Forja",
-  "description": "Mesa de RPG 5e: fichas, combate, aventuras (livro-jogo) e tabuleiro-imagem ao vivo.",
+  "name": "Mestre's Toolkit — D&D",
+  "short_name": "D&D Toolkit",
+  "description": "Mesa de D&D 5e: fichas, combate, aventuras (livro-jogo) e tabuleiro-imagem ao vivo.",
   "lang": "pt-BR",
   "start_url": "/",
   "scope": "/",

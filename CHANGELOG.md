@@ -1,5 +1,49 @@
 # Changelog
 
+## 2026-07-30 — Novo modelo de acesso: "Acesso Total" (R$ 10/mês) 🔓
+
+**Backup:** `versoes/2026-07-30-rebrand-forja/` (app.py incluído).
+
+**Motivo:** trocar créditos/campanha-produto por um modelo simples **por conta** (pedido do Ismaile):
+- **Grátis:** qualquer conta cria e usa fichas **até o nível 5**; criar campanha é grátis.
+- **Acesso Total (R$ 10/mês, pagamento MANUAL):** libera **nível 6–20** e as **aventuras** (livro-jogo) — as
+  "funcionalidades de jogabilidade". O **painel administrativo continua só do dono** (`eh_admin`), não faz
+  parte do "acesso total".
+- **Enforcement no servidor** (fonte da verdade): `_normalizar_ficha` capa o nível de ficha de conta grátis em
+  `NIVEL_GRATIS` (5); `_liberar_proximo_nivel`/`api_liberar_nivel` bloqueiam subir além de 5 sem acesso (402);
+  `POST /api/aventura_ativa` (iniciar/avançar) exige Acesso Total (402). Encerrar aventura é sempre livre.
+- **Helpers:** `_conta_tem_acesso(uid)` (dono da ficha, sem sessão — legado/admin/assinante = total) e
+  `tem_acesso_total()` (ator da sessão). **Grandfather:** contas legadas de env e assinantes não são capadas.
+- **Reaproveita a assinatura plana** (Fase 10.9): `pagaAte`/`trialAte`, `assinatura_valida`, `/admin/assinaturas`
+  (o admin confirma o pagamento manual e libera 30 dias). Conta nova nasce com trial de `TRIAL_DIAS`.
+- **Tela de desbloqueio** (`/assinatura` → "🔓 Acesso Total"): mostra as **opções de pagamento** (envs
+  `PIX_CHAVE` + `CONTATO_PAGAMENTO` — é onde o Ismaile põe o Pix/contato) e o botão "Já paguei" que avisa o
+  admin. Preço padrão `ASSINATURA_PRECO` = **R$ 10,00/mês**.
+- **Kill switch:** `ACESSO_TOTAL_ATIVO=0` volta tudo ao grátis (sem paywall).
+- **Testes:** 6 novos (106/106) — helper de acesso, cap de nível por dono (grátis capa em 5, assinante mantém,
+  legado não capa). Verificação ao vivo pendente.
+
+> **Ainda por decidir/fazer (não incluído):** ripar de vez o sistema de créditos/AbacatePay (hoje só fica
+> inerte com `MODO_LIVRE=1`); wiring do 402 nas telas do cliente (mostrar "🔓 Acesso Total" no lugar de alertar);
+> se o acesso do Mestre deve cobrir a mesa inteira em vez de ser por conta.
+
+## 2026-07-30 — Rebrand: "D&D Toolkit" → "Forja de Aventuras" 🔨
+
+**Backup:** `versoes/2026-07-30-rebrand-forja/`.
+
+**Motivo:** tirar "D&D"/"Dungeons & Dragons" do nome do produto (marca da Wizards of the Coast) — pedido do
+Ismaile. Novo nome: **Forja de Aventuras**.
+- **Branding user-facing renomeado:** títulos das páginas, H1 (login/hub/mestre — 🐉 Forja de Aventuras),
+  `manifest.webmanifest` (name/short_name/description → "RPG 5e"), `offline.html`, `sw.js` (cache
+  `forja-aventuras-v1`), rodapé do PDF, README. Nenhum "Toolkit"/"D&D Toolkit" visível restante.
+- **Backup export/import** (`app.js`): passa a marcar `_app:'forja-aventuras'`, mas a importação **ainda aceita
+  backups antigos** (`dnd-toolkit`) — não quebra arquivos já salvos pelos usuários.
+- Referências ao **sistema de regras** seguem como "5e" (SRD/OGL) — o que muda é só o nome do PRODUTO.
+
+> ⚠️ **Pendência de conteúdo (à parte, decisão do Ismaile):** as campanhas embutidas (Phandelver = *Lost Mine
+> of Phandelver* da WotC, nomes de Forgotten Realms) e alguns nomes de monstros de Product Identity são um risco
+> de direito autoral MAIOR que o nome do app. Renomear o app não cobre isso — vale decidir depois se troca/retira.
+
 ## 2026-07-30 — 22.1 · Cards de campanha ricos 🎴
 
 **Backup:** `versoes/2026-07-30-22-1-cards-ricos/` (app.py, campanhas.html, style.css).

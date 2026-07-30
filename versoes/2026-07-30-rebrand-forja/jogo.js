@@ -2659,7 +2659,7 @@ const Jogo = (function () {
       </div>
       ${f.historia ? `<div style="margin-top:14px"><h3>História Prévia</h3><p style="white-space:pre-wrap">${e(f.historia)}</p></div>` : ''}
       ${f.anotacoes ? `<div style="margin-top:10px"><h3>Anotações</h3><p style="white-space:pre-wrap">${e(f.anotacoes)}</p></div>` : ''}
-      <p style="margin-top:20px;color:#999;font-size:11px;text-align:center;">Gerado pela Forja de Aventuras · Desenvolvido por ismailepereira</p>
+      <p style="margin-top:20px;color:#999;font-size:11px;text-align:center;">Gerado pelo D&D Toolkit · Desenvolvido por ismailepereira</p>
       <script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script>
       </body></html>`;
     // iframe oculto em vez de window.open: imprime sem depender de permissão

@@ -1229,7 +1229,7 @@ async function exportarBackup() {
       fetch('/api/npcs').then(r => r.json()),
     ]);
     const camp = window.CAMPANHA_ID || 'principal';
-    const dump = { _app: 'forja-aventuras', _versao: 1, _campanha: camp, _data: new Date().toISOString(), fichas: fichasD, monstros_visiveis: monstros, combate: comb, notas: notasD, encontros: enc, itens_mestre: itensM, loja_especial_campanha: !!lojaEsp.liberada, loja_especial_itens: lojaEspItens, npcs: npcsD };
+    const dump = { _app: 'dnd-toolkit', _versao: 1, _campanha: camp, _data: new Date().toISOString(), fichas: fichasD, monstros_visiveis: monstros, combate: comb, notas: notasD, encontros: enc, itens_mestre: itensM, loja_especial_campanha: !!lojaEsp.liberada, loja_especial_itens: lojaEspItens, npcs: npcsD };
     const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -1240,7 +1240,7 @@ async function exportarBackup() {
 async function importarBackup(file) {
   let d;
   try { d = JSON.parse(await file.text()); } catch (e) { return alert('Arquivo inválido (não é JSON).'); }
-  if (d._app !== 'forja-aventuras' && d._app !== 'dnd-toolkit' && !confirm('Este arquivo não parece um backup da Forja de Aventuras. Importar mesmo assim?')) return;
+  if (d._app !== 'dnd-toolkit' && !confirm('Este arquivo não parece um backup do D&D Toolkit. Importar mesmo assim?')) return;
   if (!confirm(`Isto vai SUBSTITUIR os dados da campanha atual ("${window.CAMPANHA_ID || 'principal'}") pelos do backup. Continuar?`)) return;
   const put = (url, data) => fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
   try {

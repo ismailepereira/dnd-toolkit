@@ -1119,7 +1119,7 @@ const AVENTURAS = [
   {
     nome: 'A Mina Perdida de Phandelver',
     niveis: '1–5',
-    descricao: 'Aventura introdutória clássica de D&D 5e, dos arredores de Neverwinter até a Caverna do Eco das Ondas.',
+    descricao: 'Aventura introdutória clássica de RPG 5e, dos arredores da cidade portuária até a Caverna do Eco das Ondas.',
     encontros: [
       {
         nivel: '1', area: 'Estrada Triboar / Esconderijo de Cragmaw',

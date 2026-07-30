@@ -436,7 +436,7 @@ def gerar_codigo_convite(nome):
 # envia o comprovante pelo contato configurado; a confirmação é manual.
 # ---------------------------------------------------------------
 TRIAL_DIAS = int(os.environ.get('TRIAL_DIAS', '3'))
-ASSINATURA_PRECO = os.environ.get('ASSINATURA_PRECO', 'R$ 5,00/mês')
+ASSINATURA_PRECO = os.environ.get('ASSINATURA_PRECO', 'R$ 10,00/mês')
 PIX_CHAVE = os.environ.get('PIX_CHAVE', '(chave Pix por configurar — env PIX_CHAVE)')
 CONTATO_PAGAMENTO = os.environ.get('CONTATO_PAGAMENTO', '(contato por configurar — env CONTATO_PAGAMENTO)')
 
@@ -463,6 +463,20 @@ CREDITO_INICIAL = int(os.environ.get('CREDITO_INICIAL', '20'))
 # então a assinatura plana de conta (Fase 10.9) nasce DESLIGADA. Só volta a
 # trancar a app inteira se EXIGIR_ASSINATURA_PLANA=1 (rollback de emergência).
 EXIGIR_ASSINATURA_PLANA = os.environ.get('EXIGIR_ASSINATURA_PLANA', '0') == '1'
+
+# ---------------------------------------------------------------
+# MODELO DE ACESSO (rebrand 2026-07-30 — Forja de Aventuras): "Acesso Total"
+# POR CONTA, no lugar de créditos/campanha-produto. Regra do Ismaile:
+#   • Grátis: qualquer conta CRIA e USA fichas até o nível NIVEL_GRATIS (5).
+#   • Acesso Total (R$ PRECO_ACESSO/mês, pagamento MANUAL): libera nível 6+ e as
+#     AVENTURAS (livro-jogo) — as "funcionalidades de jogabilidade".
+#   • O painel administrativo continua só do dono (eh_admin) — não é "acesso total".
+# Kill switch: ACESSO_TOTAL_ATIVO=0 devolve tudo ao grátis (sem paywall).
+# Reaproveita a assinatura plana (pagaAte/trialAte + /admin/assinaturas da Fase 10.9).
+# ---------------------------------------------------------------
+ACESSO_TOTAL_ATIVO = os.environ.get('ACESSO_TOTAL_ATIVO', '1') == '1'
+NIVEL_GRATIS = int(os.environ.get('NIVEL_GRATIS', '5'))
+PRECO_ACESSO = os.environ.get('PRECO_ACESSO', '10')  # R$/mês exibido na tela de desbloqueio
 
 # ---------------------------------------------------------------
 # MODO LIVRE (TEMPORÁRIO — pedido do Ismaile em 2026-07-19): desliga TODA a
@@ -551,6 +565,31 @@ def status_assinatura(u):
     if u.get('pagamentoInfo'):
         return 'aguardando'
     return 'expirada'
+
+
+def _conta_tem_acesso(uid):
+    """Acesso Total baseado SÓ no uid (sem sessão) — usado p/ o DONO da ficha.
+    Contas legadas de env são anteriores ao paywall (grandfather, não capar);
+    admin e assinatura/trial em dia têm total; o resto fica no tier grátis."""
+    if not ACESSO_TOTAL_ATIVO:
+        return True
+    if not uid or (isinstance(uid, str) and uid.startswith('legacy:')):
+        return True
+    u = carregar_usuario_reg(uid)
+    if not u:
+        return False
+    return u.get('papelGlobal') == 'admin' or assinatura_valida(u)
+
+
+def tem_acesso_total():
+    """Acesso Total do ATOR (sessão atual): admin/legado sempre; senão a conta
+    registada precisa de assinatura/trial em dia. Usado nos gates de aventura."""
+    if not ACESSO_TOTAL_ATIVO or eh_admin():
+        return True
+    uid = session.get('uid', '')
+    if isinstance(uid, str) and uid.startswith('legacy:'):
+        return True
+    return assinatura_valida(carregar_usuario_reg(uid))
 
 
 # ---------------------------------------------------------------
@@ -1742,6 +1781,10 @@ def _normalizar_ficha(f):
             f[campo] = str(f[campo])[:tam] if isinstance(f[campo], (str, int, float)) else ''
     if 'nivel' in f:
         f['nivel'] = _int_saneado(f.get('nivel'), 1, 20, 1)
+        # Modelo de acesso: ficha de conta SEM Acesso Total não passa do nível
+        # grátis (5). Contas legadas/admin/assinantes não são afetadas.
+        if ACESSO_TOTAL_ATIVO and f['nivel'] > NIVEL_GRATIS and not _conta_tem_acesso(f.get('donoUid')):
+            f['nivel'] = NIVEL_GRATIS
     for campo in ('hpMax', 'hpAtual', 'pvTemp', 'ca', 'xp', 'ouro'):
         if campo in f:
             teto = 10_000_000 if campo in ('xp', 'ouro') else 999
@@ -1925,6 +1968,9 @@ def _liberar_proximo_nivel(estado, ficha):
     snap = next((s for s in pp if isinstance(s, dict) and s.get('nivel') == alvo), None)
     if snap is None:
         return None
+    # Modelo de acesso: não sobe ficha de conta grátis além do nível grátis (5).
+    if alvo > NIVEL_GRATIS and ACESSO_TOTAL_ATIVO and not _conta_tem_acesso(ficha.get('donoUid')):
+        return None
     antiga = json.loads(json.dumps(ficha))  # cópia p/ o carimbo otimista
     _aplicar_snapshot_nivel(ficha, snap)
     ficha['progressaoPlanejada'] = [s for s in pp if isinstance(s, dict) and s.get('nivel', 0) > alvo]
@@ -1946,6 +1992,10 @@ def api_liberar_nivel(fid):
     idx = next((i for i, f in enumerate(fichas) if isinstance(f, dict) and f.get('id') == fid), None)
     if idx is None:
         return jsonify({'ok': False, 'erro': 'ficha_nao_encontrada'}), 404
+    _alvo = int(fichas[idx].get('nivel', 1) or 1) + 1
+    if _alvo > NIVEL_GRATIS and ACESSO_TOTAL_ATIVO and not _conta_tem_acesso(fichas[idx].get('donoUid')):
+        return jsonify({'ok': False, 'erro': 'acesso_total',
+                        'detalhe': f'Passar do nível {NIVEL_GRATIS} exige Acesso Total (R$ {PRECO_ACESSO}/mês) na conta do jogador.'}), 402
     novo = _liberar_proximo_nivel(estado, fichas[idx])
     if novo is None:
         return jsonify({'ok': False, 'erro': 'sem_plano',
@@ -2880,6 +2930,11 @@ def api_aventura_votar():
 def api_post_aventura_ativa():
     """Inicia (snapshot da definição), atualiza o progresso ou encerra."""
     data = request.get_json(force=True) or {}
+    # Modelo de acesso: as AVENTURAS (livro-jogo) são a parte paga. Encerrar é
+    # sempre permitido (não fica preso). Iniciar/avançar exige Acesso Total.
+    if not data.get('encerrar') and not tem_acesso_total():
+        return jsonify({'ok': False, 'erro': 'acesso_total',
+                        'detalhe': f'As aventuras fazem parte do Acesso Total (R$ {PRECO_ACESSO}/mês). Desbloqueie para conduzir aventuras.'}), 402
     estado = carregar_estado()
     if data.get('encerrar'):
         estado['aventura_ativa'] = None

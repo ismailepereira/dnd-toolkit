@@ -1,5 +1,5 @@
 // =====================================================================
-// Service Worker — Forja de Aventuras (Fase 17.3: PWA)
+// Service Worker — D&D Toolkit (Fase 17.3: PWA)
 // ---------------------------------------------------------------------
 // Estratégia NETWORK-FIRST (com fallback ao cache): sempre tenta a rede
 // primeiro — assim código, estado e tempo real ficam SEMPRE frescos quando
@@ -12,7 +12,7 @@
 //
 // Para invalidar tudo após uma mudança grande no SW, suba o CACHE.
 // =====================================================================
-const CACHE = 'forja-aventuras-v1';
+const CACHE = 'dnd-toolkit-v1';
 const PRECACHE = ['/static/css/style.css', '/static/offline.html'];
 
 self.addEventListener('install', (e) => {

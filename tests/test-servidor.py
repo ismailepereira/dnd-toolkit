@@ -513,6 +513,19 @@ _html = mestre.get('/campanhas').get_data(as_text=True)
 t('22.1: card renderiza emoji, combate e aventura',
   '🐉' in _html and 'Em combate' in _html and 'A Cripta' in _html, 'render dos cards')
 
+# ----- Modelo de acesso: Acesso Total (R$10/mês) vs tier grátis (fichas ≤ nv5) -----
+servidor.salvar_usuario_reg('u_free22', {'papelGlobal': 'jogador', 'nomeExibicao': 'Grátis'})
+servidor.salvar_usuario_reg('u_pago22', {'papelGlobal': 'jogador', 'pagaAte': servidor._mais_dias(None, 30)})
+t('Acesso: conta sem assinatura NÃO tem acesso total', servidor._conta_tem_acesso('u_free22') is False)
+t('Acesso: conta com pagaAte futuro TEM acesso total', servidor._conta_tem_acesso('u_pago22') is True)
+t('Acesso: conta legada é grandfather (acesso total)', servidor._conta_tem_acesso('legacy:qualquer') is True)
+_ff = servidor._normalizar_ficha({'nivel': 8, 'donoUid': 'u_free22'})
+t('Acesso: ficha de conta grátis é capada no nível 5', _ff['nivel'] == 5, str(_ff['nivel']))
+_fp = servidor._normalizar_ficha({'nivel': 8, 'donoUid': 'u_pago22'})
+t('Acesso: ficha de assinante mantém nível 8', _fp['nivel'] == 8, str(_fp['nivel']))
+_fl = servidor._normalizar_ficha({'nivel': 8, 'donoUid': None})
+t('Acesso: ficha sem dono (legada) não é capada', _fl['nivel'] == 8, str(_fl['nivel']))
+
 print()
 print(f'❌ {len(falhas)} falha(s) de {total}' if falhas else f'✅ {total} testes do servidor passaram')
 sys.exit(1 if falhas else 0)

@@ -490,6 +490,29 @@ r = mestre.post('/campanha/arquivar', data={'id': 'camp_teste22', 'arquivar': '0
 _m = servidor.carregar_campanhas_meta().get('camp_teste22', {})
 t('22.2: Mestre desarquiva', _m.get('arquivada') is False, str(_m.get('arquivada')))
 
+# ----- Fase 22.1: cards ricos (emoji/cor + resumo ao vivo) -----
+import json as _json
+mestre.post('/campanha/renomear', data={'id': 'camp_teste22', 'nome': 'Mesa Nova', 'emoji': '🐉', 'cor': 'roxo'})
+_m = servidor.carregar_campanhas_meta().get('camp_teste22', {})
+t('22.1: emoji e cor salvos', _m.get('emoji') == '🐉' and _m.get('cor') == 'roxo', str((_m.get('emoji'), _m.get('cor'))))
+
+mestre.post('/campanha/renomear', data={'id': 'camp_teste22', 'nome': 'Mesa Nova', 'cor': 'arcoiris'})
+_m = servidor.carregar_campanhas_meta().get('camp_teste22', {})
+t('22.1: cor fora da paleta é descartada', _m.get('cor') == '', str(_m.get('cor')))
+
+_est = {'fichas': [{'id': 'a', 'nome': 'X'}, {'id': 'b', 'nome': 'Y'}],
+        'combate': {'ativo': True, 'combatentes': [{'id': 'c1'}]},
+        'aventura_ativa': {'definicao': {'titulo': 'A Cripta'}}, 'eventos': []}
+with open(os.path.join(servidor.DATA_DIR, 'estado_camp_teste22.json'), 'w', encoding='utf-8') as _f:
+    _json.dump(_est, _f)
+_r = servidor._resumo_campanha('camp_teste22')
+t('22.1: resumo lê nFichas/emCombate/aventura',
+  _r['nFichas'] == 2 and _r['emCombate'] and _r['aventura'] == 'A Cripta', str(_r))
+
+_html = mestre.get('/campanhas').get_data(as_text=True)
+t('22.1: card renderiza emoji, combate e aventura',
+  '🐉' in _html and 'Em combate' in _html and 'A Cripta' in _html, 'render dos cards')
+
 print()
 print(f'❌ {len(falhas)} falha(s) de {total}' if falhas else f'✅ {total} testes do servidor passaram')
 sys.exit(1 if falhas else 0)

@@ -2148,26 +2148,6 @@ body.alto-contraste a { color: #ffd400; }
 .campanhas-arquivadas { margin: 12px 0 0; text-align: left; }
 .campanhas-arquivadas summary { cursor: pointer; color: var(--text-dim); font-size: 0.9rem; margin-bottom: 6px; }
 .campanhas-arquivadas .campanha-card { filter: grayscale(0.4); opacity: 0.9; margin-bottom: 6px; }
-/* 22.1: cards ricos — clicável, emoji, cor, resumo, chips de status, copiar convite */
-.campanha-clicavel { cursor: pointer; transition: box-shadow .15s, transform .1s; }
-.campanha-clicavel:hover { box-shadow: inset 0 0 10px rgba(80,50,20,0.4), 0 6px 16px rgba(0,0,0,0.55); transform: translateY(-1px); }
-.camp-emoji { font-size: 1.1em; }
-.campanha-card.camp-cor-vermelho { border-left: 6px solid #a71d2a; }
-.campanha-card.camp-cor-azul { border-left: 6px solid #2b6cb0; }
-.campanha-card.camp-cor-verde { border-left: 6px solid #2f855a; }
-.campanha-card.camp-cor-roxo { border-left: 6px solid #6b46c1; }
-.campanha-card.camp-cor-dourado { border-left: 6px solid #b7791f; }
-.campanha-card.camp-cor-cinza { border-left: 6px solid #718096; }
-.camp-resumo { color: #4a3424 !important; font-style: normal !important; }
-.camp-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
-.camp-chip { font-size: 0.72rem; padding: 1px 7px; border-radius: 10px; font-weight: 700; }
-.camp-chip.combate { background: #a71d2a; color: #fff; }
-.camp-chip.aventura { background: #4a3a6b; color: #fff; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.camp-copiar { background: none; border: none; cursor: pointer; padding: 0 2px; font-size: 0.9rem; }
-.campanha-gerir-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; margin: 6px 0 0; }
-.campanha-gerir-form label { display: flex; flex-direction: column; font-size: 0.76rem; color: #4a3424; gap: 2px; text-align: left; }
-.campanha-gerir-form input[type="text"] { max-width: 200px; }
-.campanha-gerir-form .camp-emoji-in { max-width: 64px; text-align: center; }
 .camp-status { font-size: 0.78rem !important; }
 .camp-status.ok { color: #5ac47d !important; }
 .camp-status.alerta { color: #e3b341 !important; }

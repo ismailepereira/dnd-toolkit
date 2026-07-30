@@ -27,17 +27,10 @@
       {% if ativas %}
       <div class="campanhas-lista">
         {% for c in ativas %}
-        <div class="campanha-card campanha-clicavel{% if c.ativa %} ativa{% endif %}{% if not c.paga %} inativa{% endif %}{% if c.cor %} camp-cor-{{ c.cor }}{% endif %}"
-             data-entrar="{{ c.id }}">
+        <div class="campanha-card{% if c.ativa %} ativa{% endif %}{% if not c.paga %} inativa{% endif %}">
           <div class="campanha-card-info">
-            <b>{% if c.emoji %}<span class="camp-emoji">{{ c.emoji }}</span> {% endif %}{{ c.nome }}</b>
-            <small>{{ '🎩 Você mestra' if c.papel == 'mestre' else '🎲 Jogador' }}{% if c.codigo %} · convite: <code>{{ c.codigo }}</code> <button type="button" class="camp-copiar" data-copiar="{{ c.codigo }}" title="Copiar convite">📋</button>{% endif %}</small>
-            {# 22.1: resumo ao vivo #}
-            <small class="camp-resumo">🧑 {{ c.nFichas }} ficha{{ 's' if c.nFichas != 1 else '' }} · 👥 {{ c.nJogadores }} jogador{{ 'es' if c.nJogadores != 1 else '' }}</small>
-            <div class="camp-chips">
-              {% if c.emCombate %}<span class="camp-chip combate">⚔️ Em combate</span>{% endif %}
-              {% if c.aventura %}<span class="camp-chip aventura">📖 {{ c.aventura }}</span>{% endif %}
-            </div>
+            <b>{{ c.nome }}</b>
+            <small>{{ '🎩 Você mestra' if c.papel == 'mestre' else '🎲 Jogador' }}{% if c.codigo %} · convite: <code>{{ c.codigo }}</code>{% endif %}</small>
             {% if c.cobravel and not modo_livre %}
               {% if c.paga %}<small class="camp-status ok">✅ Ativa{% if c.pagaAte %} até {{ c.pagaAte }}{% endif %}</small>
               {% else %}<small class="camp-status alerta">⚠️ Inativa (só-leitura){% if c.papel == 'mestre' %} — renove para editar{% endif %}{% if c.apagaEm is not none %} · será apagada em {{ c.apagaEm }} dia{{ 's' if c.apagaEm != 1 else '' }}{% endif %}</small>{% endif %}
@@ -56,22 +49,13 @@
             {% endif %}
           </div>
           {% if c.papel == 'mestre' %}
-          {# 22.2 gerir + 22.1 aparência (emoji/cor) — só o Mestre da campanha #}
+          {# 22.2: gerir (renomear/arquivar) — só o Mestre da campanha #}
           <details class="campanha-gerir">
             <summary>⚙️ Gerir</summary>
-            <form action="{{ url_for('campanha_renomear') }}" method="post" class="campanha-gerir-form">
+            <form action="{{ url_for('campanha_renomear') }}" method="post" class="campanha-form-linha">
               <input type="hidden" name="id" value="{{ c.id }}">
-              <label>Nome <input type="text" name="nome" value="{{ c.nome }}" maxlength="48" required aria-label="Nome da campanha"></label>
-              <label>Emoji <input type="text" name="emoji" value="{{ c.emoji }}" maxlength="2" class="camp-emoji-in" placeholder="🐉" aria-label="Emoji da campanha"></label>
-              <label>Cor
-                <select name="cor" aria-label="Cor da campanha">
-                  <option value=""{% if not c.cor %} selected{% endif %}>— nenhuma —</option>
-                  {% for cor in ['vermelho','azul','verde','roxo','dourado','cinza'] %}
-                  <option value="{{ cor }}"{% if c.cor == cor %} selected{% endif %}>{{ cor|capitalize }}</option>
-                  {% endfor %}
-                </select>
-              </label>
-              <button type="submit" class="btn-secondary">💾 Salvar</button>
+              <input type="text" name="nome" value="{{ c.nome }}" maxlength="48" required aria-label="Novo nome da campanha">
+              <button type="submit" class="btn-secondary">✏️ Renomear</button>
             </form>
             <form action="{{ url_for('campanha_arquivar') }}" method="post"
                   onsubmit="return confirm('Arquivar “{{ c.nome }}”? Ela sai da lista, mas os dados ficam guardados e você pode desarquivar depois.');">
@@ -139,25 +123,5 @@
   <footer class="footer-attribuicao">
     Desenvolvido por <a href="https://ismailepereira.github.io/" target="_blank" rel="noopener">ismailepereira</a>
   </footer>
-  <script>
-    // 22.1: card inteiro clicável (entra na campanha), menos em botões/inputs/links.
-    document.querySelectorAll('.campanha-clicavel').forEach(function (card) {
-      card.addEventListener('click', function (e) {
-        if (e.target.closest('button, a, input, select, label, summary, details, code')) return;
-        var f = card.querySelector('form[action$="/campanha/ativa"]');
-        if (f) f.submit();
-      });
-    });
-    // 22.1: copiar código de convite.
-    document.querySelectorAll('.camp-copiar').forEach(function (b) {
-      b.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var cod = b.getAttribute('data-copiar') || '';
-        var ok = function () { var o = b.textContent; b.textContent = '✅'; setTimeout(function () { b.textContent = o; }, 1200); };
-        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(cod).then(ok).catch(function () {});
-        else { try { var t = document.createElement('textarea'); t.value = cod; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); ok(); } catch (_) {} }
-      });
-    });
-  </script>
 </body>
 </html>

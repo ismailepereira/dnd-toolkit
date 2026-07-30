@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-07-30 — 22.1 · Cards de campanha ricos 🎴
+
+**Backup:** `versoes/2026-07-30-22-1-cards-ricos/` (app.py, campanhas.html, style.css).
+
+**Resumo:** segue a **Fase 22 — Campanhas & Acolhimento**. A primeira tela que todos veem ganhou vida.
+- **Resumo ao vivo** por card (`_resumo_campanha` lê o estado da campanha): **🧑 nº de fichas**, **👥 nº de
+  jogadores**, chip **⚔️ Em combate** e chip **📖 <aventura em curso>** (título). Leitura leve, só das campanhas
+  não-arquivadas (`_estado_de_campanha` por id, sem depender da sessão).
+- **Emoji + cor por campanha** (paleta fechada `CORES_CAMPANHA` → classe `.camp-cor-*`, sem CSS arbitrário),
+  editáveis no `⚙️ Gerir` (junto do nome). Emoji aparece antes do nome; a cor vira uma faixa lateral.
+- **📋 Copiar convite** (botão ao lado do código) e **card inteiro clicável** (entra na campanha; ignora
+  cliques em botões/inputs/links) — JS inline no template.
+- **Servidor:** `campanha_renomear` agora também grava `emoji`/`cor`; `pagina_campanhas` monta o card rico.
+- **Testes:** 4 novos em `tests/test-servidor.py` (100/100) — emoji/cor persistem, cor fora da paleta é
+  descartada, resumo lê fichas/combate/aventura, e o card renderiza tudo. Verificação ao vivo pendente.
+
 ## 2026-07-29 — 22.2 · Renomear e arquivar campanha 🗄️
 
 **Backup:** `versoes/2026-07-29-22-2-renomear-arquivar/` (app.py, campanhas.html, style.css).

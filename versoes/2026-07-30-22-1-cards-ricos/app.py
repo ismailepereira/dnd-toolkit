@@ -685,45 +685,6 @@ def carregar_estado():
     return estado
 
 
-# Fase 22.1: cores nomeadas para os cards de campanha (evita CSS arbitrário —
-# o template mapeia a chave para uma classe .camp-cor-<chave>).
-CORES_CAMPANHA = ('vermelho', 'azul', 'verde', 'roxo', 'dourado', 'cinza')
-
-
-def _estado_de_campanha(cid):
-    """Lê o estado de UMA campanha por id, sem depender da sessão. Devolve {} se
-    não existir/der erro. Só para o resumo dos cards (22.1) — leitura leve."""
-    cid = re.sub(r'[^a-zA-Z0-9_-]', '', str(cid or '')) or 'principal'
-    try:
-        if db is not None:
-            snap = db.collection(COLECAO_CAMPANHA).document(cid).get()
-            return (snap.to_dict() or {}) if snap.exists else {}
-        nome = 'estado.json' if cid == 'principal' else f'estado_{cid}.json'
-        caminho = os.path.join(DATA_DIR, nome)
-        if not os.path.exists(caminho):
-            return {}
-        with open(caminho, 'r', encoding='utf-8-sig') as f:
-            return json.load(f)
-    except Exception:
-        return {}
-
-
-def _resumo_campanha(cid):
-    """Resumo ao vivo para o card (22.1): nº de fichas, se está em combate, título
-    da aventura em curso e o carimbo da última atividade (último evento)."""
-    est = _estado_de_campanha(cid)
-    fichas = [f for f in (est.get('fichas') or []) if isinstance(f, dict)]
-    combate = est.get('combate') or {}
-    av = est.get('aventura_ativa') or {}
-    eventos = est.get('eventos') or []
-    return {
-        'nFichas': len(fichas),
-        'emCombate': bool(combate.get('ativo') and (combate.get('combatentes') or [])),
-        'aventura': ((av.get('definicao') or {}).get('titulo') if isinstance(av, dict) and av.get('definicao') else None),
-        'ultimaAtividade': (eventos[-1].get('em') if eventos and isinstance(eventos[-1], dict) else None),
-    }
-
-
 def _estado_publico(estado):
     """Fase 18.2: projeção do estado SEM os campos confidenciais do Mestre.
     O tempo real (Firestore) é lido DIRETO pelo cliente via SDK — não passa
@@ -1385,22 +1346,14 @@ def pagina_campanhas():
         papel = 'mestre' if (m.get('mestreUid') == uid or eh_admin(uid)) else ('jogador' if uid in (m.get('membros') or {}) else None)
         if papel:
             paga = campanha_paga_em_dia(m)
-            arquivada = bool(m.get('arquivada'))
-            card = {'id': cid, 'nome': m.get('nome', cid), 'papel': papel,
-                    'codigo': m.get('codigoConvite') if papel == 'mestre' else None,
-                    'arquivada': arquivada,
-                    'emoji': (m.get('emoji') or ''),
-                    'cor': (m.get('cor') if m.get('cor') in CORES_CAMPANHA else ''),
-                    'nJogadores': len(m.get('membros') or {}),
-                    'ativa': cid == campanha_atual(),
-                    'paga': paga,
-                    'cobravel': not str(m.get('mestreUid', '')).startswith('legacy:'),
-                    'pagaAte': (m.get('pagaAte') or '')[:10],
-                    'apagaEm': (None if paga else dias_ate_apagar(m))}
-            # resumo ao vivo só para as não-arquivadas (evita ler estado à toa)
-            card.update(_resumo_campanha(cid) if not arquivada else
-                        {'nFichas': 0, 'emCombate': False, 'aventura': None, 'ultimaAtividade': None})
-            minhas.append(card)
+            minhas.append({'id': cid, 'nome': m.get('nome', cid), 'papel': papel,
+                           'codigo': m.get('codigoConvite') if papel == 'mestre' else None,
+                           'arquivada': bool(m.get('arquivada')),
+                           'ativa': cid == campanha_atual(),
+                           'paga': paga,
+                           'cobravel': not str(m.get('mestreUid', '')).startswith('legacy:'),
+                           'pagaAte': (m.get('pagaAte') or '')[:10],
+                           'apagaEm': (None if paga else dias_ate_apagar(m))})
     minhas.sort(key=lambda c: c['nome'].lower())
     creditos = None if (not uid or uid.startswith('legacy:')) else saldo_creditos(carregar_usuario_reg(uid))
     return render_template('campanhas.html', campanhas=minhas, erro=request.args.get('erro'),
@@ -1482,13 +1435,8 @@ def campanha_renomear():
     if not nome:
         return redirect(url_for('pagina_campanhas', erro='Dê um nome à campanha.'))
     m['nome'] = nome
-    # 22.1: emoji (1-2 chars, opcional) e cor nomeada (da paleta) — aparência do card
-    emoji = (request.form.get('emoji') or '').strip()[:2]
-    m['emoji'] = emoji
-    cor = (request.form.get('cor') or '').strip()
-    m['cor'] = cor if cor in CORES_CAMPANHA else ''
     salvar_campanha_meta(cid, m)
-    return redirect(url_for('pagina_campanhas', erro=f'✏️ Campanha atualizada: "{nome}".'))
+    return redirect(url_for('pagina_campanhas', erro=f'✏️ Campanha renomeada para "{nome}".'))
 
 
 @app.route('/campanha/arquivar', methods=['POST'])

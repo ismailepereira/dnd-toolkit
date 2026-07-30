@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-07-30 — 16.6b · Tabuleiro: centralizar no token 🎯
+
+**Backup:** `versoes/2026-07-28-16-6-zoom-pan/tabuleiro-b.js`.
+
+**Resumo:** complemento da 16.6 (zoom/pan) — botão **🎯** nos controles do mapa que **centraliza a visão no
+token**, útil pra "achar meu token" num mapa grande com zoom. Jogador: centra no próprio PJ; Mestre: no token
+selecionado (ou no 1º PJ se nada selecionado). Se estava sem zoom, aplica 2× (senão não faria sentido). Reusa
+`clampPan`/`aplicarTransform`.
+
+**Ficheiros:** `static/js/tabuleiro.js` (`tokenParaCentralizar`, `centralizar`, botão 🎯).
+
+**Verificação no navegador:** sem erros de runtime; 🎯 aplica `scale(2)` + pan calculado ao token; zoom in/out/
+reset seguem OK. `node --check` OK, unit 56/56.
+
 ## 2026-07-30 — Pagamento por WhatsApp, liberação fácil e fim dos créditos 💬
 
 **Resumo:** ajustes pedidos pelo Ismaile ao pôr o modelo no ar.

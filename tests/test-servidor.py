@@ -526,6 +526,16 @@ t('Acesso: ficha de assinante mantém nível 8', _fp['nivel'] == 8, str(_fp['niv
 _fl = servidor._normalizar_ficha({'nivel': 8, 'donoUid': None})
 t('Acesso: ficha sem dono (legada) não é capada', _fl['nivel'] == 8, str(_fl['nivel']))
 
+# ----- Pagamento por WhatsApp/Pix + liberação rápida do admin -----
+t('Pix padrão é o número do Ismaile', servidor.PIX_CHAVE == '69999688625', servidor.PIX_CHAVE)
+servidor.salvar_usuario_reg('u_lib22', {'usuario': 'jogador_lib', 'email': 'lib@x.com', 'papelGlobal': 'jogador'})
+r = mestre.post('/admin/assinaturas', data={'acao': 'liberar_busca', 'busca': 'jogador_lib', 'dias': '365'})
+_u = servidor.carregar_usuario_reg('u_lib22')
+t('Admin: liberação rápida por usuário concede acesso',
+  servidor.assinatura_valida(_u) is True, f"status={r.status_code} pagaAte={_u.get('pagaAte')}")
+r = mestre.post('/admin/assinaturas', data={'acao': 'liberar_busca', 'busca': 'naoexiste@x.com', 'dias': '30'})
+t('Admin: liberação rápida não acha conta inexistente (sem erro)', r.status_code in (200, 302), str(r.status_code))
+
 print()
 print(f'❌ {len(falhas)} falha(s) de {total}' if falhas else f'✅ {total} testes do servidor passaram')
 sys.exit(1 if falhas else 0)

@@ -7,6 +7,7 @@ import uuid
 from collections import Counter
 from datetime import datetime, timezone, timedelta
 from functools import wraps
+from urllib.parse import quote
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
@@ -383,8 +384,8 @@ def exige_papel(*papeis):
 
 # Cada modo: chave, rótulo, ícone, descrição, cor (categoria visual da Fase A3).
 MODOS = {
-    'adm': {'chave': 'adm', 'nome': 'ADM — Créditos & Finanças', 'icone': '💰', 'img': 'icons/ui/icon-adm.png', 'cor': 'financas',
-            'desc': 'Receita, compras por Pix, créditos e campanhas. O painel do dono.'},
+    'adm': {'chave': 'adm', 'nome': 'ADM — Acessos & Finanças', 'icone': '💰', 'img': 'icons/ui/icon-adm.png', 'cor': 'financas',
+            'desc': 'Liberar Acesso Total, ver assinantes e campanhas. O painel do dono.'},
     'total': {'chave': 'total', 'nome': 'Mestre — Controle Total', 'icone': '👑', 'img': 'icons/ui/icon-total.png', 'cor': 'total',
               'desc': 'Manda em todas as campanhas e fichas, sem pedir mais nada a ninguém.'},
     'mestre': {'chave': 'mestre', 'nome': 'Mestre', 'icone': '🎲', 'img': 'icons/ui/icon-jogar.png', 'cor': 'jogar',
@@ -437,8 +438,11 @@ def gerar_codigo_convite(nome):
 # ---------------------------------------------------------------
 TRIAL_DIAS = int(os.environ.get('TRIAL_DIAS', '3'))
 ASSINATURA_PRECO = os.environ.get('ASSINATURA_PRECO', 'R$ 10,00/mês')
-PIX_CHAVE = os.environ.get('PIX_CHAVE', '(chave Pix por configurar — env PIX_CHAVE)')
-CONTATO_PAGAMENTO = os.environ.get('CONTATO_PAGAMENTO', '(contato por configurar — env CONTATO_PAGAMENTO)')
+PIX_CHAVE = os.environ.get('PIX_CHAVE', '69999688625')
+PIX_NOME = os.environ.get('PIX_NOME', 'Ismaile Pereira Machado')
+CONTATO_PAGAMENTO = os.environ.get('CONTATO_PAGAMENTO', 'WhatsApp (69) 99968-8625')
+# Número no formato do wa.me (55 + DDD + número) — pagamento/liberação são pelo WhatsApp.
+WHATSAPP_NUMERO = os.environ.get('WHATSAPP_NUMERO', '5569999688625')
 
 # FASE 23.2: preço dos créditos + gateway Pix AbacatePay (opcional; sem chave,
 # a compra cai no Pix MANUAL). O Ismaile cria a conta e põe a chave no env —
@@ -1062,11 +1066,15 @@ def pagina_assinatura():
         u['pagamentoInfo'] = {'texto': texto or '(sem detalhes)', 'em': _agora()}
         salvar_usuario_reg(uid, u)
         msg = 'Pagamento informado! O acesso libera assim que a confirmação manual for feita.'
+    nome_conta = session.get('nomeExibicao') or session.get('usuario') or ''
+    wa_msg = f'Olá Ismaile! Quero o Acesso Total (R$ 10/mês) da Forja de Aventuras. Meu usuário é: {nome_conta}'
+    wa_link = 'https://wa.me/' + WHATSAPP_NUMERO + '?text=' + quote(wa_msg)
     return render_template('assinatura.html',
-                           usuario=session.get('nomeExibicao') or session.get('usuario'),
+                           usuario=nome_conta,
                            status=status_assinatura(u), trial_ate=u.get('trialAte'),
                            paga_ate=u.get('pagaAte'), pagamento_info=u.get('pagamentoInfo'),
-                           preco=ASSINATURA_PRECO, pix=PIX_CHAVE, contato=CONTATO_PAGAMENTO,
+                           preco=ASSINATURA_PRECO, pix=PIX_CHAVE, pix_nome=PIX_NOME,
+                           contato=CONTATO_PAGAMENTO, wa_link=wa_link,
                            trial_dias=TRIAL_DIAS, msg=msg)
 
 
@@ -1327,6 +1335,29 @@ def admin_assinaturas():
                     msg = f"💳 {compra['creditos']} créditos creditados a {dono.get('usuario', compra['uid'])} (saldo {novo})."
                 else:
                     msg = 'Falha ao creditar (conta não encontrada?).'
+        elif acao == 'liberar_busca':
+            # Liberação rápida: acha a conta por usuário OU e-mail e concede acesso.
+            busca = (request.form.get('busca') or '').strip().lower()
+            try:
+                dias = int(request.form.get('dias') or '30')
+            except ValueError:
+                dias = 30
+            achou = None
+            for _uid, _u in carregar_usuarios_reg().items():
+                if busca and busca in (str(_u.get('usuario', '')).lower(), str(_u.get('email', '')).lower()):
+                    achou = (_uid, _u)
+                    break
+            if not busca:
+                msg = 'Digite o usuário ou e-mail da conta.'
+            elif not achou:
+                msg = f'Nenhuma conta com usuário/e-mail "{busca}".'
+            else:
+                _uid, _u = achou
+                _u['pagaAte'] = _mais_dias(_u.get('pagaAte'), dias)
+                _u['pagamentoInfo'] = None
+                _u['bloqueado'] = False
+                salvar_usuario_reg(_uid, _u)
+                msg = f"✅ Acesso liberado para {_u.get('usuario')} por {dias} dias (até {_u['pagaAte'][:10]})."
         else:
           u = carregar_usuario_reg(alvo)
           if u:
@@ -1455,19 +1486,9 @@ def campanha_nova():
     nome = request.form.get('nome', '').strip()[:48]
     if not nome:
         return redirect(url_for('pagina_campanhas', erro='Dê um nome à campanha.'))
-    # Fase 23.3: criar uma campanha custa CAMPANHA_CREDITOS (o mestre legado é
-    # isento; no MODO LIVRE temporário ninguém é cobrado).
-    cobrar = not uid.startswith('legacy:') and not MODO_LIVRE
-    if cobrar:
-        if saldo_creditos(carregar_usuario_reg(uid)) < CAMPANHA_CREDITOS:
-            return redirect(url_for('pagina_campanhas',
-                                    erro=f'Criar uma campanha custa {CAMPANHA_CREDITOS} créditos (R$ 5,00/mês). '
-                                         'Compre créditos e tente de novo.'))
+    # Novo modelo (2026-07-30): campanhas são GRÁTIS. A monetização é o Acesso
+    # Total por conta (R$ 10/mês); o sistema de créditos foi encerrado.
     cid = 'camp_' + uuid.uuid4().hex[:10]
-    if cobrar:
-        ok, _ = lancar_creditos(uid, -CAMPANHA_CREDITOS, f'criar campanha "{nome}"', por='sistema')
-        if not ok:
-            return redirect(url_for('pagina_campanhas', erro='Saldo de créditos insuficiente.'))
     salvar_campanha_meta(cid, {
         'nome': nome,
         'mestreUid': uid,

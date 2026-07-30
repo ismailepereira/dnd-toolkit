@@ -36,15 +36,17 @@
       {% endif %}
 
       {% if status in ('expirada', 'aguardando', 'trial') %}
+      <p class="login-sub">🚧 A Forja está <b>em desenvolvimento</b>. A mensalidade ajuda a custear o desenvolvimento —
+        e assinantes podem sugerir o que falta para a gente incrementar com o tempo.</p>
       <h3 class="campanhas-h3">Como desbloquear o Acesso Total ({{ preco }})</h3>
       <ol class="assinatura-passos">
-        <li>Faça um Pix de <b>{{ preco }}</b> para a chave: <code class="convite-codigo">{{ pix }}</code></li>
-        <li>Envie o comprovante para: <b>{{ contato }}</b></li>
-        <li>Preencha abaixo para avisar que pagou — a confirmação é manual e libera o acesso por 30 dias.</li>
+        <li>Faça um Pix de <b>{{ preco }}</b> para a chave: <code class="convite-codigo">{{ pix }}</code> <small>({{ pix_nome }})</small></li>
+        <li>Mande o comprovante no <b>WhatsApp {{ contato }}</b> — a liberação é manual e dá acesso por 30 dias.</li>
       </ol>
+      <p><a href="{{ wa_link }}" target="_blank" rel="noopener" class="btn-primary" style="display:inline-block;text-decoration:none">💬 Falar no WhatsApp e assinar</a></p>
       <form method="POST" class="campanha-form-linha assinatura-form">
-        <input type="text" name="info" maxlength="400" placeholder="ID da transação Pix / observação (opcional)">
-        <button type="submit" class="btn-primary">Já paguei — avisar</button>
+        <input type="text" name="info" maxlength="400" placeholder="Já pagou? Deixe o comprovante/observação aqui (opcional)">
+        <button type="submit" class="btn-secondary">Avisar que paguei</button>
       </form>
       {% endif %}
     </div>

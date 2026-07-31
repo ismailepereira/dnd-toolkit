@@ -106,7 +106,11 @@ toggle/botão no Modo de Jogo. **Com isso a FASE F2 está 100% concluída** (as 
   stats do MM) em `FORMAS_ELEMENTAIS` (`formaselvagem.js`); seletor **🌙 Forma Elemental** no Modo de Jogo que
   **gasta 2 usos** de Forma Selvagem (guard: precisa de 2; só Lua N10+). Reusa o painel de forma ativa (PV/CA/
   ataques/reverter) com cabeçalho 🌙.
-- [ ] Conjuração Atemporal (nv18): liberar o painel de magias mesmo com forma ativa.
+- [x] **Conjuração Atemporal (nv18)** — ENTREGUE 31/07: em Forma Selvagem o painel ✨ Conjuração fica
+  **bloqueado** (regra 5e: não se conjura transformado), com aviso "a Conjuração Atemporal chega no N18".
+  Com Druida **nível ≥ 18** o painel volta a aparecer, com selo "🌙 Conjuração Atemporal: você conjura mesmo
+  em Forma Selvagem". Regra pura `podeConjurarEmForma5e(classes, formaAtiva)` em `regras-ficha.js` (multiclasse:
+  só um nível de Druida ≥ 18 libera). Coberto por teste unit (`unit-regras.js`, 59/59).
 
 ### F4 ✅ Cartão-resumo de combate no fim do Criador ("cola" do jogador) — ENTREGUE 21/07
 **Dor de fundo:** jogador novo termina a ficha sem saber o que faz no turno.

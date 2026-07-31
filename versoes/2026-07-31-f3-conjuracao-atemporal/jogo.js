@@ -1092,16 +1092,7 @@ const Jogo = (function () {
     // ----- ✨ Conjuração em COMBATE (C1): cards de ação com CD/ataque e botão
     // que gasta o espaço certo — as magias ganham o mesmo status das armas.
     let castHtml = '';
-    // Conjuração Atemporal (Druida N18): em Forma Selvagem não se conjura magias,
-    // exceto se houver um nível de Druida >= 18. Regra pura em regras-ficha.js.
-    const podeConjForma = (typeof podeConjurarEmForma5e === 'function')
-      ? podeConjurarEmForma5e(classesFicha(), f.formaAtiva)
-      : !f.formaAtiva;
-    if (_ehConj && f.formaAtiva && !podeConjForma) {
-      castHtml = `<div class="jg-bloco jg-conjuracao" data-bloco-acao="magias"><h4>✨ Conjuração</h4>
-        <div class="criador-hint">🐺 Em Forma Selvagem você não conjura magias. A <b>Conjuração Atemporal</b> chega no nível 18 de Druida — aí você poderá conjurar mesmo transformado.</div>
-      </div>`;
-    } else if (_ehConj && (truquesF.length || grimorioF.length || subclasseF.length)) {
+    if (_ehConj && (truquesF.length || grimorioF.length || subclasseF.length)) {
       const conjsCab = classesConjuradoras();
       const cabecalho = conjsCab.map(c => {
         const k = (typeof cdConjuracao === 'function') ? cdConjuracao(c.classe, c.nivel, f.atributos, pb) : null;
@@ -1150,7 +1141,6 @@ const Jogo = (function () {
         .filter(n => ((detalheMagia(n) || {}).nivel || 0) > 0)
         .sort((a, b) => ((detalheMagia(a) || {}).nivel || 0) - ((detalheMagia(b) || {}).nivel || 0));
       castHtml = `<div class="jg-bloco jg-conjuracao" data-bloco-acao="magias"><h4>✨ Conjuração ${cabecalho ? `<small>${cabecalho}</small>` : ''}</h4>
-        ${f.formaAtiva && podeConjForma ? '<div class="criador-hint-inline">🌙 <b>Conjuração Atemporal</b> (N18): você conjura mesmo em Forma Selvagem.</div>' : ''}
         <div class="criador-hint-inline">Truques, magias conhecidas e do ${ehPreparador() ? 'domínio/juramento' : 'repertório'} — todas lançáveis no turno (o espaço é gasto ao conjurar).</div>
         ${truquesF.map(n => cardCast(n)).join('')}
         ${castaveis.map(n => cardCast(n)).join('')}

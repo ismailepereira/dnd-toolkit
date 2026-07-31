@@ -25,7 +25,7 @@ const ctx = vm.runInContext(`({
   DIVINDADES, SEM_DIVINDADE, CLASSES_DEVOTAS, listaDivindades, divindadeDados,
   PATRONOS_PACTO, patronoDados, SUBCLASSES, antecedentesDisponiveis, antecedenteDados,
   calcularCA, percepcaoPassiva, cdConjuracao, pvMaximoMonoclasse, recursosDeClasse5e, resumoCombate5e, cartaoCombateHtml,
-  aplicarDescansoCurto5e, aplicarDescansoLongo5e, economiaAcao5e, cdFurto5e, resultadoFurto5e, testeMorte5e, reacoesDoPC, rolarDadosGrupo, estadoTokenPv5e,
+  aplicarDescansoCurto5e, aplicarDescansoLongo5e, economiaAcao5e, cdFurto5e, resultadoFurto5e, testeMorte5e, reacoesDoPC, rolarDadosGrupo, estadoTokenPv5e, podeConjurarEmForma5e,
   FORMAS_SELVAGENS, FORMAS_ELEMENTAIS, formasElementaisDisponiveis, limiteFormaSelvagem, formasSelvagensDisponiveis, formaSelvagemDados,
   CONDICOES, efeitosDoAtaque, MAGIAS_SUBCLASSE, magiasSubclasse5e, rotuloMagiaSubclasse, MAGIAS_DETALHE,
   CANALIZAR_SUBCLASSE, canalizarSubclasse5e,
@@ -277,6 +277,21 @@ t('F3b: formaSelvagemDados também encontra os elementais (p/ o painel/PV)', () 
 t('F3b: elementais NÃO entram na lista normal de feras (ND 5 acima do teto)', () => {
   const lua20 = ctx.formasSelvagensDisponiveis(20, 'Círculo da Lua').map(f => f.nome);
   assert.ok(!lua20.some(n => n.startsWith('Elemental')), 'nenhum elemental na lista de feras');
+});
+
+t('F3: Conjuração Atemporal — só conjura em Forma Selvagem com Druida N18+', () => {
+  const forma = { nome: 'Urso-Pardo', pvAtual: 34 };
+  // fora de forma: sempre pode (a conjuração normal decide)
+  assert.strictEqual(ctx.podeConjurarEmForma5e([{ classe: 'Druida', nivel: 5 }], null), true);
+  // em forma, druida < 18: bloqueado
+  assert.strictEqual(ctx.podeConjurarEmForma5e([{ classe: 'Druida', nivel: 17 }], forma), false);
+  // em forma, druida >= 18: liberado (Conjuração Atemporal)
+  assert.strictEqual(ctx.podeConjurarEmForma5e([{ classe: 'Druida', nivel: 18 }], forma), true);
+  assert.strictEqual(ctx.podeConjurarEmForma5e([{ classe: 'Druida', nivel: 20 }], forma), true);
+  // multiclasse: outra classe conjuradora não libera (é o transformar-se que bloqueia)
+  assert.strictEqual(ctx.podeConjurarEmForma5e([{ classe: 'Druida', nivel: 6 }, { classe: 'Mago', nivel: 12 }], forma), false);
+  // Druida 18 multiclassado continua liberando
+  assert.strictEqual(ctx.podeConjurarEmForma5e([{ classe: 'Druida', nivel: 18 }, { classe: 'Mago', nivel: 2 }], forma), true);
 });
 
 t('C6: efeitosDoAtaque detecta condição, CD e salva no texto do ataque', () => {

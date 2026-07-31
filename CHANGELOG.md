@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-07-31 — F3 · Conjuração Atemporal do Druida (nível 18) 🌙
+
+**Backup:** `versoes/2026-07-31-f3-conjuracao-atemporal/` (jogo.js, regras-ficha.js).
+
+**Resumo:** fecha o último item aberto do roadmap Fichas & Combate (F3 Druida). Aplica de fato a regra 5e
+que antes só existia como texto de dica: **em Forma Selvagem o personagem não conjura magias**, exceto com a
+característica **Conjuração Atemporal** (Druida nível 18).
+- Regra pura nova `podeConjurarEmForma5e(classes, formaAtiva)` em `static/js/regras-ficha.js` — em forma, só
+  libera se houver um nível de **Druida ≥ 18**; multiclasse não contorna (é transformar-se que bloqueia).
+- No Modo de Jogo (`jogo.js`), com forma ativa e Druida < 18 o painel **✨ Conjuração** é substituído por um
+  aviso; a partir do N18 o painel volta com o selo "🌙 Conjuração Atemporal: você conjura mesmo em Forma
+  Selvagem".
+- Teste unit em `tests/unit-regras.js` cobrindo fora de forma / N17 / N18 / N20 / multiclasse (59/59 passam).
+
 ## 2026-07-30 — F5b + F5c · Bruxo (patronos) e Canalizar Divindade de subclasse ⚜️
 
 **Backup:** `versoes/2026-07-30-f5b-f5c-subclasses/` (compendio.js, jogo.js, unit-regras.js).

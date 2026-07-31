@@ -123,8 +123,14 @@ toggle/botão no Modo de Jogo. **Com isso a FASE F2 está 100% concluída** (as 
   no compêndio — teste de integridade garante). No Modo de Jogo viram **castáveis** (entram em
   `magiasCastaveis()`) e ganham o grupo "🕮 Do seu domínio"/"⚜️ Do seu juramento"; o Criador mostra a linha
   na Conjuração.
-- [ ] **F5b — Patronos do Bruxo**: magias expandidas do patrono aparecendo na lista de escolha.
-- [ ] **F5c — Canalizar Divindade específico do juramento** (Paladino nv3) e dos domínios.
+- [x] **F5b — Patronos do Bruxo** (ENTREGUE 30/07): magias expandidas dos 3 patronos (Corruptor/Arquifada/
+  Grande Antigo) por nível (1º–5º círculo), sempre castáveis com o espaço de Pacto e fora do limite de
+  conhecidas — mesma tabela `MAGIAS_SUBCLASSE`; grupo "👁️ Do seu patrono" no Modo de Jogo; `rotuloMagiaSubclasse`
+  reconhece patrono. Só magias que existem no compêndio (teste de integridade).
+- [x] **F5c — Canalizar Divindade do juramento/domínio** (ENTREGUE 30/07): tabela `CANALIZAR_SUBCLASSE`
+  (3 juramentos do Paladino + 7 domínios do Clérigo) + bloco no Modo de Jogo que lista as opções e, ao usar,
+  **gasta 1 Canalizar Divindade** (mesmo recurso do Expulsar) e loga o efeito. Ex.: Arma Sagrada, Voto de
+  Inimizade, Preservar a Vida, Fulgor da Aurora, Investida Guiada.
 
 ---
 

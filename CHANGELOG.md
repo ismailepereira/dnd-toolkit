@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-07-30 — F5b + F5c · Bruxo (patronos) e Canalizar Divindade de subclasse ⚜️
+
+**Backup:** `versoes/2026-07-30-f5b-f5c-subclasses/` (compendio.js, jogo.js, unit-regras.js).
+
+**Resumo:** fecha as duas subclasses que faltavam no roadmap Fichas & Combate (F5).
+- **F5b — Patronos do Bruxo:** os 3 patronos (O Corruptor/Fiend, O Arquifada/Archfey, O Grande Antigo/Great Old
+  One) ganham **magias expandidas** por nível do Bruxo (1º–5º círculo), na mesma tabela `MAGIAS_SUBCLASSE`.
+  Ficam sempre castáveis (com o espaço de Pacto) e fora do limite de conhecidas; aparecem no grupo **"👁️ Do seu
+  patrono"** no Modo de Jogo. `rotuloMagiaSubclasse` passou a reconhecer patrono (ícone 👁️). Só usa magias que
+  existem no compêndio (o teste de integridade garante).
+- **F5c — Canalizar Divindade do juramento/domínio:** nova tabela `CANALIZAR_SUBCLASSE` (3 juramentos do
+  Paladino + 7 domínios do Clérigo) e um bloco no Modo de Jogo que lista as opções específicas; **usar gasta 1
+  Canalizar Divindade** (o mesmo recurso do Expulsar Mortos-Vivos) e loga o efeito. Ex.: **Arma Sagrada** e
+  **Expulsar os Profanos** (Devoção), **Voto de Inimizade** (Vingança), **Preservar a Vida** (Vida), **Fulgor
+  da Aurora** (Luz), **Investida Guiada** (Guerra). Descritivas — o Mestre resolve salva/dano no combate.
+
+**Ficheiros:** `static/js/compendio.js` (patronos em `MAGIAS_SUBCLASSE`; `CANALIZAR_SUBCLASSE`/
+`canalizarSubclasse5e`; `rotuloMagiaSubclasse`), `static/js/jogo.js` (grupo do patrono; bloco + função de
+Canalizar de subclasse + índice + wiring), `tests/unit-regras.js` (2 testes novos).
+
+**Verificação:** `node --check` OK · unit-regras **58/58** (F5b: patronos têm magias + rótulo; F5c: chaves
+válidas + opções bem formadas; testes de integridade F5 seguem verdes) · servidor 109/109. **Falta ao vivo:**
+abrir um Bruxo (ver as magias do patrono) e um Paladino/Clérigo (ver as opções de Canalizar do juramento/
+domínio gastando o recurso).
+
+**Nota:** as opções de Canalizar de subclasse não entram na trava de economia (2c) porque o custo varia por
+opção (Voto de Inimizade = bônus; Investida Guiada/Fúria Destrutiva = riders) — a descrição diz o tipo.
+
+
 ## 2026-07-30 — 16.6b · Tabuleiro: centralizar no token 🎯
 
 **Backup:** `versoes/2026-07-28-16-6-zoom-pan/tabuleiro-b.js`.

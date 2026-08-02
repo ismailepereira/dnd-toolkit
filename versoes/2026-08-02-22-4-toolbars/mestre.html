@@ -87,30 +87,24 @@
     <!-- COMBATE -->
     <section id="combate" class="tab-content">
       <div class="panel-header"><h2>Combate</h2></div>
-      <!-- Fase 22.4: toolbar enxuta — ações do turno em primeiro plano; o resto no ⚙️ mais -->
       <div class="combate-toolbar">
-        <button id="rolarIniciativa" class="btn-primary">🎲 Rolar Iniciativa</button>
-        <button id="proximoTurno" class="btn-primary">🔚 Encerrar turno</button>
-        <button id="addPersonagens" class="btn-secondary">+ Personagens</button>
+        <button id="addPersonagens" class="btn-primary">+ Personagens</button>
         <span class="add-monstro">
           <select id="combMonstroSel"></select>
           <input type="number" id="combMonstroQtd" value="1" min="1" title="Quantidade">
           <button id="addMonstro" class="btn-secondary">+ Monstro</button>
+          <button id="addAliado" class="btn-secondary" title="Adiciona a criatura selecionada como aliado (companheiro/invocação)">+ Aliado</button>
         </span>
-        <details class="mais-menu">
-          <summary class="btn-secondary" title="Mais ações de combate">⚙️ mais</summary>
-          <div class="mais-pop">
-            <button id="addAliado" class="btn-secondary" title="Adiciona a criatura selecionada (no seletor de monstro) como aliado (companheiro/invocação)">+ Aliado</button>
-            <span class="add-monstro">
-              <select id="combNpcSel" title="NPC da campanha (só os com bloco de combate)"></select>
-              <button id="addNpcComb" class="btn-secondary" title="Adiciona o NPC ao combate (inimigo entra contra o grupo; os demais como aliados)">+ NPC</button>
-            </span>
-            <button id="addCombatente" class="btn-secondary">+ Avulso</button>
-            <button id="btnAreaDano" class="btn-secondary">💥 Dano em Área</button>
-            <button id="btnGerarLoot" class="btn-secondary" title="Rola o tesouro dos monstros abatidos (PV 0) — tabela própria do monstro ou genérica por ND">🎲 Gerar Loot</button>
-            <button id="limparCombate" class="btn-danger">🗑 Limpar combate</button>
-          </div>
-        </details>
+        <span class="add-monstro">
+          <select id="combNpcSel" title="NPC da campanha (só os com bloco de combate)"></select>
+          <button id="addNpcComb" class="btn-secondary" title="Adiciona o NPC ao combate (inimigo entra contra o grupo; os demais como aliados)">+ NPC</button>
+        </span>
+        <button id="addCombatente" class="btn-secondary">+ Avulso</button>
+        <button id="rolarIniciativa" class="btn-secondary">🎲 Rolar Iniciativa</button>
+        <button id="proximoTurno" class="btn-secondary">🔚 Encerrar turno (próximo)</button>
+        <button id="btnAreaDano" class="btn-secondary">💥 Dano em Área</button>
+        <button id="btnGerarLoot" class="btn-secondary" title="Rola o tesouro dos monstros abatidos (PV 0) — tabela própria do monstro ou genérica por ND">🎲 Gerar Loot</button>
+        <button id="limparCombate" class="btn-danger">Limpar</button>
       </div>
       <div id="lootResultado" class="area-dano hidden"></div>
       <p class="aviso-mestre">Clique em 🎯 para escolher o alvo; aí clique num ataque para rolar acerto + dano (já aplica resistência/vulnerabilidade/imunidade). Use ⚔ Multiataque nos monstros, ⭐ Chefe p/ ações e resistência lendária, e 💥 Dano em Área p/ salva em massa.</p>

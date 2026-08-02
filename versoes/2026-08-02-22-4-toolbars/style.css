@@ -2921,19 +2921,3 @@ body[data-modo-ativo="consultar"] { --cat: var(--cat-consultar); --cat-soft: var
   .ob-passo { flex-wrap: wrap; }
   .ob-ir { width: 100%; }
 }
-
-/* ===== Fase 22.4 — Toolbars enxutas: dropdown "⚙️ mais" ===== */
-.mais-menu { position: relative; display: inline-block; }
-.mais-menu > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
-.mais-menu > summary::-webkit-details-marker { display: none; }
-.mais-menu[open] > summary { box-shadow: var(--shadow-glow); }
-.mais-pop { position: absolute; z-index: 40; top: calc(100% + 6px); left: 0;
-  display: flex; flex-direction: column; align-items: stretch; gap: 8px;
-  min-width: 210px; padding: 10px; border: 1px solid var(--border-focus);
-  border-radius: var(--radius); background: var(--bg-panel); box-shadow: var(--shadow-card); }
-.mais-pop .add-monstro { display: flex; flex-wrap: wrap; gap: 6px; }
-.mais-pop button, .mais-pop select { width: 100%; }
-.mais-pop .add-monstro button { width: auto; flex: 1 1 auto; }
-@media (max-width: 560px) {
-  .mais-pop { right: 0; left: auto; }
-}

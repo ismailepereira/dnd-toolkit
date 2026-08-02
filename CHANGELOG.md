@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-02 — 22.4 · Toolbars enxutas (dropdown "⚙️ mais") 🧰
+
+**Backup:** `versoes/2026-08-02-22-4-toolbars/` (mestre.html, aventura.js, app.js, style.css).
+
+**Resumo:** as toolbars carregadas do Mestre ganharam foco. As ações frequentes ficam à vista; o resto vai
+para um dropdown nativo **⚙️ mais** (`<details class="mais-menu">` + `.mais-pop`, sem lib).
+- **Combate:** primários **🎲 Rolar Iniciativa · 🔚 Encerrar turno · + Personagens · + Monstro**; no ⚙️ mais:
+  + Aliado, + NPC (com seletor), + Avulso, 💥 Dano em Área, 🎲 Gerar Loot, 🗑 Limpar combate.
+- **Editor de aventuras:** primários **💾 Salvar · ➕ Nó · Cancelar**; no ⚙️ mais: 🔍 Verificar grafo.
+- Os **IDs dos botões foram preservados** — os handlers existentes (todos por `getElementById`) seguem
+  funcionando de dentro do dropdown. Um handler global em `app.js` fecha o menu ao clicar numa ação ou fora dele.
+
+**Onde ficou:** `templates/mestre.html` (toolbar de combate), `static/js/aventura.js` (toolbar do editor),
+`static/js/app.js` (fechar-ao-agir/clicar-fora), `static/css/style.css` (`.mais-menu`/`.mais-pop`, responsivo).
+**Verificado ao vivo** (menu abre, ações disparam de dentro, fecha ao agir e ao clicar fora, console sem erros).
+Conclui a **Fase 22 — Campanhas & Acolhimento**.
+
 ## 2026-08-02 — 22.3 · Onboarding de campanha vazia (checklist) 👋
 
 **Backup:** `versoes/2026-07-31-22-3-onboarding/` (mestre.html, app.js, style.css) + `versoes/.../` (onboarding.js é novo).

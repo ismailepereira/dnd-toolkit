@@ -254,17 +254,11 @@ if (typeof module !== 'undefined' && module.exports) {
         <span class="criador-hint-inline">Mapa mental: arraste os nós; puxe da bolinha <b>●</b> de um nó até outro para ligar; clique numa seta remove; duplo-clique edita os detalhes.</span>
       </div>
       <div id="aeCorpo"></div>
-      <!-- Fase 22.4: ações primárias em primeiro plano; Verificar grafo no ⚙️ mais -->
       <div class="ficha-card-acoes">
-        <button class="btn-primary" id="aeSalvar">💾 Salvar aventura</button>
         <button class="btn-secondary" id="aeAddNo">➕ Nó</button>
+        <button class="btn-secondary" id="aeValidar">🔍 Verificar grafo</button>
+        <button class="btn-primary" id="aeSalvar">💾 Salvar aventura</button>
         <button class="btn-secondary" id="aeCancelar">Cancelar</button>
-        <details class="mais-menu">
-          <summary class="btn-secondary" title="Mais ações do editor">⚙️ mais</summary>
-          <div class="mais-pop">
-            <button class="btn-secondary" id="aeValidar">🔍 Verificar grafo</button>
-          </div>
-        </details>
       </div>
       <div id="aeValidacao"></div>`;
 

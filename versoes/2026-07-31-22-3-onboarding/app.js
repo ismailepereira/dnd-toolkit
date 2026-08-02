@@ -1772,9 +1772,9 @@ if (window.RT && RT.ativo()) {
   let _lf = '', _lc = '', _lv = '', _ln = '', _lim = '', _lle = '', _lnp = '', _ltb = '';
   RT.ouvir(estado => {
     const stb = JSON.stringify(estado.tabuleiro || {});
-    if (stb !== _ltb) { _ltb = stb; if (window.Tabuleiro) Tabuleiro.sync(estado.tabuleiro || {}); if (window.Onboarding) Onboarding.avaliar(); }
+    if (stb !== _ltb) { _ltb = stb; if (window.Tabuleiro) Tabuleiro.sync(estado.tabuleiro || {}); }
     const sf = JSON.stringify(estado.fichas || []);
-    if (sf !== _lf) { _lf = sf; fichas = estado.fichas || []; renderFichas(); if (window.Onboarding) Onboarding.avaliar(); }
+    if (sf !== _lf) { _lf = sf; fichas = estado.fichas || []; renderFichas(); }
     const sc = JSON.stringify(estado.combate || {});
     if (sc !== _lc) { _lc = sc; combate = estado.combate || { combatentes: [], turno: 0, rodada: 1, log: [] }; renderCombate(); }
     const sv = JSON.stringify(estado.monstros_visiveis || []);

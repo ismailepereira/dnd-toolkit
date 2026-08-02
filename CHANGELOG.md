@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-08-02 — 22.3 · Onboarding de campanha vazia (checklist) 👋
+
+**Backup:** `versoes/2026-07-31-22-3-onboarding/` (mestre.html, app.js, style.css) + `versoes/.../` (onboarding.js é novo).
+
+**Resumo:** a primeira tela do Mestre numa campanha nova deixa de ser um punhado de abas vazias. No topo da
+aba **Fichas** aparece um checklist "👋 Bem-vindo à campanha!" com 3 passos e um contador "N de 3 prontos":
+1. **📖 Importe uma aventura pronta** → botão leva à aba Aventura;
+2. **🧑 Fichas dos jogadores** → botão leva à aba Fichas;
+3. **🗺️ Abra um mapa** → botão leva ao Tabuleiro (aba Aventura).
+Cada passo mostra ✅/⬜ conforme o estado real da campanha; quando os 3 estão feitos o checklist **some
+sozinho** e não volta a atrapalhar.
+
+**Onde ficou:** `static/js/onboarding.js` (novo, autossuficiente — busca `/api/fichas`, `/api/aventura_ativa`
+e `/api/tabuleiro`, com debounce; expõe `window.Onboarding.avaliar()`), `templates/mestre.html` (container
+`#onboarding` no topo de `#fichas` + `<script>`), `static/js/app.js` (reavalia no tempo real quando fichas/
+tabuleiro mudam), `static/css/style.css` (`.onboarding`/`.ob-*`, responsivo). **Verificado ao vivo** (0→1→2
+de 3, navegação dos botões, esconde com 3/3, console sem erros).
+
 ## 2026-07-31 — F3 · Conjuração Atemporal do Druida (nível 18) 🌙
 
 **Backup:** `versoes/2026-07-31-f3-conjuracao-atemporal/` (jogo.js, regras-ficha.js).

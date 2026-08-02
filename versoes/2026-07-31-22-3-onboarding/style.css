@@ -2896,28 +2896,3 @@ body[data-modo-ativo="consultar"] { --cat: var(--cat-consultar); --cat-soft: var
 .logmesa-txt { flex: 1 1 auto; color: var(--text); }
 .logmesa-quando { flex: 0 0 auto; color: var(--text-dim); font-size: 0.76rem; white-space: nowrap; }
 .logmesa-vazio { color: var(--text-dim); font-size: 0.88rem; margin: 8px 0 0; }
-
-/* ===== Fase 22.3 — Onboarding de campanha vazia (checklist) ===== */
-.onboarding { margin: 0 0 18px; padding: 16px 18px; border: 1px solid var(--border);
-  border-left: 4px solid var(--accent-gold); border-radius: var(--radius);
-  background: var(--bg-panel); box-shadow: var(--shadow-card); }
-.onboarding.hidden { display: none; }
-.ob-cabecalho { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.ob-cabecalho h3 { margin: 0; font-family: var(--font-title); color: var(--accent-gold); }
-.ob-progresso { flex: 0 0 auto; font-size: 0.82rem; color: var(--text-dim);
-  border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; }
-.ob-intro { margin: 6px 0 12px; color: var(--text-dim); font-size: 0.9rem; }
-.ob-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.ob-passo { display: flex; align-items: center; gap: 12px; padding: 10px 12px;
-  border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card); }
-.ob-passo.ob-feito { opacity: 0.7; }
-.ob-check { flex: 0 0 auto; font-size: 1.2rem; line-height: 1; }
-.ob-texto { flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.ob-texto b { color: var(--text); }
-.ob-texto small { color: var(--text-dim); font-size: 0.82rem; }
-.ob-passo.ob-feito .ob-texto b { text-decoration: line-through; }
-.ob-ir { flex: 0 0 auto; }
-@media (max-width: 560px) {
-  .ob-passo { flex-wrap: wrap; }
-  .ob-ir { width: 100%; }
-}

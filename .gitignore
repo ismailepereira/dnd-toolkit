@@ -45,3 +45,11 @@ tests/.data-teste/
 
 # icones (trabalho temporario de geracao/recorte)
 scratch-icons/
+
+# --- Backups manuais antes de editar (convencao do CLAUDE.md) ---
+# Ficam SO em disco: sao a rede de seguranca local, nao fazem parte do produto.
+# O historico ate 2026-08-18 segue no Git; daqui pra frente nao entram em commit.
+versoes/
+
+# --- Folhas de mockup do Gemini (material bruto, precisam recorte) ---
+static/icons/assets/

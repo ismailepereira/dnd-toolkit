@@ -101,6 +101,9 @@ isso determina se precisa de rota `/api` + Firestore ou se pode ser só client-s
 - **Backup antes de editar**: para mudanças não triviais, copiar os arquivos afetados para
   `versoes/AAAA-MM-DD-descricao/` antes de editar, e registrar a entrada em `CHANGELOG.md` (com o
   caminho do backup) ao final — é a rede de segurança para reverter sem depender só do Git.
+  `versoes/` é **local, não versionada** (está no `.gitignore` desde 18/08/2026): a pasta pesava
+  30 MB e era 54% do repositório. Continue criando os backups ali normalmente — eles só não
+  entram mais em commit.
   `README.md` de `tests/` documenta a convenção de nomes de teste.
 - **Sem build step**: qualquer JS novo em `static/js/` precisa passar em `node --check` (é o que
   `test:sintaxe` valida) — não introduzir sintaxe que exija transpilação.

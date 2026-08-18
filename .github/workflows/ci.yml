@@ -17,6 +17,8 @@ jobs:
         run: node tests/checar-sintaxe.js
       - name: Testes unitários de regras/dados
         run: node tests/unit-regras.js
+      - name: Testes de loot/XP de encontro (P6)
+        run: node tests/unit-p6-loot-xp.js
       - name: Sintaxe do backend (app.py)
         run: python3 -m py_compile app.py
       - name: Testes do servidor de fichas (schema v2 + PATCH)

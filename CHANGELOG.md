@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-08-18 — Faxina do repositorio 🧹
+
+Sem mudanca de comportamento no produto: so organizacao do repo, testes e branches.
+**Backup:** `versoes/2026-08-18-organizar-repo/` (`.gitignore`, `.claude/launch.json`,
+`test-p6.js`, `tests/test-servidor.py` como estavam antes).
+
+- **`versoes/` saiu do controle de versao** (513 arquivos, 30 MB — 54% do repo). Continua
+  em disco como rede de seguranca da convencao do `CLAUDE.md`; so parou de entrar em commits
+  novos (`git rm -r --cached` + `.gitignore`). O historico ate hoje segue no Git, nada foi
+  reescrito — clones novos caem de ~56 MB para ~26 MB.
+- **`test-p6.js` saiu da raiz** e virou `tests/unit-p6-loot-xp.js`, conforme a convencao de
+  `tests/`. **Estava falhando em ~19% das rodadas** — e nao era bug do produto: o teste
+  chamava `rolarLootEncontro` sem `rng`, entao o Lobo (CR 1/4, sem loot proprio) podia
+  sortear "Adaga gasta" da tabela generica `0-4` (peso 10) e virar uma 5a adaga onde o teste
+  esperava 4. Agora injeta `rng` fixo. Ligado ao `npm run test:p6`, ao `test:tudo` e a CI.
+- **`tests/test-servidor.py` voltou a rodar no Python 3.11**: uma f-string com barra
+  invertida (PEP 701, so valida no 3.12+) quebrava o arquivo inteiro com `SyntaxError`
+  localmente, embora passasse na CI. Extraido para a variavel `_marca_card`.
+- **`.claude/launch.json` voltou a ser so do D&D**: as entradas `alysson-site`,
+  `resistencia` e `mensageiro` foram movidas para o `.claude/launch.json` de cada projeto
+  dono (com caminhos relativos, nao mais absolutos).
+- **PR #2 (devocional de Efesios) fechado sem mesclar** — conteudo alheio ao produto. As 226
+  linhas foram preservadas em `F:/Claude/pessoal/devocionais/DEVOCIONAL-EFESIOS-1.md`.
+- **8 branches `claude/*` ja mescladas apagadas** (local e remoto), conferidas uma a uma com
+  `git merge-base --is-ancestor`: `16-6b-centralizar`, `dnd-deities-pacts-sheets-fzela7`,
+  `f5b-f5c-subclasses`, `fase21-mesa-viva`, `fase22-1-cards`, `fase22-campanhas`,
+  `rebrand-forja-acesso`, `whatsapp-liberar-fim-creditos`.
+- **Folhas de mockup do Gemini** (`static/icons/assets/`, 5,3 MB) entraram no `.gitignore`:
+  sao material bruto que ainda precisa de recorte, nao asset do produto.
+
+**Verificacao:** `node tests/checar-sintaxe.js` (todos os JS), `node tests/unit-regras.js`
+(59/59), `node tests/unit-p6-loot-xp.js` (12 rodadas seguidas, 12 verdes — antes falhava
+~1 em 5), `python -m py_compile app.py` e `py_compile tests/test-servidor.py`. O
+`test:servidor` completo nao rodou nesta maquina por falta de Flask instalado no Python 3.11
+local (`pip install -r requirements.txt` resolve); a CI cobre ele.
+
 ## 2026-08-02 — 22.4 · Toolbars enxutas (dropdown "⚙️ mais") 🧰
 
 **Backup:** `versoes/2026-08-02-22-4-toolbars/` (mestre.html, aventura.js, app.js, style.css).

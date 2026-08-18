@@ -293,8 +293,9 @@ logar(jog, 'jogador-teste', 'senha-teste-456')
 
 # hub: admin vê os 4 modos; jogador vê 1 só
 r = mestre.get('/hub?escolher=1')
-t('A1: hub do admin mostra os 4 cards de modo', r.data.count(b'class="hub-card cor-') == 4,
-  f'achou {r.data.count(b"class=\"hub-card cor-")}')
+_marca_card = b'class="hub-card cor-'
+t('A1: hub do admin mostra os 4 cards de modo', r.data.count(_marca_card) == 4,
+  f'achou {r.data.count(_marca_card)}')
 r = jog.get('/hub?escolher=1')
 t('A1: hub do jogador mostra só 1 card', r.data.count(b'class="hub-card cor-') == 1)
 

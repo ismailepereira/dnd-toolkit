@@ -104,6 +104,11 @@ isso determina se precisa de rota `/api` + Firestore ou se pode ser só client-s
   `versoes/` é **local, não versionada** (está no `.gitignore` desde 18/08/2026): a pasta pesava
   30 MB e era 54% do repositório. Continue criando os backups ali normalmente — eles só não
   entram mais em commit.
+  ⚠️ **Armadilha ao visitar commits anteriores a 18/08/2026**: naqueles commits `versoes/` ainda
+  era rastreada, então dar `git checkout` num deles materializa os arquivos como rastreados e
+  voltar para a `master` os **apaga do disco**. Se acontecer, restaure sem re-rastrear com
+  `git archive 736cd27 versoes | tar -x` (`git checkout 736cd27 -- versoes/` não serve: ele
+  devolve os arquivos ao índice).
   `README.md` de `tests/` documenta a convenção de nomes de teste.
 - **Sem build step**: qualquer JS novo em `static/js/` precisa passar em `node --check` (é o que
   `test:sintaxe` valida) — não introduzir sintaxe que exija transpilação.
